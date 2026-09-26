@@ -7,7 +7,7 @@ ręcznego ustawiania — patrz README.md po dłuższe wyjaśnienie i alternatywy
 from typing import Dict, List
 
 from .currency import to_pln
-from .model import Itinerary, PricedLeg
+from .model import Itinerary, LegMode, PricedLeg
 from .transfers import check_all_transfers
 
 RECOMMENDATION_LABELS = {
@@ -33,7 +33,7 @@ def build_itinerary(variant_name: str, priced_legs: List[PricedLeg]) -> Itinerar
         legs=priced_legs,
         total_price_pln=round(total_price_pln, 2),
         total_duration_min=total_duration_min,
-        num_transfers=len(priced_legs) - 1,
+        num_transfers=max(sum(1 for pl in priced_legs if pl.leg.mode is not LegMode.WALK) - 1, 0),
         transfer_warnings=check_all_transfers(legs_only),
     )
 

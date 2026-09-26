@@ -41,6 +41,22 @@ class RouteRequest:
         return f"{self.date}T{self.departure_time}Z"
 
 
+def request_from_addresses(origin_text: str, destination_text: str, date: str, **overrides) -> RouteRequest:
+    """RouteRequest od adresu do adresu (geocoding OSM w MOTIS, Sesja 4b): MOTIS sam dokłada
+    dojście piesze z adresu do przystanku i z przystanku do adresu docelowego."""
+    o_lat, o_lon, o_name = motis_client.geocode(origin_text)
+    d_lat, d_lon, d_name = motis_client.geocode(destination_text)
+    kwargs = dict(
+        origin_stop_id=motis_client.coords_place(o_lat, o_lon),
+        destination_stop_id=motis_client.coords_place(d_lat, d_lon),
+        origin_label=o_name,
+        destination_label=d_name,
+        date=date,
+    )
+    kwargs.update(overrides)
+    return RouteRequest(**kwargs)
+
+
 @dataclass
 class HubConfig:
     """Jeden ustalony węzeł przesiadkowy lot<->kolej: lotnisko wylotu/przylotu + stacje kolejowe
@@ -95,8 +111,9 @@ def build_rail_only_variants(request: RouteRequest, max_variants: int = 2) -> Li
             continue
         seen_signatures.add(signature)
 
-        modes_used = sorted({l.extra.get("motis_mode", "RAIL") for l in legs})
-        name = f"Tylko kolej ({'/'.join(modes_used).lower()}, {len(legs) - 1} przesiadki)"
+        transit = [l for l in legs if l.mode is not LegMode.WALK]
+        modes_used = sorted({l.extra.get("motis_mode", "RAIL") for l in transit})
+        name = f"Tylko kolej ({'/'.join(modes_used).lower()}, {len(transit) - 1} przesiadki)"
         priced = _price_legs(legs, request)
         variants.append(build_itinerary(name, priced))
 

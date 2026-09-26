@@ -97,3 +97,18 @@ zachowuje swoją oryginalną kwotę/walutę w `breakdown`/`amount`/`currency`, w
 
 `demo.py` wypisuje pominięte warianty z powodem, żeby było jasne, czego brakuje (tokena,
 działającego MOTIS, itp.), zamiast się wywalić.
+
+## Adres → adres (Sesja 4c)
+
+`variants.request_from_addresses("Krakowskie Przedmieście 50, Lublin", "Bahnhofstraße, Gelsenkirchen", "2026-10-05")`
+geokoduje oba adresy przez MOTIS (`/api/v1/geocode`, OSM z Sesji 4b) i podaje do `/plan`
+współrzędne, więc MOTIS sam dokłada dojście piesze. Wynik to pełny łańcuch:
+pieszo z adresu → autobus/tramwaj miejski → pociągi → pieszo do adresu.
+
+- `LegMode.WALK`: tylko pierwszy i ostatni odcinek pieszy (dojście z/do adresu) są legami;
+  piesze przejścia między odcinkami transitu nadal tylko ustawiają `requires_walk`.
+  Odcinki WALK nie liczą się jako przesiadki i nie są sprawdzane w `transfers.py`. Cena 0.
+- `LegMode.BUS`: autobusy/tramwaje z MOTIS (np. ZTM Lublin), ryczałt `LOCAL_BUS_FLAT_PLN`
+  (placeholder, brak modułu taryf komunikacji miejskiej).
+
+`python demo.py --from "..." --to "..." --date YYYY-MM-DD`

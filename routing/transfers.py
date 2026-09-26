@@ -44,8 +44,11 @@ def check_transfer(prev_leg: Leg, next_leg: Leg, after_leg_index: int) -> Option
 
 def check_all_transfers(legs: List[Leg]) -> List[TransferWarning]:
     warnings: List[TransferWarning] = []
-    for i in range(len(legs) - 1):
-        warning = check_transfer(legs[i], legs[i + 1], after_leg_index=i)
+    # odcinki piesze (dojście z adresu / do adresu) nie są przesiadkami — pomijamy je,
+    # ale zachowujemy oryginalne indeksy legów w after_leg_index
+    indexed = [(i, leg) for i, leg in enumerate(legs) if leg.mode is not LegMode.WALK]
+    for (i, prev), (_, nxt) in zip(indexed, indexed[1:]):
+        warning = check_transfer(prev, nxt, after_leg_index=i)
         if warning is not None:
             warnings.append(warning)
     return warnings

@@ -8,6 +8,8 @@ from typing import List, Optional
 class LegMode(str, Enum):
     RAIL = "kolej"
     FLIGHT = "lot"
+    BUS = "autobus"
+    WALK = "pieszo"
 
 
 @dataclass

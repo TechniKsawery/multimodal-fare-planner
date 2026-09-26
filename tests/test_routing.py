@@ -407,3 +407,92 @@ def test_build_rail_flight_rail_variant_laczy_trzy_odcinki(monkeypatch):
     assert itinerary.legs[1].leg.mode is LegMode.FLIGHT
     assert calls[0] == ("lublin", "waw_airport")
     assert calls[1] == ("dortmund_hbf", "gelsenkirchen")
+
+
+# --- adresy: odcinki piesze (dojście z adresu / do adresu), autobus, geocoding ---------------
+
+ADDRESS_ITINERARY = {
+    "legs": [
+        {"mode": "WALK", "from": {"name": "START", "lat": 51.2477, "lon": 22.5592},
+         "to": {"name": "Ogród Saski", "stopId": "ztml_1001", "lat": 51.2474, "lon": 22.5514},
+         "startTime": "2026-10-05T07:16:00Z", "endTime": "2026-10-05T07:24:00Z", "distance": 565.0},
+        {"mode": "BUS", "from": {"name": "Ogród Saski", "stopId": "ztml_1001", "lat": 51.2474, "lon": 22.5514},
+         "to": {"name": "Dworzec Lublin", "stopId": "ztml_2", "lat": 51.2318, "lon": 22.5692},
+         "startTime": "2026-10-05T07:24:00Z", "endTime": "2026-10-05T07:32:00Z", "agencyName": "ZDiTM Lublin"},
+        {"mode": "WALK", "from": {"name": "Dworzec Lublin", "lat": 51.2318, "lon": 22.5692},
+         "to": {"name": "Lublin Główny", "lat": 51.2313, "lon": 22.5692},
+         "startTime": "2026-10-05T07:32:00Z", "endTime": "2026-10-05T07:34:00Z"},
+        {"mode": "REGIONAL_RAIL", "from": {"name": "Lublin Główny", "stopId": "pl_50500", "lat": 51.2313, "lon": 22.5692},
+         "to": {"name": "Gelsenkirchen Hbf", "stopId": "defv_344028", "lat": 51.5049, "lon": 7.1022},
+         "startTime": "2026-10-05T08:00:00Z", "endTime": "2026-10-05T20:00:00Z", "agencyName": "PKP Intercity"},
+        {"mode": "WALK", "from": {"name": "Gelsenkirchen Hbf", "lat": 51.5049, "lon": 7.1022},
+         "to": {"name": "END", "lat": 51.5060, "lon": 7.1016},
+         "startTime": "2026-10-05T20:00:00Z", "endTime": "2026-10-05T20:04:00Z", "distance": 246.0},
+    ]
+}
+
+
+def test_itinerary_z_adresow_zawiera_dojscie_i_autobus():
+    legs = motis_client.itinerary_to_legs(ADDRESS_ITINERARY)
+    assert [l.mode for l in legs] == [LegMode.WALK, LegMode.BUS, LegMode.RAIL, LegMode.WALK]
+    assert legs[0].extra["walk_role"] == "dojscie"
+    assert legs[-1].extra["walk_role"] == "dojscie_do_celu"
+    assert legs[2].requires_walk is True  # WALK między autobusem a pociągiem
+
+
+def test_odcinki_piesze_nie_licza_sie_jako_przesiadki():
+    legs = motis_client.itinerary_to_legs(ADDRESS_ITINERARY)
+    priced = [pricing.price_leg(l, DiscountProfile()) for l in legs]
+    itinerary = scoring.build_itinerary("adres-adres", priced)
+    assert itinerary.num_transfers == 1  # autobus -> pociąg
+    assert itinerary.total_duration_min == 768  # 07:16 -> 20:04
+    assert len(itinerary.transfer_warnings) == 1  # autobus 07:32 -> pociąg 08:00 = 28 min < 30
+
+
+def test_przesiadka_autobus_pociag_za_krotka_jest_ryzykowna():
+    raw = {"legs": [dict(ADDRESS_ITINERARY["legs"][i]) for i in range(5)]}
+    raw["legs"][3] = {**raw["legs"][3], "startTime": "2026-10-05T07:36:00Z"}
+    legs = motis_client.itinerary_to_legs(raw)
+    warnings = transfers.check_all_transfers(legs)
+    assert len(warnings) == 1
+    assert warnings[0].after_leg_index == 1  # indeks oryginalny (autobus), nie licząc walk
+
+
+def test_wycena_pieszo_zero_i_autobus_ryczalt():
+    legs = motis_client.itinerary_to_legs(ADDRESS_ITINERARY)
+    assert pricing.price_leg(legs[0], DiscountProfile()).amount == 0
+    assert pricing.price_leg(legs[1], DiscountProfile()).amount == pricing.LOCAL_BUS_FLAT_PLN
+
+
+def test_geocode_zwraca_wspolrzedne(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return [{"name": "Krakowskie Przedmieście 46-50", "lat": 51.2477, "lon": 22.5592}]
+
+    monkeypatch.setattr(motis_client.requests, "get", lambda *a, **kw: FakeResponse())
+    assert motis_client.geocode("x") == (51.2477, 22.5592, "Krakowskie Przedmieście 46-50")
+
+
+def test_geocode_brak_wynikow_podnosi_blad(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return []
+
+    monkeypatch.setattr(motis_client.requests, "get", lambda *a, **kw: FakeResponse())
+    with pytest.raises(MotisError):
+        motis_client.geocode("nieistniejący adres")
+
+
+def test_request_from_addresses_uzywa_wspolrzednych(monkeypatch):
+    coords = {"a": (51.0, 22.0, "Adres A"), "b": (51.5, 7.1, "Adres B")}
+    monkeypatch.setattr(variants.motis_client, "geocode", lambda text: coords[text])
+    request = variants.request_from_addresses("a", "b", "2026-10-05")
+    assert request.origin_stop_id == "51.0,22.0"
+    assert request.destination_stop_id == "51.5,7.1"
+    assert request.origin_label == "Adres A"

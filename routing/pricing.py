@@ -94,9 +94,29 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
     )
 
 
+LOCAL_BUS_FLAT_PLN = 4.0
+"""PLACEHOLDER: ryczałt za jeden przejazd autobusem/tramwajem miejskim (np. ZTM Lublin) —
+nie mamy modułu taryf komunikacji miejskiej."""
+
+
+def price_bus_leg(leg: Leg) -> PricedLeg:
+    return PricedLeg(
+        leg=leg, amount=LOCAL_BUS_FLAT_PLN, currency="PLN", price_type="szacunek",
+        notes="Ryczałt za przejazd komunikacją miejską (placeholder, brak modułu taryf).",
+    )
+
+
+def price_walk_leg(leg: Leg) -> PricedLeg:
+    return PricedLeg(leg=leg, amount=0.0, currency="PLN", price_type="oficjalna_taryfa", notes="Dojście pieszo.")
+
+
 def price_leg(leg: Leg, discounts: DiscountProfile, flight_currency: str = "PLN") -> PricedLeg:
     if leg.mode is LegMode.RAIL:
         return price_rail_leg(leg, discounts)
     if leg.mode is LegMode.FLIGHT:
         return price_flight_leg(leg, currency=flight_currency)
+    if leg.mode is LegMode.BUS:
+        return price_bus_leg(leg)
+    if leg.mode is LegMode.WALK:
+        return price_walk_leg(leg)
     raise ValueError(f"nieznany LegMode: {leg.mode}")

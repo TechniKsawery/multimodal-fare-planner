@@ -5,16 +5,19 @@ Warianty z lotem wymagają tokena Travelpayouts w zmiennej środowiskowej TRAVEL
 (patrz flights/README.md) — bez niego zostaną pominięte (SkippedVariant), ale reszta demo
 i tak zadziała.
 
-Użycie:
+Użycie (adres -> adres, z dojściem pieszym; geocoding OSM z Sesji 4b):
     python demo.py
+    python demo.py --from "Krakowskie Przedmieście 50, Lublin" --to "Bahnhofstraße, Gelsenkirchen" --date 2026-10-05
 """
-from routing.demo_route import (
-    FLIGHT_REGIONAL_HUBS,
-    RAIL_FLIGHT_RAIL_HUBS,
-    lublin_gelsenkirchen_request,
-)
+import argparse
+
+from routing.demo_route import FLIGHT_REGIONAL_HUBS, RAIL_FLIGHT_RAIL_HUBS
+from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
-from routing.variants import generate_variants
+from routing.variants import generate_variants, request_from_addresses
+
+DEFAULT_FROM = "Krakowskie Przedmieście 50, Lublin"
+DEFAULT_TO = "Bahnhofstraße, Gelsenkirchen"
 
 # MOTIS ma wczytane rozkłady tylko na okno kilku tygodni od dnia importu danych (patrz
 # scripts/run_motis.sh|ps1 import) — jeśli demo zwróci błąd "outside of loaded timetable
@@ -31,6 +34,14 @@ def format_itinerary(itinerary) -> str:
     ]
     for priced in itinerary.legs:
         leg = priced.leg
+        if leg.mode.value == "pieszo":
+            meters = leg.extra.get("walk_distance_m")
+            dist = f", {meters:.0f} m" if meters else ""
+            lines.append(
+                f"    - pieszo: {leg.origin_name} -> {leg.destination_name} "
+                f"({leg.depart.strftime('%H:%M')}-{leg.arrive.strftime('%H:%M')}, {leg.duration_min:.0f} min{dist})"
+            )
+            continue
         lines.append(
             f"    - {leg.mode.value}: {leg.origin_name} -> {leg.destination_name} "
             f"({leg.depart.strftime('%H:%M')}-{leg.arrive.strftime('%H:%M')}, "
@@ -46,9 +57,20 @@ def format_itinerary(itinerary) -> str:
 
 
 def main() -> None:
-    print(f"Multimodalna wyszukiwarka — Lublin -> Gelsenkirchen, {DEMO_DATE}\n")
+    parser = argparse.ArgumentParser(description="Wyszukiwarka tras adres -> adres")
+    parser.add_argument("--from", dest="origin", default=DEFAULT_FROM, help="adres startowy (z miastem)")
+    parser.add_argument("--to", dest="destination", default=DEFAULT_TO, help="adres docelowy (z miastem)")
+    parser.add_argument("--date", default=DEMO_DATE, help="dzień wyjazdu YYYY-MM-DD")
+    args = parser.parse_args()
 
-    request = lublin_gelsenkirchen_request(DEMO_DATE)
+    try:
+        request = request_from_addresses(args.origin, args.destination, args.date)
+    except MotisError as exc:
+        print(f"Nie udało się zgeokodować adresów: {exc}")
+        return
+
+    print(f"Multimodalna wyszukiwarka — {request.origin_label} -> {request.destination_label}, {args.date}\n")
+
     built, skipped = generate_variants(
         request,
         rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,

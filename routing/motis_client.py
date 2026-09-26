@@ -33,6 +33,29 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2 * r * math.asin(math.sqrt(a))
 
 
+def geocode(text: str) -> tuple:
+    """Adres/nazwa -> (lat, lon, nazwa) przez /api/v1/geocode (OSM od Sesji 4b).
+
+    Zwraca pierwszy wynik MOTIS; podaj dokładny adres z miastem, np.
+    "Krakowskie Przedmieście 50, Lublin".
+    """
+    try:
+        response = requests.get(f"{MOTIS_BASE_URL}/api/v1/geocode", params={"text": text}, timeout=30)
+        response.raise_for_status()
+        results = response.json()
+    except requests.RequestException as exc:
+        raise MotisError(f"Błąd geocodingu w MOTIS ({MOTIS_BASE_URL}): {exc}") from exc
+    if not results:
+        raise MotisError(f"MOTIS nie znalazł adresu: {text!r}")
+    best = results[0]
+    return best["lat"], best["lon"], best.get("name") or text
+
+
+def coords_place(lat: float, lon: float) -> str:
+    """Format miejsca dla /plan: współrzędne (MOTIS sam dołoży dojście piesze do przystanku)."""
+    return f"{lat},{lon}"
+
+
 def plan(from_place: str, to_place: str, time: str, max_transfers: int = 4) -> dict:
     """GET /api/v6/plan — surowa odpowiedź MOTIS, zwalidowana pod kątem obecności itinerariów."""
     try:
@@ -70,38 +93,60 @@ def fewest_transfers_itinerary(payload: dict) -> dict:
 
 
 def itinerary_to_legs(itinerary: dict) -> List[Leg]:
-    """Zamienia itinerary MOTIS (legs z modes transit + WALK) na listę Leg (bez legów WALK —
-    ich obecność/czas trwania jest wykorzystywany tylko do ustawienia requires_walk/distance).
+    """Zamienia itinerary MOTIS na listę Leg.
+
+    Odcinki WALK na początku i końcu (dojście z adresu / do adresu) stają się legami
+    LegMode.WALK; WALK między odcinkami transitu są tylko oznaczeniem requires_walk
+    (przesiadka wymagająca przejścia). Tryb BUS z MOTIS -> LegMode.BUS, reszta transitu -> RAIL.
     """
     raw_legs = itinerary["legs"]
     legs: List[Leg] = []
     preceded_by_walk = False
+    last_index = len(raw_legs) - 1
 
-    for raw in raw_legs:
-        if raw["mode"] == "WALK":
-            preceded_by_walk = True
-            continue
-
+    for idx, raw in enumerate(raw_legs):
         origin = raw["from"]
         destination = raw["to"]
         distance_km = haversine_km(origin["lat"], origin["lon"], destination["lat"], destination["lon"])
+        common = dict(
+            origin_name=origin["name"],
+            destination_name=destination["name"],
+            depart=_parse_time(raw["startTime"]),
+            arrive=_parse_time(raw["endTime"]),
+            distance_km=distance_km,
+        )
 
+        if raw["mode"] == "WALK":
+            if idx == 0 or idx == last_index:
+                access = idx == 0
+                legs.append(
+                    Leg(
+                        mode=LegMode.WALK,
+                        carrier_name="pieszo",
+                        requires_walk=False,
+                        extra={"motis_mode": "WALK", "walk_role": "dojscie" if access else "dojscie_do_celu",
+                               "walk_distance_m": raw.get("distance")},
+                        **common,
+                    )
+                )
+            else:
+                preceded_by_walk = True
+            continue
+
+        mode = LegMode.BUS if raw["mode"] in ("BUS", "COACH") else LegMode.RAIL
+        has_prev_transit = any(l.mode is not LegMode.WALK for l in legs)
         legs.append(
             Leg(
-                mode=LegMode.RAIL,
-                origin_name=origin["name"],
-                destination_name=destination["name"],
-                depart=_parse_time(raw["startTime"]),
-                arrive=_parse_time(raw["endTime"]),
+                mode=mode,
                 carrier_name=raw.get("agencyName") or raw.get("routeShortName") or "",
-                distance_km=distance_km,
-                requires_walk=preceded_by_walk if legs else False,
+                requires_walk=preceded_by_walk if has_prev_transit else False,
                 extra={
                     "motis_mode": raw["mode"],
                     "route_short_name": raw.get("routeShortName"),
                     "origin_stop_id": origin.get("stopId"),
                     "destination_stop_id": destination.get("stopId"),
                 },
+                **common,
             )
         )
         preceded_by_walk = False

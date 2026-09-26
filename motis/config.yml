@@ -1,5 +1,6 @@
 server:
   port: 8080
+osm: /input/osm/poland-nrw-latest.osm.pbf
 timetable:
   first_day: TODAY
   num_days: 28
@@ -13,3 +14,6 @@ timetable:
     ztml:
       path: /input/gtfs/pl/lublin.zip
 geocoding: true
+reverse_geocoding: true
+street_routing: true
+osr_footpath: true

@@ -1,3 +1,10 @@
+# motis-data jest wolumenem nazwanym (nie bind mountem), bo OSM/street_routing
+# buduje duże memory-mapped pliki, które trzeba w locie powiększać (resize) —
+# bind mounty Docker Desktop na Windows (gRPC-FUSE/VirtioFS) tego nie
+# obsługują poprawnie i import kończy się błędem "resize error".
+volumes:
+  motis-data:
+
 services:
   motis-import:
     image: ghcr.io/motis-project/motis:latest
@@ -5,7 +12,8 @@ services:
     command: ["import", "-d", "/data", "-c", "/data/config.yml"]
     volumes:
       - ./data:/input:ro
-      - ./motis/data:/data
+      - motis-data:/data
+      - ./motis/config.yml:/data/config.yml:ro
     profiles: ["import"]
 
   motis:
@@ -13,4 +21,5 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./motis/data:/data
+      - motis-data:/data
+      - ./motis/config.yml:/data/config.yml:ro

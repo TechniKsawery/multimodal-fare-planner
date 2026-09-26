@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Uruchamia silnik routingu MOTIS (motis-project/motis) na feedach GTFS z data/.
-# Użycie: scripts/run_motis.sh import   -- zbuduj dane (config.yml -> motis/data/)
+# Uruchamia silnik routingu MOTIS (motis-project/motis) na feedach GTFS+OSM z data/.
+# Dane wyjściowe (motis/data) trzymane są w nazwanym wolumenie Dockera, nie w
+# bind moncie — patrz komentarz w docker-compose.yml (resize error na Windows).
+# Użycie: scripts/run_motis.sh import   -- zbuduj dane
 #         scripts/run_motis.sh server   -- uruchom serwer HTTP na porcie 8080
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 case "${1:-}" in
   import)
-    mkdir -p motis/data
-    cp motis/config.yml motis/data/config.yml
     docker compose --profile import run --rm motis-import
     ;;
   server)

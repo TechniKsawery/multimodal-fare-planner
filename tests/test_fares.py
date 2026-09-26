@@ -54,3 +54,59 @@ def test_db_flexpreis_z_bahncard25():
 def test_db_flexpreis_miesci_sie_w_realnych_przedzialach(km, lo, hi):
     seg = Segment(Carrier.DB, "A", "B", distance_km=km)
     assert lo <= estimate_price(seg).amount <= hi
+
+
+def test_vrr_grundpreis_plus_km():
+    seg = Segment(Carrier.VRR, "Gelsenkirchen Hbf", "Essen Hbf", distance_km=10)
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == pytest.approx(1.73 + 0.29 * 10, abs=0.01)
+
+
+def test_vrr_sufit_cenowy_ograniczajacy_dlugi_dystans():
+    seg = Segment(Carrier.VRR, "Gelsenkirchen Hbf", "Bonn Hbf", distance_km=200)
+    result = estimate_price(seg)
+    assert result.amount == 19.80  # sufit preisstufe C
+
+
+def test_vrr_bez_dystansu_podnosi_blad():
+    seg = Segment(Carrier.VRR, "A", "B")
+    with pytest.raises(ValueError):
+        estimate_price(seg)
+
+
+def test_ztm_lublin_krotki_przejazd_bilet_15_minutowy():
+    seg = Segment(Carrier.ZTM_LUBLIN, "Ogród Saski", "Dworzec Lublin", ride_duration_min=8)
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "PLN"
+    assert result.amount == 3.40
+
+
+def test_ztm_lublin_ulgowy():
+    seg = Segment(
+        Carrier.ZTM_LUBLIN, "Ogród Saski", "Dworzec Lublin", ride_duration_min=8,
+        discounts=DiscountProfile(ztm_lublin_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 1.70
+
+
+def test_ztm_lublin_dobiera_dluzszy_bilet():
+    seg = Segment(Carrier.ZTM_LUBLIN, "A", "B", ride_duration_min=35)
+    result = estimate_price(seg)
+    assert result.amount == 4.60  # bilet 40-minutowy
+
+
+def test_ztm_lublin_przekroczenie_najdluzszego_biletu_to_szacunek():
+    seg = Segment(Carrier.ZTM_LUBLIN, "A", "B", ride_duration_min=120)
+    result = estimate_price(seg)
+    assert result.amount == 5.20  # ekstrapolacja na bazie biletu 90-minutowego
+    assert result.price_type is PriceType.ESTIMATE
+
+
+def test_ztm_lublin_bez_czasu_jazdy_podnosi_blad():
+    seg = Segment(Carrier.ZTM_LUBLIN, "A", "B")
+    with pytest.raises(ValueError):
+        estimate_price(seg)

@@ -108,8 +108,15 @@ pieszo z adresu → autobus/tramwaj miejski → pociągi → pieszo do adresu.
 - `LegMode.WALK`: tylko pierwszy i ostatni odcinek pieszy (dojście z/do adresu) są legami;
   piesze przejścia między odcinkami transitu nadal tylko ustawiają `requires_walk`.
   Odcinki WALK nie liczą się jako przesiadki i nie są sprawdzane w `transfers.py`. Cena 0.
-- `LegMode.BUS`: autobusy/tramwaje z MOTIS (np. ZTM Lublin), ryczałt `LOCAL_BUS_FLAT_PLN`
-  (placeholder, brak modułu taryf komunikacji miejskiej).
+- `LegMode.BUS`: autobusy/tramwaje z MOTIS. `pricing.price_bus_leg()` rozpoznaje operatora
+  po `agencyName`/nazwach przystanków:
+  - autokar dalekobieżny (Flixbus, RegioJet, ...) → wycena za km, `GENERIC_FALLBACK_PLN_PER_KM`;
+  - `"Lublin"`/`"ZDiTM"`/`"ZTM"` → `fares/ztm_lublin.py` (taryfa czasowa ZTM Lublin, oficjalna,
+    strefa 1+2 — dobiera bilet 15/40/90-minutowy wg czasu jazdy odcinka z MOTIS);
+  - reszta (cały niemiecki fragment sieci to NRW) → `fares/vrr.py` (eezy.nrw, ta sama taryfa
+    obejmuje bus/tramwaj/U-Bahn co pociągi regionalne VRR);
+  - brak rozpoznanego operatora i brak `distance_km` → ryczałt `LOCAL_BUS_FLAT_PLN`
+    (placeholder, tylko dla nieobsłużonych miast/operatorów).
 
 `python demo.py --from "..." --to "..." --date YYYY-MM-DD`
 

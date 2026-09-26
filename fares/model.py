@@ -15,6 +15,7 @@ class Carrier(str, Enum):
     PKP_INTERCITY = "pkp_intercity"
     DB = "db"
     VRR = "vrr"
+    ZTM_LUBLIN = "ztm_lublin"
 
 
 @dataclass
@@ -23,6 +24,7 @@ class DiscountProfile:
 
     pkp_ulga_kod: str = "brak"          # klucz z fares/data/pkp_intercity.json -> ulgi_procent
     bahncard: Optional[str] = None      # None, "25", "50" lub "100" (DB, oficjalne rabaty Flexpreis)
+    ztm_lublin_ulgowy: bool = False     # ZTM Lublin: bilet ulgowy zamiast normalnego
 
 
 @dataclass
@@ -33,6 +35,7 @@ class Segment:
     origin: str
     destination: str
     distance_km: Optional[float] = None   # wymagane dla PKP, DB i VRR (VRR: odległość w linii prostej)
+    ride_duration_min: Optional[float] = None  # wymagane dla ZTM Lublin (taryfa czasowa)
     discounts: DiscountProfile = field(default_factory=DiscountProfile)
 
 

@@ -1,11 +1,12 @@
 """Dispatch do kalkulatora właściwego dla przewoźnika w segmencie."""
-from . import db, pkp, vrr
+from . import db, pkp, vrr, ztm_lublin
 from .model import Carrier, PriceEstimate, Segment
 
 _CALCULATORS = {
     Carrier.PKP_INTERCITY: pkp.estimate,
     Carrier.DB: db.estimate,
     Carrier.VRR: vrr.estimate,
+    Carrier.ZTM_LUBLIN: ztm_lublin.estimate,
 }
 
 

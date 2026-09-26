@@ -1,0 +1,10 @@
+{
+  "_zrodlo": "Oficjalny cennik LUBIKA (system biletu elektronicznego ZDiTM Lublin) — https://lubika.zdtm.lublin.eu/cennik/ , taryfa czasowa, strefa 1+2, ważna od 16.02.2026.",
+  "_uwaga": "ZTM Lublin sprzedaje bilety jednorazowe jako bilety CZASOWE (ważne przez X minut od skasowania), a nie za odległość/liczbę przystanków (ta ostatnia to osobna 'taryfa przystankowa', tu nieobsługiwana). Kalkulator dobiera najkrótszy bilet czasowy, którego czas ważności >= czasowi jazdy odcinka z MOTIS — to PRZYBLIŻENIE: rzeczywisty bilet liczy czas od skasowania (może obejmować oczekiwanie/przesiadkę), nie tylko czas jazdy. Ceny podane dla strefy 1+2 (obejmuje całą sieć ZTM, w tym gminy ościenne) — dla przejazdów tylko w obrębie strefy 1 rzeczywista cena może być niższa, ale nie mamy mapowania przystanek->strefa.",
+  "waluta": "PLN",
+  "bilety_czasowe": [
+    {"wazny_min": 15, "normalny": 3.40, "ulgowy": 1.70},
+    {"wazny_min": 40, "normalny": 4.60, "ulgowy": 2.30},
+    {"wazny_min": 90, "normalny": 5.20, "ulgowy": 2.60}
+  ]
+}

@@ -13,6 +13,13 @@ GENERIC_FALLBACK_PLN_PER_KM = 0.35
 (nieznana nazwa agencji z MOTIS) albo kalkulator odrzucił segment — patrz README.md."""
 
 
+VRR_AREA_KEYWORDS = ("s bahn", "s-bahn", "vrr", "national express", "abellio", "regio")
+"""Fragmenty agencyName traktowane jako przewoźnik w obszarze taryfowym VRR (Zagłębie Rury/NRW)."""
+
+ZTM_LUBLIN_KEYWORDS = ("lublin", "zditm", "ztm")
+"""Fragmenty agencyName/nazw przystanków traktowane jako komunikacja miejska ZTM Lublin."""
+
+
 def infer_rail_carrier(agency_name: str) -> Optional[Carrier]:
     """Zgrubne mapowanie agencyName z MOTIS na przewoźnika z modułu fares/.
 
@@ -25,7 +32,7 @@ def infer_rail_carrier(agency_name: str) -> Optional[Carrier]:
         return Carrier.PKP_INTERCITY
     if "db fernverkehr" in name or "deutsche bahn" in name or name.strip() == "db":
         return Carrier.DB
-    if any(k in name for k in ("s bahn", "s-bahn", "vrr", "national express", "abellio", "regio")):
+    if any(k in name for k in VRR_AREA_KEYWORDS):
         return Carrier.VRR
     return None
 
@@ -95,19 +102,62 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
 
 
 LOCAL_BUS_FLAT_PLN = 4.0
-"""PLACEHOLDER: ryczałt za jeden przejazd autobusem/tramwajem miejskim (np. ZTM Lublin) —
-nie mamy modułu taryf komunikacji miejskiej."""
+"""PLACEHOLDER: ryczałt za jeden przejazd autobusem/tramwajem miejskim, używany TYLKO gdy
+lokalny operator nie jest rozpoznany przez żaden moduł taryf komunikacji miejskiej (patrz
+fares/ztm_lublin.py i fares/vrr.py) — np. transport miejski poza Lublinem i obszarem VRR."""
 
 
 LONG_DISTANCE_COACH_KEYWORDS = ("flix", "regiojet", "blablabus")
 
 
-def price_bus_leg(leg: Leg) -> PricedLeg:
+def price_bus_leg(leg: Leg, discounts: Optional[DiscountProfile] = None) -> PricedLeg:
+    discounts = discounts or DiscountProfile()
+
     if leg.extra.get("motis_mode") == "COACH" or any(k in leg.carrier_name.lower() for k in LONG_DISTANCE_COACH_KEYWORDS):
         return _fallback_priced_leg(leg, "Autokar dalekobieżny — brak modułu taryf.")
+
+    tekst = f"{leg.carrier_name} {leg.origin_name} {leg.destination_name}".lower()
+
+    if any(k in tekst for k in ZTM_LUBLIN_KEYWORDS):
+        try:
+            segment = Segment(
+                carrier=Carrier.ZTM_LUBLIN,
+                origin=leg.origin_name,
+                destination=leg.destination_name,
+                ride_duration_min=leg.duration_min,
+                discounts=discounts,
+            )
+            result = fares_estimate_price(segment)
+            return PricedLeg(
+                leg=leg, amount=result.amount, currency=result.currency,
+                price_type=result.price_type.value, notes=result.notes,
+            )
+        except ValueError as exc:
+            return _fallback_priced_leg(leg, f"Kalkulator ZTM Lublin zwrócił błąd ({exc}).")
+
+    # Cały niemiecki fragment sieci w tym silniku to NRW (Zagłębie Rury), więc lokalny
+    # autobus/tramwaj tu jest domyślnie traktowany jako obszar taryfowy VRR (eezy.nrw) —
+    # patrz VRR_AREA_KEYWORDS/infer_rail_carrier oraz fares/README.md.
+    if leg.distance_km is not None:
+        try:
+            segment = Segment(
+                carrier=Carrier.VRR,
+                origin=leg.origin_name,
+                destination=leg.destination_name,
+                distance_km=leg.distance_km,
+                discounts=discounts,
+            )
+            result = fares_estimate_price(segment)
+            return PricedLeg(
+                leg=leg, amount=result.amount, currency=result.currency,
+                price_type=result.price_type.value, notes=result.notes,
+            )
+        except ValueError as exc:
+            return _fallback_priced_leg(leg, f"Kalkulator VRR zwrócił błąd ({exc}).")
+
     return PricedLeg(
         leg=leg, amount=LOCAL_BUS_FLAT_PLN, currency="PLN", price_type="szacunek",
-        notes="Ryczałt za przejazd komunikacją miejską (placeholder, brak modułu taryf).",
+        notes="Ryczałt za przejazd komunikacją miejską (placeholder, nieznany operator lokalny).",
     )
 
 
@@ -121,7 +171,7 @@ def price_leg(leg: Leg, discounts: DiscountProfile, flight_currency: str = "PLN"
     if leg.mode is LegMode.FLIGHT:
         return price_flight_leg(leg, currency=flight_currency)
     if leg.mode is LegMode.BUS:
-        return price_bus_leg(leg)
+        return price_bus_leg(leg, discounts)
     if leg.mode is LegMode.WALK:
         return price_walk_leg(leg)
     raise ValueError(f"nieznany LegMode: {leg.mode}")

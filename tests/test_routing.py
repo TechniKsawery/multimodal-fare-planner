@@ -458,10 +458,13 @@ def test_przesiadka_autobus_pociag_za_krotka_jest_ryzykowna():
     assert warnings[0].after_leg_index == 1  # indeks oryginalny (autobus), nie licząc walk
 
 
-def test_wycena_pieszo_zero_i_autobus_ryczalt():
+def test_wycena_pieszo_zero_i_autobus_ztm_lublin():
     legs = motis_client.itinerary_to_legs(ADDRESS_ITINERARY)
     assert pricing.price_leg(legs[0], DiscountProfile()).amount == 0
-    assert pricing.price_leg(legs[1], DiscountProfile()).amount == pricing.LOCAL_BUS_FLAT_PLN
+    # Ogród Saski -> Dworzec Lublin, ZDiTM Lublin, 8 min jazdy -> bilet 15-minutowy normalny
+    priced = pricing.price_leg(legs[1], DiscountProfile())
+    assert priced.amount == 3.40
+    assert priced.price_type == "oficjalna_taryfa"
 
 
 def test_geocode_zwraca_wspolrzedne(monkeypatch):
@@ -509,13 +512,31 @@ def test_tramwaj_i_metro_to_transport_lokalny_a_pociag_to_kolej():
     assert motis_client.itinerary_to_legs(raw("HIGHSPEED_RAIL"))[0].mode is LegMode.RAIL
 
 
-def test_flixbus_wyceniany_za_km_a_autobus_miejski_ryczaltem():
+def test_flixbus_wyceniany_za_km_a_autobus_lubelski_taryfa_czasowa():
     city = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(7), carrier="ZDiTM Lublin", distance_km=5,
                     extra={"motis_mode": "BUS"})
     coach = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(12), carrier="Flixbus", distance_km=500,
                      extra={"motis_mode": "BUS"})
-    assert pricing.price_bus_leg(city).amount == pricing.LOCAL_BUS_FLAT_PLN
+    # 60 min jazdy -> najkrótszy pokrywający bilet to 90-minutowy (5.20 PLN normalny)
+    assert pricing.price_bus_leg(city).amount == 5.20
     assert pricing.price_bus_leg(coach).amount == pytest.approx(500 * pricing.GENERIC_FALLBACK_PLN_PER_KM)
+
+
+def test_tramwaj_vrr_wyceniany_eezy_nrw():
+    tram = make_leg(LegMode.BUS, "Essen Hbf", "Essen Rüttenscheid", _dt(6), _dt(6, 12),
+                     carrier="Ruhrbahn", distance_km=3.5, extra={"motis_mode": "TRAM"})
+    priced = pricing.price_bus_leg(tram)
+    assert priced.currency == "EUR"
+    assert priced.price_type == "oficjalna_taryfa"
+    assert priced.amount > 0
+
+
+def test_autobus_nieznanego_operatora_bez_dystansu_ryczalt():
+    leg = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(6, 10), carrier="Jakiś Nieznany Operator",
+                    distance_km=None, extra={"motis_mode": "BUS"})
+    priced = pricing.price_bus_leg(leg)
+    assert priced.amount == pricing.LOCAL_BUS_FLAT_PLN
+    assert priced.price_type == "szacunek"
 
 
 # --- przesiadki niewykonalne (poniżej absolutnego minimum) są odrzucane, ciasne = ryzykowne -----

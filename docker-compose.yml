@@ -1,0 +1,16 @@
+services:
+  motis-import:
+    image: ghcr.io/motis-project/motis:latest
+    entrypoint: /motis
+    command: ["import", "-d", "/data", "-c", "/data/config.yml"]
+    volumes:
+      - ./data:/input:ro
+      - ./motis/data:/data
+    profiles: ["import"]
+
+  motis:
+    image: ghcr.io/motis-project/motis:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./motis/data:/data

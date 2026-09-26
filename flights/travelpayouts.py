@@ -4,9 +4,14 @@ Wymaga darmowego tokena API (rejestracja w programie partnerskim Travelpayouts).
 Token podaj w zmiennej środowiskowej TRAVELPAYOUTS_TOKEN — patrz README.md w tym katalogu.
 """
 import os
+from pathlib import Path
 from typing import Optional
 
 import requests
+from dotenv import load_dotenv
+
+# .env w katalogu głównym repo; zmienna środowiskowa już ustawiona ma pierwszeństwo (override=False)
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 API_BASE = "https://api.travelpayouts.com/v1"
 TOKEN_ENV_VAR = "TRAVELPAYOUTS_TOKEN"

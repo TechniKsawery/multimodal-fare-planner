@@ -5,3 +5,6 @@ __pycache__/
 
 # Wygenerowane dane MOTIS (routing), budowane przez scripts/run_motis.sh import
 motis/data/
+
+# Sekrety lokalne
+.env

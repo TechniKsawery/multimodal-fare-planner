@@ -1,0 +1,10 @@
+{
+  "_uwaga": "Wartości przykładowe/placeholder — patrz README.md w katalogu flights/. Podmień na realne ceny bagażu, dojazdu na lotnisko i transferu z lotniska dla relacji, które nas interesują.",
+  "waluta": "PLN",
+  "relacje": {
+    "WAW-DUS": {"bagaz": 150, "dojazd_na_lotnisko": 40, "transfer_z_lotniska": 25},
+    "WAW-CGN": {"bagaz": 150, "dojazd_na_lotnisko": 40, "transfer_z_lotniska": 30},
+    "KRK-DTM": {"bagaz": 130, "dojazd_na_lotnisko": 35, "transfer_z_lotniska": 20},
+    "WAW-FMM": {"bagaz": 150, "dojazd_na_lotnisko": 40, "transfer_z_lotniska": 15}
+  }
+}

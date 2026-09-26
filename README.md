@@ -79,3 +79,23 @@ result = estimate_price(Segment(
 ```
 
 Testy: `pytest tests/test_fares.py`.
+
+## Sesja 3b: moduł cen lotów
+
+Moduł `flights/` szacuje cenę segmentu lotu: cena biletu z
+[Travelpayouts Data API](https://www.travelpayouts.com/programs/100/tools/api) (dane z cache,
+mogą być nieaktualne o kilka dni) + bagaż + dojazd na lotnisko + transfer z lotniska do miasta
+docelowego (osobne, konfigurowalne składniki). Wymaga darmowego tokena API w zmiennej
+środowiskowej `TRAVELPAYOUTS_TOKEN` — szczegóły konfiguracji i struktura są w
+[`flights/README.md`](flights/README.md). Każdy wynik oznaczony jako `PriceType.ESTIMATE`
+("szacunek"), tak jak w module `fares/`.
+
+```python
+from flights import FlightSegment, estimate_price
+
+result = estimate_price(FlightSegment(
+    origin="WAW", destination="DUS", depart_date="2026-11-15", currency="PLN",
+))
+```
+
+Testy (mockują API, nie wymagają tokena): `pytest tests/test_flights.py`.

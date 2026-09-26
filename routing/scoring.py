@@ -41,6 +41,7 @@ def build_itinerary(variant_name: str, priced_legs: List[PricedLeg]) -> Itinerar
 def pick_recommendations(itineraries: List[Itinerary]) -> Dict[str, Itinerary]:
     """Wybiera 4 rekomendacje z listy wariantów. Może się zdarzyć, że ten sam wariant wygra
     w kilku kategoriach naraz (np. jest jednocześnie najtańszy i najszybszy) — to nie błąd."""
+    itineraries = [i for i in itineraries if not i.is_infeasible]  # niewykonalnych nie rekomendujemy
     if not itineraries:
         raise ValueError("brak wariantów do wyboru rekomendacji")
 

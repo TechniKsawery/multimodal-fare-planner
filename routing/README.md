@@ -112,3 +112,11 @@ pieszo z adresu → autobus/tramwaj miejski → pociągi → pieszo do adresu.
   (placeholder, brak modułu taryf komunikacji miejskiej).
 
 `python demo.py --from "..." --to "..." --date YYYY-MM-DD`
+
+## Przesiadki niewykonalne vs ryzykowne
+
+Dwa progi w `transfers.py`: **bezpieczny** (20/30 min kolej, 90/120 min z lotem) i **absolutne
+minimum wykonalności** (3 min ten sam peron, 8 min ze zmianą dworca/peronu, 60 min kolej→lot,
+45 min lot→kolej). Poniżej minimum wykonalności wariant jest **odrzucany** (nie trafia do
+rekomendacji; w `generate_variants` ląduje w `SkippedVariant` z powodem). Między minimum a progiem
+bezpiecznym wariant zostaje z oznaczeniem RYZYKOWNY. Progi to szacunek.

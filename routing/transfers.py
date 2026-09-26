@@ -12,6 +12,25 @@ MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT = 120  # dojście do terminala, odprawa, kon
 MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL = 90   # wyjście z samolotu, odbiór bagażu, dojście/dojazd do stacji
 
 
+# ABSOLUTNE minima wykonalności — poniżej nich człowiek fizycznie nie zdąży (wariant jest
+# odrzucany, a nie tylko oflagowany). Powyżej tego, ale poniżej progów "bezpiecznych" wyżej,
+# przesiadka jest tylko RYZYKOWNA.
+FEASIBLE_MIN_MINUTES_SAME_PLATFORM = 3
+FEASIBLE_MIN_MINUTES_WALK = 8
+FEASIBLE_MIN_MINUTES_RAIL_TO_FLIGHT = 60
+FEASIBLE_MIN_MINUTES_FLIGHT_TO_RAIL = 45
+
+
+def feasible_minimum_minutes(prev_mode: LegMode, next_mode: LegMode, requires_walk: bool) -> float:
+    if prev_mode is LegMode.FLIGHT and next_mode is LegMode.FLIGHT:
+        return FEASIBLE_MIN_MINUTES_RAIL_TO_FLIGHT
+    if next_mode is LegMode.FLIGHT:
+        return FEASIBLE_MIN_MINUTES_RAIL_TO_FLIGHT
+    if prev_mode is LegMode.FLIGHT:
+        return FEASIBLE_MIN_MINUTES_FLIGHT_TO_RAIL
+    return FEASIBLE_MIN_MINUTES_WALK if requires_walk else FEASIBLE_MIN_MINUTES_SAME_PLATFORM
+
+
 def minimum_transfer_minutes(prev_mode: LegMode, next_mode: LegMode, requires_walk: bool) -> float:
     if prev_mode is LegMode.RAIL and next_mode is LegMode.FLIGHT:
         return MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT
@@ -27,6 +46,7 @@ def check_transfer(prev_leg: Leg, next_leg: Leg, after_leg_index: int) -> Option
     minimum = minimum_transfer_minutes(prev_leg.mode, next_leg.mode, next_leg.requires_walk)
 
     if gap_minutes < minimum:
+        infeasible = gap_minutes < feasible_minimum_minutes(prev_leg.mode, next_leg.mode, next_leg.requires_walk)
         powod_zmiany = "wymaga przejścia/zmiany dworca" if next_leg.requires_walk else "na tym samym przystanku/peronie"
         reason = (
             f"Tylko {gap_minutes:.0f} min na przesiadkę {prev_leg.mode.value} -> {next_leg.mode.value} "
@@ -38,6 +58,7 @@ def check_transfer(prev_leg: Leg, next_leg: Leg, after_leg_index: int) -> Option
             gap_minutes=gap_minutes,
             minimum_required_minutes=minimum,
             reason=reason,
+            infeasible=infeasible,
         )
     return None
 

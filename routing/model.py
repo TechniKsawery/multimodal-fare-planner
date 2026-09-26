@@ -50,6 +50,7 @@ class TransferWarning:
     gap_minutes: float
     minimum_required_minutes: float
     reason: str
+    infeasible: bool = False   # True: poniżej absolutnego minimum wykonalności (nikt tego nie zdąży)
 
 
 @dataclass
@@ -64,8 +65,13 @@ class Itinerary:
     transfer_warnings: List[TransferWarning] = field(default_factory=list)
 
     @property
+    def is_infeasible(self) -> bool:
+        return any(w.infeasible for w in self.transfer_warnings)
+
+    @property
     def is_risky(self) -> bool:
-        return len(self.transfer_warnings) > 0
+        """Ciasne, ale teoretycznie wykonalne przesiadki (niewykonalne warianty są odrzucane)."""
+        return any(not w.infeasible for w in self.transfer_warnings)
 
     @property
     def price_per_hour(self) -> float:

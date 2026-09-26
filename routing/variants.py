@@ -115,7 +115,10 @@ def build_rail_only_variants(request: RouteRequest, max_variants: int = 2) -> Li
         modes_used = sorted({l.extra.get("motis_mode", "RAIL") for l in transit})
         name = f"Tylko kolej ({'/'.join(modes_used).lower()}, {len(transit) - 1} przesiadki)"
         priced = _price_legs(legs, request)
-        variants.append(build_itinerary(name, priced))
+        candidate = build_itinerary(name, priced)
+        if candidate.is_infeasible:  # przesiadka poniżej absolutnego minimum — odrzucamy
+            continue
+        variants.append(candidate)
 
         if len(variants) >= max_variants:
             break
@@ -164,6 +167,11 @@ def build_flight_regional_variant(request: RouteRequest, hub: HubConfig) -> Itin
     return build_itinerary(f"Lot ({hub.label}) + transport regionalny", priced)
 
 
+def _infeasible_reason(itinerary: Itinerary) -> str:
+    reasons = "; ".join(w.reason for w in itinerary.transfer_warnings if w.infeasible)
+    return f"Odrzucony: przesiadka niewykonalna fizycznie. {reasons}"
+
+
 def generate_variants(
     request: RouteRequest,
     rail_flight_rail_hubs: Optional[List[HubConfig]] = None,
@@ -189,14 +197,22 @@ def generate_variants(
     for hub in rail_flight_rail_hubs or []:
         label = f"Kolej + lot ({hub.label}) + kolej lokalna"
         try:
-            built.append(build_rail_flight_rail_variant(request, hub))
+            candidate = build_rail_flight_rail_variant(request, hub)
+            if candidate.is_infeasible:
+                skipped.append(SkippedVariant(label, _infeasible_reason(candidate)))
+            else:
+                built.append(candidate)
         except (MotisError, TravelpayoutsError) as exc:
             skipped.append(SkippedVariant(label, str(exc)))
 
     for hub in flight_regional_hubs or []:
         label = f"Lot ({hub.label}) + transport regionalny"
         try:
-            built.append(build_flight_regional_variant(request, hub))
+            candidate = build_flight_regional_variant(request, hub)
+            if candidate.is_infeasible:
+                skipped.append(SkippedVariant(label, _infeasible_reason(candidate)))
+            else:
+                built.append(candidate)
         except (MotisError, TravelpayoutsError) as exc:
             skipped.append(SkippedVariant(label, str(exc)))
 

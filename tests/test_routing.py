@@ -516,3 +516,52 @@ def test_flixbus_wyceniany_za_km_a_autobus_miejski_ryczaltem():
                      extra={"motis_mode": "BUS"})
     assert pricing.price_bus_leg(city).amount == pricing.LOCAL_BUS_FLAT_PLN
     assert pricing.price_bus_leg(coach).amount == pytest.approx(500 * pricing.GENERIC_FALLBACK_PLN_PER_KM)
+
+
+# --- przesiadki niewykonalne (poniżej absolutnego minimum) są odrzucane, ciasne = ryzykowne -----
+
+def test_przesiadka_2_min_ze_zmiana_dworca_jest_niewykonalna():
+    prev = make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8))
+    nxt = make_leg(LegMode.BUS, "B2", "C", _dt(8, 2), _dt(9), requires_walk=True)
+    warning = transfers.check_transfer(prev, nxt, 0)
+    assert warning.infeasible is True
+
+
+def test_przesiadka_ciasna_ale_wykonalna_to_tylko_ryzyko():
+    prev = make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8))
+    nxt = make_leg(LegMode.RAIL, "B2", "C", _dt(8, 15), _dt(9), requires_walk=True)
+    warning = transfers.check_transfer(prev, nxt, 0)
+    assert warning is not None and warning.infeasible is False
+    itinerary = scoring.build_itinerary("t", [
+        _priced(LegMode.RAIL, "A", "B", _dt(6), _dt(8), 10),
+        _priced(LegMode.RAIL, "B2", "C", _dt(8, 15), _dt(9), 10, requires_walk=True),
+    ])
+    assert itinerary.is_risky and not itinerary.is_infeasible
+
+
+def test_rail_to_flight_45_min_niewykonalne_90_ryzykowne():
+    flight = lambda start: make_leg(LegMode.FLIGHT, "X", "Y", start, start + timedelta(hours=2))
+    prev = make_leg(LegMode.RAIL, "A", "X", _dt(6), _dt(8))
+    assert transfers.check_transfer(prev, flight(_dt(8, 45)), 0).infeasible is True
+    w = transfers.check_transfer(prev, flight(_dt(9, 30)), 0)
+    assert w is not None and w.infeasible is False
+
+
+def test_pick_recommendations_pomija_niewykonalne():
+    from routing.model import TransferWarning
+    impossible = _itinerary("niewykonalna", 1, 1, 0)
+    impossible.transfer_warnings = [TransferWarning(0, 2, 8, "x", infeasible=True)]
+    ok = _itinerary("ok", 100, 300, 2)
+    recs = scoring.pick_recommendations([impossible, ok])
+    assert all(r is ok for r in recs.values())
+
+
+def test_rail_only_odrzuca_warianty_z_niewykonalna_przesiadka(monkeypatch):
+    request = variants.RouteRequest("a", "b", "A", "B", "2026-10-05")
+    bad = [make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=100),
+           make_leg(LegMode.RAIL, "B2", "C", _dt(8, 2), _dt(9), carrier="PKP Intercity", distance_km=100,
+                    requires_walk=True)]
+    good = [make_leg(LegMode.RAIL, "A", "C", _dt(6), _dt(10), carrier="PKP Intercity", distance_km=200)]
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [bad, good])
+    result = variants.build_rail_only_variants(request, max_variants=5)
+    assert len(result) == 1 and result[0].num_transfers == 0

@@ -26,8 +26,11 @@ spójność kluczy. Raport ląduje w `data/gtfs/REPORT.txt`.
 
 Silnik routingu [MOTIS](https://github.com/motis-project/motis) uruchamiany w Dockerze,
 skonfigurowany w `motis/config.yml` (trzy feedy GTFS jako oddzielne datasety: `pl`, `defv`, `derv`).
-OSM nie jest na razie wczytywany — routing kolejowy działa wyłącznie na rozkładach GTFS,
-zapytania podaje się przez `stopId` (`<dataset>_<id z stops.txt>`) lub współrzędne.
+OSM nie jest na razie wczytywany — routing kolejowy działa wyłącznie na rozkładach GTFS.
+Geocoding (`geocoding: true`) działa mimo braku OSM, bo podpowiedzi budowane są z nazw
+przystanków GTFS — w UI (`http://localhost:8080`) wpisanie np. "Lublin" pokazuje listę stacji
+do wyboru. Zapytania do API można też podawać wprost przez `stopId`
+(`<dataset>_<id z stops.txt>`) lub współrzędne.
 
 Wymaga uruchomionego Docker Desktop. W Git Bash / WSL:
 

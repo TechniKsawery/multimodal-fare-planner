@@ -10,4 +10,4 @@ timetable:
       path: /input/gtfs/de/de_fv.zip
     derv:
       path: /input/gtfs/de/de_rv.zip
-geocoding: false
+geocoding: true

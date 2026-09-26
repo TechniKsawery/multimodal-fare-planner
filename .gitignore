@@ -1,0 +1,4 @@
+# Duże dane pobierane skryptem, nie do repo
+data/
+*.part
+__pycache__/

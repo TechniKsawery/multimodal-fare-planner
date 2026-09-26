@@ -1,19 +1,26 @@
 {
-  "_uwaga": "Tabela pasm odległości JEST NADAL SZACUNKIEM — DB nie publikuje oficjalnej tabeli cena-za-km dla Flexpreis (cena jest wyliczana dynamicznie per trasa/data/popyt w systemie rezerwacji DB, a bahn.de blokuje automatyczne wyszukiwanie połączeń jako ruch bota, więc nie dało się pobrać żywych cen z wyszukiwarki). Ta tabela jest jednak skalibrowana do jednego RZECZYWISTEGO przykładu ceny (patrz _zrodlo_probka) i oficjalnie cytowanej górnej granicy (patrz _zrodlo_gorna_granica), przez prostą formułę: cena = min(20 + 0,26 EUR/km, 150 EUR) — to NASZA interpolacja, nie oficjalny wzór DB.",
-  "_zrodlo_probka": "Realny przykład ceny Flexpreis 2. klasy Halle (Saale) -> München (~373 km koleją): 106 EUR (poniedziałek) do 127 EUR (piątek/niedziela), cytowane przez https://www.bahndampf.de/deutsche-bahn/flexpreis. Formuła bazowa+km daje dla 373 km ~117 EUR, co mieści się w tym zakresie.",
-  "_zrodlo_gorna_granica": "Górna granica Flexpreis: do 150 EUR w 2. klasie, do 260 EUR w 1. klasie — potwierdzone przez dwa niezależne źródła (bahndampf.de, raildude.com); nie ma tego wprost na bahn.de/faq (tam tylko ogólny opis 'Flexpreis to najdroższy bilet DB').",
-  "_zrodlo_bahncard": "BahnCard 25 -> 25% rabatu, BahnCard 50 -> 50% rabatu na Flexpreis: potwierdzone oficjalnie na https://www.bahn.de/faq/pk/angebot/flexpreis. BahnCard 100 (100% rabatu, darmowe przejazdy) to ogólnie znana zasada programu BahnCard, nie znaleziono jawnego potwierdzenia dla Flexpreis w FAQ.",
-  "_uwaga_dostep": "Próba pobrania żywych cen bezpośrednio z wyszukiwarki połączeń bahn.de (Berlin Hbf -> Gelsenkirchen Hbf) zakończyła się blokadą 'Ihr Browser-Verhalten ähnelt dem eines Bots' (błąd 751) — zgodnie z zasadami nie próbowaliśmy tego obchodzić.",
+  "_uwaga": "SZACUNEK — DB nie publikuje tabeli cena-za-km dla Flexpreis (cena dynamiczna, zależna od dnia/obłożenia), a bahn.de blokuje automatyczne wyszukiwanie jako ruch bota (błąd 751; nie próbowano obchodzić). Tabela to prosta regresja liniowa cena = 46 + 0,17 EUR/km dopasowana do środków przedziałów z 'probki' poniżej (dla tras 190-570 km). Poniżej ~150 km i powyżej ~570 km to ekstrapolacja. Ceny realne mogą się różnić nawet o -/+ 40% w zależności od dnia tygodnia.",
+  "_zrodlo_bahncard": "BahnCard 25 -> 25% rabatu, BahnCard 50 -> 50% rabatu na Flexpreis: potwierdzone oficjalnie na https://www.bahn.de/faq/pk/angebot/flexpreis. BahnCard 100 (100% rabatu, darmowe przejazdy) to ogólnie znana zasada programu BahnCard.",
+  "_uwaga_gorna_granica": "Starsze źródła (2016-2026, bahndampf.de, zugreiseblog.de) podają sufit Flexpreis 2. klasy ~142-150 EUR, ale raport vzbv z Fahrplanjahr 2025 pokazuje Flexpreis Berlin-Köln do 185,10 EUR w 2. klasie i nie wspomina o żadnym sufitcie — dlatego kalkulator NIE stosuje już sufitu 150 EUR.",
+  "probki": [
+    {"trasa": "Frankfurt(Main)-Köln", "km_przyblizone": 190, "cena_min_eur": 42.30, "cena_max_eur": 114.20, "klasa": 2, "okres": "Fahrplanjahr 2025", "zrodlo": "https://www.vzbv.de/pressemitteilungen/bahnpreise-werbung-guenstig-realitaet-teurer"},
+    {"trasa": "Berlin-Hamburg", "km_przyblizone": 285, "cena_min_eur": 80, "cena_max_eur": 90, "klasa": 2, "okres": "2026", "zrodlo": "https://travel-dealz.de/deal/sparpreise-hamburg-berlin/ (typowa cena ~90 EUR, minimum ~80 EUR)"},
+    {"trasa": "Halle(Saale)-München", "km_przyblizone": 373, "cena_min_eur": 106, "cena_max_eur": 127, "klasa": 2, "okres": "poniedziałek vs piątek/niedziela", "zrodlo": "https://raildude.com/blog/view?id=164"},
+    {"trasa": "Berlin-Köln", "km_przyblizone": 570, "cena_min_eur": 99.90, "cena_max_eur": 185.10, "klasa": 2, "okres": "Fahrplanjahr 2025", "zrodlo": "https://www.vzbv.de/pressemitteilungen/bahnpreise-werbung-guenstig-realitaet-teurer"}
+  ],
   "waluta": "EUR",
   "klasa": 2,
   "pasma_odleglosci_km": [
-    {"do_km": 50, "cena": 33},
-    {"do_km": 100, "cena": 46},
-    {"do_km": 150, "cena": 59},
-    {"do_km": 250, "cena": 85},
-    {"do_km": 400, "cena": 124},
-    {"do_km": 500, "cena": 150},
-    {"do_km": null, "cena": 150}
+    {"do_km": 50, "cena": 25},
+    {"do_km": 100, "cena": 38},
+    {"do_km": 150, "cena": 55},
+    {"do_km": 200, "cena": 80},
+    {"do_km": 300, "cena": 97},
+    {"do_km": 400, "cena": 114},
+    {"do_km": 500, "cena": 131},
+    {"do_km": 600, "cena": 148},
+    {"do_km": 800, "cena": 182},
+    {"do_km": null, "cena": 182}
   ],
   "bahncard_mnoznik": {
     "brak": 1.0,

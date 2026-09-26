@@ -42,7 +42,7 @@ def render_itinerary(it) -> None:
             "Przewoźnik": leg.carrier_name or "",
             "Cena / dystans": price,
         })
-    st.dataframe(rows, use_container_width=True, hide_index=True)
+    st.dataframe(rows, width="stretch", hide_index=True)
     if it.is_risky:
         for w in it.transfer_warnings:
             st.warning(f"Ryzykowna przesiadka: {w.reason}")

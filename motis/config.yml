@@ -10,4 +10,6 @@ timetable:
       path: /input/gtfs/de/de_fv.zip
     derv:
       path: /input/gtfs/de/de_rv.zip
+    ztml:
+      path: /input/gtfs/pl/lublin.zip
 geocoding: true

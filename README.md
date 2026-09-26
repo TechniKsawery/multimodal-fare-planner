@@ -15,6 +15,7 @@ Pobiera do `data/` (katalog jest w `.gitignore`):
 | `data/gtfs/pl/polish_trains.zip` | PolishTrainsGTFS, mkuran.pl |
 | `data/gtfs/de/de_fv.zip` | gtfs.de, ruch dalekobieżny (FV) |
 | `data/gtfs/de/de_rv.zip` | gtfs.de, koleje regionalne (RV, całe Niemcy z NRW) |
+| `data/gtfs/pl/lublin.zip` | ZTM Lublin (ZDiTM), mkuran.pl, CC0 |
 | `data/osm/poland-latest.osm.pbf` | Geofabrik |
 | `data/osm/nordrhein-westfalen-latest.osm.pbf` | Geofabrik |
 
@@ -25,12 +26,15 @@ spójność kluczy. Raport ląduje w `data/gtfs/REPORT.txt`.
 ## Sesja 2: routing (MOTIS)
 
 Silnik routingu [MOTIS](https://github.com/motis-project/motis) uruchamiany w Dockerze,
-skonfigurowany w `motis/config.yml` (trzy feedy GTFS jako oddzielne datasety: `pl`, `defv`, `derv`).
-OSM nie jest na razie wczytywany — routing kolejowy działa wyłącznie na rozkładach GTFS.
+skonfigurowany w `motis/config.yml` (cztery feedy GTFS jako oddzielne datasety: `pl` (PKP),
+`defv`, `derv` (DE), `ztml` (komunikacja miejska ZTM Lublin — autobusy i tramwaje)).
+OSM nie jest na razie wczytywany — routing działa wyłącznie na rozkładach GTFS.
 Geocoding (`geocoding: true`) działa mimo braku OSM, bo podpowiedzi budowane są z nazw
 przystanków GTFS — w UI (`http://localhost:8080`) wpisanie np. "Lublin" pokazuje listę stacji
-do wyboru. Zapytania do API można też podawać wprost przez `stopId`
-(`<dataset>_<id z stops.txt>`) lub współrzędne.
+kolejowych, a np. "Krakowskie Przedmieście" pokazuje przystanek ZTM. Zapytania do API można też
+podawać wprost przez `stopId` (`<dataset>_<id z stops.txt>`) lub współrzędne. ID przystanków/tras
+między feedami GTFS się powtarzają (np. `route_id` `7` istnieje w kilku feedach) — MOTIS je
+rozróżnia dzięki prefiksowi datasetu, więc to nie jest błąd.
 
 Wymaga uruchomionego Docker Desktop. W Git Bash / WSL:
 

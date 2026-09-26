@@ -29,9 +29,18 @@ skonfigurowany w `motis/config.yml` (trzy feedy GTFS jako oddzielne datasety: `p
 OSM nie jest na razie wczytywany — routing kolejowy działa wyłącznie na rozkładach GTFS,
 zapytania podaje się przez `stopId` (`<dataset>_<id z stops.txt>`) lub współrzędne.
 
+Wymaga uruchomionego Docker Desktop. W Git Bash / WSL:
+
 ```
-scripts/run_motis.sh import   # buduje dane w motis/data/ (wymaga Docker Desktop)
+scripts/run_motis.sh import   # buduje dane w motis/data/
 scripts/run_motis.sh server   # startuje serwer HTTP na http://localhost:8080
+```
+
+W czystym PowerShell (skrypt .sh się tam nie uruchomi):
+
+```
+powershell -File scripts\run_motis.ps1 import
+powershell -File scripts\run_motis.ps1 server
 ```
 
 Przykładowe zapytanie (Lublin Główny → Gelsenkirchen Hbf):

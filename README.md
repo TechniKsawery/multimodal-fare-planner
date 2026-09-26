@@ -103,3 +103,22 @@ result = estimate_price(FlightSegment(
 ```
 
 Testy (mockują API, nie wymagają tokena): `pytest tests/test_flights.py`.
+
+## Sesja 4: silnik optymalizacji trasy
+
+Moduł `routing/` łączy routing MOTIS (Sesja 2) z modułami taryf `fares/`/`flights/`
+(Sesja 3/3b) w kilka wariantów podróży dla jednej pary miast/daty: liczy dla każdego cenę,
+czas i liczbę przesiadek, sprawdza bezpieczeństwo przesiadek (czy jest wystarczająco czasu na
+zmianę pociągu/lotu) i wybiera 4 rekomendacje (najtańsza, najszybsza, najmniej przesiadek,
+najlepszy stosunek cena/czas). Szczegóły metody, ograniczenia zakresu i założenia —
+[`routing/README.md`](routing/README.md).
+
+```
+python demo.py
+```
+
+Wymaga uruchomionego MOTIS (Sesja 2). Warianty z lotem wymagają `TRAVELPAYOUTS_TOKEN`
+(Sesja 3b) — bez tokena zostaną pominięte, reszta demo i tak zadziała.
+
+Testy (mockują MOTIS i flights, nie wymagają żadnych zewnętrznych usług):
+`pytest tests/test_routing.py`.

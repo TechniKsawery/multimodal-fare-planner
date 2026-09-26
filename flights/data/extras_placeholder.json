@@ -5,6 +5,8 @@
     "WAW-DUS": {"bagaz": 150, "dojazd_na_lotnisko": 40, "transfer_z_lotniska": 25},
     "WAW-CGN": {"bagaz": 150, "dojazd_na_lotnisko": 40, "transfer_z_lotniska": 30},
     "KRK-DTM": {"bagaz": 130, "dojazd_na_lotnisko": 35, "transfer_z_lotniska": 20},
-    "WAW-FMM": {"bagaz": 150, "dojazd_na_lotnisko": 40, "transfer_z_lotniska": 15}
+    "WAW-FMM": {"bagaz": 150, "dojazd_na_lotnisko": 40, "transfer_z_lotniska": 15},
+    "WAW-DTM": {"bagaz": 150, "dojazd_na_lotnisko": 40, "transfer_z_lotniska": 20},
+    "LUZ-DTM": {"bagaz": 130, "dojazd_na_lotnisko": 15, "transfer_z_lotniska": 20}
   }
 }

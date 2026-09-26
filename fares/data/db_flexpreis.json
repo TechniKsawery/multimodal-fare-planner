@@ -1,17 +1,18 @@
 {
-  "_uwaga": "Tabela pasm odległości JEST NADAL PLACEHOLDEREM/SZACUNKIEM — DB nie publikuje oficjalnej tabeli cena-za-km dla Flexpreis, bo cena jest wyliczana dynamicznie per trasa/data/popyt w systemie rezerwacji DB. Górna granica najdłuższego pasma (150 EUR, 2. klasa) oparta o publicznie cytowaną wartość maksymalną Flexpreis 2. klasy (patrz _zrodlo_gorna_granica) — pośrednie pasma to nasza interpolacja, nie oficjalne dane. Żeby zastąpić realnymi cenami: potrzeba próbek konkretnych relacji PL<->DE pobranych z bahn.de (patrz README).",
-  "_zrodlo_gorna_granica": "Górna granica Flexpreis 2. klasy (~150 EUR) i 1. klasy (~260 EUR) cytowana przez https://www.bahndampf.de/deutsche-bahn/flexpreis (źródło niezależne, nie oficjalna strona bahn.de — traktować jako orientacyjne).",
+  "_uwaga": "Tabela pasm odległości JEST NADAL SZACUNKIEM — DB nie publikuje oficjalnej tabeli cena-za-km dla Flexpreis (cena jest wyliczana dynamicznie per trasa/data/popyt w systemie rezerwacji DB, a bahn.de blokuje automatyczne wyszukiwanie połączeń jako ruch bota, więc nie dało się pobrać żywych cen z wyszukiwarki). Ta tabela jest jednak skalibrowana do jednego RZECZYWISTEGO przykładu ceny (patrz _zrodlo_probka) i oficjalnie cytowanej górnej granicy (patrz _zrodlo_gorna_granica), przez prostą formułę: cena = min(20 + 0,26 EUR/km, 150 EUR) — to NASZA interpolacja, nie oficjalny wzór DB.",
+  "_zrodlo_probka": "Realny przykład ceny Flexpreis 2. klasy Halle (Saale) -> München (~373 km koleją): 106 EUR (poniedziałek) do 127 EUR (piątek/niedziela), cytowane przez https://www.bahndampf.de/deutsche-bahn/flexpreis. Formuła bazowa+km daje dla 373 km ~117 EUR, co mieści się w tym zakresie.",
+  "_zrodlo_gorna_granica": "Górna granica Flexpreis: do 150 EUR w 2. klasie, do 260 EUR w 1. klasie — potwierdzone przez dwa niezależne źródła (bahndampf.de, raildude.com); nie ma tego wprost na bahn.de/faq (tam tylko ogólny opis 'Flexpreis to najdroższy bilet DB').",
   "_zrodlo_bahncard": "BahnCard 25 -> 25% rabatu, BahnCard 50 -> 50% rabatu na Flexpreis: potwierdzone oficjalnie na https://www.bahn.de/faq/pk/angebot/flexpreis. BahnCard 100 (100% rabatu, darmowe przejazdy) to ogólnie znana zasada programu BahnCard, nie znaleziono jawnego potwierdzenia dla Flexpreis w FAQ.",
+  "_uwaga_dostep": "Próba pobrania żywych cen bezpośrednio z wyszukiwarki połączeń bahn.de (Berlin Hbf -> Gelsenkirchen Hbf) zakończyła się blokadą 'Ihr Browser-Verhalten ähnelt dem eines Bots' (błąd 751) — zgodnie z zasadami nie próbowaliśmy tego obchodzić.",
   "waluta": "EUR",
   "klasa": 2,
   "pasma_odleglosci_km": [
-    {"do_km": 50, "cena": 23},
-    {"do_km": 100, "cena": 35},
-    {"do_km": 150, "cena": 45},
-    {"do_km": 250, "cena": 60},
-    {"do_km": 400, "cena": 85},
-    {"do_km": 600, "cena": 110},
-    {"do_km": 900, "cena": 130},
+    {"do_km": 50, "cena": 33},
+    {"do_km": 100, "cena": 46},
+    {"do_km": 150, "cena": 59},
+    {"do_km": 250, "cena": 85},
+    {"do_km": 400, "cena": 124},
+    {"do_km": 500, "cena": 150},
     {"do_km": null, "cena": 150}
   ],
   "bahncard_mnoznik": {

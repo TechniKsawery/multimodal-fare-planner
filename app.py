@@ -1,0 +1,102 @@
+"""Frontend Streamlit (Sesja 5): ten sam pipeline co demo.py, w przeglądarce.
+
+Uruchomienie:  pip install streamlit  &&  streamlit run app.py
+Wymaga działającego MOTIS (localhost:8080), patrz README.md.
+"""
+import datetime as dt
+import json
+
+import streamlit as st
+
+from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
+from fares.model import DiscountProfile
+from routing.demo_route import FLIGHT_REGIONAL_HUBS, RAIL_FLIGHT_RAIL_HUBS
+from routing.motis_client import MotisError
+from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
+from routing.variants import generate_variants, request_from_addresses
+
+with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
+    PKP_ULGI = list(json.load(fh)["ulgi_procent"])
+
+st.set_page_config(page_title="Multimodalna wyszukiwarka", layout="wide")
+st.title("Multimodalna wyszukiwarka tras")
+
+
+def render_itinerary(it) -> None:
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Czas podróży", f"{it.total_duration_min / 60:.1f} h")
+    c2.metric("Cena łączna", f"{it.total_price_pln:.2f} PLN")
+    c3.metric("Przesiadki", it.num_transfers)
+    rows = []
+    for p in it.legs:
+        leg = p.leg
+        if leg.mode.value == "pieszo":
+            m = leg.extra.get("walk_distance_m")
+            price = f"{m:.0f} m" if m else ""
+        else:
+            price = f"{p.amount:.2f} {p.currency} ({p.price_type})"
+        rows.append({
+            "Środek": leg.mode.value,
+            "Trasa": f"{leg.origin_name} → {leg.destination_name}",
+            "Godziny": f"{leg.depart:%H:%M}–{leg.arrive:%H:%M} ({leg.duration_min:.0f} min)",
+            "Przewoźnik": leg.carrier_name or "",
+            "Cena / dystans": price,
+        })
+    st.dataframe(rows, use_container_width=True, hide_index=True)
+    if it.is_risky:
+        for w in it.transfer_warnings:
+            st.warning(f"Ryzykowna przesiadka: {w.reason}")
+    else:
+        st.success("Przesiadki: bezpieczne (wg przyjętych minimów)")
+
+
+with st.form("search"):
+    origin = st.text_input("Skąd (adres)", DEFAULT_FROM)
+    dest = st.text_input("Dokąd (adres)", DEFAULT_TO)
+    date = st.date_input("Data", dt.date.fromisoformat(DEMO_DATE))
+    c1, c2 = st.columns(2)
+    pkp = c1.selectbox("Ulga PKP", PKP_ULGI)
+    bc = c2.selectbox("BahnCard", ["brak", "25", "50", "100"])
+    submitted = st.form_submit_button("Szukaj")
+
+if submitted:
+    profile = DiscountProfile(pkp_ulga_kod=pkp, bahncard=None if bc == "brak" else bc)
+    try:
+        with st.spinner("Szukam połączeń..."):
+            request = request_from_addresses(origin, dest, date.isoformat(), discounts=profile)
+            built, skipped = generate_variants(
+                request,
+                rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,
+                flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
+            )
+    except MotisError as exc:
+        st.error(f"Błąd MOTIS / geokodowania: {exc}")
+        st.stop()
+    except Exception as exc:  # np. MOTIS nieuruchomiony
+        st.error(f"Nie udało się wyszukać (czy MOTIS działa na localhost:8080?): {exc}")
+        st.stop()
+
+    st.caption(f"{request.origin_label} → {request.destination_label}, {date}. "
+               f"Zbudowano {len(built)} wariant(y), pominięto {len(skipped)}.")
+    if skipped:
+        with st.expander("Pominięte warianty"):
+            for s in skipped:
+                st.write(f"**{s.variant_name}**: {s.reason}")
+    if not built:
+        st.error("Brak działającego wariantu — sprawdź, czy MOTIS jest uruchomiony.")
+        st.stop()
+
+    recs = pick_recommendations(built)
+    st.header("Rekomendacje")
+    tabs = st.tabs(list(RECOMMENDATION_LABELS.values()))
+    for tab, key in zip(tabs, RECOMMENDATION_LABELS):
+        with tab:
+            st.subheader(recs[key].variant_name)
+            render_itinerary(recs[key])
+
+    st.header("Wszystkie warianty")
+    for it in built:
+        with st.expander(f"{it.variant_name} — {it.total_duration_min / 60:.1f} h, "
+                         f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}"
+                         + ("  ⚠️" if it.is_risky else "")):
+            render_itinerary(it)

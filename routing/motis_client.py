@@ -15,6 +15,9 @@ from .model import Leg, LegMode
 MOTIS_BASE_URL = os.environ.get("MOTIS_BASE_URL", "http://localhost:8080")
 
 
+MAX_WALK_SECONDS = 3600  # do godziny pieszo do/z pierwszego/ostatniego przystanku
+
+
 class MotisError(RuntimeError):
     """Błąd komunikacji z MOTIS albo brak połączenia dla podanej relacji/daty."""
 
@@ -66,6 +69,10 @@ def plan(from_place: str, to_place: str, time: str, max_transfers: int = 4) -> d
                 "toPlace": to_place,
                 "time": time,
                 "maxTransfers": max_transfers,
+                # domyślny limit dojścia pieszego w MOTIS jest krótki (kilkanaście minut) — dla
+                # adresów daleko od stacji (np. Gelsenkirchen-Buer, ~7 km od Hbf) dawał 0 wyników
+                "maxPreTransitTime": MAX_WALK_SECONDS,
+                "maxPostTransitTime": MAX_WALK_SECONDS,
             },
             timeout=30,
         )

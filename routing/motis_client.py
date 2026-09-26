@@ -15,6 +15,8 @@ from .model import Leg, LegMode
 MOTIS_BASE_URL = os.environ.get("MOTIS_BASE_URL", "http://localhost:8080")
 
 
+TRANSFER_BUFFER_MINUTES = 10  # additionalTransferTime: MOTIS szuka przesiadek z zapasem, zamiast najkrótszych "na styk"
+MAIN_QUERY_ITINERARIES = 30  # ~6 s na zapytanie; domyślne ~5 wyników gubiło proste trasy (np. przez Berlin)
 MAX_WALK_SECONDS = 3600  # do godziny pieszo do/z pierwszego/ostatniego przystanku
 
 
@@ -59,12 +61,14 @@ def coords_place(lat: float, lon: float) -> str:
     return f"{lat},{lon}"
 
 
-def plan(from_place: str, to_place: str, time: str, max_transfers: int = 4) -> dict:
+def plan(from_place: str, to_place: str, time: str, max_transfers: int = 4, num_itineraries: Optional[int] = None) -> dict:
     """GET /api/v6/plan — surowa odpowiedź MOTIS, zwalidowana pod kątem obecności itinerariów."""
+    extra = {"numItineraries": num_itineraries, "additionalTransferTime": TRANSFER_BUFFER_MINUTES} if num_itineraries else {}
     try:
         response = requests.get(
             f"{MOTIS_BASE_URL}/api/v6/plan",
             params={
+                **extra,
                 "fromPlace": from_place,
                 "toPlace": to_place,
                 "time": time,
@@ -175,5 +179,5 @@ def plan_leg(from_place: str, to_place: str, time: str, *, pick: str = "fastest"
 
 def all_itineraries_as_legs(from_place: str, to_place: str, time: str) -> List[List[Leg]]:
     """Wszystkie itineraria zwrócone przez MOTIS dla jednej relacji/daty, każde jako lista Leg."""
-    payload = plan(from_place, to_place, time)
+    payload = plan(from_place, to_place, time, max_transfers=5, num_itineraries=MAIN_QUERY_ITINERARIES)
     return [itinerary_to_legs(it) for it in payload["itineraries"]]

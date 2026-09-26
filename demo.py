@@ -30,7 +30,7 @@ def format_itinerary(itinerary) -> str:
         f"  Czas podróży: {itinerary.total_duration_min / 60:.1f} h "
         f"({int(itinerary.total_duration_min)} min), przesiadek: {itinerary.num_transfers}",
         f"  Cena łączna: {itinerary.total_price_pln:.2f} PLN "
-        f"(cena/godz.: {itinerary.price_per_hour:.1f} PLN/h)",
+        f"(ocena wartości: {itinerary.value_score:.0f} PLN, niżej = lepiej)",
     ]
     for priced in itinerary.legs:
         leg = priced.leg

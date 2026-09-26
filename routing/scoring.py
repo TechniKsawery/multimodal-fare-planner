@@ -49,5 +49,5 @@ def pick_recommendations(itineraries: List[Itinerary]) -> Dict[str, Itinerary]:
         "najtansza": min(itineraries, key=lambda i: i.total_price_pln),
         "najszybsza": min(itineraries, key=lambda i: i.total_duration_min),
         "najmniej_przesiadek": min(itineraries, key=lambda i: i.num_transfers),
-        "najlepszy_stosunek_ceny_do_czasu": min(itineraries, key=lambda i: i.price_per_hour),
+        "najlepszy_stosunek_ceny_do_czasu": min(itineraries, key=lambda i: i.value_score),
     }

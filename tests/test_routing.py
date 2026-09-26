@@ -302,10 +302,10 @@ def _itinerary(name, price_pln, duration_min, num_transfers):
 
 
 def test_pick_recommendations_wybiera_cztery_kategorie():
-    cheap = _itinerary("tania", 50, 60, 3)             # 50 PLN/h
-    fast = _itinerary("szybka", 200, 30, 1)             # 400 PLN/h
-    few_transfers = _itinerary("bez przesiadek", 300, 500, 0)  # 36 PLN/h
-    balanced = _itinerary("zbalansowana", 150, 300, 2)  # 30 PLN/h, najniższe
+    cheap = _itinerary("tania", 50, 600, 3)              # 50 + 10h*40 = 450
+    fast = _itinerary("szybka", 400, 30, 1)              # 400 + 0.5h*40 = 420
+    few_transfers = _itinerary("bez przesiadek", 300, 500, 0)  # ~633
+    balanced = _itinerary("zbalansowana", 150, 120, 2)   # 150 + 2h*40 = 230, najniższe
 
     recs = scoring.pick_recommendations([cheap, fast, few_transfers, balanced])
 
@@ -575,3 +575,43 @@ def test_rail_only_domyslnie_zwraca_wszystkie_rozne_warianty(monkeypatch):
     ]
     monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: options)
     assert len(variants.build_rail_only_variants(request)) == 4
+
+
+# --- kary w "najlepszy stosunek cena/czas": ryzykowne przesiadki i liczba przewoźników -------
+
+def _scored(price, minutes, risky=0, carriers=("PKP Intercity",)):
+    from routing.model import Itinerary, TransferWarning
+    legs = [_priced(LegMode.RAIL, "A", "B", _dt(6), _dt(7), 0) for _ in carriers]
+    for pl, c in zip(legs, carriers):
+        pl.leg.carrier_name = c
+    warnings = [TransferWarning(0, 20, 30, "x") for _ in range(risky)]
+    return Itinerary("v", legs, price, minutes, len(carriers) - 1, warnings)
+
+
+def test_kara_za_ryzykowne_przesiadki_zmienia_zwyciezce():
+    prosta = _scored(400, 900)                 # 26.7 PLN/h
+    ryzykowna = _scored(350, 850, risky=3)     # bez kary 24.7 PLN/h (lepsza), z karą gorsza
+    assert ryzykowna.price_per_hour < prosta.price_per_hour
+    assert ryzykowna.value_score > prosta.value_score
+    recs = scoring.pick_recommendations([prosta, ryzykowna])
+    assert recs["najlepszy_stosunek_ceny_do_czasu"] is prosta
+    assert recs["najtansza"] is ryzykowna and recs["najszybsza"] is ryzykowna  # czyste kryteria bez kar
+
+
+def test_kara_za_dodatkowych_przewoznikow():
+    jeden = _scored(400, 900)
+    trzech = _scored(390, 890, carriers=("PKP Intercity", "DB Fernverkehr AG", "Flixbus"))
+    assert trzech.num_carriers == 3
+    assert jeden.value_score < trzech.value_score
+
+
+def test_all_itineraries_prosi_motis_o_30_wynikow(monkeypatch):
+    seen = {}
+
+    def fake_plan(from_place, to_place, time, max_transfers=4, num_itineraries=None):
+        seen["n"] = num_itineraries
+        return {"itineraries": []}
+
+    monkeypatch.setattr(motis_client, "plan", fake_plan)
+    motis_client.all_itineraries_as_legs("a", "b", "2026-10-05T06:00:00Z")
+    assert seen["n"] == 30

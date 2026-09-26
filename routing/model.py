@@ -78,6 +78,30 @@ class Itinerary:
         hours = self.total_duration_min / 60
         return self.total_price_pln / hours if hours > 0 else float("inf")
 
+    @property
+    def num_carriers(self) -> int:
+        """Liczba różnych przewoźników w wariancie (każdy = osobny bilet), bez odcinków pieszych."""
+        return len({pl.leg.carrier_name or pl.leg.mode.value for pl in self.legs if pl.leg.mode.value != "pieszo"})
+
+    @property
+    def num_risky_transfers(self) -> int:
+        return sum(1 for w in self.transfer_warnings if not w.infeasible)
+
+    @property
+    def value_score(self) -> float:
+        """Uogólniony koszt do "najlepszy stosunek cena/czas" (PLN, niżej = lepiej):
+        cena + wartość czasu (VALUE_OF_TIME_PLN_PER_HOUR x godziny) + kary za ryzykowne
+        przesiadki i dodatkowych przewoźników/bilety — patrz routing/scoring_config.py."""
+        from .scoring_config import (EXTRA_CARRIER_PENALTY_MIN, EXTRA_CARRIER_PENALTY_PLN,
+                                     RISKY_TRANSFER_PENALTY_MIN, RISKY_TRANSFER_PENALTY_PLN,
+                                     VALUE_OF_TIME_PLN_PER_HOUR)
+        extra_carriers = max(self.num_carriers - 1, 0)
+        price = (self.total_price_pln + self.num_risky_transfers * RISKY_TRANSFER_PENALTY_PLN
+                 + extra_carriers * EXTRA_CARRIER_PENALTY_PLN)
+        minutes = (self.total_duration_min + self.num_risky_transfers * RISKY_TRANSFER_PENALTY_MIN
+                   + extra_carriers * EXTRA_CARRIER_PENALTY_MIN)
+        return price + minutes / 60 * VALUE_OF_TIME_PLN_PER_HOUR
+
 
 @dataclass
 class SkippedVariant:

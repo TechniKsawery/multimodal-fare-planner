@@ -120,3 +120,16 @@ minimum wykonalności** (3 min ten sam peron, 8 min ze zmianą dworca/peronu, 60
 45 min lot→kolej). Poniżej minimum wykonalności wariant jest **odrzucany** (nie trafia do
 rekomendacji; w `generate_variants` ląduje w `SkippedVariant` z powodem). Między minimum a progiem
 bezpiecznym wariant zostaje z oznaczeniem RYZYKOWNY. Progi to szacunek.
+
+## Zmiany scoringu i pobierania (Sesja 4e)
+
+- **30 połączeń z MOTIS** (`MAIN_QUERY_ITINERARIES`, ~6 s) zamiast domyślnych ~5, i wszystkie
+  wykonalne stają się wariantami (`build_rail_only_variants`, cap 30).
+- **`additionalTransferTime=10`**: MOTIS sam szuka przesiadek z 10-min zapasem. Bez tego jedyne
+  „proste” trasy przez Berlin miały przesiadki 2–3 min i były (słusznie) odrzucane jako
+  niewykonalne, więc nie było czego rekomendować.
+- **„Najlepszy stosunek cena/czas” = uogólniony koszt** (`Itinerary.value_score`, niżej = lepiej):
+  `cena + VALUE_OF_TIME_PLN_PER_HOUR x godziny` + kary za każdą ryzykowną przesiadkę i za każdego
+  dodatkowego przewoźnika (osobny bilet). Stałe w `scoring_config.py` (szacunek, do strojenia).
+  Zastępuje PLN/h, które premiowało długie podróże. „Najtańsza”/„najszybsza”/„najmniej
+  przesiadek” pozostają czyste (bez kar).

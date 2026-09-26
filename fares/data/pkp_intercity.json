@@ -1,0 +1,26 @@
+{
+  "_uwaga": "DANE PRZYKŁADOWE / PLACEHOLDER — nie oficjalny cennik PKP Intercity. Podmienić po dostarczeniu prawdziwego cennika (patrz README).",
+  "waluta": "PLN",
+  "klasa": 2,
+  "pasma_odleglosci_km": [
+    {"do_km": 50, "cena": 19},
+    {"do_km": 100, "cena": 29},
+    {"do_km": 150, "cena": 39},
+    {"do_km": 200, "cena": 49},
+    {"do_km": 300, "cena": 59},
+    {"do_km": 400, "cena": 79},
+    {"do_km": 500, "cena": 99},
+    {"do_km": 700, "cena": 129},
+    {"do_km": 900, "cena": 159},
+    {"do_km": null, "cena": 189}
+  ],
+  "ulgi_procent": {
+    "brak": 0,
+    "ulga_33": 33,
+    "ulga_37": 37,
+    "ulga_49": 49,
+    "ulga_51": 51,
+    "ulga_78": 78,
+    "ulga_100": 100
+  }
+}

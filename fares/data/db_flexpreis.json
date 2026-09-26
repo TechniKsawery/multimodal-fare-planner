@@ -1,0 +1,21 @@
+{
+  "_uwaga": "DANE PRZYKŁADOWE / PLACEHOLDER — nie oficjalny cennik DB. Prawdziwy Flexpreis zależy od konkretnej trasy i jest wynikiem systemu DB, nie prostej tabeli odległości. Podmienić po dostarczeniu danych (patrz README).",
+  "waluta": "EUR",
+  "klasa": 2,
+  "pasma_odleglosci_km": [
+    {"do_km": 50, "cena": 23},
+    {"do_km": 100, "cena": 35},
+    {"do_km": 150, "cena": 45},
+    {"do_km": 250, "cena": 60},
+    {"do_km": 400, "cena": 85},
+    {"do_km": 600, "cena": 110},
+    {"do_km": 900, "cena": 140},
+    {"do_km": null, "cena": 170}
+  ],
+  "bahncard_mnoznik": {
+    "brak": 1.0,
+    "25": 0.75,
+    "50": 0.5,
+    "100": 0.0
+  }
+}

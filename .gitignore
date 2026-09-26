@@ -1,5 +1,5 @@
 # Duże dane pobierane skryptem, nie do repo
-data/
+/data/
 *.part
 __pycache__/
 

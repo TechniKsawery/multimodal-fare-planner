@@ -1,0 +1,11 @@
+{
+  "_uwaga": "DANE PRZYKŁADOWE / PLACEHOLDER — nie oficjalny cennik VRR. Sztywna tabela tylko dla wybranych relacji. Podmienić po dostarczeniu cennika VRR (patrz README).",
+  "waluta": "EUR",
+  "relacje": [
+    {"z": "Gelsenkirchen Hbf", "do": "Duisburg Hbf", "cena": 8.80},
+    {"z": "Gelsenkirchen Hbf", "do": "Essen Hbf", "cena": 6.60},
+    {"z": "Duisburg Hbf", "do": "Düsseldorf Hbf", "cena": 7.70},
+    {"z": "Essen Hbf", "do": "Dortmund Hbf", "cena": 9.90},
+    {"z": "Gelsenkirchen Hbf", "do": "Dortmund Hbf", "cena": 6.60}
+  ]
+}

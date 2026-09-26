@@ -1,0 +1,16 @@
+"""Dispatch do kalkulatora właściwego dla przewoźnika w segmencie."""
+from . import db, pkp, vrr
+from .model import Carrier, PriceEstimate, Segment
+
+_CALCULATORS = {
+    Carrier.PKP_INTERCITY: pkp.estimate,
+    Carrier.DB: db.estimate,
+    Carrier.VRR: vrr.estimate,
+}
+
+
+def estimate_price(segment: Segment) -> PriceEstimate:
+    calc = _CALCULATORS.get(segment.carrier)
+    if calc is None:
+        raise ValueError(f"brak kalkulatora dla przewoźnika: {segment.carrier}")
+    return calc(segment)

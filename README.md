@@ -57,3 +57,25 @@ S-Bahn → ICE do Gelsenkirchen Hbf (~12h15min, 3 przesiadki).
 
 `motis/data/` (wygenerowane dane binarne) nie jest w repo — buduje się je lokalnie
 poleceniem `import` powyżej.
+
+## Sesja 3: moduł taryf
+
+Moduł `fares/` szacuje cenę pojedynczego segmentu podróży: PKP Intercity, DB (Flexpreis)
+i VRR. **Dane cenowe w `fares/data/*.json` są placeholderami** — nie mieliśmy dostępu do
+oficjalnych cenników, więc struktura jest gotowa do podmiany na prawdziwe dane. Szczegóły,
+w tym lista tego, czego potrzeba żeby zastąpić placeholdery (i sekcja "Czego potrzeba..."),
+są w [`fares/README.md`](fares/README.md).
+
+```python
+from fares import estimate_price
+from fares.model import Carrier, DiscountProfile, Segment
+
+result = estimate_price(Segment(
+    carrier=Carrier.PKP_INTERCITY,
+    origin="Lublin", destination="Warszawa Wschodnia",
+    distance_km=170,
+    discounts=DiscountProfile(pkp_ulga_kod="ulga_37"),
+))
+```
+
+Testy: `pytest tests/test_fares.py`.

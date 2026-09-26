@@ -61,10 +61,10 @@ poleceniem `import` powyżej.
 ## Sesja 3: moduł taryf
 
 Moduł `fares/` szacuje cenę pojedynczego segmentu podróży: PKP Intercity, DB (Flexpreis)
-i VRR. **Dane cenowe w `fares/data/*.json` są placeholderami** — nie mieliśmy dostępu do
-oficjalnych cenników, więc struktura jest gotowa do podmiany na prawdziwe dane. Szczegóły,
-w tym lista tego, czego potrzeba żeby zastąpić placeholdery (i sekcja "Czego potrzeba..."),
-są w [`fares/README.md`](fares/README.md).
+i VRR (eezy.nrw). Pasma cenowe i ulgi PKP Intercity oraz taryfa eezy.nrw VRR pochodzą teraz
+z **oficjalnych, aktualnych cenników** (research w built-in browser); DB Flexpreis **nadal jest
+szacunkiem** (mnożniki BahnCard są oficjalne, ale DB nie publikuje tabeli cena-za-km — patrz
+[`fares/README.md`](fares/README.md) po pełną listę źródeł i ograniczeń).
 
 ```python
 from fares import estimate_price
@@ -74,7 +74,7 @@ result = estimate_price(Segment(
     carrier=Carrier.PKP_INTERCITY,
     origin="Lublin", destination="Warszawa Wschodnia",
     distance_km=170,
-    discounts=DiscountProfile(pkp_ulga_kod="ulga_37"),
+    discounts=DiscountProfile(pkp_ulga_kod="student_do_26_lat_doktorant_do_35_lat"),
 ))
 ```
 

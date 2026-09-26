@@ -22,7 +22,7 @@ class DiscountProfile:
     """Profil ulg pasażera, wspólny dla wszystkich przewoźników w segmencie."""
 
     pkp_ulga_kod: str = "brak"          # klucz z fares/data/pkp_intercity.json -> ulgi_procent
-    bahncard: Optional[str] = None      # None, "25", "50" lub "100"
+    bahncard: Optional[str] = None      # None, "25", "50" lub "100" (DB, oficjalne rabaty Flexpreis)
 
 
 @dataclass
@@ -32,7 +32,7 @@ class Segment:
     carrier: Carrier
     origin: str
     destination: str
-    distance_km: Optional[float] = None   # wymagane dla PKP i DB
+    distance_km: Optional[float] = None   # wymagane dla PKP, DB i VRR (VRR: odległość w linii prostej)
     discounts: DiscountProfile = field(default_factory=DiscountProfile)
 
 

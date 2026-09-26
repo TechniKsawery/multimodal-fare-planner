@@ -7,21 +7,21 @@ from fares.model import Carrier, DiscountProfile, Segment
 def test_pkp_bez_ulgi():
     seg = Segment(Carrier.PKP_INTERCITY, "Lublin", "Warszawa Wschodnia", distance_km=170)
     result = estimate_price(seg)
-    assert result.price_type is PriceType.ESTIMATE
-    assert result.amount == 49
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.amount == 50
     assert result.currency == "PLN"
 
 
-def test_pkp_z_ulga_37():
+def test_pkp_z_ulga_studencka_51():
     seg = Segment(
         Carrier.PKP_INTERCITY,
         "Lublin",
         "Warszawa Wschodnia",
         distance_km=170,
-        discounts=DiscountProfile(pkp_ulga_kod="ulga_37"),
+        discounts=DiscountProfile(pkp_ulga_kod="student_do_26_lat_doktorant_do_35_lat"),
     )
     result = estimate_price(seg)
-    assert result.amount == pytest.approx(49 * 0.63, abs=0.01)
+    assert result.amount == pytest.approx(50 * 0.49, abs=0.01)
 
 
 def test_pkp_nieznana_ulga():
@@ -38,6 +38,7 @@ def test_db_flexpreis_bez_bahncard():
     result = estimate_price(seg)
     assert result.amount == 110
     assert result.currency == "EUR"
+    assert result.price_type is PriceType.ESTIMATE
 
 
 def test_db_flexpreis_z_bahncard25():
@@ -49,20 +50,21 @@ def test_db_flexpreis_z_bahncard25():
     assert result.amount == pytest.approx(110 * 0.75)
 
 
-def test_vrr_znana_relacja():
-    seg = Segment(Carrier.VRR, "Gelsenkirchen Hbf", "Duisburg Hbf")
+def test_vrr_eezy_krotki_dystans():
+    seg = Segment(Carrier.VRR, "Gelsenkirchen Hbf", "Duisburg Hbf", distance_km=20)
     result = estimate_price(seg)
-    assert result.amount == 8.80
-    assert result.price_type is PriceType.ESTIMATE
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.amount == pytest.approx(1.73 + 0.29 * 20, abs=0.01)
 
 
-def test_vrr_relacja_odwrotna_ten_sam_wynik():
-    a = estimate_price(Segment(Carrier.VRR, "Gelsenkirchen Hbf", "Essen Hbf"))
-    b = estimate_price(Segment(Carrier.VRR, "Essen Hbf", "Gelsenkirchen Hbf"))
-    assert a.amount == b.amount
+def test_vrr_eezy_sufit_cenowy():
+    seg = Segment(Carrier.VRR, "Duisburg Hbf", "Dortmund Hbf", distance_km=200)
+    result = estimate_price(seg)
+    assert result.amount == 19.80
+    assert result.breakdown["sufit_zastosowany"] is True
 
 
-def test_vrr_nieznana_relacja():
-    seg = Segment(Carrier.VRR, "Nieznane Miasto", "Inne Miasto")
+def test_vrr_wymaga_dystansu():
+    seg = Segment(Carrier.VRR, "Essen Hbf", "Dortmund Hbf")
     with pytest.raises(ValueError):
         estimate_price(seg)

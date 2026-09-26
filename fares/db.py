@@ -1,8 +1,9 @@
 """Szacowanie ceny segmentu DB: Flexpreis (górna granica) x mnożnik BahnCard.
 
-Dane cenowe w fares/data/db_flexpreis.json są PLACEHOLDEREM — patrz README.md w tym katalogu.
-Prawdziwy Flexpreis nie jest funkcją samej odległości (zależy od konkretnej trasy w systemie DB),
-więc ten kalkulator daje tylko orientacyjny górny szacunek.
+Tabela pasm odległości w fares/data/db_flexpreis.json to nadal SZACUNEK — DB nie publikuje
+oficjalnej tabeli cena-za-km (Flexpreis zależy dynamicznie od trasy/daty w systemie DB).
+Mnożniki BahnCard 25/50 są potwierdzone oficjalnie (bahn.de/faq) — patrz "_zrodlo_bahncard"
+w danych. Patrz też README.md w tym katalogu.
 """
 from .model import Carrier, PriceEstimate, PriceType, Segment
 from ._data_loading import load
@@ -44,7 +45,8 @@ def estimate(segment: Segment) -> PriceEstimate:
             "klasa": _TABLE["klasa"],
         },
         notes=(
-            "Flexpreis to górna granica z placeholderowej tabeli pasm odległości — "
-            "rzeczywista cena DB może być niższa i zależy od konkretnej trasy/pociągu."
+            "Flexpreis to górna granica z tabeli pasm odległości (nadal szacunek, patrz "
+            "_uwaga w danych) — rzeczywista cena DB może być niższa i zależy od konkretnej "
+            "trasy/pociągu. Mnożnik BahnCard jest oficjalny (bahn.de/faq)."
         ),
     )

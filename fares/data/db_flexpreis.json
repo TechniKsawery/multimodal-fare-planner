@@ -1,5 +1,7 @@
 {
-  "_uwaga": "DANE PRZYKŁADOWE / PLACEHOLDER — nie oficjalny cennik DB. Prawdziwy Flexpreis zależy od konkretnej trasy i jest wynikiem systemu DB, nie prostej tabeli odległości. Podmienić po dostarczeniu danych (patrz README).",
+  "_uwaga": "Tabela pasm odległości JEST NADAL PLACEHOLDEREM/SZACUNKIEM — DB nie publikuje oficjalnej tabeli cena-za-km dla Flexpreis, bo cena jest wyliczana dynamicznie per trasa/data/popyt w systemie rezerwacji DB. Górna granica najdłuższego pasma (150 EUR, 2. klasa) oparta o publicznie cytowaną wartość maksymalną Flexpreis 2. klasy (patrz _zrodlo_gorna_granica) — pośrednie pasma to nasza interpolacja, nie oficjalne dane. Żeby zastąpić realnymi cenami: potrzeba próbek konkretnych relacji PL<->DE pobranych z bahn.de (patrz README).",
+  "_zrodlo_gorna_granica": "Górna granica Flexpreis 2. klasy (~150 EUR) i 1. klasy (~260 EUR) cytowana przez https://www.bahndampf.de/deutsche-bahn/flexpreis (źródło niezależne, nie oficjalna strona bahn.de — traktować jako orientacyjne).",
+  "_zrodlo_bahncard": "BahnCard 25 -> 25% rabatu, BahnCard 50 -> 50% rabatu na Flexpreis: potwierdzone oficjalnie na https://www.bahn.de/faq/pk/angebot/flexpreis. BahnCard 100 (100% rabatu, darmowe przejazdy) to ogólnie znana zasada programu BahnCard, nie znaleziono jawnego potwierdzenia dla Flexpreis w FAQ.",
   "waluta": "EUR",
   "klasa": 2,
   "pasma_odleglosci_km": [
@@ -9,8 +11,8 @@
     {"do_km": 250, "cena": 60},
     {"do_km": 400, "cena": 85},
     {"do_km": 600, "cena": 110},
-    {"do_km": 900, "cena": 140},
-    {"do_km": null, "cena": 170}
+    {"do_km": 900, "cena": 130},
+    {"do_km": null, "cena": 150}
   ],
   "bahncard_mnoznik": {
     "brak": 1.0,

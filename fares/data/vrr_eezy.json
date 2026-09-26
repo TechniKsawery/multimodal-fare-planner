@@ -1,0 +1,15 @@
+{
+  "_zrodlo": "Oficjalna 'Preistabelle ab 01.06.2026' VRR — https://www.vrr.de/fileadmin/user_upload/pdf/service/downloads/Weitere_Broschueren_und_Tarifinformationen/VRR_Preise_2026.pdf (Stand: 01.06.2026), sekcja 'eezy.nrw im VRR'.",
+  "_uwaga": "eezy.nrw to aktualny (2026) elektroniczny e-Taryf VRR: cena = Grundpreis + Preis_pro_km * odległość w linii prostej (Luftlinie), z sufitem cenowym ('Preisdeckel') ustalanym per strefa cenowa (Preisstufe A/B/C), na bazie ceny EinzelTicket dla tej strefy. Ponieważ nie mamy mapowania geograficznego relacja->strefa, kalkulator używa jako sufitu najwyższej strefy sieciowej (Preisstufe C = cała sieć VRR) — to jest UPROSZCZENIE, rzeczywisty sufit może być niższy dla krótszych/lokalnych relacji (Preisstufe A/B).",
+  "waluta": "EUR",
+  "grundpreis": 1.73,
+  "cena_za_km": 0.29,
+  "sufity_cenowe_einzelticket": {
+    "preisstufe_a": 3.80,
+    "preisstufe_b": 7.80,
+    "preisstufe_c": 19.80
+  },
+  "sufit_uzywany_domyslnie": "preisstufe_c",
+  "sufit_24h_2_klasa": 28.90,
+  "sufit_miesieczny_2_klasa": 63.00
+}

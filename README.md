@@ -151,3 +151,10 @@ Import z OSM (scalony plik ~2.8 GB) trwał na tym sprzęcie około 15–20 minut
 narzędziem `osmium merge` to dodatkowe ~4 minuty, jednorazowo). `pytest tests/test_routing.py`
 (30 testów) przechodzi bez zmian — moduł `routing/` operuje na zamockowanym MOTIS-ie, więc nie
 zależy od danych OSM ani identyfikatorów przystanków.
+
+## Sesja 1c: transport lokalny NRW (gtfs.de nv_free)
+
+Feed RV jest w 100% kolejowy, więc adresy z dala od stacji (np. Gelsenkirchen-Buer) dawały tylko
+długi marsz. Dodano `gtfs/de/de_nv.zip` (gtfs.de `nv_free`, 287 MB: tramwaje, Stadtbahn/U-Bahn,
+autobusy całych Niemiec) jako dataset `denv` w `motis/config.yml`. Po zmianie trzeba powtórzyć
+`scripts/run_motis.ps1 import` (import z tym feedem trwa dłużej niż wcześniej).

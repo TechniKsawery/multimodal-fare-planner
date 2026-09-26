@@ -16,6 +16,9 @@ GTFS = {
     # gtfs.de: dalekobieżne (FV) i koleje regionalne (RV) całych Niemiec, NRW jest w środku
     "gtfs/de/de_fv.zip": "https://download.gtfs.de/germany/fv_free/latest.zip",
     "gtfs/de/de_rv.zip": "https://download.gtfs.de/germany/rv_free/latest.zip",
+    # gtfs.de: transport lokalny (NV) całych Niemiec — tramwaje, Stadtbahn/U-Bahn, autobusy (VRR itd.);
+    # feed RV jest w 100% kolejowy, więc bez tego adresy z dala od stacji dają tylko długi marsz
+    "gtfs/de/de_nv.zip": "https://download.gtfs.de/germany/nv_free/latest.zip",
     # mkuran.pl: komunikacja miejska ZTM Lublin (ZDiTM), CC0
     "gtfs/pl/lublin.zip": "https://mkuran.pl/gtfs/lublin.zip",
 }

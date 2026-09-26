@@ -140,7 +140,7 @@ def itinerary_to_legs(itinerary: dict) -> List[Leg]:
                 preceded_by_walk = True
             continue
 
-        mode = LegMode.BUS if raw["mode"] in ("BUS", "COACH") else LegMode.RAIL
+        mode = LegMode.RAIL if "RAIL" in raw["mode"] or raw["mode"] == "TRAIN" else LegMode.BUS  # tramwaj/metro/autobus = transport lokalny
         has_prev_transit = any(l.mode is not LegMode.WALK for l in legs)
         legs.append(
             Leg(

@@ -496,3 +496,23 @@ def test_request_from_addresses_uzywa_wspolrzednych(monkeypatch):
     assert request.origin_stop_id == "51.0,22.0"
     assert request.destination_stop_id == "51.5,7.1"
     assert request.origin_label == "Adres A"
+
+
+def test_tramwaj_i_metro_to_transport_lokalny_a_pociag_to_kolej():
+    def raw(mode):
+        return {"legs": [{"mode": mode, "from": {"name": "A", "lat": 51.0, "lon": 7.0},
+                          "to": {"name": "B", "lat": 51.1, "lon": 7.0},
+                          "startTime": "2026-10-05T07:00:00Z", "endTime": "2026-10-05T07:10:00Z"}]}
+    assert motis_client.itinerary_to_legs(raw("TRAM"))[0].mode is LegMode.BUS
+    assert motis_client.itinerary_to_legs(raw("SUBWAY"))[0].mode is LegMode.BUS
+    assert motis_client.itinerary_to_legs(raw("REGIONAL_RAIL"))[0].mode is LegMode.RAIL
+    assert motis_client.itinerary_to_legs(raw("HIGHSPEED_RAIL"))[0].mode is LegMode.RAIL
+
+
+def test_flixbus_wyceniany_za_km_a_autobus_miejski_ryczaltem():
+    city = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(7), carrier="ZDiTM Lublin", distance_km=5,
+                    extra={"motis_mode": "BUS"})
+    coach = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(12), carrier="Flixbus", distance_km=500,
+                     extra={"motis_mode": "BUS"})
+    assert pricing.price_bus_leg(city).amount == pricing.LOCAL_BUS_FLAT_PLN
+    assert pricing.price_bus_leg(coach).amount == pytest.approx(500 * pricing.GENERIC_FALLBACK_PLN_PER_KM)

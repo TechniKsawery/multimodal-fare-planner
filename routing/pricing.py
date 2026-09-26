@@ -99,7 +99,12 @@ LOCAL_BUS_FLAT_PLN = 4.0
 nie mamy modułu taryf komunikacji miejskiej."""
 
 
+LONG_DISTANCE_COACH_KEYWORDS = ("flix", "regiojet", "blablabus")
+
+
 def price_bus_leg(leg: Leg) -> PricedLeg:
+    if leg.extra.get("motis_mode") == "COACH" or any(k in leg.carrier_name.lower() for k in LONG_DISTANCE_COACH_KEYWORDS):
+        return _fallback_priced_leg(leg, "Autokar dalekobieżny — brak modułu taryf.")
     return PricedLeg(
         leg=leg, amount=LOCAL_BUS_FLAT_PLN, currency="PLN", price_type="szacunek",
         notes="Ryczałt za przejazd komunikacją miejską (placeholder, brak modułu taryf).",

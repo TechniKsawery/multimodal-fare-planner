@@ -96,8 +96,8 @@ def _price_legs(legs: List[Leg], request: RouteRequest):
     return [pricing.price_leg(leg, request.discounts, request.flight_currency) for leg in legs]
 
 
-def build_rail_only_variants(request: RouteRequest, max_variants: int = 2) -> List[Itinerary]:
-    """Do max_variants wariantów kolejowych z JEDNEGO zapytania do MOTIS (różne itineraria,
+def build_rail_only_variants(request: RouteRequest, max_variants: int = 6) -> List[Itinerary]:
+    """Do max_variants (domyślnie wszystkie, MOTIS zwraca ich ok. 5-6) wariantów kolejowych z JEDNEGO zapytania do MOTIS (różne itineraria,
     które silnik i tak zwraca — nie przeszukujemy innych hubów)."""
     all_legs_options = motis_client.all_itineraries_as_legs(
         request.origin_stop_id, request.destination_stop_id, request.motis_time

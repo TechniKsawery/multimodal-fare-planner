@@ -565,3 +565,13 @@ def test_rail_only_odrzuca_warianty_z_niewykonalna_przesiadka(monkeypatch):
     monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [bad, good])
     result = variants.build_rail_only_variants(request, max_variants=5)
     assert len(result) == 1 and result[0].num_transfers == 0
+
+
+def test_rail_only_domyslnie_zwraca_wszystkie_rozne_warianty(monkeypatch):
+    request = variants.RouteRequest("a", "b", "A", "B", "2026-10-05")
+    options = [
+        [make_leg(LegMode.RAIL, f"A{i}", "B", _dt(6), _dt(8 + i), carrier="PKP Intercity", distance_km=100)]
+        for i in range(4)
+    ]
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: options)
+    assert len(variants.build_rail_only_variants(request)) == 4

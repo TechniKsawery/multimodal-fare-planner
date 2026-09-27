@@ -209,6 +209,9 @@ def test_bahncard_25_standard_oplaca_sie_na_dlugiej_trasie_dwa_razy_w_roku():
     assert top.rekomendowana is True
     # 2 x 148 EUR bez karty vs 2 x 148 x 0.75 + 62.90 z kartą
     assert top.oszczednosc_rocznie == pytest.approx(2 * 148 - (2 * 148 * 0.75 + 62.90), abs=0.01)
+    # realna cena biletu (jednego przejazdu) pokazana obok samej oszczędności
+    assert top.cena_biletu_bez_karty == 148
+    assert top.cena_biletu_z_karta == pytest.approx(148 * 0.75, abs=0.01)
 
 
 def test_bahncard_50_standard_nie_oplaca_sie_przy_jednej_podrozy_ale_podaje_prog():

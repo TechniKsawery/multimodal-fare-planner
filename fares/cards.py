@@ -28,6 +28,8 @@ class CardSuggestion:
     nazwa: str
     cena_karty: float
     waluta: str
+    cena_biletu_bez_karty: float        # Flexpreis za JEDEN przejazd, bez karty
+    cena_biletu_z_karta: float          # Flexpreis za JEDEN przejazd, z rabatem karty (bez samej karty)
     oszczednosc_rocznie: float          # dodatnia = kupno się opłaca przy podanej liczbie podróży
     journeys_needed_to_break_even: Optional[int]  # None gdy karta już się opłaca; inaczej próg
     rekomendowana: bool
@@ -77,6 +79,7 @@ def suggest_bahncard(
 
         cena_karty = _effective_price(wariant, reference_date)
         savings_per_journey = upper_bound * wariant["rabat_procent"] / 100
+        cena_z_karta = round(upper_bound - savings_per_journey, 2)
         oszczednosc_rocznie = round(savings_per_journey * journeys_per_year - cena_karty, 2)
 
         if oszczednosc_rocznie > 0:
@@ -85,20 +88,25 @@ def suggest_bahncard(
                 nazwa=wariant["nazwa"],
                 cena_karty=cena_karty,
                 waluta=waluta,
+                cena_biletu_bez_karty=upper_bound,
+                cena_biletu_z_karta=cena_z_karta,
                 oszczednosc_rocznie=oszczednosc_rocznie,
                 journeys_needed_to_break_even=None,
                 rekomendowana=True,
                 opis=(
-                    f"Kup {wariant['nazwa']} za {cena_karty:.2f} {waluta} — przy {journeys_per_year} "
-                    f"podróżach/rok na tej trasie zaoszczędzisz {oszczednosc_rocznie:.2f} {waluta}/rok."
+                    f"Kup {wariant['nazwa']} za {cena_karty:.2f} {waluta} — bilet na tej trasie "
+                    f"zapłacisz {cena_z_karta:.2f} {waluta} zamiast {upper_bound:.2f} {waluta}; przy "
+                    f"{journeys_per_year} podróżach/rok zaoszczędzisz łącznie {oszczednosc_rocznie:.2f} "
+                    f"{waluta}/rok (po odjęciu ceny karty)."
                 ),
             ))
         else:
             break_even = math.ceil(cena_karty / savings_per_journey) if savings_per_journey > 0 else None
             opis = (
-                f"{wariant['nazwa']} ({cena_karty:.2f} {waluta}/rok) nie opłaca się przy "
-                f"{journeys_per_year} podróżach/rok na tej trasie — opłaca się dopiero od "
-                f"{break_even} podróży/rok."
+                f"{wariant['nazwa']} ({cena_karty:.2f} {waluta}/rok): bilet na tej trasie kosztowałby "
+                f"{cena_z_karta:.2f} {waluta} zamiast {upper_bound:.2f} {waluta}, ale przy "
+                f"{journeys_per_year} podróżach/rok karta jeszcze się nie zwraca — opłaca się dopiero "
+                f"od {break_even} podróży/rok."
                 if break_even is not None else
                 f"{wariant['nazwa']}: brak rabatu na Flexpreis, karta się nie zwróci."
             )
@@ -107,6 +115,8 @@ def suggest_bahncard(
                 nazwa=wariant["nazwa"],
                 cena_karty=cena_karty,
                 waluta=waluta,
+                cena_biletu_bez_karty=upper_bound,
+                cena_biletu_z_karta=cena_z_karta,
                 oszczednosc_rocznie=oszczednosc_rocznie,
                 journeys_needed_to_break_even=break_even,
                 rekomendowana=False,

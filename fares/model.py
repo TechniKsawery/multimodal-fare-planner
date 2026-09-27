@@ -25,6 +25,7 @@ class DiscountProfile:
     pkp_ulga_kod: str = "brak"          # klucz z fares/data/pkp_intercity.json -> ulgi_procent
     bahncard: Optional[str] = None      # None, "25", "50" lub "100" (DB, oficjalne rabaty Flexpreis)
     ztm_lublin_ulgowy: bool = False     # ZTM Lublin: bilet ulgowy zamiast normalnego
+    vrr_dziecko: bool = False           # VRR/eezy.nrw: Kindertarif (6-14 lat), 50% rabatu wliczając sufity cenowe
 
 
 @dataclass

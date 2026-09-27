@@ -21,6 +21,10 @@ def estimate(segment: Segment) -> PriceEstimate:
     sufit = _TABLE["sufity_cenowe_einzelticket"][_TABLE["sufit_uzywany_domyslnie"]]
     amount = round(min(surowa_cena, sufit), 2)
 
+    dziecko = segment.discounts.vrr_dziecko
+    if dziecko:
+        amount = round(amount * (1 - _TABLE["kindertarif_rabat_procent"] / 100), 2)
+
     return PriceEstimate(
         carrier=Carrier.VRR,
         amount=amount,
@@ -34,11 +38,18 @@ def estimate(segment: Segment) -> PriceEstimate:
             "cena_przed_sufitem": round(surowa_cena, 2),
             "sufit_cenowy": sufit,
             "sufit_zastosowany": surowa_cena > sufit,
+            "kindertarif": dziecko,
         },
         notes=(
             "Taryfa eezy.nrw (oficjalna, Stand 01.06.2026): Grundpreis + cena za km linii "
             "prostej, ograniczona sufitem ceny EinzelTicket dla najwyższej strefy sieciowej "
             "(Preisstufe C) — rzeczywisty sufit dla krótszych relacji może być niższy "
             "(Preisstufe A/B), patrz fares/data/vrr_eezy.json."
+            + (
+                f" Zastosowano Kindertarif: {_TABLE['kindertarif_rabat_procent']}% rabatu "
+                "(dzieci 6-14 lat, oficjalny, wliczając sufit cenowy)."
+                if dziecko
+                else ""
+            )
         ),
     )

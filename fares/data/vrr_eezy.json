@@ -11,5 +11,7 @@
   },
   "sufit_uzywany_domyslnie": "preisstufe_c",
   "sufit_24h_2_klasa": 28.90,
-  "sufit_miesieczny_2_klasa": 63.00
+  "sufit_miesieczny_2_klasa": 63.00,
+  "kindertarif_rabat_procent": 50,
+  "_kindertarif_uwaga": "Oficjalny Kindertarif eezy.nrw: dzieci 6-14 lat płacą 50% ceny dorosłego za przejazd, rabat wliczony też w sufity cenowe ('Kinder 50% Rabatt pro Person und Fahrt inkl. Deckel', Preistabelle VRR 2026). Dzieci poniżej 6 lat jeżdżą bez biletu (nie modelowane osobno — traktuj taki przejazd jako 0 PLN poza kalkulatorem). Od 15 lat pełna taryfa dorosłych."
 }

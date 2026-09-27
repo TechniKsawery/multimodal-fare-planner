@@ -76,6 +76,26 @@ def test_vrr_bez_dystansu_podnosi_blad():
         estimate_price(seg)
 
 
+def test_vrr_kindertarif_50_procent_rabatu():
+    normalny = Segment(Carrier.VRR, "Gelsenkirchen Hbf", "Essen Hbf", distance_km=10)
+    dziecko = Segment(
+        Carrier.VRR, "Gelsenkirchen Hbf", "Essen Hbf", distance_km=10,
+        discounts=DiscountProfile(vrr_dziecko=True),
+    )
+    cena_normalna = estimate_price(normalny).amount
+    result = estimate_price(dziecko)
+    assert result.amount == pytest.approx(cena_normalna * 0.5, abs=0.01)
+    assert result.price_type is PriceType.OFFICIAL
+
+
+def test_vrr_kindertarif_dziala_tez_na_sufit_cenowy():
+    dziecko = Segment(
+        Carrier.VRR, "Gelsenkirchen Hbf", "Bonn Hbf", distance_km=200,
+        discounts=DiscountProfile(vrr_dziecko=True),
+    )
+    assert estimate_price(dziecko).amount == pytest.approx(19.80 * 0.5, abs=0.01)
+
+
 def test_ztm_lublin_krotki_przejazd_bilet_15_minutowy():
     seg = Segment(Carrier.ZTM_LUBLIN, "Ogród Saski", "Dworzec Lublin", ride_duration_min=8)
     result = estimate_price(seg)

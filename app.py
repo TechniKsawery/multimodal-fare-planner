@@ -50,6 +50,14 @@ def render_itinerary(it) -> None:
         st.success("Przesiadki: bezpieczne (wg przyjętych minimów)")
 
 
+wiek = st.number_input(
+    "Wiek pasażera", min_value=0, max_value=120, value=30, step=1,
+    help="Używany tylko do PODPOWIEDZI zniżek zależnych od wieku (VRR Kindertarif 6-14 lat, "
+         "ZTM Lublin ulgowy). Checkboxy niżej możesz zawsze nadpisać ręcznie — np. dorosły "
+         "uczeń/student ma bilet ulgowy niezależnie od wieku, a wiek sam z siebie nie daje "
+         "pełnego obrazu uprawnień.",
+)
+
 with st.form("search"):
     origin = st.text_input("Skąd (adres)", DEFAULT_FROM)
     dest = st.text_input("Dokąd (adres)", DEFAULT_TO)
@@ -57,10 +65,23 @@ with st.form("search"):
     c1, c2 = st.columns(2)
     pkp = c1.selectbox("Ulga PKP", PKP_ULGI)
     bc = c2.selectbox("BahnCard", ["brak", "25", "50", "100"])
+    c3, c4 = st.columns(2)
+    ztm_ulgowy = c3.checkbox(
+        "Bilet ulgowy ZTM Lublin", value=wiek < 18,
+        help="Podpowiedź wg wieku (<18 lat) — zaznacz też ręcznie, jeśli masz ulgę z innego "
+             "tytułu (uczeń, student, senior, niepełnosprawność), niezależnie od wieku.",
+    )
+    vrr_dziecko = c4.checkbox(
+        "Taryfa dziecięca VRR (Kindertarif)", value=6 <= wiek <= 14,
+        help="Oficjalna zniżka VRR: 50% dla dzieci 6-14 lat, ściśle wg wieku.",
+    )
     submitted = st.form_submit_button("Szukaj")
 
 if submitted:
-    profile = DiscountProfile(pkp_ulga_kod=pkp, bahncard=None if bc == "brak" else bc)
+    profile = DiscountProfile(
+        pkp_ulga_kod=pkp, bahncard=None if bc == "brak" else bc,
+        ztm_lublin_ulgowy=ztm_ulgowy, vrr_dziecko=vrr_dziecko,
+    )
     try:
         with st.spinner("Szukam połączeń..."):
             request = request_from_addresses(origin, dest, date.isoformat(), discounts=profile)

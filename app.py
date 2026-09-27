@@ -40,12 +40,22 @@ def render_itinerary(it, wiek=None) -> None:
             price = f"{m:.0f} m" if m else ""
         else:
             price = f"{p.amount:.2f} {p.currency} ({p.price_type})"
+        rozbicie = ""
+        zrodlo_bagazu = ""
+        if leg.mode.value == "lot" and "cena_biletu" in p.breakdown:
+            rozbicie = (
+                f"bilet {p.breakdown['cena_biletu']:.2f} "
+                f"+ bagaż {p.breakdown.get('bagaz', 0):.2f} {p.currency}"
+            )
+            zrodlo_bagazu = p.breakdown.get("bagaz_zrodlo", "")
         rows.append({
             "Środek": leg.mode.value,
             "Trasa": f"{leg.origin_name} → {leg.destination_name}",
             "Godziny": f"{leg.depart:%H:%M}–{leg.arrive:%H:%M} ({leg.duration_min:.0f} min)",
             "Przewoźnik": leg.carrier_name or "",
             "Cena / dystans": price,
+            "Rozbicie ceny lotu": rozbicie,
+            "Cennik bagażu": zrodlo_bagazu,
         })
     st.dataframe(rows, width="stretch", hide_index=True)
     if it.is_risky:

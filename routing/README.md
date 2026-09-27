@@ -69,6 +69,33 @@ odlotu/przylotu) — `variants.py` przyjmuje **placeholder 2h czasu lotu** i buf
 przyjazd kolei wokół niego (150 min przed odlotem na dojazd+odprawę, 90 min po przylocie).
 To wystarcza do liczenia bufora przesiadki, ale nie jest realnym rozkładem lotów.
 
+## Wycena odcinków lotniczych: tylko bilet + bagaż (bez dojazdu/transferu)
+
+`flights.estimate_price()` sam w sobie liczy bilet + bagaż + dojazd na lotnisko + transfer
+z lotniska (patrz `flights/README.md`) — to poprawne, gdy ktoś wycenia lot samodzielnie, poza
+tym silnikiem. W wariancie mieszanym (kolej + lot + kolej) dojazd na lotnisko i transfer z
+lotniska do miasta docelowego są już osobnymi, realnie wycenionymi odcinkami kolejowymi
+(`build_rail_flight_rail_variant` w `variants.py`) — doliczenie ich drugi raz z placeholderowej
+tabeli `flights/data/extras_placeholder.json` podwójnie liczyłoby ten sam koszt.
+
+Dlatego `pricing.price_flight_leg()` woła `flights.estimate_price()` z własnym
+`ExtrasProfile`, w którym `airport_access_cost`/`destination_transfer_cost` są wyzerowane, a
+`baggage_cost` bierze tylko pole `bagaz` z tabeli `flights/` dla danej relacji (albo
+`DEFAULT_BAGGAGE_ESTIMATE_PLN` = 150 PLN, jasno oznaczone jako szacunek, gdy relacja nie ma
+wpisu w tabeli). Rozbicie bilet/bagaż jest widoczne w `PricedLeg.breakdown` i wypisywane osobno
+w `demo.py`/`app.py` dla odcinków lotu.
+
+**Dopracowanie bagażu wg realnego cennika linii:** dopiero PO zapytaniu do Travelpayouts znamy
+kod linii obsługującej najtańszy bilet (`result.breakdown["linia"]`, np. `"FR"` dla Ryanaira) —
+za wcześnie, żeby użyć go przy budowaniu `ExtrasProfile` powyżej. Dlatego `price_flight_leg()`
+po otrzymaniu wyniku sprawdza `flights.extras.get_baggage_by_airline(linia)`: jeśli przewoźnik
+jest w tabeli realnych cenników (`flights/data/baggage_by_airline.json` — obecnie Ryanair, Wizz
+Air, LOT, Eurowings), NADPISUJE placeholderowy/domyślny bagaż tą realną kwotą (przeliczoną do
+waluty segmentu przez `routing/currency.py:convert`) i dopisuje źródło do
+`breakdown["bagaz_zrodlo"]` oraz do notatki. Dla nieznanego przewoźnika zostaje bagaż z tabeli
+relacji/domyślny szacunek — patrz `flights/README.md` po pełny opis i zastrzeżenie o
+DYNAMICZNYCH opłatach za bagaż (kwoty w tabeli to dolna granica opublikowanego przedziału).
+
 ## Wycena odcinków kolejowych: mapowanie przewoźnika
 
 `pricing.infer_rail_carrier()` mapuje `agencyName` z MOTIS na przewoźnika z `fares/`:

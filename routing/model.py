@@ -40,6 +40,7 @@ class PricedLeg:
     currency: str
     price_type: str          # "szacunek" albo "oficjalna_taryfa" (PriceType.value z fares/flights)
     notes: str = ""
+    breakdown: dict = field(default_factory=dict)  # przekazane 1:1 z PriceEstimate.breakdown (fares/flights)
 
 
 @dataclass

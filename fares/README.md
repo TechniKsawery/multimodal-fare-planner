@@ -113,6 +113,81 @@ dla `Carrier.FLIXBUS` (pozostałe przewoźniki mają stałe taryfy, nie potrzebu
 `travel_date` kalkulator FlixBus od razu spada do fallbacku po km. `routing/pricing.py`
 (`price_flixbus_leg`) ustawia je automatycznie z `leg.depart`.
 
+## Sugestia zakupu BahnCard (`fares/cards.py`, 2026-09-27)
+
+PKP i DB mają różny mechanizm zniżek: ulgi PKP Intercity są **ustawowe** (przysługują z tytułu
+wieku/statusu, nie trzeba nic kupować — po prostu ustawia się `DiscountProfile.pkp_ulga_kod`).
+BahnCard jest **produktem do kupienia** — samo posiadanie zniżki nie wystarczy, trzeba osobno
+policzyć, czy roczny koszt karty zwróci się w oszczędnościach na przewidywanej liczbie podróży.
+Stąd osobny moduł, `fares/cards.py`:
+
+```python
+from fares.cards import suggest_bahncard
+
+for s in suggest_bahncard(distance_km=550, journeys_per_year=2, age=22):
+    print(s.opis)
+```
+
+`routing/card_suggestions.py` (`suggest_bahncard_for_itinerary`) robi to samo, ale bierze gotowy
+`Itinerary` i sam wylicza sumę dystansów odcinków DB Fernverkehr w wariancie — używane w
+`demo.py` (`--age`) i `app.py` (pole "Wiek pasażera" już istniejące dla ulg ZTM/VRR).
+
+Warianty i ceny (`fares/data/bahncard.json`, sprawdzone 2026-09-27 na bahn.de/angebot/bahncard):
+
+| Wariant | Cena roczna | Rabat na Flexpreis | Wiek |
+|---|---|---|---|
+| BahnCard 25 (standard) | 62,90 EUR | 25% | dowolny |
+| BahnCard 50 (standard) | 244,00 EUR | 50% | dowolny |
+| My BahnCard 25 | 39,90 EUR | 25% | 19–26 lat |
+| My BahnCard 50 | 79,90 EUR | 50% | 19–26 lat |
+| Jugend BahnCard 25 | 7,90 EUR (**0 EUR promocyjnie do 2026-09-30**) | 25% | 6–18 lat |
+
+Bez podanego wieku pod uwagę brane są tylko warianty standardowe (dostępne każdemu). Wariant
+promocyjny automatycznie przestaje być darmowy po dacie z `promocja_do` (`reference_date`
+domyślnie = dzisiaj). Próg opłacalności: gdy karta się jeszcze nie zwraca przy podanej liczbie
+podróży/rok, `CardSuggestion.journeys_needed_to_break_even` podaje, od ilu podróży rocznie się
+opłaci — patrz `fares/cards.py` po szczegóły wzoru.
+
+**Ograniczenie**: dotyczy wyłącznie Flexpreis DB (odcinki `Carrier.DB` w module taryf / DB
+Fernverkehr w routingu) — nie obejmuje ulg PKP (już wliczonych przez `pkp_ulga_kod`) ani innych
+przewoźników, dla których BahnCard nie działa. Bagaż nie jest tu liczony — dla kolei/autokarów
+PL/DE jest bezpłatny i nie wpływa na próg; TODO w kodzie zaznacza, że przy przyszłym
+porównaniu z lotami (gdzie bagaż rejestrowany realnie podnosi cenę) warto to doliczyć.
+
+### Polityka wygasających promocji (np. Jugend BahnCard 25)
+
+Gdy promocja wygasa (`promocja_do` w danych), dane **NIE są usuwane** z tabeli — kod sam
+przełącza się na cenę standardową po tej dacie (`_effective_price()` w `fares/cards.py`,
+porównanie z `reference_date`, domyślnie dzisiaj). Powód: (1) historia/źródło zostaje
+udokumentowane, (2) jeśli DB przedłuży promocję, wystarczy zmienić jedną datę zamiast
+przywracać usunięte dane, (3) nie trzeba pamiętać o "sprzątaniu" kodu po każdej wygasającej
+ofercie — sam się dezaktywuje. Ta sama zasada obowiązuje dla każdej kolejnej czasowej promocji
+dodanej do tego modułu.
+
+### Research: inne korzystne okazje u innych przewoźników (2026-09-27)
+
+Sprawdzone pod kątem czegoś analogicznego do BahnCard (kupowana karta/abonament dający % lub
+stały rabat na wiele przejazdów):
+
+- **PKP Intercity**: **brak** takiego produktu. Zamiast tego: system dynamicznych "poziomów
+  Promo" (15–45% zależnie od terminu/obłożenia pociągu — to ceny biletów, nie karta), Karta
+  Dużej Rodziny (bezpłatna, państwowa, ulga ustawowa — inny mechanizm niż zakup karty),
+  "Bilet Seniora" (promocyjny produkt biletowy, nie abonament). Statutowe ulgi już są wliczone
+  przez `pkp_ulga_kod` — nic do dodania.
+- **FlixBus**: brak ogólnodostępnej karty/abonamentu; jedyne stałe zniżki to 10–15% dla
+  posiadaczy ISIC/ESNcard (osobne członkostwo studenckie, wąska grupa, niepewna dostępność w
+  Polsce) — uznane za zbyt niszowe, żeby modelować w silniku ogólnego użytku.
+- **VRR / transport lokalny DE**: **Deutschlandticket** — ogólnoniemiecki bilet miesięczny,
+  63 EUR/mies. od 2026-01-01 (wcześniej 58 EUR, dane w `fares/data/deutschlandticket.json`).
+  Ciekawostka: własny sufit miesięczny taryfy eezy.nrw (`vrr_eezy.json`:
+  `sufit_miesieczny_2_klasa`) to też 63 EUR — więc Deutschlandticket opłaca się bardziej niż
+  same bilety VRR TYLKO gdy pasażer i tak przekroczyłby miesięczny sufit VRR ORAZ jeździ też
+  transportem lokalnym poza obszarem VRR w tym samym miesiącu. **Nie wpięte w kalkulator** —
+  silnik liczy pojedyncze trasy, nie miesięczne wzorce podróży, więc próg opłacalności
+  (podróże/miesiąc, nie podróże/rok jak BahnCard) nie pasuje do obecnego modelu jednorazowego
+  porównania tras. Dane zostawione udokumentowane na przyszłość (TODO), gdyby silnik kiedyś
+  zaczął doradzać też osobom mieszkającym/dojeżdżającym regularnie w Niemczech.
+
 ## Użycie
 
 ```python

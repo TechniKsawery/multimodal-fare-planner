@@ -16,6 +16,7 @@ from routing.demo_route import (
     RAIL_FLIGHT_RAIL_HUBS,
     VIA_HUB_STOPS,
 )
+from routing.card_suggestions import suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
 from routing.variants import generate_variants, request_from_addresses
@@ -27,7 +28,7 @@ st.set_page_config(page_title="Multimodalna wyszukiwarka", layout="wide")
 st.title("Multimodalna wyszukiwarka tras")
 
 
-def render_itinerary(it) -> None:
+def render_itinerary(it, wiek=None) -> None:
     c1, c2, c3 = st.columns(3)
     c1.metric("Czas podróży", f"{it.total_duration_min / 60:.1f} h")
     c2.metric("Cena łączna", f"{it.total_price_pln:.2f} PLN")
@@ -53,6 +54,14 @@ def render_itinerary(it) -> None:
             st.warning(f"Ryzykowna przesiadka: {w.reason}")
     else:
         st.success("Przesiadki: bezpieczne (wg przyjętych minimów)")
+
+    suggestions = suggest_bahncard_for_itinerary(it, age=wiek)
+    if suggestions:
+        best = suggestions[0]
+        if best.rekomendowana:
+            st.info(f"💳 {best.opis}")
+        else:
+            st.caption(f"💳 {best.opis}")
 
 
 wiek = st.number_input(
@@ -120,11 +129,11 @@ if submitted:
     for tab, key in zip(tabs, RECOMMENDATION_LABELS):
         with tab:
             st.subheader(recs[key].variant_name)
-            render_itinerary(recs[key])
+            render_itinerary(recs[key], wiek)
 
     st.header("Wszystkie warianty")
     for it in built:
         with st.expander(f"{it.variant_name} — {it.total_duration_min / 60:.1f} h, "
                          f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}"
                          + ("  ⚠️" if it.is_risky else "")):
-            render_itinerary(it)
+            render_itinerary(it, wiek)

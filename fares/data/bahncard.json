@@ -1,0 +1,47 @@
+{
+  "_zrodlo": "https://www.bahn.de/angebot/bahncard/vergleich, https://www.bahn.de/angebot/bahncard/bahncard25/mybahncard-2-klasse, https://www.bahn.de/angebot/bahncard/bahncard25/jugendbahncard, https://www.bahn.de/angebot/bahncard/junge-reisende",
+  "_data_sprawdzenia": "2026-09-27",
+  "_uwaga": "Ceny BahnCard bywają zmieniane przez DB bez zapowiedzi i mogą się różnić od promocji widocznych tylko po zalogowaniu — traktuj jako oficjalny cennik na dzień sprawdzenia, nie jako gwarancję aktualności. Rabat_procent odnosi się do Flexpreis (patrz fares/db.py) — mnożnik BahnCard 25/50 na Flexpreis jest tą samą wartością co w db_flexpreis.json.",
+  "waluta": "EUR",
+  "klasa": 2,
+  "warianty": {
+    "bc25_standard": {
+      "nazwa": "BahnCard 25 (2. klasa, standard)",
+      "cena_roczna": 62.90,
+      "rabat_procent": 25,
+      "wiek_min": null,
+      "wiek_max": null
+    },
+    "bc50_standard": {
+      "nazwa": "BahnCard 50 (2. klasa, standard)",
+      "cena_roczna": 244.00,
+      "rabat_procent": 50,
+      "wiek_min": null,
+      "wiek_max": null
+    },
+    "my_bc25_19_26": {
+      "nazwa": "My BahnCard 25 (2. klasa, 19-26 lat)",
+      "cena_roczna": 39.90,
+      "rabat_procent": 25,
+      "wiek_min": 19,
+      "wiek_max": 26
+    },
+    "my_bc50_19_26": {
+      "nazwa": "My BahnCard 50 (2. klasa, 19-26 lat)",
+      "cena_roczna": 79.90,
+      "rabat_procent": 50,
+      "wiek_min": 19,
+      "wiek_max": 26
+    },
+    "jugend_bc25_6_18": {
+      "nazwa": "Jugend BahnCard 25 (2. klasa, 6-18 lat)",
+      "cena_roczna": 7.90,
+      "cena_promocyjna": 0.0,
+      "promocja_do": "2026-09-30",
+      "_uwaga_promocja": "0 EUR zamiast 7,90 EUR przy zamówieniu do 2026-09-30; po tej dacie obowiązuje cena standardowa 7,90 EUR.",
+      "rabat_procent": 25,
+      "wiek_min": 6,
+      "wiek_max": 18
+    }
+  }
+}

@@ -17,6 +17,7 @@ from routing.demo_route import (
     RAIL_FLIGHT_RAIL_HUBS,
     VIA_HUB_STOPS,
 )
+from routing.card_suggestions import suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
 from routing.variants import generate_variants, request_from_addresses
@@ -30,7 +31,15 @@ DEFAULT_TO = "Bahnhofstraße, Gelsenkirchen"
 DEMO_DATE = "2026-10-05"
 
 
-def format_itinerary(itinerary) -> str:
+def format_bahncard_suggestion(itinerary, age) -> str:
+    suggestions = suggest_bahncard_for_itinerary(itinerary, age=age)
+    if not suggestions:
+        return ""
+    best = suggestions[0]
+    return f"  BahnCard: {best.opis}"
+
+
+def format_itinerary(itinerary, age=None) -> str:
     lines = [
         f"  Czas podróży: {itinerary.total_duration_min / 60:.1f} h "
         f"({int(itinerary.total_duration_min)} min), przesiadek: {itinerary.num_transfers}",
@@ -58,6 +67,9 @@ def format_itinerary(itinerary) -> str:
             lines.append(f"    ! {warning.reason}")
     else:
         lines.append("  Przesiadki: bezpieczne (wg przyjętych minimów, patrz routing/README.md)")
+    bahncard_line = format_bahncard_suggestion(itinerary, age)
+    if bahncard_line:
+        lines.append(bahncard_line)
     return "\n".join(lines)
 
 
@@ -66,6 +78,10 @@ def main() -> None:
     parser.add_argument("--from", dest="origin", default=DEFAULT_FROM, help="adres startowy (z miastem)")
     parser.add_argument("--to", dest="destination", default=DEFAULT_TO, help="adres docelowy (z miastem)")
     parser.add_argument("--date", default=DEMO_DATE, help="dzień wyjazdu YYYY-MM-DD")
+    parser.add_argument(
+        "--age", type=int, default=None,
+        help="wiek pasażera — używany tylko do podpowiedzi BahnCard (My/Jugend BahnCard 6-26 lat)",
+    )
     args = parser.parse_args()
 
     try:
@@ -101,7 +117,7 @@ def main() -> None:
     for key, label in RECOMMENDATION_LABELS.items():
         itinerary = recommendations[key]
         print(f"[{label}] {itinerary.variant_name}")
-        print(format_itinerary(itinerary))
+        print(format_itinerary(itinerary, args.age))
         if id(itinerary) in already_shown:
             print("  (ten sam wariant wygrywa też w innej kategorii powyżej)")
         already_shown.add(id(itinerary))
@@ -110,7 +126,7 @@ def main() -> None:
     print("=== Wszystkie wygenerowane warianty ===\n")
     for itinerary in built:
         print(f"- {itinerary.variant_name}")
-        print(format_itinerary(itinerary))
+        print(format_itinerary(itinerary, args.age))
         print()
 
 

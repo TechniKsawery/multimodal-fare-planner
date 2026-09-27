@@ -18,6 +18,12 @@ def _flexpreis_upper_bound(distance_km: float) -> float:
     raise ValueError("brak pasma cenowego dla podanej odległości")
 
 
+def flexpreis_upper_bound(distance_km: float) -> float:
+    """Górna granica Flexpreis (bez BahnCard) dla danej odległości — używane też przez fares/cards.py
+    do liczenia opłacalności BahnCard."""
+    return _flexpreis_upper_bound(distance_km)
+
+
 def estimate(segment: Segment) -> PriceEstimate:
     if segment.carrier is not Carrier.DB:
         raise ValueError(f"nieprawidłowy przewoźnik dla kalkulatora DB: {segment.carrier}")

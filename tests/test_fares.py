@@ -1,7 +1,10 @@
+from datetime import date
+
 import pytest
 
 from fares import PriceType, estimate_price
 from fares import _flixbus_api, flixbus
+from fares.cards import suggest_bahncard
 from fares.model import Carrier, DiscountProfile, Segment
 
 
@@ -190,3 +193,53 @@ def test_ztm_lublin_bez_czasu_jazdy_podnosi_blad():
     seg = Segment(Carrier.ZTM_LUBLIN, "A", "B")
     with pytest.raises(ValueError):
         estimate_price(seg)
+
+
+# --- BahnCard: sugestia opłacalności karty ------------------------------------------------
+
+def test_bahncard_bez_wieku_widzi_tylko_warianty_standardowe():
+    results = suggest_bahncard(550, journeys_per_year=2, age=None)
+    assert {r.variant_key for r in results} == {"bc25_standard", "bc50_standard"}
+
+
+def test_bahncard_25_standard_oplaca_sie_na_dlugiej_trasie_dwa_razy_w_roku():
+    results = suggest_bahncard(550, journeys_per_year=2, age=None)
+    top = results[0]
+    assert top.variant_key == "bc25_standard"
+    assert top.rekomendowana is True
+    # 2 x 148 EUR bez karty vs 2 x 148 x 0.75 + 62.90 z kartą
+    assert top.oszczednosc_rocznie == pytest.approx(2 * 148 - (2 * 148 * 0.75 + 62.90), abs=0.01)
+
+
+def test_bahncard_50_standard_nie_oplaca_sie_przy_jednej_podrozy_ale_podaje_prog():
+    results = suggest_bahncard(550, journeys_per_year=1, age=None)
+    bc50 = next(r for r in results if r.variant_key == "bc50_standard")
+    assert bc50.rekomendowana is False
+    assert bc50.journeys_needed_to_break_even is not None
+    assert bc50.journeys_needed_to_break_even > 1
+
+
+def test_bahncard_mloda_osoba_19_26_widzi_tansze_warianty_my_bahncard():
+    results = suggest_bahncard(550, journeys_per_year=2, age=22)
+    assert {r.variant_key for r in results} == {
+        "bc25_standard", "bc50_standard", "my_bc25_19_26", "my_bc50_19_26",
+    }
+    assert results[0].variant_key in {"my_bc25_19_26", "my_bc50_19_26"}
+
+
+def test_bahncard_jugend_darmowa_w_trakcie_promocji():
+    results = suggest_bahncard(550, journeys_per_year=2, age=15, reference_date=date(2026, 9, 27))
+    jugend = next(r for r in results if r.variant_key == "jugend_bc25_6_18")
+    assert jugend.cena_karty == 0.0
+    assert jugend.rekomendowana is True
+
+
+def test_bahncard_jugend_placi_standardowa_cene_po_koncu_promocji():
+    results = suggest_bahncard(550, journeys_per_year=2, age=15, reference_date=date(2026, 10, 15))
+    jugend = next(r for r in results if r.variant_key == "jugend_bc25_6_18")
+    assert jugend.cena_karty == 7.90
+
+
+def test_bahncard_nieprawidlowa_odleglosc_podnosi_blad():
+    with pytest.raises(ValueError):
+        suggest_bahncard(0, journeys_per_year=2)

@@ -200,6 +200,18 @@ def test_przesiadka_dworzec_lublin_krotsza_nazwa_tez_jest_znanym_aliasem():
     assert transfers.check_transfer(prev, ok_nxt, 0) is None  # 25 min >= 20 min
 
 
+def test_przesiadka_berlin_lichtenberg_i_su_lichtenberg_to_ten_sam_wezel():
+    """Zgłoszone w praktyce jako fałszywie oznaczone "wymaga zmiany dworca" (30 min) — to
+    zintegrowany węzeł (dworzec dalekobieżny/regionalny + S-Bahn/U-Bahn), jeden budynek
+    połączony przejściem podziemnym (potwierdzone na Wikipedii), patrz
+    KNOWN_STATION_COMPLEX_ALIASES."""
+    prev = make_leg(LegMode.RAIL, "A", "Berlin-Lichtenberg", _dt(6), _dt(8), requires_walk=False)
+    nxt = make_leg(LegMode.BUS, "S+U Lichtenberg Bhf (Berlin)", "C", _dt(8, 3), _dt(10), requires_walk=True)
+    warning = transfers.check_transfer(prev, nxt, 0)
+    assert warning is not None  # 3 min < 20 min, nadal ryzykowne
+    assert warning.infeasible is False  # ale 3 min >= 3 min absolutnego minimum -> nie niewykonalne
+    assert warning.minimum_required_minutes == transfers.MIN_TRANSFER_MINUTES_SAME_PLATFORM
+
 
 def test_przesiadka_kolej_lot_wymaga_duzego_bufora():
     prev = make_leg(LegMode.RAIL, "A", "Lotnisko", _dt(6), _dt(8))

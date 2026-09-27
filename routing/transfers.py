@@ -32,6 +32,10 @@ KNOWN_STATION_COMPLEX_ALIASES: List[frozenset] = [
     # 51/52"); "Lublin Główny" to sąsiadujący dworzec kolejowy połączony z nim przejściem
     # podziemnym (ul. Pocztowa) — jeden kompleks przesiadkowy.
     frozenset({"Dworzec Lublin - Kunickiego", "Dworzec Lublin", "Lublin Główny"}),
+    # Zintegrowany węzeł Berlin-Lichtenberg: dworzec dalekobieżny/regionalny i S+U Lichtenberg
+    # (S-Bahn/U-Bahn) to jeden kompleks, połączony przejściem podziemnym nad torami U-Bahn
+    # (Wikipedia: "Berlin-Lichtenberg station").
+    frozenset({"Berlin-Lichtenberg", "S+U Lichtenberg Bhf (Berlin)"}),
 ]
 
 

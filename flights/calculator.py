@@ -3,8 +3,17 @@ from . import extras as extras_module
 from . import travelpayouts
 from .model import FlightSegment, PriceEstimate, PriceType
 
+GENERIC_FLIGHT_FALLBACK_PLN = 350.0
+"""Bardzo zgrubny szacunek ceny biletu (PL-DE, tania linia, w jedną stronę), używany TYLKO gdy
+Travelpayouts nie ma w cache ceny ani dla dokładnej daty, ani dla całego miesiąca (relacja/data
+zbyt egzotyczna) — patrz README.md. Nie oparty na żadnych realnych danych dla tej konkretnej
+relacji, tylko na rzędzie wielkości typowych cen Ryanair/Wizz Air na krótkich trasach PL-DE."""
 
-def estimate_price(segment: FlightSegment) -> PriceEstimate:
+
+def _fetch_ticket(segment: FlightSegment):
+    """Zwraca (ticket_dict, notatka_o_zrodle). Próbuje kolejno: dokładna data z cache
+    Travelpayouts -> cały miesiąc z cache Travelpayouts (API akceptuje depart_date="YYYY-MM") ->
+    zgrubny szacunek stały, gdy obie próby nie dały ceny dla tej relacji."""
     payload = travelpayouts.fetch_cheapest_price(
         origin=segment.origin,
         destination=segment.destination,
@@ -12,7 +21,37 @@ def estimate_price(segment: FlightSegment) -> PriceEstimate:
         return_date=segment.return_date,
         currency=segment.currency,
     )
-    ticket = travelpayouts.cheapest_entry(payload, segment.destination)
+    ticket = travelpayouts.cheapest_entry_or_none(payload, segment.destination)
+    if ticket is not None:
+        return ticket, "Cena biletu z cache Travelpayouts (dokładna data) — może być nieaktualna o kilka dni."
+
+    month = segment.depart_date[:7]  # "YYYY-MM-DD" -> "YYYY-MM"
+    if month != segment.depart_date:
+        month_payload = travelpayouts.fetch_cheapest_price(
+            origin=segment.origin,
+            destination=segment.destination,
+            depart_date=month,
+            currency=segment.currency,
+        )
+        ticket = travelpayouts.cheapest_entry_or_none(month_payload, segment.destination)
+        if ticket is not None:
+            return ticket, (
+                "Brak ceny w cache Travelpayouts dla dokładnej daty — cena z cache dla całego "
+                f"miesiąca ({month}), może odbiegać od ceny na konkretny dzień."
+            )
+
+    return (
+        {"price": GENERIC_FLIGHT_FALLBACK_PLN, "transfers": None, "airline": None, "departure_at": None},
+        (
+            "Brak ceny w cache Travelpayouts dla tej relacji (ani dokładna data, ani cały miesiąc) — "
+            f"BARDZO ZGRUBNY szacunek stały ({GENERIC_FLIGHT_FALLBACK_PLN:.0f} PLN), nieoparty na "
+            "realnych danych dla tej trasy."
+        ),
+    )
+
+
+def estimate_price(segment: FlightSegment) -> PriceEstimate:
+    ticket, ticket_note = _fetch_ticket(segment)
 
     extras = segment.extras or extras_module.get_extras(segment.origin, segment.destination)
     if extras.currency != segment.currency:
@@ -23,7 +62,7 @@ def estimate_price(segment: FlightSegment) -> PriceEstimate:
 
     total = round(ticket["price"] + extras.total, 2)
 
-    notes = "Cena biletu z cache Travelpayouts — może być nieaktualna o kilka dni."
+    notes = ticket_note
     if extras.note:
         notes += " " + extras.note
 

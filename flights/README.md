@@ -28,6 +28,23 @@ oznaczony jako `PriceType.ESTIMATE` ("szacunek"), tak samo jak w module `fares/`
 
 Nie zgadywaliśmy żadnego klucza — token wstawiasz sam przez zmienną środowiskową.
 
+### Gdy w cache nie ma ceny dla konkretnej daty/relacji
+
+Cache Travelpayouts nie obejmuje każdej relacji i daty — dla mniej popularnych tras albo dat
+odległych w czasie zapytanie o konkretny dzień może nie zwrócić nic. Zamiast od razu odrzucać
+cały wariant lotu (`TravelpayoutsError` -> `SkippedVariant` w `routing/variants.py`),
+`estimate_price` próbuje kolejno:
+
+1. Cenę dla dokładnej daty (jak wyżej).
+2. Cenę z cache dla CAŁEGO miesiąca (API akceptuje `depart_date="YYYY-MM"`) — może nie trafiać
+   dokładnie w wybrany dzień, ale to wciąż realna cena z cache dla tej relacji.
+3. Jeśli i to nie da wyniku: stały, bardzo zgrubny szacunek (`GENERIC_FLIGHT_FALLBACK_PLN` w
+   `flights/calculator.py`) oparty na rzędzie wielkości typowych cen tanich linii na krótkich
+   trasach PL-DE — NIE jest to cena dla konkretnej relacji.
+
+Każdy z tych trzech przypadków jest jasno opisany w `PriceEstimate.notes`, więc widać po wyniku,
+na ile realna jest podana cena.
+
 ## Koszty dodatkowe (bagaż, dojazd, transfer)
 
 Sama cena biletu z API to nie jest realny koszt podróży. Doliczamy trzy osobne, konfigurowalne

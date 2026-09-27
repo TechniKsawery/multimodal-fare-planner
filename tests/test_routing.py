@@ -136,9 +136,69 @@ def test_przesiadka_na_tym_samym_peronie_za_krotka():
 
 def test_przesiadka_z_przejsciem_wymaga_wiecej_czasu():
     prev = make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), requires_walk=False)
-    nxt = make_leg(LegMode.RAIL, "B", "C", _dt(8, 25), _dt(10), requires_walk=True)
+    nxt = make_leg(LegMode.RAIL, "B2", "C", _dt(8, 25), _dt(10), requires_walk=True)
     warning = transfers.check_transfer(prev, nxt, 0)
-    assert warning is not None  # 25 min < 30 min (wymaga przejścia)
+    assert warning is not None  # 25 min < 30 min (wymaga przejścia, inny przystanek "B" -> "B2")
+
+
+def test_przesiadka_ten_sam_przystanek_mimo_requires_walk_nie_wymaga_pelnego_bufora():
+    """MOTIS czasem wstawia leg WALK (requires_walk=True) nawet między dwoma odcinkami z tym
+    samym przystankiem po obu stronach (osobne perony/wejścia tego samego kompleksu, np. Essen
+    Altenessen Bf -> Essen Altenessen Bf) — to NIE jest zmiana dworca, więc obowiązuje próg
+    "ten sam peron" (20 min), a nie "zmiana dworca" (30 min)."""
+    prev = make_leg(LegMode.BUS, "A", "Essen Altenessen Bf", _dt(6), _dt(8), requires_walk=False)
+    nxt = make_leg(LegMode.RAIL, "Essen Altenessen Bf", "C", _dt(8, 4), _dt(10), requires_walk=True)
+    warning = transfers.check_transfer(prev, nxt, 0)
+    assert warning is not None  # 4 min < 20 min (nadal za krótko, ale tylko ryzykowne)
+    assert warning.infeasible is False
+    assert warning.minimum_required_minutes == transfers.MIN_TRANSFER_MINUTES_SAME_PLATFORM
+
+    ok_nxt = make_leg(LegMode.RAIL, "Essen Altenessen Bf", "C", _dt(8, 25), _dt(10), requires_walk=True)
+    assert transfers.check_transfer(prev, ok_nxt, 0) is None  # 25 min >= 20 min, ten sam przystanek
+
+
+def test_przesiadka_znany_alias_kompleksu_dworcowego_nie_wymaga_pelnego_bufora():
+    """"Dworzec Lublin - Kunickiego" i "Lublin Główny" to różne nazwy tego samego budynku
+    (potwierdzone ręcznie, patrz KNOWN_STATION_COMPLEX_ALIASES) — mimo różnych nazw powinno
+    dostać próg "ten sam peron" (20 min / 3 min absolutnego minimum), nie "zmiana dworca"
+    (30 min / 8 min)."""
+    prev = make_leg(LegMode.BUS, "A", "Dworzec Lublin - Kunickiego", _dt(6), _dt(8), requires_walk=False)
+
+    # 5 min: poniżej absolutnego minimum "zmiana dworca" (8 min) -> pod starą logiką byłoby to
+    # NIEWYKONALNE, mimo że to jeden budynek. Po poprawce: nadal za krótko na próg bezpieczny
+    # (3-20 min), ale już nie niewykonalne.
+    nxt = make_leg(LegMode.RAIL, "Lublin Główny", "C", _dt(8, 5), _dt(10), requires_walk=True)
+    warning = transfers.check_transfer(prev, nxt, 0)
+    assert warning is not None
+    assert warning.infeasible is False
+    assert warning.minimum_required_minutes == transfers.MIN_TRANSFER_MINUTES_SAME_PLATFORM
+
+    # Zgłoszony przez usera realny przypadek to tylko 2 min — to nadal poniżej absolutnego
+    # minimum nawet w obrębie jednego budynku (3 min), więc zostaje NIEWYKONALNE, tak jak user
+    # sam ocenił to zgłoszenie ("wygląda na realny, poprawnie odrzucony przypadek").
+    too_tight = make_leg(LegMode.RAIL, "Lublin Główny", "C", _dt(8, 2), _dt(10), requires_walk=True)
+    warning_too_tight = transfers.check_transfer(prev, too_tight, 0)
+    assert warning_too_tight.infeasible is True
+
+
+def test_przesiadka_dworzec_lublin_krotsza_nazwa_tez_jest_znanym_aliasem():
+    """"Dworzec Lublin" (bez "- Kunickiego") to ten sam kompleks metropolitalny w Lublinie —
+    zaobserwowane w praktyce jako osobna nazwa przystanku w GTFS/MOTIS obok "Dworzec Lublin -
+    Kunickiego" i "Lublin Główny" (patrz KNOWN_STATION_COMPLEX_ALIASES)."""
+    prev = make_leg(LegMode.BUS, "A", "Dworzec Lublin", _dt(6), _dt(8), requires_walk=False)
+
+    # 17 min: realny przypadek zaobserwowany lokalnie (wariant "Tylko kolej") — poniżej progu
+    # "ten sam peron" (20 min), więc nadal RYZYKOWNE, ale (po poprawce) już nie niewykonalne
+    # ani nie "zmiana dworca" wymagająca 30 min.
+    nxt = make_leg(LegMode.RAIL, "Lublin Główny", "C", _dt(8, 17), _dt(10), requires_walk=True)
+    warning = transfers.check_transfer(prev, nxt, 0)
+    assert warning is not None
+    assert warning.infeasible is False
+    assert warning.minimum_required_minutes == transfers.MIN_TRANSFER_MINUTES_SAME_PLATFORM
+
+    ok_nxt = make_leg(LegMode.RAIL, "Lublin Główny", "C", _dt(8, 25), _dt(10), requires_walk=True)
+    assert transfers.check_transfer(prev, ok_nxt, 0) is None  # 25 min >= 20 min
+
 
 
 def test_przesiadka_kolej_lot_wymaga_duzego_bufora():
@@ -553,7 +613,10 @@ def test_odcinki_piesze_nie_licza_sie_jako_przesiadki():
     itinerary = scoring.build_itinerary("adres-adres", priced)
     assert itinerary.num_transfers == 1  # autobus -> pociąg
     assert itinerary.total_duration_min == 768  # 07:16 -> 20:04
-    assert len(itinerary.transfer_warnings) == 1  # autobus 07:32 -> pociąg 08:00 = 28 min < 30
+    # autobus 07:32 -> pociąg 08:00 = 28 min. "Dworzec Lublin" -> "Lublin Główny" to znany alias
+    # tego samego kompleksu (KNOWN_STATION_COMPLEX_ALIASES) -> próg "ten sam peron" (20 min),
+    # 28 min >= 20 min -> bez ostrzeżenia (przed poprawką: 28 < 30 -> 1 ostrzeżenie).
+    assert len(itinerary.transfer_warnings) == 0
 
 
 def test_przesiadka_autobus_pociag_za_krotka_jest_ryzykowna():

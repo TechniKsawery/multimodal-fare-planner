@@ -70,19 +70,28 @@ def fetch_cheapest_price(
     return payload
 
 
+def cheapest_entry_or_none(payload: dict, destination: str) -> Optional[dict]:
+    """Jak cheapest_entry, ale zwraca None zamiast podnosić błąd, gdy brak wpisów dla tej
+    relacji w odpowiedzi — używane przez calculator.py do próby fallbacku (np. cache
+    miesięczny) zamiast od razu odrzucać cały wariant lotu."""
+    data = payload.get("data") or {}
+    entries = data.get(destination.upper())
+    if not entries:
+        return None
+    best_stops, best = min(entries.items(), key=lambda item: item[1]["price"])
+    return {**best, "transfers": int(best_stops)}
+
+
 def cheapest_entry(payload: dict, destination: str) -> dict:
     """Wybiera najtańszy wpis (spośród bezpośrednich / 1 / 2 przesiadek) dla danego kierunku.
 
     /v1/prices/cheap grupuje wyniki wg liczby przesiadek (klucze "0"/"1"/"2"), więc żeby
     dostać jedną, faktycznie najtańszą cenę trzeba porównać ceny między tymi wpisami.
     """
-    data = payload.get("data") or {}
-    entries = data.get(destination.upper())
-    if not entries:
+    entry = cheapest_entry_or_none(payload, destination)
+    if entry is None:
         raise TravelpayoutsError(
             f"Brak cen dla relacji -> {destination.upper()} w odpowiedzi Travelpayouts "
             "(zbyt egzotyczna trasa albo data poza zakresem cache)."
         )
-
-    best_stops, best = min(entries.items(), key=lambda item: item[1]["price"])
-    return {**best, "transfers": int(best_stops)}
+    return entry

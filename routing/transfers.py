@@ -21,33 +21,73 @@ FEASIBLE_MIN_MINUTES_RAIL_TO_FLIGHT = 60
 FEASIBLE_MIN_MINUTES_FLIGHT_TO_RAIL = 45
 
 
-def feasible_minimum_minutes(prev_mode: LegMode, next_mode: LegMode, requires_walk: bool) -> float:
+# Znane kompleksy przystankowe, które GTFS/MOTIS nazywa RÓŻNYMI nazwami (osobne wejścia/części
+# dworca dostały osobne rekordy stop), ale które fizycznie są tym samym budynkiem/węzłem, więc
+# przejście między nimi trwa minuty, nie 30 min jak przy prawdziwej zmianie dworca w mieście.
+# Zweryfikowane ręcznie (Moovit/opisy dworców) — patrz PR #9. Dopisuj tu kolejne potwierdzone
+# przypadki, gdy user zgłosi kolejną fałszywie odrzuconą przesiadkę.
+KNOWN_STATION_COMPLEX_ALIASES: List[frozenset] = [
+    # Dworzec metropolitalny w Lublinie (ul. Kunickiego) — GTFS/MOTIS zna go pod kilkoma
+    # nazwami wg przystanku/peronu (MPK Lublin: "Dworzec Lublin - Kunickiego", "Dworzec Lublin
+    # 51/52"); "Lublin Główny" to sąsiadujący dworzec kolejowy połączony z nim przejściem
+    # podziemnym (ul. Pocztowa) — jeden kompleks przesiadkowy.
+    frozenset({"Dworzec Lublin - Kunickiego", "Dworzec Lublin", "Lublin Główny"}),
+]
+
+
+def _same_stop(prev_leg: Leg, next_leg: Leg) -> bool:
+    """True, gdy MOTIS oznaczył przesiadkę jako "wymagającą przejścia" (requires_walk, bo
+    zapytanie zwróciło leg WALK między odcinkami transitu), ale to w rzeczywistości ten sam
+    kompleks przystankowy (inny peron/wejście tej samej stacji), a nie zmiana dworca. Trafia
+    tu zarówno identyczna nazwa po obu stronach (MOTIS/GTFS czasem generuje "spacerowy" leg
+    nawet w obrębie jednego przystanku, bo perony mają osobne id mimo wspólnej nazwy), jak i
+    znana z KNOWN_STATION_COMPLEX_ALIASES para różnych nazw tego samego fizycznego budynku."""
+    origin, destination = prev_leg.destination_name, next_leg.origin_name
+    if not origin or not destination:
+        return False
+    if origin == destination:
+        return True
+    pair = frozenset({origin, destination})
+    return any(pair <= alias for alias in KNOWN_STATION_COMPLEX_ALIASES)
+
+
+def feasible_minimum_minutes(prev_mode: LegMode, next_mode: LegMode, requires_walk: bool, same_stop: bool = False) -> float:
     if prev_mode is LegMode.FLIGHT and next_mode is LegMode.FLIGHT:
         return FEASIBLE_MIN_MINUTES_RAIL_TO_FLIGHT
     if next_mode is LegMode.FLIGHT:
         return FEASIBLE_MIN_MINUTES_RAIL_TO_FLIGHT
     if prev_mode is LegMode.FLIGHT:
         return FEASIBLE_MIN_MINUTES_FLIGHT_TO_RAIL
+    if requires_walk and same_stop:
+        return FEASIBLE_MIN_MINUTES_SAME_PLATFORM
     return FEASIBLE_MIN_MINUTES_WALK if requires_walk else FEASIBLE_MIN_MINUTES_SAME_PLATFORM
 
 
-def minimum_transfer_minutes(prev_mode: LegMode, next_mode: LegMode, requires_walk: bool) -> float:
+def minimum_transfer_minutes(prev_mode: LegMode, next_mode: LegMode, requires_walk: bool, same_stop: bool = False) -> float:
     if prev_mode is LegMode.RAIL and next_mode is LegMode.FLIGHT:
         return MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT
     if prev_mode is LegMode.FLIGHT and next_mode is LegMode.RAIL:
         return MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL
     if prev_mode is LegMode.FLIGHT and next_mode is LegMode.FLIGHT:
         return MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT
+    if requires_walk and same_stop:
+        return MIN_TRANSFER_MINUTES_SAME_PLATFORM
     return MIN_TRANSFER_MINUTES_WALK if requires_walk else MIN_TRANSFER_MINUTES_SAME_PLATFORM
 
 
 def check_transfer(prev_leg: Leg, next_leg: Leg, after_leg_index: int) -> Optional[TransferWarning]:
     gap_minutes = (next_leg.depart - prev_leg.arrive).total_seconds() / 60
-    minimum = minimum_transfer_minutes(prev_leg.mode, next_leg.mode, next_leg.requires_walk)
+    same_stop = next_leg.requires_walk and _same_stop(prev_leg, next_leg)
+    minimum = minimum_transfer_minutes(prev_leg.mode, next_leg.mode, next_leg.requires_walk, same_stop)
 
     if gap_minutes < minimum:
-        infeasible = gap_minutes < feasible_minimum_minutes(prev_leg.mode, next_leg.mode, next_leg.requires_walk)
-        powod_zmiany = "wymaga przejścia/zmiany dworca" if next_leg.requires_walk else "na tym samym przystanku/peronie"
+        infeasible = gap_minutes < feasible_minimum_minutes(prev_leg.mode, next_leg.mode, next_leg.requires_walk, same_stop)
+        if same_stop:
+            powod_zmiany = "ten sam przystanek, inny peron/wejście wg MOTIS"
+        elif next_leg.requires_walk:
+            powod_zmiany = "wymaga przejścia/zmiany dworca"
+        else:
+            powod_zmiany = "na tym samym przystanku/peronie"
         reason = (
             f"Tylko {gap_minutes:.0f} min na przesiadkę {prev_leg.mode.value} -> {next_leg.mode.value} "
             f"({powod_zmiany}, {prev_leg.destination_name} -> {next_leg.origin_name}), "

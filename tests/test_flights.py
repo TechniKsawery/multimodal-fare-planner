@@ -76,6 +76,44 @@ def test_estimate_price_uzywa_placeholderowej_tabeli_gdy_brak_extras(monkeypatch
     assert "placeholderowej" in result.notes
 
 
+def test_estimate_price_brak_dokladnej_daty_uzywa_cache_miesiecznego(monkeypatch):
+    """Gdy dokładna data nie ma wpisu w cache, ale cały miesiąc (depart_date="YYYY-MM") ma —
+    użyj tej ceny zamiast od razu odrzucać wariant."""
+    empty_payload = {"success": True, "data": {}}
+
+    def fake_fetch(**kw):
+        return SAMPLE_PAYLOAD if kw["depart_date"] == "2026-11" else empty_payload
+
+    monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", fake_fetch)
+
+    seg = FlightSegment(
+        origin="WAW", destination="DUS", depart_date="2026-11-15", currency="PLN",
+        extras=ExtrasProfile(baggage_cost=0),
+    )
+    result = estimate_price(seg)
+
+    assert result.amount == 300  # cena z SAMPLE_PAYLOAD, znaleziona przez zapytanie miesięczne
+    assert "miesiąc" in result.notes
+
+
+def test_estimate_price_brak_ceny_w_ogole_uzywa_zgrubnego_szacunku(monkeypatch):
+    """Gdy nawet cały miesiąc nie ma ceny dla tej relacji (zbyt egzotyczna trasa/data poza
+    zakresem cache), użyj stałego zgrubnego szacunku zamiast podnosić błąd i tracić cały wariant."""
+    empty_payload = {"success": True, "data": {}}
+    monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: empty_payload)
+
+    seg = FlightSegment(
+        origin="WAW", destination="DTM", depart_date="2026-11-15", currency="PLN",
+        extras=ExtrasProfile(baggage_cost=0),
+    )
+    result = estimate_price(seg)
+
+    assert result.amount == calculator.GENERIC_FLIGHT_FALLBACK_PLN
+    assert result.price_type is PriceType.ESTIMATE
+    assert "zgrubny szacunek" in result.notes.lower()
+    assert result.breakdown["linia"] is None
+
+
 def test_estimate_price_niezgodna_waluta_extras(monkeypatch):
     monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: SAMPLE_PAYLOAD)
 

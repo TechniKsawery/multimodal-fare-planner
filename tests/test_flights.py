@@ -97,3 +97,27 @@ def test_extras_znana_relacja():
     profile = extras_module.get_extras("waw", "dus")
     assert profile.total > 0
     assert profile.currency == "PLN"
+
+
+def test_get_baggage_by_airline_znany_przewoznik():
+    amount, currency, source = extras_module.get_baggage_by_airline("fr")
+    assert amount == 21.0
+    assert currency == "EUR"
+    assert "Ryanair" in source
+    assert "zrodlo" not in source  # opis ma prawdziwy URL, nie nazwę pola
+
+
+def test_get_baggage_by_airline_lufthansa():
+    amount, currency, source = extras_module.get_baggage_by_airline("LH")
+    assert amount == 30.0
+    assert currency == "EUR"
+    assert "Lufthansa" in source
+
+
+def test_get_baggage_by_airline_nieznany_przewoznik():
+    assert extras_module.get_baggage_by_airline("XX") is None
+
+
+def test_get_baggage_by_airline_brak_kodu():
+    assert extras_module.get_baggage_by_airline(None) is None
+    assert extras_module.get_baggage_by_airline("") is None

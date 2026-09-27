@@ -42,6 +42,34 @@ do placeholderowej tabeli `flights/data/extras_placeholder.json` (kilka przykła
 PL→NRW) — **te liczby też są przykładowe**, nie realne cenniki. Dla nieznanej relacji zwracany
 jest profil zerowy z notatką, żeby dało się doliczyć koszty ręcznie.
 
+### Realne cenniki bagażu wg linii (`flights/data/baggage_by_airline.json`)
+
+`flights.extras.get_baggage_by_airline(kod_iata)` zwraca (kwota, waluta, opis_źródła) dla
+przewoźników, dla których sprawdziliśmy realny, publiczny cennik bagażu rejestrowanego (nie
+placeholder): **Ryanair (FR)**, **Wizz Air (W6)**, **LOT (LO)**, **Eurowings (EW)**,
+**Lufthansa (LH)** — kody IATA tak jak zwraca je Travelpayouts w polu `airline`. Dla nieznanego
+przewoźnika zwraca `None`.
+
+Dobór tej piątki nie jest przypadkowy: to faktyczni przewoźnicy z lotniska w Lublinie (LUZ) —
+Ryanair, Wizz Air i Lufthansa — plus Wizz Air/Ryanair na Warszawa-Dortmund (oba huby użyte w
+`routing/demo_route.py`) i Eurowings jako częsty operator tras Warszawa-Düsseldorf/Kolonia.
+Dodawanie kolejnych linii bez sprawdzenia, czy faktycznie obsługują interesujące nas trasy,
+nie ma sensu — i tak nie mamy publicznego API cen bagażu, więc każdy kolejny wpis to ręczne
+wyszukanie i zweryfikowanie cennika.
+
+**Ważne:** opłaty za bagaż u tanich linii są **dynamiczne** (zależą od trasy, terminu zakupu i
+sezonu) — kwota w tabeli to **dolna granica** opublikowanego przedziału (patrz pole `zakres` i
+`zrodlo` w JSON-ie), nie gwarantowana cena konkretnego lotu. Dlatego to i tak `PriceType.ESTIMATE`.
+Silnik tras (`routing/`) używa tej funkcji, żeby doprecyzować szacunek bagażu, gdy z biletu
+Travelpayouts znana jest linia — patrz `routing/README.md`.
+
+Sprawdzone źródła (stan na 2026-09-27):
+- Ryanair: https://www.moneyguideireland.com/ryanair-increased-baggage-allowance-of-20kg.html
+- Wizz Air: https://www.sendmybag.com/airlines/wizz-air-baggage-allowance/
+- LOT: https://kolokwialnienaemigracji.pl/ile-kosztuje-bagaz-rejestrowany-w-lot-sprawdz-ceny-i-uniknij-doplat
+- Eurowings: https://www.eurosender.com/en/airlines/eurowings-baggage-allowance
+- Lufthansa: https://business.lufthansagroup.com/content/dam/b2b/experts/files/LHG_FBAG_EcoLight_EN.pdf (oficjalny cennik)
+
 ## Użycie
 
 ```python

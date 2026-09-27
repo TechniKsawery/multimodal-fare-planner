@@ -184,6 +184,16 @@ def test_infer_rail_carrier_nieznany_zwraca_none():
     assert pricing.infer_rail_carrier("Jakiś Nieznany Przewoźnik") is None
 
 
+def test_currency_convert_ten_sam_kurs_co_to_pln():
+    from routing import currency
+    # 10 EUR -> PLN po kursie z PLACEHOLDER_RATES_TO_PLN (4.30)
+    assert currency.convert(10.0, "EUR", "PLN") == pytest.approx(43.0)
+    # PLN -> EUR to odwrotność tego samego kursu
+    assert currency.convert(43.0, "PLN", "EUR") == pytest.approx(10.0)
+    # ta sama waluta: bez zmian
+    assert currency.convert(10.0, "EUR", "EUR") == 10.0
+
+
 def test_price_rail_leg_nieznany_przewoznik_uzywa_fallbacku():
     leg = make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="Coś Nieznanego", distance_km=100)
     priced = pricing.price_rail_leg(leg, DiscountProfile())
@@ -234,13 +244,110 @@ def test_price_flight_leg_woła_flights(monkeypatch):
         from flights.model import PriceEstimate, PriceType
         return PriceEstimate(
             origin="WAW", destination="DTM", amount=350.0, currency="PLN",
-            price_type=PriceType.ESTIMATE, breakdown={}, notes="test",
+            price_type=PriceType.ESTIMATE, breakdown={"cena_biletu": 200.0, "bagaz": 150.0}, notes="test",
         )
 
     monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
     priced = pricing.price_flight_leg(leg)
     assert priced.amount == 350.0
     assert priced.currency == "PLN"
+    assert priced.breakdown == {"cena_biletu": 200.0, "bagaz": 150.0}
+
+
+def test_price_flight_leg_doklada_tylko_bagaz_bez_dojazdu_i_transferu(monkeypatch):
+    """WAW-DTM ma w flights/data/extras_placeholder.json wpis z bagaz+dojazd_na_lotnisko+
+    transfer_z_lotniska — routing ma doliczyć TYLKO bagaz, bo dojazd/transfer są już osobnymi
+    odcinkami kolejowymi w wariancie mieszanym (patrz build_rail_flight_rail_variant)."""
+    leg = make_leg(LegMode.FLIGHT, "WAW", "DTM", _dt(6), _dt(8),
+                    extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"})
+
+    captured = {}
+
+    def fake_estimate(segment):
+        captured["segment"] = segment
+        from flights.model import PriceEstimate, PriceType
+        return PriceEstimate(
+            origin="WAW", destination="DTM", amount=0.0, currency="PLN",
+            price_type=PriceType.ESTIMATE, breakdown={}, notes="test",
+        )
+
+    monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
+    pricing.price_flight_leg(leg)
+
+    extras = captured["segment"].extras
+    assert extras is not None
+    assert extras.baggage_cost == 150.0        # z tabeli WAW-DTM
+    assert extras.airport_access_cost == 0.0   # NIE dokładamy — to już osobny leg kolejowy
+    assert extras.destination_transfer_cost == 0.0
+
+
+def test_price_flight_leg_nadpisuje_bagaz_realnym_cennikiem_linii(monkeypatch):
+    """Gdy bilet wraca z linią znaną w flights/data/baggage_by_airline.json (tu: Ryanair, FR),
+    routing ma nadpisać placeholderowy bagaż z tabeli relacji realną ceną tej linii."""
+    leg = make_leg(LegMode.FLIGHT, "WAW", "DTM", _dt(6), _dt(8),
+                    extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"})
+
+    def fake_estimate(segment):
+        from flights.model import PriceEstimate, PriceType
+        # symuluje flights.calculator: bagaz=150 z placeholderowej tabeli WAW-DTM, zanim
+        # routing dowie się, że linią jest Ryanair (FR)
+        return PriceEstimate(
+            origin="WAW", destination="DTM", amount=650.0, currency="PLN",
+            price_type=PriceType.ESTIMATE,
+            breakdown={"cena_biletu": 500.0, "linia": "FR", "bagaz": 150.0}, notes="test",
+        )
+
+    monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
+    priced = pricing.price_flight_leg(leg)
+
+    # 21 EUR (Ryanair, tabela baggage_by_airline.json) x 4.30 PLN/EUR (routing/currency.py) = 90.3
+    assert priced.breakdown["bagaz"] == pytest.approx(90.3)
+    assert priced.amount == pytest.approx(500.0 + 90.3)
+    assert "Ryanair" in priced.breakdown["bagaz_zrodlo"]
+    assert "Ryanair" in priced.notes
+
+
+def test_price_flight_leg_nieznana_linia_zostawia_bagaz_z_tabeli_relacji(monkeypatch):
+    leg = make_leg(LegMode.FLIGHT, "WAW", "DTM", _dt(6), _dt(8),
+                    extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"})
+
+    def fake_estimate(segment):
+        from flights.model import PriceEstimate, PriceType
+        return PriceEstimate(
+            origin="WAW", destination="DTM", amount=650.0, currency="PLN",
+            price_type=PriceType.ESTIMATE,
+            breakdown={"cena_biletu": 500.0, "linia": "ZZ", "bagaz": 150.0}, notes="test",
+        )
+
+    monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
+    priced = pricing.price_flight_leg(leg)
+
+    assert priced.amount == 650.0
+    assert priced.breakdown["bagaz"] == 150.0
+    assert "bagaz_zrodlo" not in priced.breakdown
+
+
+def test_price_flight_leg_nieznana_relacja_uzywa_domyslnego_szacunku_bagazu(monkeypatch):
+    leg = make_leg(LegMode.FLIGHT, "XXX", "YYY", _dt(6), _dt(8),
+                    extra={"origin_iata": "XXX", "destination_iata": "YYY", "depart_date": "2026-11-15"})
+
+    captured = {}
+
+    def fake_estimate(segment):
+        captured["segment"] = segment
+        from flights.model import PriceEstimate, PriceType
+        return PriceEstimate(
+            origin="XXX", destination="YYY", amount=0.0, currency="PLN",
+            price_type=PriceType.ESTIMATE, breakdown={}, notes="test",
+        )
+
+    monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
+    pricing.price_flight_leg(leg)
+
+    extras = captured["segment"].extras
+    assert extras.baggage_cost == pricing.DEFAULT_BAGGAGE_ESTIMATE_PLN
+    assert extras.airport_access_cost == 0.0
+    assert extras.destination_transfer_cost == 0.0
 
 
 def test_price_leg_dispatch_na_podstawie_mode(monkeypatch):

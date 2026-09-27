@@ -3,14 +3,46 @@ from typing import Optional
 
 from fares import estimate_price as fares_estimate_price
 from fares.model import Carrier, DiscountProfile, Segment
-from flights import FlightSegment, TravelpayoutsError
+from flights import ExtrasProfile, FlightSegment, TravelpayoutsError
 from flights import estimate_price as flights_estimate_price
+from flights.extras import get_baggage_by_airline, get_extras as flights_get_extras
 
+from .currency import convert as convert_currency
 from .model import Leg, LegMode, PricedLeg
 
 GENERIC_FALLBACK_PLN_PER_KM = 0.35
 """Bardzo zgrubny szacunek na km, używany TYLKO gdy żaden moduł taryf nie obejmuje przewoźnika
 (nieznana nazwa agencji z MOTIS) albo kalkulator odrzucił segment — patrz README.md."""
+
+DEFAULT_BAGGAGE_ESTIMATE_PLN = 150.0
+"""Szacunkowy koszt pierwszego bagażu rejestrowanego, gdy relacja nie ma wpisu w
+flights/data/extras_placeholder.json — typowa cena bagażu rejestrowanego do ok. 20 kg u
+tanich linii (Ryanair/Wizz Air) na trasach PL-DE, SZACUNEK, nie oficjalny cennik."""
+
+
+def _flight_baggage_only_extras(origin: str, destination: str, currency: str) -> ExtrasProfile:
+    """Tylko koszt bagażu rejestrowanego (z placeholderowej tabeli flights/, albo szacunek
+    domyślny gdy relacja nieznana) — BEZ dojazdu na lotnisko / transferu z lotniska.
+
+    W wariantach mieszanych (kolej + lot + kolej) dojazd na lotnisko i transfer z lotniska do
+    miasta docelowego są już osobnymi, realnie wycenionymi odcinkami kolejowymi (patrz
+    build_rail_flight_rail_variant w variants.py) — doliczenie ich tu drugi raz z tabeli
+    flights/ podwójnie liczyłoby ten sam koszt."""
+    table_entry = flights_get_extras(origin, destination)
+    if table_entry.baggage_cost:
+        return ExtrasProfile(
+            baggage_cost=table_entry.baggage_cost,
+            currency=currency,
+            note="Koszt bagażu z placeholderowej tabeli flights/ — nie oficjalny cennik przewoźnika.",
+        )
+    return ExtrasProfile(
+        baggage_cost=DEFAULT_BAGGAGE_ESTIMATE_PLN,
+        currency=currency,
+        note=(
+            f"Brak danych o bagażu dla tej relacji w tabeli flights/ — szacunek domyślny "
+            f"({DEFAULT_BAGGAGE_ESTIMATE_PLN:.0f} PLN, typowa cena bagażu rejestrowanego u tanich linii)."
+        ),
+    )
 
 
 VRR_AREA_KEYWORDS = ("s bahn", "s-bahn", "vrr", "national express", "abellio", "regio")
@@ -84,13 +116,30 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
     if leg.mode is not LegMode.FLIGHT:
         raise ValueError(f"price_flight_leg wymaga LegMode.FLIGHT, dostał {leg.mode}")
 
+    origin_iata = leg.extra["origin_iata"]
+    destination_iata = leg.extra["destination_iata"]
     segment = FlightSegment(
-        origin=leg.extra["origin_iata"],
-        destination=leg.extra["destination_iata"],
+        origin=origin_iata,
+        destination=destination_iata,
         depart_date=leg.extra["depart_date"],
         currency=currency,
+        extras=_flight_baggage_only_extras(origin_iata, destination_iata, currency),
     )
     result = flights_estimate_price(segment)  # może podnieść TravelpayoutsError — obsługa wyżej (variants.py)
+
+    # Dociągamy REALNY cennik bagażu wg linii z biletu (result.breakdown["linia"], np. "FR" dla
+    # Ryanaira), jeśli go znamy — nadpisuje szacunek z tabeli relacji/domyślny użyty wyżej
+    # w _flight_baggage_only_extras (ten nie znał jeszcze linii, bo poznajemy ją dopiero z
+    # odpowiedzi Travelpayouts).
+    airline_baggage = get_baggage_by_airline(result.breakdown.get("linia"))
+    if airline_baggage is not None:
+        amount_native, currency_native, source_note = airline_baggage
+        amount_in_currency = convert_currency(amount_native, currency_native, currency)
+        old_baggage = result.breakdown.get("bagaz", 0.0)
+        result.amount = round(result.amount - old_baggage + amount_in_currency, 2)
+        result.breakdown["bagaz"] = round(amount_in_currency, 2)
+        result.breakdown["bagaz_zrodlo"] = source_note
+        result.notes = f"{result.notes} Bagaż wg realnego cennika przewoźnika: {source_note}."
 
     return PricedLeg(
         leg=leg,
@@ -98,6 +147,7 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
         currency=result.currency,
         price_type=result.price_type.value,
         notes=result.notes,
+        breakdown=result.breakdown,
     )
 
 

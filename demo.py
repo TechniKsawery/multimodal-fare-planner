@@ -55,11 +55,20 @@ def format_itinerary(itinerary, age=None) -> str:
                 f"({leg.depart.strftime('%H:%M')}-{leg.arrive.strftime('%H:%M')}, {leg.duration_min:.0f} min{dist})"
             )
             continue
-        lines.append(
+        line = (
             f"    - {leg.mode.value}: {leg.origin_name} -> {leg.destination_name} "
             f"({leg.depart.strftime('%H:%M')}-{leg.arrive.strftime('%H:%M')}, "
             f"{leg.carrier_name or '?'}): {priced.amount:.2f} {priced.currency} ({priced.price_type})"
         )
+        if leg.mode.value == "lot" and "cena_biletu" in priced.breakdown:
+            line += (
+                f" [bilet {priced.breakdown['cena_biletu']:.2f} "
+                f"+ bagaż {priced.breakdown.get('bagaz', 0):.2f} {priced.currency}]"
+            )
+            zrodlo_bagazu = priced.breakdown.get("bagaz_zrodlo")
+            if zrodlo_bagazu:
+                line += f"\n      bagaż wg cennika: {zrodlo_bagazu}"
+        lines.append(line)
     if itinerary.is_risky:
         lines.append("  RYZYKOWNY:")
         for warning in itinerary.transfer_warnings:

@@ -1,0 +1,4 @@
+{
+  "pln_per_km": 0.35,
+  "_zrodlo": "Brak API/danych dla tej relacji/daty (albo brak travel_date w segmencie) - bardzo zgrubny szacunek, ta sama stawka co dawny GENERIC_FALLBACK_PLN_PER_KM w routing/pricing.py (Sesja 4). Nie jest skalibrowany do realnych cennikow FlixBusa - uzywany TYLKO gdy fares/_flixbus_api.py nie zwrocilo wyniku."
+}

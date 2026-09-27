@@ -1,6 +1,7 @@
 import pytest
 
 from fares import PriceType, estimate_price
+from fares import _flixbus_api, flixbus
 from fares.model import Carrier, DiscountProfile, Segment
 
 
@@ -56,6 +57,47 @@ def test_db_flexpreis_miesci_sie_w_realnych_przedzialach(km, lo, hi):
     assert lo <= estimate_price(seg).amount <= hi
 
 
+# --- FlixBus: realna cena z API (zmockowana), z fallbackiem do PLN/km -----------------------
+
+def test_flixbus_bez_travel_date_spada_od_razu_do_fallbacku_km():
+    seg = Segment(Carrier.FLIXBUS, "Lublin", "Berlin", distance_km=600)
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.ESTIMATE
+    assert result.breakdown["zrodlo"] == "fallback_km"
+    assert result.amount == pytest.approx(600 * 0.35)
+
+
+def test_flixbus_uzywa_najtanszego_wyniku_z_api(monkeypatch):
+    monkeypatch.setattr(_flixbus_api, "find_city_id", lambda city, **kw: {"Lublin": "1", "Berlin": "2"}[city])
+    monkeypatch.setattr(
+        _flixbus_api, "fetch_cheapest_trip",
+        lambda *a, **kw: {"price": {"total": 89.99, "currency": "EUR"}, "transfer_count": 0},
+    )
+    seg = Segment(Carrier.FLIXBUS, "Lublin", "Berlin", distance_km=600, travel_date="2026-11-15")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.ESTIMATE
+    assert result.amount == 89.99
+    assert result.currency == "EUR"
+    assert result.breakdown["zrodlo"] == "api_flixbus_live"
+
+
+def test_flixbus_spada_do_fallbacku_km_gdy_api_rzuca_blad(monkeypatch):
+    def boom(*a, **kw):
+        raise _flixbus_api.FlixbusApiError("brak połączenia dla tej relacji/daty")
+
+    monkeypatch.setattr(_flixbus_api, "find_city_id", boom)
+    seg = Segment(Carrier.FLIXBUS, "Lublin", "Gelsenkirchen", distance_km=1000, travel_date="2026-11-15")
+    result = estimate_price(seg)
+    assert result.breakdown["zrodlo"] == "fallback_km"
+    assert result.amount == pytest.approx(1000 * 0.35)
+
+
+def test_flixbus_bez_distance_km_i_bez_travel_date_rzuca_blad():
+    seg = Segment(Carrier.FLIXBUS, "Lublin", "Berlin")
+    with pytest.raises(ValueError):
+        estimate_price(seg)
+
+
 def test_vrr_grundpreis_plus_km():
     seg = Segment(Carrier.VRR, "Gelsenkirchen Hbf", "Essen Hbf", distance_km=10)
     result = estimate_price(seg)
@@ -74,6 +116,24 @@ def test_vrr_bez_dystansu_podnosi_blad():
     seg = Segment(Carrier.VRR, "A", "B")
     with pytest.raises(ValueError):
         estimate_price(seg)
+
+
+def test_flixbus_api_find_city_id_cache_uzywa_pamieci_procesu(monkeypatch):
+    calls = []
+
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            calls.append(1)
+            return [{"id": 42, "name": "Lublin"}]
+
+    monkeypatch.setattr(_flixbus_api.requests, "get", lambda *a, **kw: FakeResponse())
+    _flixbus_api._city_id_cache.clear()
+    assert _flixbus_api.find_city_id("Lublin") == "42"
+    assert _flixbus_api.find_city_id("Lublin") == "42"
+    assert len(calls) == 1  # drugie wywołanie z cache, bez nowego zapytania
 
 
 def test_vrr_kindertarif_50_procent_rabatu():

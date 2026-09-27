@@ -85,6 +85,14 @@ To wystarcza do liczenia bufora przesiadki, ale nie jest realnym rozkładem lot�
 Grundpreis + cena/km w linii prostej) — liczymy je z `lat`/`lon`, które MOTIS podaje dla
 każdego przystanku (`motis_client.haversine_km`).
 
+## Wycena autokarów dalekobieżnych: FlixBus ma własny moduł (2026-09-26)
+
+`pricing.price_bus_leg()` rozpoznaje FlixBusa (`"flix"` w nazwie przewoźnika z MOTIS) i kieruje
+go do `fares.Carrier.FLIXBUS` (`fares/flixbus.py`) zamiast prosto do `GENERIC_FALLBACK_PLN_PER_KM`
+jak inne, nierozpoznane autokary (RegioJet, BlaBlaBus, ...). `fares/flixbus.py` próbuje pobrać
+realną cenę z (nieoficjalnego) API FlixBusa dla konkretnej daty (`leg.depart`), z fallbackiem do
+tego samego zgrubnego PLN/km gdy API jest niedostępne — patrz `fares/README.md`.
+
 ## Scoring: "najlepszy stosunek cena/czas"
 
 `Itinerary.price_per_hour = total_price_pln / (total_duration_min / 60)` — jedna prosta,

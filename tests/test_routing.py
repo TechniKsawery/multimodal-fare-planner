@@ -512,14 +512,28 @@ def test_tramwaj_i_metro_to_transport_lokalny_a_pociag_to_kolej():
     assert motis_client.itinerary_to_legs(raw("HIGHSPEED_RAIL"))[0].mode is LegMode.RAIL
 
 
-def test_flixbus_wyceniany_za_km_a_autobus_lubelski_taryfa_czasowa():
+def test_autobus_lubelski_taryfa_czasowa_a_inny_autokar_dalekobiezny_fallback_km():
     city = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(7), carrier="ZDiTM Lublin", distance_km=5,
                     extra={"motis_mode": "BUS"})
-    coach = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(12), carrier="Flixbus", distance_km=500,
+    coach = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(12), carrier="RegioJet", distance_km=500,
                      extra={"motis_mode": "BUS"})
     # 60 min jazdy -> najkrótszy pokrywający bilet to 90-minutowy (5.20 PLN normalny)
     assert pricing.price_bus_leg(city).amount == 5.20
     assert pricing.price_bus_leg(coach).amount == pytest.approx(500 * pricing.GENERIC_FALLBACK_PLN_PER_KM)
+
+
+def test_flixbus_idzie_przez_fares_flixbus_i_spada_do_fallbacku_km_gdy_api_niedostepne(monkeypatch):
+    from fares import _flixbus_api
+
+    def boom(*a, **kw):
+        raise _flixbus_api.FlixbusApiError("brak sieci (test)")
+
+    monkeypatch.setattr(_flixbus_api, "find_city_id", boom)
+    coach = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(12), carrier="Flixbus", distance_km=500,
+                     extra={"motis_mode": "BUS"})
+    priced = pricing.price_bus_leg(coach)
+    assert priced.amount == pytest.approx(500 * pricing.GENERIC_FALLBACK_PLN_PER_KM)
+    assert priced.price_type == "szacunek"
 
 
 def test_tramwaj_vrr_wyceniany_eezy_nrw():

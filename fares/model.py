@@ -15,6 +15,7 @@ class Carrier(str, Enum):
     PKP_INTERCITY = "pkp_intercity"
     DB = "db"
     VRR = "vrr"
+    FLIXBUS = "flixbus"
     ZTM_LUBLIN = "ztm_lublin"
 
 
@@ -38,6 +39,7 @@ class Segment:
     distance_km: Optional[float] = None   # wymagane dla PKP, DB i VRR (VRR: odległość w linii prostej)
     ride_duration_min: Optional[float] = None  # wymagane dla ZTM Lublin (taryfa czasowa)
     discounts: DiscountProfile = field(default_factory=DiscountProfile)
+    travel_date: Optional[str] = None     # "YYYY-MM-DD"; wymagane dla FlixBus (ceny dynamiczne per data)
 
 
 @dataclass

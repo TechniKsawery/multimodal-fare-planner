@@ -110,10 +110,36 @@ fares/ztm_lublin.py i fares/vrr.py) — np. transport miejski poza Lublinem i ob
 LONG_DISTANCE_COACH_KEYWORDS = ("flix", "regiojet", "blablabus")
 
 
+def price_flixbus_leg(leg: Leg) -> PricedLeg:
+    """FlixBus ma teraz własny moduł taryf (fares/flixbus.py): realna cena z (nieoficjalnego)
+    API FlixBusa dla konkretnej daty, z fallbackiem do PLN/km gdy API niedostępne/bez wyniku."""
+    try:
+        segment = Segment(
+            carrier=Carrier.FLIXBUS,
+            origin=leg.origin_name,
+            destination=leg.destination_name,
+            distance_km=leg.distance_km,
+            travel_date=leg.depart.date().isoformat(),
+        )
+        result = fares_estimate_price(segment)
+    except ValueError as exc:
+        return _fallback_priced_leg(leg, f"Kalkulator FlixBus zwrócił błąd ({exc}).")
+
+    return PricedLeg(
+        leg=leg, amount=result.amount, currency=result.currency,
+        price_type=result.price_type.value, notes=result.notes,
+    )
+
+
 def price_bus_leg(leg: Leg, discounts: Optional[DiscountProfile] = None) -> PricedLeg:
     discounts = discounts or DiscountProfile()
 
-    if leg.extra.get("motis_mode") == "COACH" or any(k in leg.carrier_name.lower() for k in LONG_DISTANCE_COACH_KEYWORDS):
+    is_coach = leg.extra.get("motis_mode") == "COACH" or any(
+        k in leg.carrier_name.lower() for k in LONG_DISTANCE_COACH_KEYWORDS
+    )
+    if is_coach:
+        if "flix" in leg.carrier_name.lower():
+            return price_flixbus_leg(leg)
         return _fallback_priced_leg(leg, "Autokar dalekobieżny — brak modułu taryf.")
 
     tekst = f"{leg.carrier_name} {leg.origin_name} {leg.destination_name}".lower()

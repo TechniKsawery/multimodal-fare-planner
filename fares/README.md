@@ -1,6 +1,6 @@
 # Moduł taryf (`fares/`)
 
-Szacuje cenę pojedynczego segmentu podróży dla czterech przewoźników:
+Szacuje cenę pojedynczego segmentu podróży dla pięciu przewoźników:
 
 - **PKP Intercity** (`fares/pkp.py`) — cena z tabeli pasm odległości × mnożnik ulgi.
 - **DB** (`fares/db.py`) — Flexpreis jako górna granica z tabeli pasm odległości × mnożnik BahnCard
@@ -12,6 +12,9 @@ Szacuje cenę pojedynczego segmentu podróży dla czterech przewoźników:
   6-14 lat, wliczając sufity cenowe (dzieci poniżej 6 lat jeżdżą bez biletu — nie modelowane).
 - **ZTM Lublin** (`fares/ztm_lublin.py`) — taryfa czasowa (bilety 15/40/90-minutowe, strefa 1+2):
   dobiera najkrótszy bilet, którego czas ważności pokrywa czas jazdy odcinka z MOTIS.
+- **FlixBus** (`fares/flixbus.py` + `fares/_flixbus_api.py`) — REALNA cena z publicznego
+  (nieoficjalnego) API FlixBusa dla konkretnej daty przejazdu, z fallbackiem do zgrubnego
+  szacunku PLN/km gdy API jest niedostępne/bez wyniku — patrz sekcja niżej.
 
 ## Stan danych po researchu (2026-09-26)
 
@@ -63,6 +66,52 @@ bo tabela pasm jest interpolacją).
    Automatyczne wyszukiwanie na bahn.de jest zablokowane jako ruch bota (błąd 751, kod 751,
    "Ihr Browser-Verhalten ähnelt dem eines Bots"), więc te próbki musi zebrać ktoś ręcznie,
    wpisując wyszukiwania na bahn.de i przekazując ceny.
+
+## FlixBus: realna cena z API zamiast szacunku po km (2026-09-26)
+
+Wcześniej FlixBus (jak każdy nierozpoznany autokar dalekobieżny) był wyceniany bardzo z grubsza
+jako `0.35 PLN/km` (`routing.pricing.GENERIC_FALLBACK_PLN_PER_KM`) — to sztucznie zaniżało jego
+pozycję w rankingu wobec środków transportu z realnymi cenami. `fares/flixbus.py` teraz próbuje
+najpierw pobrać REALNĄ cenę na konkretną datę z (nieoficjalnego, ale publicznie dostępnego,
+używanego przez samą stronę flixbus.com) API:
+
+1. `GET /search/autocomplete/cities` — zamienia nazwę miasta (np. `"Gelsenkirchen Hbf"`) na
+   wewnętrzne `city_id` FlixBusa.
+2. `GET /search/service/v4/search` — dla pary `city_id` + daty zwraca wszystkie przejazdy tego
+   dnia; bierzemy najtańszy.
+
+**FlixBus nie publikuje stałego cennika** (ceny są dynamiczne, jak w lotnictwie) — dlatego,
+tak samo jak ceny lotów z Travelpayouts w `flights/`, wynik jest oznaczony jako
+`PriceType.ESTIMATE` ("szacunek"), NIE `OFFICIAL`, nawet gdy pochodzi z API. Żeby mimo to dało
+się odróżnić realną cenę z API od zgrubnego fallbacku po km, każdy wynik niesie w `breakdown`
+pole `"zrodlo"`: `"api_flixbus_live"` albo `"fallback_km"`.
+
+### To API nie było testowane na żywo — przetestuj lokalnie
+
+Sieć środowiska Claude (kontener chmurowy) blokuje `global.api.flixbus.com` (403 na CONNECT,
+tak samo jak wcześniej mkuran.pl/gtfs.de/geofabrik.de — patrz `[[network-blocked-data-hosts]]`
+w pamięci projektu), więc **`fares/_flixbus_api.py` nie zostało zweryfikowane na żywym ruchu**.
+Kod jest napisany defensywnie (jasne błędy `FlixbusApiError` przy nieoczekiwanym kształcie
+JSON-a zamiast cichego crasha) i zawsze ma fallback do PLN/km, więc silnik nie wywali się nawet
+jeśli endpoint się zmienił — ale zanim zaczniesz polegać na realnych cenach, zrób lokalnie:
+
+```python
+from fares._flixbus_api import find_city_id, fetch_cheapest_trip
+lublin = find_city_id("Lublin")
+berlin = find_city_id("Berlin")
+print(fetch_cheapest_trip(lublin, berlin, "2026-11-15"))
+```
+
+Jeśli któryś krok rzuci `FlixbusApiError` z komunikatem o nieoczekiwanym kształcie odpowiedzi,
+napraw parsowanie w `_flixbus_api.py` na podstawie faktycznej odpowiedzi (endpoint community-known,
+może się zmienić bez ostrzeżenia — patrz komentarz na górze pliku).
+
+### Segment.travel_date
+
+`fares.model.Segment` ma teraz opcjonalne pole `travel_date` (`"YYYY-MM-DD"`) — wymagane tylko
+dla `Carrier.FLIXBUS` (pozostałe przewoźniki mają stałe taryfy, nie potrzebują daty). Bez
+`travel_date` kalkulator FlixBus od razu spada do fallbacku po km. `routing/pricing.py`
+(`price_flixbus_leg`) ustawia je automatycznie z `leg.depart`.
 
 ## Użycie
 

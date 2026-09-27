@@ -11,7 +11,6 @@ import streamlit as st
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from fares.model import DiscountProfile
 from routing.demo_route import (
-    ALTERNATIVE_DESTINATION_STOPS,
     FLIGHT_REGIONAL_HUBS,
     RAIL_FLIGHT_RAIL_HUBS,
     VIA_HUB_STOPS,
@@ -99,12 +98,14 @@ if submitted:
     try:
         with st.spinner("Szukam połączeń..."):
             request = request_from_addresses(origin, dest, date.isoformat(), discounts=profile)
+            # UWAGA: alternative_destination_stops celowo NIE jest tu przekazywane — patrz
+            # komentarz w demo.py / routing/demo_route.py (podmieniłoby rzeczywisty adres
+            # docelowy na sztywny dworzec, ucinając ostatni odcinek do adresu).
             built, skipped = generate_variants(
                 request,
                 rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,
                 flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
                 via_hub_stops=VIA_HUB_STOPS,
-                alternative_destination_stops=ALTERNATIVE_DESTINATION_STOPS,
             )
     except MotisError as exc:
         st.error(f"Błąd MOTIS / geokodowania: {exc}")

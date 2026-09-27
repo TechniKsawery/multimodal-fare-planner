@@ -54,4 +54,13 @@ ESSEN_HBF_STOP = "defv_351643"
 
 # Sesja 6: jawnie sprawdzane węzły pośrednie / alternatywne dworce mety (tylko kolej).
 VIA_HUB_STOPS = [AlternativeStop(label="Poznań Główny", stop_id=POZNAN_GLOWNY_STOP)]
+
+# UWAGA: to podmienia destination_stop_id/destination_label na SZTYWNY dworzec (Essen Hbf),
+# więc nadaje się tylko do zapytań, w których destination_stop_id już JEST dworcem
+# (np. lublin_gelsenkirchen_request poniżej, destination_stop_id=Gelsenkirchen Hbf — porównanie
+# dworzec vs dworzec). Dla zapytań adres->adres (request_from_addresses) destination_stop_id to
+# konkretny adres/współrzędne, więc ta podmiana ODCINA rzeczywisty adres docelowy razem z
+# ostatnim odcinkiem pieszym/autobusowym/tramwajowym do niego — dlatego demo.py/app.py (wyszukiwanie
+# adres->adres) NIE przekazują tej listy do generate_variants, tylko testy na sztywnym
+# lublin_gelsenkirchen_request.
 ALTERNATIVE_DESTINATION_STOPS = [AlternativeStop(label="Essen Hbf", stop_id=ESSEN_HBF_STOP)]

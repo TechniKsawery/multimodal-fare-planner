@@ -12,7 +12,6 @@ Użycie (adres -> adres, z dojściem pieszym; geocoding OSM z Sesji 4b):
 import argparse
 
 from routing.demo_route import (
-    ALTERNATIVE_DESTINATION_STOPS,
     FLIGHT_REGIONAL_HUBS,
     RAIL_FLIGHT_RAIL_HUBS,
     VIA_HUB_STOPS,
@@ -92,12 +91,14 @@ def main() -> None:
 
     print(f"Multimodalna wyszukiwarka — {request.origin_label} -> {request.destination_label}, {args.date}\n")
 
+    # UWAGA: alternative_destination_stops (np. Essen Hbf z routing/demo_route.py) celowo NIE
+    # jest tu przekazywane — dla wyszukiwania adres->adres podmieniłoby rzeczywisty adres
+    # docelowy na sztywny dworzec, ucinając ostatni odcinek (pieszo/autobus/tramwaj) do adresu.
     built, skipped = generate_variants(
         request,
         rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,
         flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
         via_hub_stops=VIA_HUB_STOPS,
-        alternative_destination_stops=ALTERNATIVE_DESTINATION_STOPS,
     )
 
     print(f"Zbudowano {len(built)} wariant(y), pominięto {len(skipped)}.\n")

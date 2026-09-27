@@ -492,6 +492,40 @@ def test_geocode_brak_wynikow_podnosi_blad(monkeypatch):
         motis_client.geocode("nieistniejący adres")
 
 
+def test_geocode_suggestions_zwraca_liste_i_limituje(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return [{"name": f"Wynik {i}", "lat": i, "lon": i} for i in range(10)]
+
+    monkeypatch.setattr(motis_client.requests, "get", lambda *a, **kw: FakeResponse())
+    results = motis_client.geocode_suggestions("Lublin", limit=3)
+    assert len(results) == 3
+    assert results[0] == {"name": "Wynik 0", "lat": 0, "lon": 0}
+
+
+def test_geocode_suggestions_pusty_tekst_nie_odpytuje_motis(monkeypatch):
+    def boom(*a, **kw):
+        raise AssertionError("nie powinno wołać MOTIS dla pustego tekstu")
+
+    monkeypatch.setattr(motis_client.requests, "get", boom)
+    assert motis_client.geocode_suggestions("   ") == []
+
+
+def test_geocode_suggestions_brak_wynikow_nie_podnosi_bledu(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return []
+
+    monkeypatch.setattr(motis_client.requests, "get", lambda *a, **kw: FakeResponse())
+    assert motis_client.geocode_suggestions("nieistniejący adres") == []
+
+
 def test_request_from_addresses_uzywa_wspolrzednych(monkeypatch):
     coords = {"a": (51.0, 22.0, "Adres A"), "b": (51.5, 7.1, "Adres B")}
     monkeypatch.setattr(variants.motis_client, "geocode", lambda text: coords[text])
@@ -580,6 +614,36 @@ def test_rail_to_flight_45_min_niewykonalne_90_ryzykowne():
     assert transfers.check_transfer(prev, flight(_dt(8, 45)), 0).infeasible is True
     w = transfers.check_transfer(prev, flight(_dt(9, 30)), 0)
     assert w is not None and w.infeasible is False
+
+
+def _itinerary_z_ryzykiem(name, price_pln, duration_min, num_transfers, num_risky):
+    from routing.model import Itinerary, TransferWarning
+    warnings = [TransferWarning(0, 5, 10, "ciasna przesiadka") for _ in range(num_risky)]
+    return Itinerary(
+        variant_name=name, legs=[], total_price_pln=price_pln,
+        total_duration_min=duration_min, num_transfers=num_transfers,
+        transfer_warnings=warnings,
+    )
+
+
+def test_pick_recommendations_bezpieczna_pomija_ryzykowne_gdy_jest_bezpieczna_alternatywa():
+    tania_ryzykowna = _itinerary_z_ryzykiem("ryzykowna", 50, 400, 1, num_risky=1)
+    droga_bezpieczna = _itinerary_z_ryzykiem("bezpieczna", 200, 500, 1, num_risky=0)
+    recs = scoring.pick_recommendations([tania_ryzykowna, droga_bezpieczna])
+    assert recs["najtansza_bezpieczna"] is droga_bezpieczna
+    assert recs["najszybsza_bezpieczna"] is droga_bezpieczna
+    assert droga_bezpieczna.is_safe_fallback is False
+    # zwykłe kategorie nie filtrują po ryzyku
+    assert recs["najtansza"] is tania_ryzykowna
+
+
+def test_pick_recommendations_bezpieczna_ma_fallback_gdy_wszystko_ryzykowne():
+    mniej_ryzykowna = _itinerary_z_ryzykiem("mniej ryzykowna", 100, 300, 1, num_risky=1)
+    bardziej_ryzykowna = _itinerary_z_ryzykiem("bardziej ryzykowna", 90, 250, 2, num_risky=2)
+    recs = scoring.pick_recommendations([mniej_ryzykowna, bardziej_ryzykowna])
+    assert recs["najtansza_bezpieczna"] is mniej_ryzykowna
+    assert recs["najszybsza_bezpieczna"] is mniej_ryzykowna
+    assert mniej_ryzykowna.is_safe_fallback is True
 
 
 def test_pick_recommendations_pomija_niewykonalne():

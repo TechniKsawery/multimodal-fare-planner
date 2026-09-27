@@ -63,6 +63,8 @@ class Itinerary:
     total_duration_min: float          # od odjazdu pierwszego legu do przyjazdu ostatniego (wliczając czekanie)
     num_transfers: int
     transfer_warnings: List[TransferWarning] = field(default_factory=list)
+    is_safe_fallback: bool = False  # ustawiane przez pick_recommendations: True = nawet ta
+    # "bezpieczna" rekomendacja ma ryzykowną przesiadkę, bo żaden wariant nie był w pełni bezpieczny
 
     @property
     def is_infeasible(self) -> bool:

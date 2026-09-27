@@ -10,6 +10,7 @@ import streamlit as st
 
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from fares.model import DiscountProfile
+from routing import motis_client
 from routing.demo_route import (
     FLIGHT_REGIONAL_HUBS,
     RAIL_FLIGHT_RAIL_HUBS,
@@ -18,7 +19,7 @@ from routing.demo_route import (
 from routing.card_suggestions import suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
-from routing.variants import generate_variants, request_from_addresses
+from routing.variants import RouteRequest, generate_variants
 
 with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
     PKP_ULGI = list(json.load(fh)["ulgi_procent"])
@@ -63,6 +64,30 @@ def render_itinerary(it, wiek=None) -> None:
             st.caption(f"💳 {best.opis}")
 
 
+def address_picker(label: str, default_text: str, state_key: str):
+    """Pole adresu + podpowiedzi z geocodingu MOTIS do wyboru (zamiast wpisywania z palca
+    na ślepo — literówka w mieście/ulicy dotąd potrafiła po cichu trafić w zły punkt)."""
+    query = st.text_input(label, value=default_text, key=f"{state_key}_query")
+    if len(query.strip()) < 3:
+        st.caption("Wpisz co najmniej 3 znaki, żeby zobaczyć podpowiedzi.")
+        return None
+    try:
+        suggestions = motis_client.geocode_suggestions(query)
+    except MotisError as exc:
+        st.caption(f"Podpowiedzi niedostępne: {exc}")
+        return None
+    if not suggestions:
+        st.caption("Brak dopasowań — sprawdź pisownię albo dodaj nazwę miasta.")
+        return None
+    idx = st.selectbox(
+        f"Wybierz dokładny adres ({label.lower()})",
+        options=list(range(len(suggestions))),
+        format_func=lambda i: suggestions[i]["name"],
+        key=f"{state_key}_choice",
+    )
+    return suggestions[idx]
+
+
 wiek = st.number_input(
     "Wiek pasażera", min_value=0, max_value=120, value=30, step=1,
     help="Używany tylko do PODPOWIEDZI zniżek zależnych od wieku (VRR Kindertarif 6-14 lat, "
@@ -71,9 +96,14 @@ wiek = st.number_input(
          "pełnego obrazu uprawnień.",
 )
 
+st.subheader("Skąd i dokąd")
+c_origin, c_dest = st.columns(2)
+with c_origin:
+    origin_resolved = address_picker("Skąd (adres)", DEFAULT_FROM, "origin")
+with c_dest:
+    dest_resolved = address_picker("Dokąd (adres)", DEFAULT_TO, "dest")
+
 with st.form("search"):
-    origin = st.text_input("Skąd (adres)", DEFAULT_FROM)
-    dest = st.text_input("Dokąd (adres)", DEFAULT_TO)
     date = st.date_input("Data", dt.date.fromisoformat(DEMO_DATE))
     c1, c2 = st.columns(2)
     pkp = c1.selectbox("Ulga PKP", PKP_ULGI)
@@ -91,13 +121,23 @@ with st.form("search"):
     submitted = st.form_submit_button("Szukaj")
 
 if submitted:
+    if origin_resolved is None or dest_resolved is None:
+        st.error("Wybierz dokładny adres z podpowiedzi (skąd i dokąd) przed wyszukiwaniem.")
+        st.stop()
     profile = DiscountProfile(
         pkp_ulga_kod=pkp, bahncard=None if bc == "brak" else bc,
         ztm_lublin_ulgowy=ztm_ulgowy, vrr_dziecko=vrr_dziecko,
     )
     try:
         with st.spinner("Szukam połączeń..."):
-            request = request_from_addresses(origin, dest, date.isoformat(), discounts=profile)
+            request = RouteRequest(
+                origin_stop_id=motis_client.coords_place(origin_resolved["lat"], origin_resolved["lon"]),
+                destination_stop_id=motis_client.coords_place(dest_resolved["lat"], dest_resolved["lon"]),
+                origin_label=origin_resolved["name"],
+                destination_label=dest_resolved["name"],
+                date=date.isoformat(),
+                discounts=profile,
+            )
             # UWAGA: alternative_destination_stops celowo NIE jest tu przekazywane — patrz
             # komentarz w demo.py / routing/demo_route.py (podmieniłoby rzeczywisty adres
             # docelowy na sztywny dworzec, ucinając ostatni odcinek do adresu).
@@ -129,6 +169,8 @@ if submitted:
     tabs = st.tabs(list(RECOMMENDATION_LABELS.values()))
     for tab, key in zip(tabs, RECOMMENDATION_LABELS):
         with tab:
+            if key in ("najszybsza_bezpieczna", "najtansza_bezpieczna") and recs[key].is_safe_fallback:
+                st.info("Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych.")
             st.subheader(recs[key].variant_name)
             render_itinerary(recs[key], wiek)
 

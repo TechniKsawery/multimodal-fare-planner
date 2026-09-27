@@ -38,22 +38,37 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2 * r * math.asin(math.sqrt(a))
 
 
-def geocode(text: str) -> tuple:
-    """Adres/nazwa -> (lat, lon, nazwa) przez /api/v1/geocode (OSM od Sesji 4b).
+def geocode_suggestions(text: str, limit: int = 5) -> List[dict]:
+    """Podpowiedzi adresów przez /api/v1/geocode: lista {lat, lon, name} do wyboru w UI.
 
-    Zwraca pierwszy wynik MOTIS; podaj dokładny adres z miastem, np.
-    "Krakowskie Przedmieście 50, Lublin".
+    Pusty tekst albo brak dopasowań -> pusta lista (nie jest to błąd, w przeciwieństwie
+    do geocode(), bo UI ma po prostu nic nie podpowiedzieć zamiast wywalić wyjątek).
     """
+    if not text or not text.strip():
+        return []
     try:
         response = requests.get(f"{MOTIS_BASE_URL}/api/v1/geocode", params={"text": text}, timeout=30)
         response.raise_for_status()
         results = response.json()
     except requests.RequestException as exc:
         raise MotisError(f"Błąd geocodingu w MOTIS ({MOTIS_BASE_URL}): {exc}") from exc
+    return [
+        {"lat": r["lat"], "lon": r["lon"], "name": r.get("name") or text}
+        for r in results[:limit]
+    ]
+
+
+def geocode(text: str) -> tuple:
+    """Adres/nazwa -> (lat, lon, nazwa) przez /api/v1/geocode (OSM od Sesji 4b).
+
+    Zwraca pierwszy wynik MOTIS; podaj dokładny adres z miastem, np.
+    "Krakowskie Przedmieście 50, Lublin".
+    """
+    results = geocode_suggestions(text, limit=1)
     if not results:
         raise MotisError(f"MOTIS nie znalazł adresu: {text!r}")
     best = results[0]
-    return best["lat"], best["lon"], best.get("name") or text
+    return best["lat"], best["lon"], best["name"]
 
 
 def coords_place(lat: float, lon: float) -> str:

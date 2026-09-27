@@ -113,7 +113,9 @@ def main() -> None:
 
     recommendations = pick_recommendations(built)
 
-    print("=== 4 rekomendacje ===\n")
+    n = len(RECOMMENDATION_LABELS)
+    forma = "rekomendacja" if n == 1 else "rekomendacje" if 2 <= n <= 4 else "rekomendacji"
+    print(f"=== {n} {forma} ===\n")
     already_shown = set()
     for key, label in RECOMMENDATION_LABELS.items():
         itinerary = recommendations[key]

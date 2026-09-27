@@ -15,6 +15,8 @@ RECOMMENDATION_LABELS = {
     "najszybsza": "Najszybsza",
     "najmniej_przesiadek": "Najmniej przesiadek",
     "najlepszy_stosunek_ceny_do_czasu": "Najlepszy stosunek cena/czas",
+    "najszybsza_bezpieczna": "Najszybsza bezpieczna",
+    "najtansza_bezpieczna": "Najtańsza bezpieczna",
 }
 
 
@@ -39,15 +41,27 @@ def build_itinerary(variant_name: str, priced_legs: List[PricedLeg]) -> Itinerar
 
 
 def pick_recommendations(itineraries: List[Itinerary]) -> Dict[str, Itinerary]:
-    """Wybiera 4 rekomendacje z listy wariantów. Może się zdarzyć, że ten sam wariant wygra
-    w kilku kategoriach naraz (np. jest jednocześnie najtańszy i najszybszy) — to nie błąd."""
+    """Wybiera rekomendacje z listy wariantów. Może się zdarzyć, że ten sam wariant wygra
+    w kilku kategoriach naraz (np. jest jednocześnie najtańszy i najszybszy) — to nie błąd.
+
+    "Bezpieczna" = wariant bez żadnej ryzykownej przesiadki (i.is_risky == False). Jeśli
+    żaden taki wariant nie istnieje, bierzemy najmniej ryzykowny z dostępnych (patrz
+    is_safe_recommendation_fallback na Itinerary, ustawiane niżej) — lepiej pokazać
+    "najbezpieczniejszy z tego, co jest" niż nic, ale trzeba to wyraźnie oznaczyć w UI."""
     itineraries = [i for i in itineraries if not i.is_infeasible]  # niewykonalnych nie rekomendujemy
     if not itineraries:
         raise ValueError("brak wariantów do wyboru rekomendacji")
+
+    safe = [i for i in itineraries if not i.is_risky]
+    safe_pool = safe if safe else itineraries
+    for i in itineraries:
+        i.is_safe_fallback = not safe  # True: nawet "bezpieczna" rekomendacja ma tu ryzykowną przesiadkę
 
     return {
         "najtansza": min(itineraries, key=lambda i: i.total_price_pln),
         "najszybsza": min(itineraries, key=lambda i: i.total_duration_min),
         "najmniej_przesiadek": min(itineraries, key=lambda i: i.num_transfers),
         "najlepszy_stosunek_ceny_do_czasu": min(itineraries, key=lambda i: i.value_score),
+        "najszybsza_bezpieczna": min(safe_pool, key=lambda i: (i.num_risky_transfers, i.total_duration_min)),
+        "najtansza_bezpieczna": min(safe_pool, key=lambda i: (i.num_risky_transfers, i.total_price_pln)),
     }

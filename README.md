@@ -158,3 +158,19 @@ Feed RV jest w 100% kolejowy, więc adresy z dala od stacji (np. Gelsenkirchen-B
 długi marsz. Dodano `gtfs/de/de_nv.zip` (gtfs.de `nv_free`, 287 MB: tramwaje, Stadtbahn/U-Bahn,
 autobusy całych Niemiec) jako dataset `denv` w `motis/config.yml`. Po zmianie trzeba powtórzyć
 `scripts/run_motis.ps1 import` (import z tym feedem trwa dłużej niż wcześniej).
+
+## Sesja 6: alternatywne węzły przesiadkowe/miasta
+
+Silnik potrafi teraz jawnie sprawdzić trasy kolejowe przez alternatywne miasto graniczne/węzeł
+(zamiast polegać wyłącznie na tym, co MOTIS zwróci dla jednego zapytania origin→destination)
+oraz warianty zaczynające/kończące się na innym dworcu w tym samym mieście. Huby lot↔kolej były
+już listą kandydatów od Sesji 4 — dodanie alternatywnego lotniska to tylko dopisanie kolejnego
+`HubConfig`. Szczegóły i nowe API (`AlternativeStop`, `via_hub_stops`,
+`alternative_origin_stops`/`alternative_destination_stops` w `generate_variants`) —
+[`routing/README.md`](routing/README.md#alternatywne-huby-węzły-przesiadkowe-sesja-6).
+Konkretne `stopId` dla alternatyw trzeba dobrać ręcznie (np. geocodingiem MOTIS) — to nie jest
+jeszcze podłączone do `demo.py`/`app.py` z gotowymi przykładami, bo wymaga zweryfikowania
+prawdziwych identyfikatorów przystanków na uruchomionym lokalnie MOTIS.
+
+Testy: `pytest tests/test_routing.py` (nowe przypadki dla `build_rail_via_stop_variant` i
+dedup w `generate_variants`).

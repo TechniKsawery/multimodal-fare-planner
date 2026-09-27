@@ -10,7 +10,12 @@ import streamlit as st
 
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from fares.model import DiscountProfile
-from routing.demo_route import FLIGHT_REGIONAL_HUBS, RAIL_FLIGHT_RAIL_HUBS
+from routing.demo_route import (
+    ALTERNATIVE_DESTINATION_STOPS,
+    FLIGHT_REGIONAL_HUBS,
+    RAIL_FLIGHT_RAIL_HUBS,
+    VIA_HUB_STOPS,
+)
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
 from routing.variants import generate_variants, request_from_addresses
@@ -89,6 +94,8 @@ if submitted:
                 request,
                 rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,
                 flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
+                via_hub_stops=VIA_HUB_STOPS,
+                alternative_destination_stops=ALTERNATIVE_DESTINATION_STOPS,
             )
     except MotisError as exc:
         st.error(f"Błąd MOTIS / geokodowania: {exc}")

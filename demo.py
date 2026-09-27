@@ -11,7 +11,12 @@ Użycie (adres -> adres, z dojściem pieszym; geocoding OSM z Sesji 4b):
 """
 import argparse
 
-from routing.demo_route import FLIGHT_REGIONAL_HUBS, RAIL_FLIGHT_RAIL_HUBS
+from routing.demo_route import (
+    ALTERNATIVE_DESTINATION_STOPS,
+    FLIGHT_REGIONAL_HUBS,
+    RAIL_FLIGHT_RAIL_HUBS,
+    VIA_HUB_STOPS,
+)
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
 from routing.variants import generate_variants, request_from_addresses
@@ -75,6 +80,8 @@ def main() -> None:
         request,
         rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,
         flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
+        via_hub_stops=VIA_HUB_STOPS,
+        alternative_destination_stops=ALTERNATIVE_DESTINATION_STOPS,
     )
 
     print(f"Zbudowano {len(built)} wariant(y), pominięto {len(skipped)}.\n")

@@ -636,3 +636,153 @@ def test_all_itineraries_prosi_motis_o_30_wynikow(monkeypatch):
     monkeypatch.setattr(motis_client, "plan", fake_plan)
     motis_client.all_itineraries_as_legs("a", "b", "2026-10-05T06:00:00Z")
     assert seen["n"] == 30
+
+
+# --- Sesja 6: alternatywne węzły przesiadkowe/miasta i dworce ----------------------------
+
+def _flat_price_leg(monkeypatch):
+    monkeypatch.setattr(variants.pricing, "price_leg",
+                         lambda leg, discounts, currency="PLN": PricedLeg(leg, 10.0, "PLN", "szacunek"))
+
+
+def test_build_rail_via_stop_variant_spina_dwa_zapytania_przez_wezel(monkeypatch):
+    request = variants.RouteRequest(
+        origin_stop_id="lublin", destination_stop_id="gelsenkirchen",
+        origin_label="Lublin", destination_label="Gelsenkirchen", date="2026-11-15",
+    )
+    via = variants.AlternativeStop("Poznań Główny", "pl_poznan")
+
+    first_legs = [make_leg(LegMode.RAIL, "Lublin", "Poznań Główny", _dt(6), _dt(10),
+                            carrier="PKP Intercity", distance_km=300)]
+    second_legs = [make_leg(LegMode.RAIL, "Poznań Główny", "Gelsenkirchen", _dt(11), _dt(18),
+                             carrier="DB Fernverkehr AG", distance_km=500)]
+
+    calls = []
+
+    def fake_plan_leg(origin, destination, time, **kw):
+        calls.append((origin, destination, time))
+        return first_legs if origin == "lublin" else second_legs
+
+    monkeypatch.setattr(variants.motis_client, "plan_leg", fake_plan_leg)
+    _flat_price_leg(monkeypatch)
+
+    itinerary = variants.build_rail_via_stop_variant(request, via)
+
+    assert [(o, d) for o, d, _ in calls] == [("lublin", "pl_poznan"), ("pl_poznan", "gelsenkirchen")]
+    assert len(itinerary.legs) == 2
+    assert "Poznań Główny" in itinerary.variant_name
+
+    # drugie zapytanie NIE startuje dokładnie od przyjazdu pierwszego odcinka (10:00) — ma bufor
+    # przesiadki, żeby nie łapać połączenia na styk kilku minut
+    second_query_time = datetime.fromisoformat(calls[1][2].replace("Z", "+00:00"))
+    assert second_query_time > first_legs[0].arrive
+    assert (second_query_time - first_legs[0].arrive).total_seconds() / 60 == transfers.MIN_TRANSFER_MINUTES_WALK
+
+    # przesiadka w węźle pośrednim jest jawnie oznaczona jako wymagająca przejścia (nie wiemy,
+    # czy to ten sam peron — to dwa niezależnie zapytane odcinki)
+    assert itinerary.legs[1].leg.requires_walk is True
+
+
+def test_generate_variants_via_hub_stops_dedup_wobec_glownego_zapytania(monkeypatch):
+    """Trasa via-hub identyczna z tą, którą MOTIS już zwrócił w głównym zapytaniu, nie
+    powinna się zdublować w wyniku."""
+    request = variants.RouteRequest(
+        origin_stop_id="a", destination_stop_id="b",
+        origin_label="A", destination_label="B", date="2026-11-15",
+    )
+    main_legs = [
+        make_leg(LegMode.RAIL, "A", "Hub", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170),
+        make_leg(LegMode.RAIL, "Hub", "B", _dt(9), _dt(12), carrier="DB Fernverkehr AG", distance_km=300),
+    ]
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [main_legs])
+
+    def fake_plan_leg(origin, destination, time, **kw):
+        return [main_legs[0]] if origin == "a" else [main_legs[1]]
+
+    monkeypatch.setattr(variants.motis_client, "plan_leg", fake_plan_leg)
+    _flat_price_leg(monkeypatch)
+
+    via = variants.AlternativeStop("Hub", "hub_stop")
+    built, skipped = variants.generate_variants(request, via_hub_stops=[via])
+
+    assert len(built) == 1  # sama trasa znaleziona dwiema drogami -> policzona raz
+    assert skipped == []
+
+
+def test_generate_variants_via_hub_dodaje_nowa_trase_gdy_rozna_od_glownej(monkeypatch):
+    request = variants.RouteRequest(
+        origin_stop_id="a", destination_stop_id="b",
+        origin_label="A", destination_label="B", date="2026-11-15",
+    )
+    main_legs = [make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)]
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [main_legs])
+
+    via_first = [make_leg(LegMode.RAIL, "A", "Poznań", _dt(6), _dt(9), carrier="PKP Intercity", distance_km=300)]
+    via_second = [make_leg(LegMode.RAIL, "Poznań", "B", _dt(10), _dt(16), carrier="DB Fernverkehr AG", distance_km=500)]
+
+    def fake_plan_leg(origin, destination, time, **kw):
+        return via_first if origin == "a" else via_second
+
+    monkeypatch.setattr(variants.motis_client, "plan_leg", fake_plan_leg)
+    _flat_price_leg(monkeypatch)
+
+    via = variants.AlternativeStop("Poznań", "poznan_stop")
+    built, skipped = variants.generate_variants(request, via_hub_stops=[via])
+
+    assert len(built) == 2  # główna trasa A->B + odrębna trasa przez Poznań
+    assert any("Poznań" in i.variant_name for i in built)
+
+
+def test_generate_variants_via_hub_motis_error_laduje_w_skipped(monkeypatch):
+    request = variants.RouteRequest(
+        origin_stop_id="a", destination_stop_id="b",
+        origin_label="A", destination_label="B", date="2026-11-15",
+    )
+    main_legs = [make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)]
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [main_legs])
+    _flat_price_leg(monkeypatch)
+
+    def raise_motis_error(*a, **kw):
+        raise MotisError("brak połączenia przez ten węzeł")
+
+    monkeypatch.setattr(variants.motis_client, "plan_leg", raise_motis_error)
+
+    via = variants.AlternativeStop("Ślepy węzeł", "dead_end")
+    built, skipped = variants.generate_variants(request, via_hub_stops=[via])
+
+    assert len(built) == 1  # główna trasa i tak się liczy
+    assert len(skipped) == 1
+    assert "Ślepy węzeł" in skipped[0].variant_name
+
+
+def test_generate_variants_alternative_origin_stops_dodaje_i_dedupikuje(monkeypatch):
+    request = variants.RouteRequest(
+        origin_stop_id="warszawa_centralna", destination_stop_id="b",
+        origin_label="Warszawa", destination_label="B", date="2026-11-15",
+    )
+    main_legs = [make_leg(LegMode.RAIL, "Warszawa Centralna", "B", _dt(6), _dt(8),
+                           carrier="PKP Intercity", distance_km=170)]
+    alt_legs = [make_leg(LegMode.RAIL, "Warszawa Wschodnia", "B", _dt(6, 30), _dt(8, 30),
+                          carrier="PKP Intercity", distance_km=175)]
+
+    def fake_all_itineraries(origin, destination, time):
+        return [main_legs] if origin == "warszawa_centralna" else [alt_legs]
+
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", fake_all_itineraries)
+    _flat_price_leg(monkeypatch)
+
+    alt = variants.AlternativeStop("Warszawa Wschodnia", "warszawa_wschodnia")
+    built, skipped = variants.generate_variants(request, alternative_origin_stops=[alt])
+
+    assert len(built) == 2
+    assert skipped == []
+
+    # ta sama trasa (sygnatura) z alternatywnego dworca -> zdedup'owana wobec głównej
+    built2, _ = variants.generate_variants(
+        variants.RouteRequest(
+            origin_stop_id="warszawa_centralna", destination_stop_id="b",
+            origin_label="Warszawa", destination_label="B", date="2026-11-15",
+        ),
+        alternative_origin_stops=[variants.AlternativeStop("Centralna-duplikat", "warszawa_centralna")],
+    )
+    assert len(built2) == 1

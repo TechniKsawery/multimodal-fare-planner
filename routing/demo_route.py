@@ -4,7 +4,7 @@ Identyfikatory stopId pochodzą z MOTIS (Sesja 2, GTFS PL+DE) — zweryfikowane 
 zapytaniami do /api/v1/geocode i /api/v6/plan pod uruchomionym lokalnie MOTIS. Huby (lotniska
 + stacje dojazdowe) są ustalone RAZ, bez przeszukiwania alternatyw — patrz README.md.
 """
-from .variants import HubConfig, RouteRequest
+from .variants import AlternativeStop, HubConfig, RouteRequest
 
 LUBLIN_GLOWNY_STOP = "pl_50500"
 GELSENKIRCHEN_HBF_STOP = "defv_344028"
@@ -48,3 +48,10 @@ HUB_LUBLIN_AIRPORT_DORTMUND = HubConfig(
 
 RAIL_FLIGHT_RAIL_HUBS = [HUB_WARSZAWA_DORTMUND]
 FLIGHT_REGIONAL_HUBS = [HUB_LUBLIN_AIRPORT_DORTMUND]
+
+POZNAN_GLOWNY_STOP = "pl_30601"
+ESSEN_HBF_STOP = "defv_351643"
+
+# Sesja 6: jawnie sprawdzane węzły pośrednie / alternatywne dworce mety (tylko kolej).
+VIA_HUB_STOPS = [AlternativeStop(label="Poznań Główny", stop_id=POZNAN_GLOWNY_STOP)]
+ALTERNATIVE_DESTINATION_STOPS = [AlternativeStop(label="Essen Hbf", stop_id=ESSEN_HBF_STOP)]

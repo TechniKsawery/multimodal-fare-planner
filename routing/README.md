@@ -5,18 +5,38 @@ Dla podanej pary miast (jako `stopId` z MOTIS) i daty generuje kilka **wariantó
 3b), liczy dla każdego cenę/czas/przesiadki, sprawdza bezpieczeństwo przesiadek i wybiera
 4 rekomendacje.
 
-## Świadome ograniczenie zakresu
+## Alternatywne huby/węzły przesiadkowe (Sesja 6)
 
-**Nie przeszukujemy alternatywnych węzłów przesiadkowych** (np. lot przez Berlin vs Wrocław
-vs Düsseldorf zamiast Dortmundu) — to odłożone do Sesji 6, bo wymagałoby wielu kosztownych
-zapytań routingowych i mogłoby zablokować pierwsze działające demo. Huby (lotnisko wylotu +
-lotnisko przylotu + stacje dojazdowe po obu stronach) są ustalone RAZ, w konfiguracji
-(`HubConfig`, patrz `demo_route.py` dla przykładu Lublin→Gelsenkirchen). Silnik generuje jeden
-sensowny wariant na hub, nie kilka konkurujących.
+Huby lot↔kolej (lotnisko wylotu + lotnisko przylotu + stacje dojazdowe po obu stronach,
+`HubConfig`) są konfigurowane jako **lista** kandydatów (`rail_flight_rail_hubs`,
+`flight_regional_hubs` w `generate_variants`) — silnik generuje jeden wariant na hub, więc
+dopisanie alternatywnego lotniska/miasta przesiadkowego (np. lot przez Berlin vs Wrocław vs
+Düsseldorf zamiast Dortmundu) to tylko dopisanie kolejnego `HubConfig` do listy w
+`demo_route.py`, bez zmian w silniku.
 
-Warianty "tylko kolej" **są** różnicowane — ale tylko między itinerariami, które MOTIS i tak
-zwraca dla JEDNEJO zapytania origin→destination (różne trasy/liczby przesiadek, które silnik
-uznał za sensowne dla tej samej relacji), nie z przeszukiwania innych hubów.
+Warianty "tylko kolej" biorą się przede wszystkim z JEDNEGO zapytania origin→destination do
+MOTIS (różne itineraria, które silnik i tak zwraca dla tej samej relacji). To dobrze pokrywa
+alternatywne przesiadki na trasie, którą MOTIS sam wybrał, ale nie pokrywa dwóch sytuacji:
+przejazdu przez **inne miasto graniczne/węzeł**, którego MOTIS mógłby nie faworyzować w
+topowych itinerariach (np. Poznań/Rzepin zamiast Warszawa/Berlin), oraz startu/końca z
+**innego dworca w tym samym mieście**. Do tego służy `AlternativeStop` (`variants.py`):
+
+- `via_hub_stops` — jawnie spina origin→via oraz via→destination jako dwa osobne zapytania do
+  MOTIS (`build_rail_via_stop_variant`), zamiast liczyć na to, że MOTIS sam tak poprowadzi.
+  Drugie zapytanie startuje z buforem `MIN_TRANSFER_MINUTES_WALK` po przyjeździe pierwszego
+  odcinka (bez tego MOTIS łapał połączenie na styk kilku minut, poniżej nawet absolutnego
+  minimum wykonalności) i węzeł pośredni jest jawnie oznaczony jako wymagający przejścia
+  (`requires_walk=True`) — dwa niezależnie zapytane odcinki nie gwarantują tego samego peronu.
+- `alternative_origin_stops` / `alternative_destination_stops` — powtarza główne zapytanie
+  "tylko kolej" z podmienionym dworcem startu/mety.
+
+Wszystkie warianty kolejowe (główne zapytanie + alternatywy) są odchudzane WSPÓLNYM dedup po
+sygnaturze trasy (sekwencja nazw origin/destination odcinków) — ta sama fizyczna trasa
+znaleziona kilkoma drogami trafia do wyniku tylko raz, a błąd MOTIS dla jednej alternatywy
+(`MotisError`, np. brak połączenia przez dany węzeł) ląduje w `SkippedVariant`, nie przerywa
+reszty. Konkretne `stopId` dla `AlternativeStop` trzeba dobrać ręcznie (np. przez
+`/api/v1/geocode` albo znajomość sieci) — silnik nie zgaduje sam, które miasta/dworce warto
+sprawdzić.
 
 ## Moduły
 

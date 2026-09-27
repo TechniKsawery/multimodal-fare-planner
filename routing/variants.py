@@ -1,12 +1,24 @@
 """Generator wariantów trasy: łączy routing MOTIS (kolej) z lotami (flights/) w kilka
 sensownych opcji podróży dla jednej pary miast/daty.
 
-Świadome ograniczenie zakresu (Sesja 4, patrz README.md): węzły przesiadkowe (np. które
-lotnisko/dworzec pośredni) są ustalone raz w HubConfig, NIE przeszukujemy alternatywnych
-hubów (to Sesja 6). Warianty "tylko kolej" korzystają z wielu itinerariów, które MOTIS
-i tak zwraca dla jednego zapytania (różne trasy/liczby przesiadek), a nie z przeszukiwania.
+Huby lot<->kolej (HubConfig) są konfigurowane jako LISTA kandydatów (patrz `demo_route.py`)
+— `generate_variants` buduje jeden wariant na hub, więc dodanie alternatywnego lotniska/miasta
+przesiadkowego to tylko dopisanie kolejnego HubConfig do listy.
+
+Sesja 6: analogiczny mechanizm dla wariantów czysto kolejowych. Warianty "tylko kolej"
+(`build_rail_only_variants`) nadal biorą się z jednego zapytania origin->destination do MOTIS
+(różne itineraria, które silnik i tak zwraca) — to dobrze pokrywa alternatywne PRZESIADKI
+w obrębie trasy, którą MOTIS sam wybrał. Nie pokrywa jednak sytuacji, w której warto explicite
+sprawdzić przejazd przez INNE miasto graniczne/węzeł niż to, które MOTIS domyślnie faworyzuje
+w topowych itinerariach (np. Poznań/Rzepin zamiast Warszawa/Berlin), albo start z innego
+dworca w tym samym mieście. Do tego służy `AlternativeStop` + `build_rail_via_stop_variant` /
+`build_rail_from_alternative_origin_variant` / `build_rail_from_alternative_destination_variant`,
+spinane w `generate_variants` przez `via_hub_stops` / `alternative_origin_stops` /
+`alternative_destination_stops`. Wszystkie warianty kolejowe (główne zapytanie + alternatywy)
+są odchudzane wspólnym dedup po sygnaturze trasy (sekwencja origin/destination nazw odcinków),
+żeby ta sama trasa znaleziona dwiema drogami nie pojawiła się dwukrotnie.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from typing import List, Optional, Tuple
 
@@ -16,6 +28,7 @@ from . import motis_client, pricing
 from .model import Itinerary, Leg, LegMode, SkippedVariant
 from .motis_client import MotisError
 from .scoring import build_itinerary
+from .transfers import MIN_TRANSFER_MINUTES_WALK
 
 try:
     from flights.travelpayouts import TravelpayoutsError
@@ -96,17 +109,30 @@ def _price_legs(legs: List[Leg], request: RouteRequest):
     return [pricing.price_leg(leg, request.discounts, request.flight_currency) for leg in legs]
 
 
-def build_rail_only_variants(request: RouteRequest, max_variants: int = 30) -> List[Itinerary]:
+def _legs_signature(legs: List[Leg]) -> Tuple[Tuple[str, str], ...]:
+    """Sygnatura trasy (sekwencja origin/destination nazw odcinków) do dedup: ta sama fizyczna
+    trasa znaleziona przez różne zapytania (główne + alternatywne huby/dworce) liczy się raz."""
+    return tuple((l.origin_name, l.destination_name) for l in legs)
+
+
+def build_rail_only_variants(
+    request: RouteRequest, max_variants: int = 30, seen_signatures: Optional[set] = None
+) -> List[Itinerary]:
     """Do max_variants (domyślnie wszystkie z 30 zwróconych) wariantów kolejowych z JEDNEGO zapytania do MOTIS (różne itineraria,
-    które silnik i tak zwraca — nie przeszukujemy innych hubów)."""
+    które silnik i tak zwraca — nie przeszukujemy innych hubów).
+
+    seen_signatures: opcjonalny współdzielony zbiór sygnatur tras (patrz `_legs_signature`) —
+    pozwala `generate_variants` odchudzać wyniki z alternatywnych hubów/dworców względem
+    już znalezionych tras, bez duplikatów. Zbiór jest modyfikowany w miejscu."""
     all_legs_options = motis_client.all_itineraries_as_legs(
         request.origin_stop_id, request.destination_stop_id, request.motis_time
     )
 
-    seen_signatures = set()
+    if seen_signatures is None:
+        seen_signatures = set()
     variants: List[Itinerary] = []
     for legs in sorted(all_legs_options, key=lambda ls: (ls[-1].arrive - ls[0].depart)):
-        signature = tuple((l.origin_name, l.destination_name) for l in legs)
+        signature = _legs_signature(legs)
         if signature in seen_signatures:
             continue
         seen_signatures.add(signature)
@@ -124,6 +150,68 @@ def build_rail_only_variants(request: RouteRequest, max_variants: int = 30) -> L
             break
 
     return variants
+
+
+@dataclass
+class AlternativeStop:
+    """Alternatywny przystanek/dworzec/węzeł do jawnego wypróbowania obok głównego origin/
+    destination z RouteRequest — albo jako inny dworzec w tym samym mieście (start/koniec),
+    albo jako miasto graniczne/węzeł pośredni, przez które MOTIS mógłby nie poprowadzić trasy
+    w swoich topowych itinerariach dla zapytania origin->destination wprost."""
+
+    label: str
+    stop_id: str
+
+
+def build_rail_via_stop_variant(request: RouteRequest, via: AlternativeStop) -> Itinerary:
+    """Kolej: origin -> via -> destination jako DWA osobne zapytania do MOTIS, jawnie spięte
+    przez węzeł pośredni `via` — zamiast polegać na tym, że MOTIS sam wybierze tę trasę w
+    jednym zapytaniu origin->destination.
+
+    Drugie zapytanie NIE startuje dokładnie od czasu przyjazdu pierwszego odcinka: bez bufora
+    MOTIS łapie najbliższy odjazd, co potrafi dać przesiadkę na kilka minut (poniżej nawet
+    absolutnego minimum wykonalności z transfers.py) — w jednym zapytaniu origin->destination
+    MOTIS ma na to `additionalTransferTime`, tu robimy to samo ręcznie, przesuwając czas drugiego
+    zapytania o MIN_TRANSFER_MINUTES_WALK (bezpieczny próg przesiadki z przejściem — patrz
+    transfers.py). Przesiadka w węźle pośrednim między dwoma NIEZALEŻNIE zapytanymi odcinkami
+    też jest jawnie oznaczona jako wymagająca przejścia (requires_walk), bo w przeciwieństwie
+    do itinerary z jednego zapytania nie wiemy, czy to ten sam peron."""
+    first_legs = motis_client.plan_leg(request.origin_stop_id, via.stop_id, request.motis_time)
+    # bufor na przesiadkę w węźle via — bez niego MOTIS podaje odjazd tuż po przyjeździe
+    # i wariant odpada jako fizycznie niewykonalny
+    onward = first_legs[-1].arrive + timedelta(minutes=MIN_TRANSFER_MINUTES_WALK)
+    onward_time = onward.isoformat().replace("+00:00", "Z")
+    second_legs = motis_client.plan_leg(via.stop_id, request.destination_stop_id, onward_time)
+    second_legs[0] = replace(second_legs[0], requires_walk=True)
+
+    legs = first_legs + second_legs
+    priced = _price_legs(legs, request)
+    return build_itinerary(f"Kolej przez {via.label}", priced)
+
+
+def build_rail_from_alternative_origin_variants(
+    request: RouteRequest, alt: AlternativeStop, max_variants: int = 10
+) -> List[Itinerary]:
+    """Warianty kolejowe zaczynające się z alternatywnego dworca (np. inny dworzec w tym samym
+    mieście niż domyślnie skonfigurowany/geokodowany origin_stop_id) — tą samą metodą co
+    `build_rail_only_variants`, tylko dla przestawionego origin."""
+    alt_request = replace(
+        request, origin_stop_id=alt.stop_id, origin_label=f"{request.origin_label} ({alt.label})"
+    )
+    return build_rail_only_variants(alt_request, max_variants=max_variants)
+
+
+def build_rail_from_alternative_destination_variants(
+    request: RouteRequest, alt: AlternativeStop, max_variants: int = 10
+) -> List[Itinerary]:
+    """Jak `build_rail_from_alternative_origin_variants`, ale dla alternatywnego dworca
+    docelowego."""
+    alt_request = replace(
+        request,
+        destination_stop_id=alt.stop_id,
+        destination_label=f"{request.destination_label} ({alt.label})",
+    )
+    return build_rail_only_variants(alt_request, max_variants=max_variants)
 
 
 def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Itinerary:
@@ -176,23 +264,75 @@ def generate_variants(
     request: RouteRequest,
     rail_flight_rail_hubs: Optional[List[HubConfig]] = None,
     flight_regional_hubs: Optional[List[HubConfig]] = None,
+    via_hub_stops: Optional[List[AlternativeStop]] = None,
+    alternative_origin_stops: Optional[List[AlternativeStop]] = None,
+    alternative_destination_stops: Optional[List[AlternativeStop]] = None,
 ) -> Tuple[List[Itinerary], List[SkippedVariant]]:
-    """Generuje wszystkie warianty dla request + skonfigurowane huby. Warianty, których nie
-    udało się zbudować (np. brak tokena Travelpayouts, MOTIS nie znalazł połączenia), lądują
-    w SkippedVariant z powodem, zamiast przerywać cały proces.
+    """Generuje wszystkie warianty dla request + skonfigurowane huby/alternatywy. Warianty,
+    których nie udało się zbudować (np. brak tokena Travelpayouts, MOTIS nie znalazł
+    połączenia), lądują w SkippedVariant z powodem, zamiast przerywać cały proces.
 
     rail_flight_rail_hubs: huby dla wariantu "kolej + lot + kolej lokalna" (wymagają dojazdu
     kolejowego do lotniska wylotu, hub.origin_rail_access_stop_id).
     flight_regional_hubs: huby dla wariantu "lot + transport regionalny" (lotnisko wylotu
     zakładane jako dostępne bez dalekiego dojazdu kolejowego z origin_stop_id).
+    via_hub_stops: alternatywne miasta graniczne/węzły do jawnego przejechania (origin -> via
+    -> destination), gdyby MOTIS w jednym zapytaniu origin->destination nie faworyzował takiej
+    trasy w topowych itinerariach.
+    alternative_origin_stops / alternative_destination_stops: alternatywne dworce startu/mety
+    (np. inny dworzec w tym samym mieście niż domyślnie skonfigurowany).
+
+    Wszystkie warianty kolejowe (główne zapytanie + via_hub_stops + alternatywne dworce) są
+    odchudzane WSPÓLNYM dedup po trasie (patrz `_legs_signature`), więc ta sama fizyczna trasa
+    znaleziona kilkoma drogami trafia do wyniku tylko raz.
     """
     built: List[Itinerary] = []
     skipped: List[SkippedVariant] = []
+    seen_rail_signatures: set = set()
 
     try:
-        built.extend(build_rail_only_variants(request))
+        built.extend(build_rail_only_variants(request, seen_signatures=seen_rail_signatures))
     except MotisError as exc:
         skipped.append(SkippedVariant("Tylko kolej", str(exc)))
+
+    for via in via_hub_stops or []:
+        label = f"Kolej przez {via.label}"
+        try:
+            candidate = build_rail_via_stop_variant(request, via)
+            signature = _legs_signature([pl.leg for pl in candidate.legs])
+            if signature in seen_rail_signatures:
+                continue
+            seen_rail_signatures.add(signature)
+            if candidate.is_infeasible:
+                skipped.append(SkippedVariant(label, _infeasible_reason(candidate)))
+            else:
+                built.append(candidate)
+        except MotisError as exc:
+            skipped.append(SkippedVariant(label, str(exc)))
+
+    for alt in alternative_origin_stops or []:
+        label = f"Tylko kolej (start: {alt.label})"
+        try:
+            for candidate in build_rail_from_alternative_origin_variants(request, alt):
+                signature = _legs_signature([pl.leg for pl in candidate.legs])
+                if signature in seen_rail_signatures:
+                    continue
+                seen_rail_signatures.add(signature)
+                built.append(candidate)
+        except MotisError as exc:
+            skipped.append(SkippedVariant(label, str(exc)))
+
+    for alt in alternative_destination_stops or []:
+        label = f"Tylko kolej (koniec: {alt.label})"
+        try:
+            for candidate in build_rail_from_alternative_destination_variants(request, alt):
+                signature = _legs_signature([pl.leg for pl in candidate.legs])
+                if signature in seen_rail_signatures:
+                    continue
+                seen_rail_signatures.add(signature)
+                built.append(candidate)
+        except MotisError as exc:
+            skipped.append(SkippedVariant(label, str(exc)))
 
     for hub in rail_flight_rail_hubs or []:
         label = f"Kolej + lot ({hub.label}) + kolej lokalna"

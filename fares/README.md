@@ -68,9 +68,14 @@ bo tabela pasm jest interpolacją).
   przykładów — zawodne blisko granic progów (Warszawa i Kraków z Berlina mają niemal identyczny
   dystans w linii prostej — 519 vs 532 km — mimo różnych kategorii cenowych, bo o kategorii
   decyduje rzeczywista trasa kolejowa, nie linia prosta). Ceny to "cena OD" (promocyjna,
-  ograniczona pula) — cena rynkowa poza wczesną rezerwacją bywa wyższa. Rabat BahnCard jest
-  uproszczony (patrz wyżej) — oficjalnie dotyczy tylko niemieckiego odcinka trasy, którego nie
-  wydzielamy.
+  ograniczona pula) — cena rynkowa poza wczesną rezerwacją bywa wyższa. Rabat BahnCard
+  (nominalnie 25% dla każdego poziomu karty — zweryfikowane na bahn.de, patrz
+  `_uwaga_bahncard`) dotyczy oficjalnie TYLKO niemieckiego odcinka trasy — skoro nie mamy
+  realnego podziału ceny PL/DE, `routing/pricing.py::german_portion_fraction()` szacuje udział
+  niemieckiego odcinka geograficznie (linia prosta origin→przybliżony punkt granicy
+  Rzepin/Frankfurt(Oder)→destination) i rabat jest naliczany proporcjonalnie do tego udziału,
+  nie od całej ceny. Bez współrzędnych stacji (fallback) nadal liczymy 25% od całości — zawyża
+  rabat, ale to jedyna opcja bez geografii.
 
 ### Czego by trzeba, żeby domknąć resztę
 
@@ -86,9 +91,10 @@ bo tabela pasm jest interpolacją).
    "Ihr Browser-Verhalten ähnelt dem eines Bots"), więc te próbki musi zebrać ktoś ręcznie,
    wpisując wyszukiwania na bahn.de i przekazując ceny.
 4. **Międzynarodowy PL↔DE relacja→kategoria** — realna tabela relacja→kategoria cenowa (DB jej
-   nie publikuje) zamiast naszego przybliżenia progami km; oraz realny podział trasy na
-   odcinek PL/DE, żeby rabat BahnCard dało się policzyć dokładnie (dziś: uproszczenie, patrz
-   `fares/data/international_pl_de.json`).
+   nie publikuje) zamiast naszego przybliżenia progami km. Podział trasy PL/DE dla rabatu
+   BahnCard jest już szacowany geograficznie (`german_portion_fraction()`, patrz wyżej) zamiast
+   flat 25% na całość — ale to nadal linia prosta do jednego stałego punktu granicy, nie realna
+   geometria trasy kolejowej ani realny podział ceny biletu.
 
 ## FlixBus: realna cena z API zamiast szacunku po km (2026-09-26)
 

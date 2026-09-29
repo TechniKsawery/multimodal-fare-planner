@@ -32,7 +32,22 @@ def estimate(segment: Segment) -> PriceEstimate:
     if bahncard not in rabaty:
         raise ValueError(f"nieznana BahnCard: {bahncard!r}, dostępne: {list(rabaty)}")
     rabat_procent = rabaty[bahncard]
-    amount = round(cena_od * (1 - rabat_procent / 100), 2)
+
+    fraction = segment.german_portion_fraction
+    if fraction is None:
+        # Brak współrzędnych do oszacowania podziału trasy -> rabat naliczany od CAŁEJ ceny.
+        # To ZAWYŻA realny rabat (oficjalnie dotyczy tylko niemieckiego odcinka), ale bez
+        # geografii nie mamy jak wydzielić część niemiecką — jedyny dostępny fallback.
+        efektywny_rabat_procent = rabat_procent
+        podzial_note = "brak współrzędnych stacji — rabat naliczony od całej ceny biletu (zawyża realny rabat)"
+    else:
+        fraction = max(0.0, min(1.0, fraction))
+        efektywny_rabat_procent = rabat_procent * fraction
+        podzial_note = (
+            f"rabat naliczony proporcjonalnie do szacowanego udziału niemieckiego odcinka "
+            f"trasy (~{fraction * 100:.0f}% dystansu w linii prostej)"
+        )
+    amount = round(cena_od * (1 - efektywny_rabat_procent / 100), 2)
 
     return PriceEstimate(
         carrier=Carrier.INTERNATIONAL_PL_DE,
@@ -43,15 +58,18 @@ def estimate(segment: Segment) -> PriceEstimate:
             "kategoria_relacji": prog["kategoria"],
             "cena_od": cena_od,
             "bahncard": bahncard,
-            "rabat_procent": rabat_procent,
+            "rabat_procent_nominalny": rabat_procent,
+            "udzial_niemieckiego_odcinka": fraction,
+            "rabat_procent_efektywny": round(efektywny_rabat_procent, 1),
             "dystans_km_linia_prosta": round(segment.distance_km, 1),
         },
         notes=(
             f"Bilet międzynarodowy PL-DE, kategoria '{prog['kategoria']}' wg przybliżenia "
             "odległością w linii prostej (DB nie publikuje tabeli relacja->kategoria) — "
             "Super Sparpreis Europa, cena 'OD' (promocyjna, ograniczona pula miejsc), "
-            "realna cena rynkowa może być wyższa. BahnCard oficjalnie obniża tylko niemiecki "
-            "odcinek trasy — nie mamy podziału PL/DE, rabat powyżej jest uproszczeniem "
-            "(patrz _uwaga_bahncard w danych źródłowych)."
+            "realna cena rynkowa może być wyższa. BahnCard (każdy poziom: 25/50/100) daje "
+            f"nominalnie 25% zniżki, ale OFICJALNIE TYLKO na niemiecki odcinek trasy — {podzial_note}. "
+            "Podział wg linii prostej i stałego przybliżonego punktu granicy — patrz "
+            "_uwaga_bahncard w danych źródłowych i BORDER_CROSSING_PL_DE w routing/pricing.py."
         ),
     )

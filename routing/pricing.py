@@ -9,6 +9,7 @@ from flights.extras import get_baggage_by_airline, get_extras as flights_get_ext
 
 from .currency import convert as convert_currency
 from .model import Leg, LegMode, PricedLeg
+from .motis_client import haversine_km
 
 GENERIC_FALLBACK_PLN_PER_KM = 0.35
 """Bardzo zgrubny szacunek na km, używany TYLKO gdy żaden moduł taryf nie obejmuje przewoźnika
@@ -117,6 +118,35 @@ def _leg_endpoint_country(leg: Leg, prefix: str) -> Optional[str]:
     return _country_from_dataset(leg.extra.get(f"{prefix}_stop_id"))
 
 
+BORDER_CROSSING_PL_DE = {"lat": 52.3454, "lon": 14.5583}
+"""Przybliżony punkt granicy PL/DE (Rzepin/Frankfurt (Oder) — główne przejście na trasie
+Berlin-Warszawa-Express, dominującym korytarzu w naszych danych GTFS) używany WYŁĄCZNIE do
+szacowania jaka część trasy międzynarodowej leży po stronie niemieckiej (dla proporcjonalnego
+rabatu BahnCard, patrz fares/international.py). Dla realnych tras przez inne przejścia
+(Szczecin, Zgorzelec/Görlitz, Kudowa...) to przybliżenie będzie mniej dokładne — nie mamy
+danych geometrii realnej trasy kolejowej, tylko linię prostą między stacjami."""
+
+
+def german_portion_fraction(leg: Leg) -> Optional[float]:
+    """Szacowany udział (0-1) niemieckiego odcinka trasy międzynarodowej w całym dystansie
+    (linia prosta origin-border + border-destination), używany do proporcjonalnego naliczenia
+    rabatu BahnCard (oficjalnie dotyczy tylko niemieckiego odcinka). None, gdy brakuje
+    współrzędnych któregoś końca — wtedy fares/international.py nalicza rabat od całej ceny."""
+    o_lat, o_lon = leg.extra.get("origin_lat"), leg.extra.get("origin_lon")
+    d_lat, d_lon = leg.extra.get("destination_lat"), leg.extra.get("destination_lon")
+    if o_lat is None or o_lon is None or d_lat is None or d_lon is None:
+        return None
+    b_lat, b_lon = BORDER_CROSSING_PL_DE["lat"], BORDER_CROSSING_PL_DE["lon"]
+    dist_origin_border = haversine_km(o_lat, o_lon, b_lat, b_lon)
+    dist_border_dest = haversine_km(b_lat, b_lon, d_lat, d_lon)
+    total = dist_origin_border + dist_border_dest
+    if total <= 0:
+        return None
+    if _leg_endpoint_country(leg, "origin") == "DE":
+        return dist_origin_border / total  # kierunek DE -> PL: część niemiecka to origin->granica
+    return dist_border_dest / total  # domyślnie: origin PL, część niemiecka to granica->destination
+
+
 def is_cross_border_pl_de(leg: Leg) -> bool:
     """Czy ten odcinek kolejowy przekracza granicę PL/DE jednym ciągłym przejazdem (np.
     Berlin-Warszawa-Express) — wykryte GEOGRAFICZNIE (współrzędne stacji początkowej i
@@ -193,6 +223,9 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
             destination=leg.destination_name,
             distance_km=leg.distance_km,
             discounts=discounts,
+            german_portion_fraction=(
+                german_portion_fraction(leg) if carrier is Carrier.INTERNATIONAL_PL_DE else None
+            ),
         )
         result = fares_estimate_price(segment)
     except ValueError as exc:

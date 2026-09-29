@@ -43,6 +43,12 @@ class Segment:
     ride_duration_min: Optional[float] = None  # wymagane dla ZTM Lublin (taryfa czasowa)
     discounts: DiscountProfile = field(default_factory=DiscountProfile)
     travel_date: Optional[str] = None     # "YYYY-MM-DD"; wymagane dla FlixBus (ceny dynamiczne per data)
+    german_portion_fraction: Optional[float] = None
+    """Tylko Carrier.INTERNATIONAL_PL_DE: szacowany udział (0-1) niemieckiego odcinka trasy w
+    całym dystansie (linia prosta), używany do proporcjonalnego naliczenia rabatu BahnCard,
+    który oficjalnie dotyczy TYLKO niemieckiej części trasy (patrz fares/international.py).
+    None = brak danych geograficznych do oszacowania -> rabat naliczany od całej ceny
+    (zawyża realny rabat, ale to jedyny dostępny fallback bez współrzędnych stacji)."""
 
 
 @dataclass

@@ -114,20 +114,56 @@ def test_dluga_relacja_cena_od_39_99():
     assert result.amount == 39.99
 
 
-def test_bahncard_25_nie_daje_dodatkowego_rabatu_na_cene_promocyjna():
+# Bez german_portion_fraction (brak współrzędnych) -> fallback: rabat 25% od CAŁEJ ceny.
+# To zawyża realny rabat (oficjalnie dotyczy tylko niemieckiego odcinka trasy) — patrz testy
+# "..._proporcjonalnie_do_niemieckiego_odcinka" niżej dla poprawnego, geografia-aware liczenia.
+
+def test_bahncard_25_bez_wspolrzednych_daje_25_procent_od_calej_ceny_fallback():
     seg = Segment(
         Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519,
         discounts=DiscountProfile(bahncard="25"),
     )
-    assert international_estimate(seg).amount == 29.99
+    assert international_estimate(seg).amount == pytest.approx(29.99 * 0.75, abs=0.01)
 
 
-def test_bahncard_50_daje_25_procent():
+def test_bahncard_50_bez_wspolrzednych_daje_25_procent_od_calej_ceny_fallback():
     seg = Segment(
         Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519,
         discounts=DiscountProfile(bahncard="50"),
     )
     assert international_estimate(seg).amount == pytest.approx(29.99 * 0.75, abs=0.01)
+
+
+def test_bahncard_100_bez_wspolrzednych_daje_25_procent_nie_100_procent_fallback():
+    # ZGŁOSZONY BUG (2026-09-29): BahnCard 100 zerowała całą cenę biletu (0.00 EUR) bo
+    # traktowaliśmy ją jako 100% rabatu, analogicznie do krajowych biletów Sparpreis. Dla
+    # Super Sparpreis Europa (bahn.de FAQ + bahnpedia.de) WSZYSTKIE poziomy BahnCard dają
+    # nominalnie tę samą zniżkę 25% — BahnCard 100 nie daje tu przejazdu za darmo.
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519,
+        discounts=DiscountProfile(bahncard="100"),
+    )
+    assert international_estimate(seg).amount == pytest.approx(29.99 * 0.75, abs=0.01)
+
+
+def test_bahncard_z_udzialem_niemieckiego_odcinka_liczy_rabat_tylko_od_tej_czesci():
+    # ZGŁOSZONE DOPRECYZOWANIE (2026-09-29, źródło int.bahn.de/pl): BahnCard oficjalnie daje
+    # rabat TYLKO na niemiecki odcinek trasy, nie na całą cenę. Gdy znamy geograficzny udział
+    # tego odcinka (patrz routing/pricing.py::german_portion_fraction), efektywny rabat na
+    # całą cenę biletu to rabat_nominalny * udział, NIE cały rabat_nominalny.
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519,
+        discounts=DiscountProfile(bahncard="50"), german_portion_fraction=0.2,
+    )
+    result = international_estimate(seg)
+    # 25% nominalnego rabatu * 20% udziału niemieckiego odcinka = 5% efektywnego rabatu na całość
+    assert result.amount == pytest.approx(29.99 * 0.95, abs=0.01)
+    assert result.breakdown["rabat_procent_efektywny"] == pytest.approx(5.0, abs=0.1)
+
+
+def test_brak_bahncard_ignoruje_udzial_niemieckiego_odcinka():
+    seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519, german_portion_fraction=0.2)
+    assert international_estimate(seg).amount == 29.99
 
 
 def test_bledny_przewoznik_podnosi_blad():
@@ -153,6 +189,17 @@ def test_price_rail_leg_wymusza_taryfe_miedzynarodowa_dla_odcinka_przez_granice(
     # 29.99 EUR (kategoria 'srednia'), NIE krajowa cena PKP wg pasma 519km (byłoby dużo więcej PLN)
     assert priced.currency == "EUR"
     assert priced.amount == 29.99
+
+
+def test_price_rail_leg_z_bahncard_i_wspolrzednymi_liczy_rabat_proporcjonalnie_nie_flat_25_procent():
+    # ZGŁOSZONE DOPRECYZOWANIE (2026-09-29): mając realne współrzędne (Warszawa/Berlin), rabat
+    # BahnCard musi być dużo mniejszy niż flat 25% na całą cenę, bo Berlin leży blisko granicy —
+    # niemiecki odcinek to tylko ok. 16% dystansu w linii prostej. Efektywny rabat: 25% * ~16% ≈ 4%.
+    leg = _leg("pl_50500", "pl_999999", distance_km=519, carrier_name="PKP Intercity",
+               origin_latlon=WARSZAWA, destination_latlon=BERLIN)
+    priced = price_rail_leg(leg, DiscountProfile(bahncard="50"))
+    assert priced.currency == "EUR"
+    assert 28.0 < priced.amount < 29.99  # rabat realny, ale dużo mniejszy niż 29.99*0.75=22.49
 
 
 def test_price_rail_leg_krajowy_pkp_dziala_jak_wczesniej():

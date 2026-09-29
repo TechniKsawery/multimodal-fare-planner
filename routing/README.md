@@ -98,12 +98,26 @@ DYNAMICZNYCH opłatach za bagaż (kwoty w tabeli to dolna granica opublikowanego
 
 ## Wycena odcinków kolejowych: mapowanie przewoźnika
 
-`pricing.infer_rail_carrier()` mapuje `agencyName` z MOTIS na przewoźnika z `fares/`:
+`price_rail_leg()` najpierw sprawdza `pricing.is_cross_border_pl_de(leg)` — jeśli odcinek
+przekracza granicę PL/DE jednym ciągłym przejazdem (np. Berlin-Warszawa-Express), wymusza
+`Carrier.INTERNATIONAL_PL_DE` (patrz `fares/international.py`) i **pomija**
+`infer_rail_carrier()` całkowicie, niezależnie od tego jak brzmi `agencyName`. Detekcja idzie
+po prefiksie datasetu MOTIS (`<dataset>_<id>` w `stopId`, patrz sekcja "Sesja 2" wyżej) stacji
+początkowej i końcowej: `pl`/`ztml` = Polska, `defv`/`derv` = Niemcy — jeśli stacje są w różnych
+krajach, to odcinek międzynarodowy. Brak `stopId` po którejś stronie (np. punkt tylko ze
+współrzędnych) → bezpiecznie `False` (nie potrafimy stwierdzić, więc leg idzie zwykłą ścieżką).
+
+Dopiero dla odcinków KRAJOWYCH `pricing.infer_rail_carrier()` mapuje `agencyName` z MOTIS na
+przewoźnika z `fares/`:
 - `"PKP Intercity"` → `Carrier.PKP_INTERCITY`
 - nazwa zawierająca `"DB Fernverkehr"`/`"Deutsche Bahn"` → `Carrier.DB`
-- każdy inny niemiecki przewoźnik regionalny (S-Bahn, Abellio, National Express, ...) →
-  `Carrier.VRR` **jako uproszczenie** — w rzeczywistości różne związki taryfowe (VRR, VRS, ...)
-  obowiązują w różnych regionach Niemiec, nie mamy mapowania geograficznego stacja→związek.
+- każdy inny niemiecki przewoźnik regionalny (S-Bahn, Abellio, National Express, **DB Regio**, ...) →
+  `Carrier.VRR` — **zweryfikowane jako poprawne** (nie uproszczenie do poprawienia): nasz
+  regionalny feed GTFS (dataset `derv`) obejmuje wyłącznie obszar VRR (Nadrenia
+  Północna-Westfalia), więc każdy taki przewoźnik w naszych danych fizycznie jeździ w obszarze
+  taryfowym VRR, a taryfa eezy.nrw w ogóle nie uznaje BahnCard (sprawdzone na vrr.de,
+  2026-09-29) — w przeciwieństwie do biletów DB. Zob. `infer_rail_carrier()` w
+  `routing/pricing.py` po pełne uzasadnienie.
 - nieznany przewoźnik (np. polskie koleje regionalne) → zgrubny fallback
   `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km) zamiast błędu, żeby jeden nierozpoznany
   przewoźnik nie wywalał całego wariantu.

@@ -1,10 +1,20 @@
 # Moduł taryf (`fares/`)
 
-Szacuje cenę pojedynczego segmentu podróży dla pięciu przewoźników:
+Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 
-- **PKP Intercity** (`fares/pkp.py`) — cena z tabeli pasm odległości × mnożnik ulgi.
+- **PKP Intercity** (`fares/pkp.py`) — cena z tabeli pasm odległości × mnożnik ulgi. Tylko
+  odcinki KRAJOWE (w całości w Polsce) — odcinek PL↔DE (patrz niżej) idzie osobną ścieżką.
 - **DB** (`fares/db.py`) — Flexpreis jako górna granica z tabeli pasm odległości × mnożnik BahnCard
-  (BahnCard 25 → ×0.75, BahnCard 50 → ×0.5).
+  (BahnCard 25 → ×0.75, BahnCard 50 → ×0.5). Tylko odcinki KRAJOWE (w całości w Niemczech).
+- **Międzynarodowy PL↔DE** (`fares/international.py`) — jeden ciągły odcinek kolejowy
+  przekraczający granicę (np. Berlin-Warszawa-Express). SZTYWNE kategorie cenowe wg relacji
+  (Super Sparpreis Europa: krótka/średnia/długa), NIE tabela pasm jak PKP/DB. Wykrywane w
+  `routing/pricing.py::is_cross_border_pl_de()` po prefiksie datasetu MOTIS stacji początkowej
+  i końcowej (`pl`/`ztml` = Polska, `defv`/`derv` = Niemcy) — PRZED zwykłym `infer_rail_carrier()`,
+  więc taki odcinek nigdy nie trafia do krajowej tabeli PKP/DB, nawet jeśli agencyName brzmi jak
+  jeden z nich. BahnCard: oficjalnie rabat dotyczy tylko niemieckiego odcinka trasy — nie mamy
+  podziału PL/DE, więc to uproszczone (patrz `_uwaga_bahncard` w
+  `fares/data/international_pl_de.json`).
 - **VRR** (`fares/vrr.py`) — taryfa eezy.nrw: cena = Grundpreis + cena za km (linii prostej),
   z sufitem cenowym. Obejmuje pociągi regionalne VRR ORAZ lokalny bus/tramwaj/U-Bahn w obszarze
   VRR (Zagłębie Rury/NRW) — to jedna, wspólna taryfa strefowa dla całego transportu VRR.
@@ -27,6 +37,7 @@ Szacuje cenę pojedynczego segmentu podróży dla pięciu przewoźników:
 | DB — mnożniki BahnCard 25/50 | **oficjalne** | [bahn.de/faq/pk/angebot/flexpreis](https://www.bahn.de/faq/pk/angebot/flexpreis) |
 | DB — tabela pasm odległości Flexpreis | **szacunek, skalibrowany do 1 realnej próbki** | DB nie publikuje takiej tabeli (cena dynamiczna); próba żywego wyszukiwania na bahn.de zablokowana jako ruch bota (błąd 751) — użyto zamiast tego realnej ceny Halle→München (373 km, 106–127 EUR) z bahndampf.de + oficjalnie cytowanej górnej granicy (150 EUR 2. klasa) do skalibrowania prostej formuły baza+km |
 | ZTM Lublin — bilety czasowe (15/40/90 min, strefa 1+2) | **oficjalne** | [Cennik LUBIKA](https://lubika.zdtm.lublin.eu/cennik/) (system biletu elektronicznego ZDiTM Lublin), ważny od 16.02.2026 |
+| Międzynarodowy PL↔DE — 3 kategorie cenowe (krótka/średnia/długa) | **oficjalne ceny "od", progi km SZACUNEK** | [Super Sparpreis Europa Polska](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-polen), [zasada BahnCard tylko na niemiecki odcinek](https://int.bahn.de/en/offers/saver-fare-flexible-fare/super-saver-fare-europe-poland) — sprawdzone 2026-09-29 |
 
 Każdy wynik niesie `price_type`: `PriceType.OFFICIAL` ("oficjalna_taryfa") tam, gdzie dane są
 oficjalne, `PriceType.ESTIMATE` ("szacunek") tam, gdzie nadal szacujemy (obecnie: cały wynik DB,
@@ -52,6 +63,14 @@ bo tabela pasm jest interpolacją).
   przybliżenie realnego biletu czasowego (liczonego od skasowania, może obejmować też
   oczekiwanie); (3) osobna "taryfa przystankowa" (bilet wg liczby przystanków) nie jest
   zaimplementowana.
+- **Międzynarodowy PL↔DE**: DB nie publikuje tabeli relacja→kategoria cenowa, więc progi
+  odległości (do 350/525 km) są NASZYM przybliżeniem dopasowanym do 3 podanych oficjalnie
+  przykładów — zawodne blisko granic progów (Warszawa i Kraków z Berlina mają niemal identyczny
+  dystans w linii prostej — 519 vs 532 km — mimo różnych kategorii cenowych, bo o kategorii
+  decyduje rzeczywista trasa kolejowa, nie linia prosta). Ceny to "cena OD" (promocyjna,
+  ograniczona pula) — cena rynkowa poza wczesną rezerwacją bywa wyższa. Rabat BahnCard jest
+  uproszczony (patrz wyżej) — oficjalnie dotyczy tylko niemieckiego odcinka trasy, którego nie
+  wydzielamy.
 
 ### Czego by trzeba, żeby domknąć resztę
 
@@ -66,6 +85,10 @@ bo tabela pasm jest interpolacją).
    Automatyczne wyszukiwanie na bahn.de jest zablokowane jako ruch bota (błąd 751, kod 751,
    "Ihr Browser-Verhalten ähnelt dem eines Bots"), więc te próbki musi zebrać ktoś ręcznie,
    wpisując wyszukiwania na bahn.de i przekazując ceny.
+4. **Międzynarodowy PL↔DE relacja→kategoria** — realna tabela relacja→kategoria cenowa (DB jej
+   nie publikuje) zamiast naszego przybliżenia progami km; oraz realny podział trasy na
+   odcinek PL/DE, żeby rabat BahnCard dało się policzyć dokładnie (dziś: uproszczenie, patrz
+   `fares/data/international_pl_de.json`).
 
 ## FlixBus: realna cena z API zamiast szacunku po km (2026-09-26)
 

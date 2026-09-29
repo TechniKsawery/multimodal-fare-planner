@@ -17,6 +17,9 @@ class Carrier(str, Enum):
     VRR = "vrr"
     FLIXBUS = "flixbus"
     ZTM_LUBLIN = "ztm_lublin"
+    INTERNATIONAL_PL_DE = "international_pl_de"  # bilet PL<->DE przekraczający granicę jednym
+    # ciągłym odcinkiem kolejowym (np. Berlin-Warszawa-Express) — SZTYWNE kategorie cenowe
+    # (Super Sparpreis Europa), nie tabela pasm jak krajowe kalkulatory PKP/DB. Zob. fares/international.py.
 
 
 @dataclass

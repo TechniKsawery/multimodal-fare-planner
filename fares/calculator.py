@@ -1,5 +1,5 @@
 """Dispatch do kalkulatora właściwego dla przewoźnika w segmencie."""
-from . import db, flixbus, pkp, vrr, ztm_lublin
+from . import db, flixbus, international, pkp, vrr, ztm_lublin
 from .model import Carrier, PriceEstimate, Segment
 
 _CALCULATORS = {
@@ -8,6 +8,7 @@ _CALCULATORS = {
     Carrier.VRR: vrr.estimate,
     Carrier.FLIXBUS: flixbus.estimate,
     Carrier.ZTM_LUBLIN: ztm_lublin.estimate,
+    Carrier.INTERNATIONAL_PL_DE: international.estimate,
 }
 
 

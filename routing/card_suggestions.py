@@ -8,13 +8,18 @@ from fares.db import flexpreis_upper_bound
 from fares.model import Carrier
 
 from .model import Itinerary, LegMode
-from .pricing import infer_rail_carrier
+from .pricing import infer_rail_carrier, is_cross_border_pl_de
 
 
 def _db_legs(itinerary: Itinerary):
+    # is_cross_border_pl_de wyklucza bilety międzynarodowe PL-DE: mają WŁASNE (częściowe)
+    # zasady BahnCard wliczone już w cenę (patrz fares/international.py), nawet jeśli
+    # agencyName brzmi jak DB Fernverkehr — nie sumuj ich tu drugi raz jako "krajowy Flexpreis".
     return [
         pl for pl in itinerary.legs
-        if pl.leg.mode is LegMode.RAIL and infer_rail_carrier(pl.leg.carrier_name) is Carrier.DB
+        if pl.leg.mode is LegMode.RAIL
+        and infer_rail_carrier(pl.leg.carrier_name) is Carrier.DB
+        and not is_cross_border_pl_de(pl.leg)
     ]
 
 

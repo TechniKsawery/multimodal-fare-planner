@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from fares.db import flexpreis_upper_bound
 from routing.card_suggestions import (
     db_flexpreis_upper_bound_total,
     suggest_bahncard_for_itinerary,
@@ -9,7 +10,7 @@ from routing.card_suggestions import (
 from routing.model import Itinerary, Leg, LegMode, PricedLeg
 
 
-def _db_leg(distance_km, amount):
+def _db_leg(distance_km, amount, extra=None):
     depart = datetime(2026, 10, 1, 8, 0)
     leg = Leg(
         mode=LegMode.RAIL,
@@ -19,6 +20,7 @@ def _db_leg(distance_km, amount):
         arrive=depart + timedelta(hours=2),
         carrier_name="DB Fernverkehr AG",
         distance_km=distance_km,
+        extra=extra or {},
     )
     return PricedLeg(leg=leg, amount=amount, currency="EUR", price_type="szacunek")
 
@@ -49,3 +51,13 @@ def test_sugestia_bahncard_dla_dwoch_biletow_uzywa_sumy_biletow():
     # 211 EUR (suma dwóch biletów), nie 182 EUR (błędne bandowanie sumy dystansów)
     assert jugend.cena_biletu_bez_karty == pytest.approx(211.0, abs=0.01)
     assert jugend.cena_biletu_z_karta == pytest.approx(211.0 * 0.75, abs=0.01)
+
+
+def test_bilet_miedzynarodowy_pl_de_wykluczony_z_sumy_krajowego_flexpreis():
+    # agencyName brzmi jak DB Fernverkehr, ale stopId pokazuje że to odcinek PL->DE (Berlin-
+    # Warszawa-Express) — ma WŁASNE zasady BahnCard (patrz fares/international.py), nie
+    # powinien wchodzić do sumy "krajowego" Flexpreis DB.
+    krajowy = _db_leg(180, 60.0, extra={"origin_stop_id": "defv_1", "destination_stop_id": "defv_2"})
+    miedzynarodowy = _db_leg(519, 29.99, extra={"origin_stop_id": "pl_1", "destination_stop_id": "defv_9"})
+    it = _itinerary([krajowy, miedzynarodowy])
+    assert db_flexpreis_upper_bound_total(it) == pytest.approx(flexpreis_upper_bound(180), abs=0.01)

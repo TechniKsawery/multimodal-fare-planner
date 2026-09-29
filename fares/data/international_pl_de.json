@@ -1,0 +1,12 @@
+{
+  "_zrodlo": "Super Sparpreis Europa Polska (ceny 'od', promocyjne, pula ograniczona) — https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-polen oraz https://int.bahn.de/en/offers/saver-fare-flexible-fare/super-saver-fare-europe-poland (sprawdzone 2026-09-29). Zasada BahnCard 'tylko niemiecki odcinek' — ta sama strona, cytat: '25% discount on the German section of the route'.",
+  "_uwaga": "To NIE jest tabela pasm jak krajowe kalkulatory PKP/DB — DB sprzedaje bilety PL-DE w SZTYWNYCH kategoriach cenowych zależnych od KONKRETNEJ RELACJI (nie liniowo od km), i tych kategorii DB nie publikuje w formie tabeli. Progi 'do_km' poniżej to NASZE przybliżenie dopasowane do 3 podanych oficjalnie przykładów (Berlin-Poznań ~240km beeline = krótka 19.99 EUR, Berlin-Warszawa ~519km beeline = średnia 29.99 EUR, Berlin-Kraków ~532km beeline = długa 39.99 EUR) — zauważ że Warszawa i Kraków mają NIEMAL IDENTYCZNY dystans w linii prostej z Berlina (519 vs 532 km) mimo różnych kategorii cenowych, bo o kategorii decyduje rzeczywista trasa kolejowa, nie linia prosta. Progi w tym pliku są więc z konieczności przybliżone i zawodne blisko granic (okolice 500-550 km) — realna relacja może wpaść w inną kategorię niż nasz próg sugeruje. To są też ceny 'OD' (promocyjne, early-bird) — cena rynkowa poza wczesną rezerwacją bywa wyższa.",
+  "waluta": "EUR",
+  "progi_km": [
+    {"do_km": 350, "kategoria": "krotka", "cena_od": 19.99},
+    {"do_km": 525, "kategoria": "srednia", "cena_od": 29.99},
+    {"do_km": null, "kategoria": "dluga", "cena_od": 39.99}
+  ],
+  "bahncard_rabat_procent": {"brak": 0, "25": 0, "50": 25, "100": 100},
+  "_uwaga_bahncard": "Oficjalnie BahnCard daje rabat TYLKO na niemiecki odcinek trasy, nie na cały bilet — a Super Sparpreis Europa to jeden sztywny bilet bez podziału PL/DE w naszych danych, więc nie potrafimy wydzielić 'tylko niemieckiej części'. Upraszczamy analogicznie do zasady krajowej DB dla biletów promocyjnych (Sparpreis): BahnCard 25 nie daje dodatkowego rabatu na już promocyjną cenę (0%), BahnCard 50 daje 25% (jak na krajowy Sparpreis), BahnCard 100 traktujemy jako 100% (pełna zniżka) — w praktyce realny rabat na CAŁY bilet międzynarodowy byłby MNIEJSZY niż to, bo dotyczy tylko części trasy. Oznacz to zawsze w opisie jako uproszczenie."
+}

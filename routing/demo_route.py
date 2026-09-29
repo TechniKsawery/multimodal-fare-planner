@@ -36,18 +36,16 @@ HUB_WARSZAWA_DORTMUND = HubConfig(
     destination_rail_access_stop_id=DORTMUND_HBF_STOP,
 )
 
-# Wariant "lot + transport regionalny": lot z lotniska w Lublinie (LUZ, Świdnik) bez długiego
-# dojazdu kolejowego -> DTM -> Dortmund Hbf -> Gelsenkirchen Hbf (kolej lokalna).
-HUB_LUBLIN_AIRPORT_DORTMUND = HubConfig(
-    label="Lublin(LUZ)-Dortmund",
-    origin_iata="LUZ",
-    destination_iata="DTM",
-    origin_rail_access_stop_id=None,
-    destination_rail_access_stop_id=DORTMUND_HBF_STOP,
-)
-
+# UWAGA: HubConfig "Lublin(LUZ)-Dortmund" (lot LUZ->DTM) był tu wcześniej skonfigurowany, ale
+# zgłoszony 2026-09-29 jako fałszywy wariant: lotnisko w Lublinie (LUZ, Świdnik) nie ma i nigdy
+# nie miało żadnego bezpośredniego ani pośredniego połączenia lotniczego do Niemiec — user
+# zweryfikował na Skyscanner, że jedyne realne opcje LUZ->DTM to 998+ PLN z 1-2 przesiadkami
+# w 13-21h, a nasz silnik i tak nie umie modelować lotów z przesiadkami (build_flight_leg buduje
+# zawsze JEDEN odcinek ze sztywnym czasem 2h, patrz variants.py) — pokazywanie takiego wariantu
+# jako "lot (Lublin-Dortmund)" sugerowało nieistniejące bezpośrednie połączenie. Usunięty, żeby
+# nie fabrykować danych zamiast po prostu nie mieć wariantu — patrz tests/test_demo_route.py.
 RAIL_FLIGHT_RAIL_HUBS = [HUB_WARSZAWA_DORTMUND]
-FLIGHT_REGIONAL_HUBS = [HUB_LUBLIN_AIRPORT_DORTMUND]
+FLIGHT_REGIONAL_HUBS = []
 
 POZNAN_GLOWNY_STOP = "pl_30601"
 ESSEN_HBF_STOP = "defv_351643"

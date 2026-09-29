@@ -54,10 +54,35 @@ ZTM_LUBLIN_KEYWORDS = ("lublin", "zditm", "ztm")
 
 PL_MOTIS_DATASETS = frozenset({"pl", "ztml"})
 """Prefiksy datasetów MOTIS (patrz motis/config.yml, routing/README.md) obejmujące Polskę:
-'pl' (PKP, PolishTrainsGTFS) i 'ztml' (ZTM Lublin)."""
+'pl' (PKP, PolishTrainsGTFS) i 'ztml' (ZTM Lublin). UWAGA: prefiks datasetu to źródło FEEDU,
+NIE kraj przystanku — feed 'pl' (PolishTrainsGTFS) dla połączeń międzynarodowych (np. Berlin-
+Warszawa-Express) zawiera też przystanki fizycznie leżące w Niemczech pod prefiksem 'pl_'
+(publikuje je PKP jako część własnego rozkładu tego kursu). Dlatego is_cross_border_pl_de()
+NIE polega już na tym prefiksie jako głównym sygnale — patrz niżej."""
 
 DE_MOTIS_DATASETS = frozenset({"defv", "derv"})
 """Prefiksy datasetów MOTIS obejmujące Niemcy: 'defv' (DB dalekobieżne) i 'derv' (regionalne NRW)."""
+
+# Przybliżone, celowo szerokie (nachodzące na siebie w pasie przygranicznym) skrzynki
+# geograficzne — wystarczające, żeby odróżnić miasta odległe od granicy (Warszawa, Berlin,
+# Lublin, Gelsenkirchen, ...), zawodne tylko dla stacji leżących dosłownie przy granicy
+# (Rzepin, Frankfurt/Oder i okolice) — tam i tak żaden prosty podział nie jest w 100% pewny.
+_PL_BBOX = {"lat_min": 49.0, "lat_max": 54.9, "lon_min": 14.0, "lon_max": 24.2}
+_DE_BBOX = {"lat_min": 47.2, "lat_max": 55.1, "lon_min": 5.8, "lon_max": 14.9}
+
+
+def _country_from_latlon(lat: Optional[float], lon: Optional[float]) -> Optional[str]:
+    """Kraj przystanku wg współrzędnych (skrzynka geograficzna) — None, gdy brak lat/lon albo
+    punkt pasuje do obu/żadnej skrzynki (pas przygraniczny, ok. 14.0-14.9°E — tam nie zgadujemy)."""
+    if lat is None or lon is None:
+        return None
+    in_pl = _PL_BBOX["lat_min"] <= lat <= _PL_BBOX["lat_max"] and _PL_BBOX["lon_min"] <= lon <= _PL_BBOX["lon_max"]
+    in_de = _DE_BBOX["lat_min"] <= lat <= _DE_BBOX["lat_max"] and _DE_BBOX["lon_min"] <= lon <= _DE_BBOX["lon_max"]
+    if in_pl and not in_de:
+        return "PL"
+    if in_de and not in_pl:
+        return "DE"
+    return None
 
 
 def _motis_dataset(stop_id: Optional[str]) -> Optional[str]:
@@ -68,19 +93,42 @@ def _motis_dataset(stop_id: Optional[str]) -> Optional[str]:
     return stop_id.split("_", 1)[0]
 
 
+def _country_from_dataset(stop_id: Optional[str]) -> Optional[str]:
+    """Kraj przystanku wg prefiksu datasetu MOTIS — FALLBACK, używany tylko gdy lat/lon
+    niedostępne (patrz zastrzeżenie przy PL_MOTIS_DATASETS o feedzie 'pl' i stacjach w DE)."""
+    dataset = _motis_dataset(stop_id)
+    if dataset is None:
+        return None
+    if dataset in PL_MOTIS_DATASETS:
+        return "PL"
+    if dataset in DE_MOTIS_DATASETS:
+        return "DE"
+    return None
+
+
+def _leg_endpoint_country(leg: Leg, prefix: str) -> Optional[str]:
+    """Kraj jednego końca odcinka ('origin'/'destination') — najpierw wg współrzędnych
+    (rozstrzyga poprawnie nawet gdy stacja w Niemczech jest opublikowana w polskim feedzie
+    GTFS dla kursu międzynarodowego), dopiero gdy lat/lon brak — wg prefiksu datasetu."""
+    lat, lon = leg.extra.get(f"{prefix}_lat"), leg.extra.get(f"{prefix}_lon")
+    country = _country_from_latlon(lat, lon)
+    if country is not None:
+        return country
+    return _country_from_dataset(leg.extra.get(f"{prefix}_stop_id"))
+
+
 def is_cross_border_pl_de(leg: Leg) -> bool:
     """Czy ten odcinek kolejowy przekracza granicę PL/DE jednym ciągłym przejazdem (np.
-    Berlin-Warszawa-Express) — wykryte przez porównanie datasetu MOTIS stacji początkowej i
-    końcowej (patrz PL_MOTIS_DATASETS/DE_MOTIS_DATASETS). Zwraca False, gdy któregoś stopId
-    brakuje (nie potrafimy stwierdzić) — bezpieczny wybór, bo wtedy leg trafia do zwykłej
-    (krajowej) ścieżki wyceny zamiast fałszywie alarmować."""
-    origin_dataset = _motis_dataset(leg.extra.get("origin_stop_id"))
-    destination_dataset = _motis_dataset(leg.extra.get("destination_stop_id"))
-    if origin_dataset is None or destination_dataset is None:
+    Berlin-Warszawa-Express) — wykryte GEOGRAFICZNIE (współrzędne stacji początkowej i
+    końcowej), z prefiksem datasetu MOTIS jako fallbackiem gdy lat/lon niedostępne. Zwraca
+    False, gdy kraju któregoś końca nie da się ustalić (brak danych, albo stacja w pasie
+    przygranicznym) — bezpieczny wybór: leg trafia do zwykłej (krajowej) ścieżki wyceny
+    zamiast fałszywie alarmować."""
+    origin_country = _leg_endpoint_country(leg, "origin")
+    destination_country = _leg_endpoint_country(leg, "destination")
+    if origin_country is None or destination_country is None:
         return False
-    origin_pl, destination_pl = origin_dataset in PL_MOTIS_DATASETS, destination_dataset in PL_MOTIS_DATASETS
-    origin_de, destination_de = origin_dataset in DE_MOTIS_DATASETS, destination_dataset in DE_MOTIS_DATASETS
-    return (origin_pl and destination_de) or (origin_de and destination_pl)
+    return origin_country != destination_country
 
 
 def infer_rail_carrier(agency_name: str) -> Optional[Carrier]:

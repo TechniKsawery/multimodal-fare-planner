@@ -171,6 +171,10 @@ def itinerary_to_legs(itinerary: dict) -> List[Leg]:
                     "route_short_name": raw.get("routeShortName"),
                     "origin_stop_id": origin.get("stopId"),
                     "destination_stop_id": destination.get("stopId"),
+                    "origin_lat": origin.get("lat"),
+                    "origin_lon": origin.get("lon"),
+                    "destination_lat": destination.get("lat"),
+                    "destination_lon": destination.get("lon"),
                 },
                 **common,
             )

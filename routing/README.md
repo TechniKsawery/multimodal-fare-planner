@@ -102,10 +102,18 @@ DYNAMICZNYCH opłatach za bagaż (kwoty w tabeli to dolna granica opublikowanego
 przekracza granicę PL/DE jednym ciągłym przejazdem (np. Berlin-Warszawa-Express), wymusza
 `Carrier.INTERNATIONAL_PL_DE` (patrz `fares/international.py`) i **pomija**
 `infer_rail_carrier()` całkowicie, niezależnie od tego jak brzmi `agencyName`. Detekcja idzie
-po prefiksie datasetu MOTIS (`<dataset>_<id>` w `stopId`, patrz sekcja "Sesja 2" wyżej) stacji
-początkowej i końcowej: `pl`/`ztml` = Polska, `defv`/`derv` = Niemcy — jeśli stacje są w różnych
-krajach, to odcinek międzynarodowy. Brak `stopId` po którejś stronie (np. punkt tylko ze
-współrzędnych) → bezpiecznie `False` (nie potrafimy stwierdzić, więc leg idzie zwykłą ścieżką).
+GEOGRAFICZNIE — po współrzędnych (`origin_lat/lon`, `destination_lat/lon` w `leg.extra`, wzięte
+wprost z MOTIS) stacji początkowej i końcowej, ze zgrubnymi skrzynkami PL/DE
+(`_PL_BBOX`/`_DE_BBOX` w `routing/pricing.py`). Prefiks datasetu MOTIS w `stopId` (`pl`/`ztml` =
+Polska, `defv`/`derv` = Niemcy) jest tylko FALLBACKIEM gdy lat/lon brak — **NIE głównym
+sygnałem**: prefiks datasetu to źródło FEEDU, nie kraj przystanku, a polski feed
+(PolishTrainsGTFS) dla kursów międzynarodowych PKP Intercity publikuje też przystanki fizycznie
+leżące w Niemczech pod prefiksem `pl_` (zaobserwowany bug 2026-09-29: Warszawa Wschodnia →
+Berlin-Lichtenberg, oba `stopId` z prefiksem `pl_`, wyceniane błędnie jako krajowy PKP zamiast
+międzynarodowy — naprawione przejściem na współrzędne jako główny sygnał). Brak jednoznacznego
+kraju po którejś stronie (brak lat/lon i stopId, albo stacja w pasie przygranicznym ok.
+14.0-14.9°E, gdzie skrzynki PL/DE nachodzą na siebie) → bezpiecznie `False` (leg idzie zwykłą,
+krajową ścieżką wyceny zamiast fałszywie alarmować).
 
 Dopiero dla odcinków KRAJOWYCH `pricing.infer_rail_carrier()` mapuje `agencyName` z MOTIS na
 przewoźnika z `fares/`:

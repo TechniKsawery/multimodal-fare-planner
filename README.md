@@ -107,8 +107,10 @@ Testy (mockują API, nie wymagają tokena): `pytest tests/test_flights.py`.
 Moduł `routing/` łączy routing MOTIS (Sesja 2) z modułami taryf `fares/`/`flights/`
 (Sesja 3/3b) w kilka wariantów podróży dla jednej pary miast/daty: liczy dla każdego cenę,
 czas i liczbę przesiadek, sprawdza bezpieczeństwo przesiadek (czy jest wystarczająco czasu na
-zmianę pociągu/lotu) i wybiera 4 rekomendacje (najtańsza, najszybsza, najmniej przesiadek,
-najlepszy stosunek cena/czas). Szczegóły metody, ograniczenia zakresu i założenia —
+zmianę pociągu/lotu) i wybiera rekomendacje (najtańsza, najszybsza, najmniej przesiadek,
+najlepszy stosunek cena/czas, najlepszy kompromis, najszybsza z Twoimi ulgami — każda też w
+wersji bezpiecznej, bez ryzykownych przesiadek). Szczegóły metody, ograniczenia zakresu i
+założenia —
 [`routing/README.md`](routing/README.md).
 
 ```

@@ -151,9 +151,38 @@ PLN/h ma naturalną interpretację ("ile płacę za każdą godzinę w drodze") 
 wyjaśnienia użytkownikowi. Wadą jest to, że bardzo krótkie, drogie warianty (loty) mogą wypadać
 źle mimo krótkiego czasu całkowitego — to świadomy trade-off tej metody.
 
-Cztery rekomendacje (`scoring.pick_recommendations`) to zwykłe `min()` po: cenie, czasie,
+Rekomendacje (`scoring.pick_recommendations`) to zwykłe `min()` po: cenie, czasie,
 liczbie przesiadek i `price_per_hour`. Ten sam wariant może wygrać w kilku kategoriach naraz —
 to nie błąd, po prostu jest obiektywnie dobry na wielu osiach.
+
+## Scoring: "najlepszy kompromis"
+
+Osobna kategoria od "najlepszy stosunek cena/czas" — celowo bez żadnej stałej do kalibrowania
+(jak `VALUE_OF_TIME_PLN_PER_HOUR`). `scoring._compromise_key()` liczy dla każdego wariantu
+średnią z dwóch znormalizowanych pozycji WZGLĘDEM znalezionych wariantów tej samej trasy:
+`(cena - najtańsza) / (najdroższa - najtańsza)` i analogicznie dla czasu, każda w skali 0
+(najlepszy w tej puli) do 1 (najgorszy). Wygrywa wariant z najniższą średnią, czyli ten
+najbliżej czołówki jednocześnie w cenie i w czasie — bez ekstremum w żadną stronę, jak
+"najtańsza"/"najszybsza". Łatwe do wytłumaczenia: "blisko najlepszego zarówno ceną, jak i
+czasem, względem tego, co w ogóle znaleźliśmy na tę trasę". Wadą jest to, że wynik zależy od
+puli (dodanie/usunięcie skrajnego wariantu przesuwa skalę i może zmienić zwycięzcę) — to
+świadomy trade-off, spójny z resztą metod w tym module.
+
+Wersja bezpieczna (`najlepszy_kompromis_bezpieczny`) liczy to samo, ale tylko na wariantach
+bez ryzykownych przesiadek (`safe_pool`, z tym samym fallbackiem co pozostałe kategorie
+"_bezpieczna"/"_bezpieczny" — patrz `Itinerary.is_safe_fallback`).
+
+## Scoring: "najszybsza (z Twoimi ulgami)"
+
+Inna filozofia niż "najlepszy kompromis": tu czas zawsze wygrywa, cena rozstrzyga tylko
+remisy/prawie-remisy. `scoring._fastest_within_tolerance()` bierze wszystkie warianty, których
+czas mieści się w tolerancji od najszybszego (`FASTEST_TOLERANCE_FRACTION = 10%` czasu
+najszybszego wariantu, ale nie mniej niż `FASTEST_TOLERANCE_MIN_MINUTES = 10` minut — większa
+z tych dwóch wartości), i spośród nich wybiera najtańszy, czyli z uwzględnieniem konkretnych
+ulg usera (BahnCard, ulgi PKP itd. już policzone w `total_price_pln`). Dla trasy Lublin →
+Gelsenkirchen (~16h) to ~96 min tolerancji; dla krótkiej trasy regionalnej (~1h) to 10 min
+(dolny próg). Wersja bezpieczna (`najszybsza_z_ulgami_bezpieczna`) liczy to samo na
+`safe_pool`, z tym samym fallbackiem co inne kategorie "_bezpieczna".
 
 ## Waluty
 

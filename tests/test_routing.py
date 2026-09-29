@@ -499,6 +499,103 @@ def test_pick_recommendations_pusta_lista_podnosi_blad():
         scoring.pick_recommendations([])
 
 
+# --- "najlepszy kompromis": znormalizowana pozycja w cenie i czasie względem puli ------------
+
+def test_pick_recommendations_kompromis_wybiera_srodek_a_nie_ekstrema():
+    tania_wolna = _itinerary("tania i wolna", 50, 600, 2)   # cena 0.0, czas 1.0 -> 0.5
+    droga_szybka = _itinerary("droga i szybka", 500, 60, 2)  # cena 1.0, czas 0.0 -> 0.5
+    srodek = _itinerary("kompromisowa", 200, 250, 2)         # cena ~0.33, czas ~0.35 -> najniższe
+
+    recs = scoring.pick_recommendations([tania_wolna, droga_szybka, srodek])
+
+    assert recs["najlepszy_kompromis"] is srodek
+    # ekstrema nadal wygrywają w swoich czystych kategoriach
+    assert recs["najtansza"] is tania_wolna
+    assert recs["najszybsza"] is droga_szybka
+
+
+def test_pick_recommendations_kompromis_identyczne_ceny_i_czasy_nie_dzieli_przez_zero():
+    a = _itinerary("a", 100, 200, 1)
+    b = _itinerary("b", 100, 200, 0)  # taka sama cena/czas, mniej przesiadek
+    recs = scoring.pick_recommendations([a, b])
+    # bez ValueError/ZeroDivisionError przy p_hi == p_lo i d_hi == d_lo; min() bierze pierwszy remis
+    assert recs["najlepszy_kompromis"] in (a, b)
+
+
+def test_pick_recommendations_kompromis_bezpieczny_pomija_ryzykowne_gdy_jest_bezpieczna_alternatywa():
+    tania_ryzykowna = _itinerary_z_ryzykiem("ryzykowna", 50, 100, 1, num_risky=1)
+    bezpieczna = _itinerary_z_ryzykiem("bezpieczna", 200, 500, 1, num_risky=0)
+    recs = scoring.pick_recommendations([tania_ryzykowna, bezpieczna])
+    assert recs["najlepszy_kompromis_bezpieczny"] is bezpieczna
+    assert bezpieczna.is_safe_fallback is False
+    # zwykła kategoria nie filtruje po ryzyku
+    assert recs["najlepszy_kompromis"] is tania_ryzykowna
+
+
+def test_pick_recommendations_kompromis_bezpieczny_ma_fallback_gdy_wszystko_ryzykowne():
+    mniej_ryzykowna = _itinerary_z_ryzykiem("mniej ryzykowna", 100, 300, 1, num_risky=1)
+    bardziej_ryzykowna = _itinerary_z_ryzykiem("bardziej ryzykowna", 90, 250, 2, num_risky=2)
+    recs = scoring.pick_recommendations([mniej_ryzykowna, bardziej_ryzykowna])
+    assert recs["najlepszy_kompromis_bezpieczny"] is mniej_ryzykowna
+    assert mniej_ryzykowna.is_safe_fallback is True
+
+
+def test_pick_recommendations_kompromis_pomija_niewykonalne():
+    from routing.model import TransferWarning
+    impossible = _itinerary("niewykonalna", 1, 1, 0)
+    impossible.transfer_warnings = [TransferWarning(0, 2, 8, "x", infeasible=True)]
+    ok = _itinerary("ok", 100, 300, 2)
+    recs = scoring.pick_recommendations([impossible, ok])
+    assert recs["najlepszy_kompromis"] is ok
+    assert recs["najlepszy_kompromis_bezpieczny"] is ok
+
+
+# --- "najszybsza (z Twoimi ulgami)": trzyma się czubka rankingu czasowego, cena rozstrzyga --
+
+def test_pick_recommendations_najszybsza_z_ulgami_wybiera_tansza_wsrod_blisko_najszybszych():
+    najszybsza_droga = _itinerary("najszybsza, droga", 500, 600, 1)     # czas referencyjny
+    prawie_tak_szybka_tansza = _itinerary("prawie tak szybka, tania", 100, 640, 1)  # +40 min (<10%=60)
+    dużo_wolniejsza_bardzo_tania = _itinerary("dużo wolniejsza, bardzo tania", 10, 1200, 1)  # poza tolerancją
+
+    recs = scoring.pick_recommendations([najszybsza_droga, prawie_tak_szybka_tansza, dużo_wolniejsza_bardzo_tania])
+
+    assert recs["najszybsza_z_ulgami"] is prawie_tak_szybka_tansza
+    # samo "najszybsza" (bez tolerancji) nadal bierze czysty czas
+    assert recs["najszybsza"] is najszybsza_droga
+    # a "najtansza" (czysta cena, bez progu czasowego) bierze najbardziej ekstremalny wariant
+    assert recs["najtansza"] is dużo_wolniejsza_bardzo_tania
+
+
+def test_pick_recommendations_najszybsza_z_ulgami_ma_minimalna_tolerancje_dla_krotkich_tras():
+    najszybsza = _itinerary("najszybsza", 200, 60, 0)          # 10% z 60 min = 6 min < próg 10 min
+    w_progu_taniej = _itinerary("w progu 10 min, taniej", 50, 69, 0)   # +9 min, w tolerancji (próg=10)
+    poza_progiem = _itinerary("poza progiem", 10, 80, 0)        # +20 min, poza tolerancją
+
+    recs = scoring.pick_recommendations([najszybsza, w_progu_taniej, poza_progiem])
+
+    assert recs["najszybsza_z_ulgami"] is w_progu_taniej
+
+
+def test_pick_recommendations_najszybsza_z_ulgami_bezpieczna_pomija_ryzykowne():
+    szybka_ryzykowna = _itinerary_z_ryzykiem("szybka ryzykowna", 50, 100, 1, num_risky=1)
+    wolna_bezpieczna = _itinerary_z_ryzykiem("wolna bezpieczna", 40, 400, 1, num_risky=0)
+    recs = scoring.pick_recommendations([szybka_ryzykowna, wolna_bezpieczna])
+    # tylko jeden bezpieczny wariant w puli, więc to on wygrywa mimo że jest wolniejszy
+    assert recs["najszybsza_z_ulgami_bezpieczna"] is wolna_bezpieczna
+    # zwykła kategoria (bez filtra ryzyka) trzyma się czasu, tu jest tylko jeden szybki wariant
+    assert recs["najszybsza_z_ulgami"] is szybka_ryzykowna
+
+
+def test_pick_recommendations_najszybsza_z_ulgami_pomija_niewykonalne():
+    from routing.model import TransferWarning
+    impossible = _itinerary("niewykonalna", 1, 1, 0)
+    impossible.transfer_warnings = [TransferWarning(0, 2, 8, "x", infeasible=True)]
+    ok = _itinerary("ok", 100, 300, 2)
+    recs = scoring.pick_recommendations([impossible, ok])
+    assert recs["najszybsza_z_ulgami"] is ok
+    assert recs["najszybsza_z_ulgami_bezpieczna"] is ok
+
+
 # --- variants: generowanie wariantów, w tym pomijanie na błędach -------------------------
 
 def test_generate_variants_pomija_lot_bez_tokena(monkeypatch):

@@ -18,7 +18,7 @@ from routing.demo_route import (
 )
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
-from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
+from routing.scoring import RECOMMENDATION_LABELS, SAFE_CATEGORY_KEYS, TOP_CATEGORY_KEYS, pick_recommendations
 from routing.variants import RouteRequest, generate_variants
 
 with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
@@ -182,13 +182,24 @@ if submitted:
 
     recs = pick_recommendations(built)
     st.header("Rekomendacje")
-    tabs = st.tabs(list(RECOMMENDATION_LABELS.values()))
-    for tab, key in zip(tabs, RECOMMENDATION_LABELS):
+
+    def render_recommendation_tab(key: str) -> None:
+        if key in SAFE_CATEGORY_KEYS and recs[key].is_safe_fallback:
+            st.info("Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych.")
+        st.subheader(recs[key].variant_name)
+        render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
+
+    top_tabs = st.tabs([RECOMMENDATION_LABELS[key] for key in TOP_CATEGORY_KEYS])
+    for tab, key in zip(top_tabs, TOP_CATEGORY_KEYS):
         with tab:
-            if key in ("najszybsza_bezpieczna", "najtansza_bezpieczna") and recs[key].is_safe_fallback:
-                st.info("Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych.")
-            st.subheader(recs[key].variant_name)
-            render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
+            render_recommendation_tab(key)
+
+    more_keys = [key for key in RECOMMENDATION_LABELS if key not in TOP_CATEGORY_KEYS]
+    with st.expander(f"Pokaż więcej ({len(more_keys)} kategorii)"):
+        more_tabs = st.tabs([RECOMMENDATION_LABELS[key] for key in more_keys])
+        for tab, key in zip(more_tabs, more_keys):
+            with tab:
+                render_recommendation_tab(key)
 
     st.header("Wszystkie warianty")
     for it in built:

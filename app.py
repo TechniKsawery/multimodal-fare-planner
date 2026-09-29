@@ -170,6 +170,18 @@ if submitted:
         st.error(f"Nie udało się wyszukać (czy MOTIS działa na localhost:8080?): {exc}")
         st.stop()
 
+    # Wynik ląduje w session_state, a nie w zwykłej zmiennej lokalnej: widgety POZA formularzem
+    # (np. checkbox "Pokaż więcej") wywołują kolejny rerun Streamlita, w którym `submitted` jest
+    # znów False — bez zapamiętania wyniku cały ten blok by się nie wykonał i wyszukiwanie
+    # "znikało by" przy każdej takiej interakcji.
+    st.session_state["search_result"] = {
+        "request": request, "date": date, "built": built, "skipped": skipped,
+    }
+
+result = st.session_state.get("search_result")
+if result is not None:
+    request, date, built, skipped = result["request"], result["date"], result["built"], result["skipped"]
+
     st.caption(f"{request.origin_label} → {request.destination_label}, {date}. "
                f"Zbudowano {len(built)} wariant(y), pominięto {len(skipped)}.")
     if skipped:

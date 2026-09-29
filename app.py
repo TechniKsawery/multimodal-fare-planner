@@ -181,25 +181,37 @@ if submitted:
         st.stop()
 
     recs = pick_recommendations(built)
-    st.header("Rekomendacje")
+    header_col, toggle_col = st.columns([3, 1])
+    with header_col:
+        st.header("Rekomendacje")
+    more_keys = [key for key in RECOMMENDATION_LABELS if key not in TOP_CATEGORY_KEYS]
+    with toggle_col:
+        pokaz_wiecej = st.checkbox(f"Pokaż więcej ({len(more_keys)})", value=False)
+
+    # Ten sam wariant potrafi wygrać w kilku kategoriach naraz (np. "Najszybsza" i "Najlepszy
+    # kompromis" mogą wskazać dokładnie tę samą trasę, jeśli akurat jest jednocześnie
+    # najszybsza i relatywnie tania) — to poprawne działanie scoringu, nie duplikat/błąd, ale
+    # bez podpowiedzi wygląda na demo jak awaria. Pierwsza kategoria w kolejności
+    # RECOMMENDATION_LABELS, która "zdobyła" dany wariant, staje się jego "właścicielem";
+    # każda kolejna kategoria wskazująca na ten sam wariant dostaje hint z jej nazwą.
+    first_owner_key = {}
+    for key, itinerary in recs.items():
+        first_owner_key.setdefault(id(itinerary), key)
 
     def render_recommendation_tab(key: str) -> None:
+        owner_key = first_owner_key[id(recs[key])]
+        if owner_key != key:
+            st.caption(f"Ta sama trasa co „{RECOMMENDATION_LABELS[owner_key]}” — to nie duplikat, po prostu ten wariant wygrywa na obu osiach naraz.")
         if key in SAFE_CATEGORY_KEYS and recs[key].is_safe_fallback:
             st.info("Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych.")
         st.subheader(recs[key].variant_name)
         render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
 
-    top_tabs = st.tabs([RECOMMENDATION_LABELS[key] for key in TOP_CATEGORY_KEYS])
-    for tab, key in zip(top_tabs, TOP_CATEGORY_KEYS):
+    visible_keys = list(RECOMMENDATION_LABELS) if pokaz_wiecej else list(TOP_CATEGORY_KEYS)
+    tabs = st.tabs([RECOMMENDATION_LABELS[key] for key in visible_keys])
+    for tab, key in zip(tabs, visible_keys):
         with tab:
             render_recommendation_tab(key)
-
-    more_keys = [key for key in RECOMMENDATION_LABELS if key not in TOP_CATEGORY_KEYS]
-    with st.expander(f"Pokaż więcej ({len(more_keys)} kategorii)"):
-        more_tabs = st.tabs([RECOMMENDATION_LABELS[key] for key in more_keys])
-        for tab, key in zip(more_tabs, more_keys):
-            with tab:
-                render_recommendation_tab(key)
 
     st.header("Wszystkie warianty")
     for it in built:

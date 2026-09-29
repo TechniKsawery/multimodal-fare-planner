@@ -246,3 +246,33 @@ def test_bahncard_jugend_placi_standardowa_cene_po_koncu_promocji():
 def test_bahncard_nieprawidlowa_odleglosc_podnosi_blad():
     with pytest.raises(ValueError):
         suggest_bahncard(0, journeys_per_year=2)
+
+
+def test_bahncard_juz_posiadana_ta_sama_karta_nie_jest_sugerowana():
+    # bug zgłoszony przez usera: miał już wybraną BahnCard 25 w formularzu, a mimo to
+    # dostawał sugestię kupna (darmowej w promocji) Jugend BahnCard 25 — czyli karty
+    # o dokładnie takim samym rabacie (25%), którą już posiada. Jugend BC25 (25%, tak samo
+    # jak posiadana) nie powinna się już pojawić — jedyny sensowny upgrade to BC50 (50%).
+    results = suggest_bahncard(
+        550, journeys_per_year=2, age=15, reference_date=date(2026, 9, 27), existing_bahncard="25",
+    )
+    assert "jugend_bc25_6_18" not in {r.variant_key for r in results}
+    assert {r.variant_key for r in results} == {"bc50_standard"}
+
+
+def test_bahncard_juz_posiadana_karta_pokazuje_tylko_realny_upgrade():
+    # user ma BahnCard 25 (25%) — jedyna sensowna sugestia to karta z LEPSZYM rabatem (50%),
+    # a oszczędność musi być liczona względem ceny, którą user już płaci z BC25, nie od zera.
+    results = suggest_bahncard(550, journeys_per_year=2, age=None, existing_bahncard="25")
+    assert {r.variant_key for r in results} == {"bc50_standard"}
+    bc50 = results[0]
+    current_price = 148 * 0.75  # cena, którą user już płaci z posiadaną BC25
+    assert bc50.cena_biletu_bez_karty == pytest.approx(current_price, abs=0.01)
+    assert bc50.cena_biletu_z_karta == pytest.approx(148 * 0.5, abs=0.01)
+
+
+def test_bahncard_juz_posiadana_najlepsza_karta_brak_sugestii():
+    # user ma BahnCard 50 — żadna inna karta nie da lepszego rabatu, więc lista jest pusta
+    # (zamiast mylącej sugestii kupna czegoś gorszego lub tego samego).
+    results = suggest_bahncard(550, journeys_per_year=2, age=None, existing_bahncard="50")
+    assert results == []

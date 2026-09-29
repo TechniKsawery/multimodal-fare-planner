@@ -18,6 +18,14 @@ from ._data_loading import load
 from .db import flexpreis_upper_bound
 
 _TABLE = load("bahncard.json")
+_MNOZNIK_TABLE = load("db_flexpreis.json")["bahncard_mnoznik"]
+
+
+def _existing_discount_percent(existing_bahncard: Optional[str]) -> float:
+    """Rabat (%) już posiadanej karty (None/"brak" -> 0%), wyliczony z tej samej tabeli
+    mnożników co realna cena biletu (fares/db.py), żeby oba miejsca były zawsze spójne."""
+    mnoznik = _MNOZNIK_TABLE.get(existing_bahncard or "brak", 1.0)
+    return round((1 - mnoznik) * 100)
 
 
 @dataclass
@@ -57,30 +65,67 @@ def suggest_bahncard(
     journeys_per_year: int = 2,
     age: Optional[int] = None,
     reference_date: Optional[date] = None,
+    existing_bahncard: Optional[str] = None,
 ) -> List[CardSuggestion]:
-    """Dla podanej odległości segmentu DB (Flexpreis, patrz fares/db.py) i przewidywanej liczby
-    podróży rocznie (domyślnie 2 = jeden przejazd w obie strony), ocenia opłacalność każdego
-    wariantu BahnCard, dla którego pasażer spełnia wymóg wieku. Wyniki posortowane: najpierw
-    te, które już się opłacają (rosnąco wg progu wieku... a właściwie wg oszczędności malejąco),
-    potem te wymagające większej liczby podróży (rosnąco wg progu)."""
+    """Dla podanej odległości JEDNEGO ciągłego odcinka DB (Flexpreis, patrz fares/db.py) i
+    przewidywanej liczby podróży rocznie (domyślnie 2 = jeden przejazd w obie strony), ocenia
+    opłacalność każdego wariantu BahnCard, dla którego pasażer spełnia wymóg wieku.
+
+    Dla WARIANTU Z KILKOMA oddzielnymi biletami DB (np. przesiadka we Frankfurcie na inny
+    pociąg dalekobieżny) NIE sumuj tu dystansów i nie wywołuj tej funkcji z sumą — pasma
+    Flexpreis są nieliniowe (płaskie powyżej ok. 600 km), więc zbanowanie sumy dystansów jako
+    jednego "megaodcinka" zaniża łączną cenę względem sumy realnie sprzedawanych biletów. Użyj
+    zamiast tego suggest_bahncard_for_total_price() z sumą cen poszczególnych biletów — patrz
+    routing/card_suggestions.py::suggest_bahncard_for_itinerary().
+
+    existing_bahncard: karta, którą pasażer już zadeklarował w formularzu ("25"/"50"/"100"/None).
+    Warianty o rabacie nie lepszym niż już posiadana karta są pomijane (nie ma sensu sugerować
+    kupna karty, którą user już ma, albo gorszej) — a oszczędność liczona jest względem ceny,
+    którą user faktycznie płaci już teraz (z posiadaną kartą), nie względem pełnego Flexpreis."""
     if distance_km <= 0:
         raise ValueError("distance_km musi być dodatnie")
+    return suggest_bahncard_for_total_price(
+        flexpreis_upper_bound(distance_km), journeys_per_year, age, reference_date, existing_bahncard,
+    )
+
+
+def suggest_bahncard_for_total_price(
+    upper_bound: float,
+    journeys_per_year: int = 2,
+    age: Optional[int] = None,
+    reference_date: Optional[date] = None,
+    existing_bahncard: Optional[str] = None,
+) -> List[CardSuggestion]:
+    """Jak suggest_bahncard(), ale przyjmuje już wyliczoną łączną cenę Flexpreis (bez karty) —
+    dla wariantu z kilkoma biletami DB powinna to być SUMA cen poszczególnych biletów (każdy
+    liczony ze swojego własnego pasma odległości), nie cena z jednego pasma dla sumy dystansów."""
+    if upper_bound <= 0:
+        raise ValueError("upper_bound musi być dodatnie")
     if journeys_per_year <= 0:
         raise ValueError("journeys_per_year musi być dodatnie")
 
     reference_date = reference_date or date.today()
-    upper_bound = flexpreis_upper_bound(distance_km)
     waluta = _TABLE["waluta"]
+
+    existing_percent = _existing_discount_percent(existing_bahncard)
+    current_price = round(upper_bound * (1 - existing_percent / 100), 2)
 
     results: List[CardSuggestion] = []
     for key, wariant in _TABLE["warianty"].items():
         if not _eligible(wariant, age):
             continue
+        if wariant["rabat_procent"] <= existing_percent:
+            # user ma już kartę z takim samym lub lepszym rabatem — nic do zasugerowania
+            continue
 
         cena_karty = _effective_price(wariant, reference_date)
-        savings_per_journey = upper_bound * wariant["rabat_procent"] / 100
-        cena_z_karta = round(upper_bound - savings_per_journey, 2)
+        cena_z_karta = round(upper_bound * (1 - wariant["rabat_procent"] / 100), 2)
+        savings_per_journey = round(current_price - cena_z_karta, 2)
         oszczednosc_rocznie = round(savings_per_journey * journeys_per_year - cena_karty, 2)
+        posiadana_info = (
+            f" (masz już {existing_bahncard}% rabatu — obecna cena to {current_price:.2f} {waluta})"
+            if existing_percent > 0 else ""
+        )
 
         if oszczednosc_rocznie > 0:
             results.append(CardSuggestion(
@@ -88,34 +133,34 @@ def suggest_bahncard(
                 nazwa=wariant["nazwa"],
                 cena_karty=cena_karty,
                 waluta=waluta,
-                cena_biletu_bez_karty=upper_bound,
+                cena_biletu_bez_karty=current_price,
                 cena_biletu_z_karta=cena_z_karta,
                 oszczednosc_rocznie=oszczednosc_rocznie,
                 journeys_needed_to_break_even=None,
                 rekomendowana=True,
                 opis=(
                     f"Kup {wariant['nazwa']} za {cena_karty:.2f} {waluta} — bilet na tej trasie "
-                    f"zapłacisz {cena_z_karta:.2f} {waluta} zamiast {upper_bound:.2f} {waluta}; przy "
-                    f"{journeys_per_year} podróżach/rok zaoszczędzisz łącznie {oszczednosc_rocznie:.2f} "
-                    f"{waluta}/rok (po odjęciu ceny karty)."
+                    f"zapłacisz {cena_z_karta:.2f} {waluta} zamiast {current_price:.2f} {waluta}"
+                    f"{posiadana_info}; przy {journeys_per_year} podróżach/rok zaoszczędzisz łącznie "
+                    f"{oszczednosc_rocznie:.2f} {waluta}/rok (po odjęciu ceny karty)."
                 ),
             ))
         else:
             break_even = math.ceil(cena_karty / savings_per_journey) if savings_per_journey > 0 else None
             opis = (
                 f"{wariant['nazwa']} ({cena_karty:.2f} {waluta}/rok): bilet na tej trasie kosztowałby "
-                f"{cena_z_karta:.2f} {waluta} zamiast {upper_bound:.2f} {waluta}, ale przy "
-                f"{journeys_per_year} podróżach/rok karta jeszcze się nie zwraca — opłaca się dopiero "
-                f"od {break_even} podróży/rok."
+                f"{cena_z_karta:.2f} {waluta} zamiast {current_price:.2f} {waluta}{posiadana_info}, ale "
+                f"przy {journeys_per_year} podróżach/rok karta jeszcze się nie zwraca — opłaca się "
+                f"dopiero od {break_even} podróży/rok."
                 if break_even is not None else
-                f"{wariant['nazwa']}: brak rabatu na Flexpreis, karta się nie zwróci."
+                f"{wariant['nazwa']}: brak dodatkowego rabatu względem posiadanej karty, nie zwróci się."
             )
             results.append(CardSuggestion(
                 variant_key=key,
                 nazwa=wariant["nazwa"],
                 cena_karty=cena_karty,
                 waluta=waluta,
-                cena_biletu_bez_karty=upper_bound,
+                cena_biletu_bez_karty=current_price,
                 cena_biletu_z_karta=cena_z_karta,
                 oszczednosc_rocznie=oszczednosc_rocznie,
                 journeys_needed_to_break_even=break_even,
@@ -135,9 +180,11 @@ def best_bahncard_suggestion(
     journeys_per_year: int = 2,
     age: Optional[int] = None,
     reference_date: Optional[date] = None,
+    existing_bahncard: Optional[str] = None,
 ) -> Optional[CardSuggestion]:
     """Najlepszy wariant (pierwszy po sortowaniu suggest_bahncard) albo None, gdy pasażer nie
     kwalifikuje się do żadnego wariantu (np. wiek poza zakresem My/Jugend BahnCard bez podania
-    wieku wcale — wtedy pod uwagę brane są tylko warianty standardowe)."""
-    suggestions = suggest_bahncard(distance_km, journeys_per_year, age, reference_date)
+    wieku wcale — wtedy pod uwagę brane są tylko warianty standardowe), albo gdy już posiada
+    kartę z rabatem równym lub lepszym niż wszystkie dostępne warianty."""
+    suggestions = suggest_bahncard(distance_km, journeys_per_year, age, reference_date, existing_bahncard)
     return suggestions[0] if suggestions else None

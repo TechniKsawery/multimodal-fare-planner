@@ -16,7 +16,7 @@ from routing.demo_route import (
     RAIL_FLIGHT_RAIL_HUBS,
     VIA_HUB_STOPS,
 )
-from routing.card_suggestions import suggest_bahncard_for_itinerary
+from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
 from routing.variants import RouteRequest, generate_variants
@@ -28,7 +28,7 @@ st.set_page_config(page_title="Multimodalna wyszukiwarka", layout="wide")
 st.title("Multimodalna wyszukiwarka tras")
 
 
-def render_itinerary(it, wiek=None) -> None:
+def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
     c1, c2, c3 = st.columns(3)
     c1.metric("Czas podróży", f"{it.total_duration_min / 60:.1f} h")
     c2.metric("Cena łączna", f"{it.total_price_pln:.2f} PLN")
@@ -65,13 +65,19 @@ def render_itinerary(it, wiek=None) -> None:
     else:
         st.success("Przesiadki: bezpieczne (wg przyjętych minimów)")
 
-    suggestions = suggest_bahncard_for_itinerary(it, age=wiek)
-    if suggestions:
-        best = suggestions[0]
-        if best.rekomendowana:
-            st.info(f"💳 {best.opis}")
-        else:
-            st.caption(f"💳 {best.opis}")
+    if db_distance_km(it) <= 0:
+        st.caption("💳 Ten wariant nie zawiera odcinka DB (kolej niemiecka) — BahnCard nie ma tu zastosowania.")
+    else:
+        suggestions = suggest_bahncard_for_itinerary(it, age=wiek, existing_bahncard=posiadana_bahncard)
+        if suggestions:
+            best = suggestions[0]
+            if best.rekomendowana:
+                st.info(f"💳 {best.opis}")
+            else:
+                st.caption(f"💳 {best.opis}")
+        elif posiadana_bahncard:
+            st.caption(f"💳 Masz już BahnCard {posiadana_bahncard} — cena w tabeli wyżej już ją uwzględnia; "
+                       f"żadna inna karta nie da tu lepszego rabatu.")
 
 
 def address_picker(label: str, default_text: str, state_key: str):
@@ -182,11 +188,11 @@ if submitted:
             if key in ("najszybsza_bezpieczna", "najtansza_bezpieczna") and recs[key].is_safe_fallback:
                 st.info("Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych.")
             st.subheader(recs[key].variant_name)
-            render_itinerary(recs[key], wiek)
+            render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
 
     st.header("Wszystkie warianty")
     for it in built:
         with st.expander(f"{it.variant_name} — {it.total_duration_min / 60:.1f} h, "
                          f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}"
                          + ("  ⚠️" if it.is_risky else "")):
-            render_itinerary(it, wiek)
+            render_itinerary(it, wiek, bc if bc != "brak" else None)

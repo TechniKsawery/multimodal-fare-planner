@@ -83,6 +83,38 @@ Docker Desktop, git.
 Szczegóły każdego kroku, w tym pełna lista źródeł danych, pochodzenie cen i znane ograniczenia,
 są rozpisane w sekcjach „Sesja 1–6” poniżej.
 
+### Ponowne uruchomienie (po pierwszym razie)
+
+Jeśli dane GTFS/OSM i wolumen MOTIS-a (`motis-data`) już istnieją, nie trzeba powtarzać całego
+setupu — wystarczy:
+
+1. **Aktywuj wirtualne środowisko** (w folderze repo):
+
+   ```
+   # Windows:
+   venv\Scripts\activate
+   # Linux/macOS:
+   source venv/bin/activate
+   ```
+
+2. **Odpal Docker Desktop** (jeśli nie działa) i uruchom serwer MOTIS — bez kroku `import`,
+   dane z poprzedniego importu są już w wolumenie Dockera:
+
+   ```
+   scripts/run_motis.sh server   # Git Bash / WSL
+   # albo w PowerShell:
+   powershell -File scripts\run_motis.ps1 server
+   ```
+
+3. **W nowym terminalu** (z aktywnym `venv`) odpal frontend:
+
+   ```
+   python -m streamlit run app.py
+   ```
+
+Krok `import` (ponowne ściąganie danych, `fetch_data.py`) jest potrzebny tylko wtedy, gdy
+chcesz odświeżyć dane GTFS/OSM albo zmieniłeś `motis/config.yml`.
+
 ## Sesja 1: dane
 
 ```

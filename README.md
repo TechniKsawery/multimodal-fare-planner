@@ -2,6 +2,87 @@
 
 Wyszukiwarka połączeń kolejowych PL + DE (np. Lublin → Gelsenkirchen) z szacunkiem cen.
 
+## Szybki start (od zera)
+
+Pełna instrukcja postawienia projektu lokalnie, krok po kroku. Wymagania: Python 3.11+,
+Docker Desktop, git.
+
+1. **Sklonuj repozytorium i wejdź do folderu:**
+
+   ```
+   git clone https://github.com/techniksawery/multimodal-fare-planner.git
+   cd multimodal-fare-planner
+   ```
+
+2. **Stwórz i aktywuj wirtualne środowisko:**
+
+   ```
+   python -m venv venv
+   # Windows:
+   venv\Scripts\activate
+   # Linux/macOS:
+   source venv/bin/activate
+   ```
+
+3. **Zainstaluj zależności** (plus `pytest`, który nie jest w `requirements.txt`, ale jest
+   potrzebny do odpalenia testów):
+
+   ```
+   pip install -r requirements.txt
+   pip install pytest
+   ```
+
+4. **(Opcjonalnie) skonfiguruj token do cen lotów** — skopiuj `.env.example` do `.env` i wpisz
+   własny `TRAVELPAYOUTS_TOKEN` (zob. [`flights/README.md`](flights/README.md)). Bez tego kroku
+   wszystko inne działa, warianty z lotem po prostu się nie pojawią.
+
+5. **Ściągnij dane GTFS/OSM** (Sesja 1 poniżej):
+
+   ```
+   python scripts/fetch_data.py
+   ```
+
+   Na Windows, jeśli skrypt zgłasza błąd kodowania, odpal go z `PYTHONIOENCODING=utf-8`. Skrypt
+   sam dogrywa nagłówek `User-Agent` wymagany przez mkuran.pl — nie trzeba niczego dodawać
+   ręcznie.
+
+6. **Postaw silnik routingu MOTIS w Dockerze** (Sesja 2 poniżej; wymaga uruchomionego Docker
+   Desktop):
+
+   ```
+   scripts/run_motis.sh import   # Git Bash / WSL — buduje dane w wolumenie Dockera
+   scripts/run_motis.sh server   # startuje serwer HTTP na http://localhost:8080
+   ```
+
+   W czystym PowerShell użyj `scripts\run_motis.ps1 import` / `server` (ten sam dwuetapowy
+   schemat: najpierw `import`, potem `server`).
+
+7. **Uruchom testy** (opcjonalnie, ale warto sprawdzić, że wszystko jest poskładane):
+
+   ```
+   pytest
+   ```
+
+   Testy `routing`/`fares`/`flights` mockują zewnętrzne usługi (MOTIS, Travelpayouts), więc
+   przechodzą bez uruchomionego Dockera i bez tokena.
+
+8. **Odpal aplikację** — przy działającym MOTIS z kroku 6, w nowym terminalu (z aktywnym
+   `venv`):
+
+   ```
+   python -m streamlit run app.py
+   ```
+
+   Otworzy się w przeglądarce (domyślnie `http://localhost:8501`). Alternatywnie, demo z linii
+   komend bez frontendu:
+
+   ```
+   python demo.py
+   ```
+
+Szczegóły każdego kroku, w tym pełna lista źródeł danych, pochodzenie cen i znane ograniczenia,
+są rozpisane w sekcjach „Sesja 1–6” poniżej.
+
 ## Sesja 1: dane
 
 ```

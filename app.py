@@ -23,6 +23,26 @@ with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
 st.set_page_config(page_title="Multimodalna wyszukiwarka", layout="wide")
 st.title("Multimodalna wyszukiwarka tras")
 
+# Czysto kosmetyczne rozróżnienie w UI (nie wpływa na progi z routing/transfers.py ani na
+# scoring/kategoryzację "bezpieczna"): przesiadka, której brakuje do progu bezpieczeństwa
+# tylko odrobinę, dostaje łagodniejszą adnotację "prawie bezpieczna" zamiast zwykłego
+# ostrzeżenia o ryzykownej przesiadce.
+NEAR_MISS_MARGIN_MINUTES = 10
+
+
+def _is_near_miss(warning) -> bool:
+    if warning.infeasible:
+        return False
+    shortfall = warning.minimum_required_minutes - warning.gap_minutes
+    return 0 < shortfall <= NEAR_MISS_MARGIN_MINUTES
+
+
+def _is_near_miss_itinerary(it) -> bool:
+    """True, gdy wariant jest ryzykowny WYŁĄCZNIE przez przesiadki tuż poniżej progu — nie przez
+    próg oblany z dużym zapasem."""
+    risky = [w for w in it.transfer_warnings if not w.infeasible]
+    return bool(risky) and all(_is_near_miss(w) for w in risky)
+
 
 def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
     c1, c2, c3 = st.columns(3)
@@ -47,6 +67,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             zrodlo_bagazu = p.breakdown.get("bagaz_zrodlo", "")
         rows.append({
             "Środek": leg.mode.value,
+            "Połączenie": leg.extra.get("route_short_name") or "" if leg.mode.value in ("kolej", "autobus") else "",
             "Trasa": f"{leg.origin_name} → {leg.destination_name}",
             "Godziny": f"{leg.depart:%H:%M}–{leg.arrive:%H:%M} ({leg.duration_min:.0f} min)",
             "Przewoźnik": leg.carrier_name or "",
@@ -57,7 +78,18 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
     st.dataframe(rows, width="stretch", hide_index=True)
     if it.is_risky:
         for w in it.transfer_warnings:
-            st.warning(f"Ryzykowna przesiadka: {w.reason}")
+            if w.infeasible:
+                continue
+            if _is_near_miss(w):
+                stacja = it.legs[w.after_leg_index].leg.destination_name
+                shortfall = w.minimum_required_minutes - w.gap_minutes
+                st.info(
+                    f"🟡 Prawie bezpieczna przesiadka w {stacja} — brakuje {shortfall:.0f} min "
+                    f"do progu bezpieczeństwa ({w.gap_minutes:.0f} z wymaganych "
+                    f"{w.minimum_required_minutes:.0f} min)."
+                )
+            else:
+                st.warning(f"Ryzykowna przesiadka: {w.reason}")
     else:
         st.success("Przesiadki: bezpieczne (wg przyjętych minimów)")
 
@@ -219,7 +251,13 @@ if result is not None:
 
     st.header("Wszystkie warianty")
     for it in built:
+        if it.is_risky and _is_near_miss_itinerary(it):
+            risk_suffix = "  🟡 prawie bezpieczna"
+        elif it.is_risky:
+            risk_suffix = "  ⚠️"
+        else:
+            risk_suffix = ""
         with st.expander(f"{it.variant_name} — {it.total_duration_min / 60:.1f} h, "
                          f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}"
-                         + ("  ⚠️" if it.is_risky else "")):
+                         + risk_suffix):
             render_itinerary(it, wiek, bc if bc != "brak" else None)

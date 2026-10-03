@@ -45,17 +45,23 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const body = fs.readFileSync('/tmp/report.md', 'utf8')
+            const report = fs.readFileSync('/tmp/report.md', 'utf8');
+            const body = report
               + '\n\n---\n_Wygenerowane automatycznie przez workflow `watch_fare_sources.yml`._';
-            const title = 'Wykryto zmianę w źródle cennika';
-            const label = 'fare-source-change';
+            // Krok "check" kończy się niepowodzeniem (outcome 'failure') zarówno przy realnej
+            // zmianie treści (exit 1), jak i przy samym błędzie pobierania bez żadnej wykrytej
+            // zmiany (exit 2, patrz scripts/fetch_fare_sources.py::main) — tytuł/etykieta muszą
+            // to rozróżniać, inaczej błąd sieci zgłasza się jako "wykryto zmianę cennika".
+            const hasChange = report.includes('## ⚠️ Wykryto zmianę');
+            const title = hasChange ? 'Wykryto zmianę w źródle cennika' : 'Błąd pobierania źródła cennika';
+            const label = hasChange ? 'fare-source-change' : 'fare-source-fetch-error';
 
             try {
               await github.rest.issues.getLabel({ owner: context.repo.owner, repo: context.repo.repo, name: label });
             } catch {
               await github.rest.issues.createLabel({
                 owner: context.repo.owner, repo: context.repo.repo, name: label,
-                color: 'd93f0b', description: 'Wykryto zmianę w źródle cennika (fetch_fare_sources.py)',
+                color: 'd93f0b', description: title + ' (fetch_fare_sources.py)',
               });
             }
 
@@ -71,7 +77,9 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: existing[0].number,
-                body: 'Nowe uruchomienie wykryło kolejną (albo wciąż tę samą, niesprawdzoną) zmianę:\n\n' + body,
+                body: (hasChange
+                  ? 'Nowe uruchomienie wykryło kolejną (albo wciąż tę samą, niesprawdzoną) zmianę:\n\n'
+                  : 'Nowe uruchomienie wciąż zgłasza błąd pobierania:\n\n') + body,
               });
             } else {
               await github.rest.issues.create({

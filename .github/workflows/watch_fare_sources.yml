@@ -1,0 +1,84 @@
+name: Obserwacja źródeł cenników
+
+# Działa na GitHub Actions (nie w kontenerze Claude Code) -- GitHub ma pełny dostęp
+# do internetu, podczas gdy chmurowy kontener sesji ma zablokowany dostęp do większości
+# hostów cenowych (bahn.de, vrr.de, intercity.pl, ...) przez politykę sieciową organizacji.
+on:
+  schedule:
+    - cron: "0 6 * * 1"  # co poniedziałek 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Zainstaluj zależności
+        run: pip install requests
+
+      - name: Sprawdź źródła cenników
+        id: check
+        continue-on-error: true
+        run: python scripts/fetch_fare_sources.py --summary /tmp/report.md
+
+      - name: Commit zaktualizowanych snapshotów
+        if: always()
+        run: |
+          git config user.name "fare-sources-watcher[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add fares/data/.snapshots
+          git diff --cached --quiet || git commit -m "Zaktualizuj snapshoty cenników źródłowych"
+          git push
+
+      - name: Zgłoś zmianę jako issue
+        if: steps.check.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/report.md', 'utf8')
+              + '\n\n---\n_Wygenerowane automatycznie przez workflow `watch_fare_sources.yml`._';
+            const title = 'Wykryto zmianę w źródle cennika';
+            const label = 'fare-source-change';
+
+            try {
+              await github.rest.issues.getLabel({ owner: context.repo.owner, repo: context.repo.repo, name: label });
+            } catch {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner, repo: context.repo.repo, name: label,
+                color: 'd93f0b', description: 'Wykryto zmianę w źródle cennika (fetch_fare_sources.py)',
+              });
+            }
+
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: label,
+            });
+
+            if (existing.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing[0].number,
+                body: 'Nowe uruchomienie wykryło kolejną (albo wciąż tę samą, niesprawdzoną) zmianę:\n\n' + body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: [label],
+              });
+            }

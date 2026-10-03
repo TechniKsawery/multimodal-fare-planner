@@ -23,3 +23,23 @@ def test_flight_regional_hubs_pusta_po_usunieciu_nierealistycznego_hubu():
     """Jedyny hub, jaki tu kiedykolwiek był (Lublin(LUZ)-Dortmund), został usunięty jako
     nierealistyczny — lista ma być pusta, dopóki nie dojdzie realny, zweryfikowany hub."""
     assert demo_route.FLIGHT_REGIONAL_HUBS == []
+
+
+def test_rail_flight_rail_hubs_zawiera_tylko_zweryfikowane_zrealne_kierunki():
+    """Zweryfikowano 2026-10-03 (wyszukiwanie lotów): WAW-DUS (LOT + Eurowings) i KRK-DTM
+    (Ryanair + Wizz Air) mają realne bezpośrednie połączenia lotnicze — WAW-CGN (Warszawa-Köln/
+    Bonn) zostało jawnie sprawdzone i ODRZUCONE (0 lotów bezpośrednich), więc nie może się tu
+    pojawić — patrz UWAGA w routing/demo_route.py, ten sam błąd co wcześniej dla LUZ-DTM."""
+    iata_pairs = {(hub.origin_iata, hub.destination_iata) for hub in demo_route.RAIL_FLIGHT_RAIL_HUBS}
+    assert ("WAW", "DUS") in iata_pairs
+    assert ("KRK", "DTM") in iata_pairs
+    assert ("WAW", "DTM") in iata_pairs  # istniejący hub, nie usuwamy
+    assert ("WAW", "CGN") not in iata_pairs, "WAW-CGN nie ma realnych lotów bezpośrednich — nie dodawać"
+
+
+def test_rail_flight_rail_hubs_maja_wymagane_stacje_dojazdowe():
+    """Każdy hub lot<->kolej musi mieć ustawioną stację dojazdową po stronie lotniska przylotu
+    (destination_rail_access_stop_id) — bez tego build_rail_flight_rail_variant nie ma gdzie
+    dojechać kolejowo z lotniska do celu."""
+    for hub in demo_route.RAIL_FLIGHT_RAIL_HUBS:
+        assert hub.destination_rail_access_stop_id, f"Hub {hub.label!r} bez destination_rail_access_stop_id"

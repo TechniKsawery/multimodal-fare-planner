@@ -196,6 +196,20 @@ def plan_leg(from_place: str, to_place: str, time: str, *, pick: str = "fastest"
     return itinerary_to_legs(picker(payload))
 
 
+def plan_leg_candidates(from_place: str, to_place: str, time: str, max_candidates: int = 3) -> List[List[Leg]]:
+    """Jak `plan_leg`, ale zwraca do `max_candidates` alternatywnych itinerariów (posortowanych
+    rosnąco wg czasu trwania) zamiast automatycznie wybierać tylko najszybszy.
+
+    Używane przez warianty hubowe lot<->kolej (routing/variants.py::build_rail_flight_rail_variant
+    / build_flight_regional_variant): dojazd/odjazd z huba NIE zawsze powinien być najszybszym
+    pojedynczym fragmentem MOTIS-a — czasem ma ciaśniejszą/ryzykowną przesiadkę albo droższy
+    bilet niż odrobinę wolniejsza alternatywa, która wypada lepiej w CAŁYM wariancie (patrz
+    `routing/variants.py::_best_overall`)."""
+    payload = plan(from_place, to_place, time, max_transfers=5, num_itineraries=max(max_candidates, 1))
+    itineraries = sorted(payload["itineraries"], key=lambda it: it["duration"])[:max_candidates]
+    return [itinerary_to_legs(it) for it in itineraries]
+
+
 def all_itineraries_as_legs(from_place: str, to_place: str, time: str) -> List[List[Leg]]:
     """Wszystkie itineraria zwrócone przez MOTIS dla jednej relacji/daty, każde jako lista Leg."""
     payload = plan(from_place, to_place, time, max_transfers=5, num_itineraries=MAIN_QUERY_ITINERARIES)

@@ -669,11 +669,11 @@ def test_build_rail_flight_rail_variant_laczy_trzy_odcinki(monkeypatch):
 
     calls = []
 
-    def fake_plan_leg(origin, destination, time, **kw):
+    def fake_plan_leg_candidates(origin, destination, time, max_candidates=3):
         calls.append((origin, destination))
-        return access_legs if origin == "lublin" else onward_legs
+        return [access_legs] if origin == "lublin" else [onward_legs]
 
-    monkeypatch.setattr(variants.motis_client, "plan_leg", fake_plan_leg)
+    monkeypatch.setattr(variants.motis_client, "plan_leg_candidates", fake_plan_leg_candidates)
     monkeypatch.setattr(variants.pricing, "price_leg",
                          lambda leg, discounts, currency="PLN": PricedLeg(leg, 10.0, "PLN", "szacunek"))
 
@@ -683,6 +683,74 @@ def test_build_rail_flight_rail_variant_laczy_trzy_odcinki(monkeypatch):
     assert itinerary.legs[1].leg.mode is LegMode.FLIGHT
     assert calls[0] == ("lublin", "waw_airport")
     assert calls[1] == ("dortmund_hbf", "gelsenkirchen")
+
+
+def test_build_rail_flight_rail_variant_wybiera_najlepsza_kombinacje_calosciowo(monkeypatch):
+    """Najszybszy dojazd do lotniska ma ryzykowną przesiadkę / droższy bilet niż odrobinę
+    wolniejsza alternatywa — wariant powinien wybrać tę drugą, nie automatycznie najszybszy
+    pojedynczy fragment (single-itinerary limitation, patrz backlog)."""
+    request = variants.RouteRequest(
+        origin_stop_id="lublin", destination_stop_id="gelsenkirchen",
+        origin_label="Lublin", destination_label="Gelsenkirchen", date="2026-11-15",
+    )
+    hub = variants.HubConfig("Warszawa-Dortmund", "WAW", "DTM", "waw_airport", "dortmund_hbf")
+
+    # Najszybszy dojazd: przyjazd 7:55, zostawia tylko 5 min do (sztywnego) bufora 150 min
+    # przed lotem liczonym od MOMENTU PRZYJAZDU, więc to akurat nie wpływa na wykonalność —
+    # różnicuje je za to CENA (symulowana przez różne distance_km -> różna cena via fares).
+    fast_but_pricier = [make_leg(LegMode.RAIL, "Lublin", "Warszawa Lotnisko Chopina", _dt(6), _dt(7, 55),
+                                  carrier="PKP Intercity", distance_km=170)]
+    slower_but_cheaper = [make_leg(LegMode.RAIL, "Lublin", "Warszawa Lotnisko Chopina", _dt(6), _dt(8, 30),
+                                    carrier="PKP Intercity", distance_km=170)]
+    onward_legs = [make_leg(LegMode.RAIL, "Dortmund Hbf", "Gelsenkirchen Hbf", _dt(16), _dt(16, 30),
+                             carrier="DB Regio", distance_km=25)]
+
+    def fake_plan_leg_candidates(origin, destination, time, max_candidates=3):
+        if origin == "lublin":
+            return [fast_but_pricier, slower_but_cheaper]  # posortowane wg czasu, jak prawdziwe API
+        return [onward_legs]
+
+    def fake_price_leg(leg, discounts, currency="PLN"):
+        amount = 500.0 if leg is fast_but_pricier[0] else 10.0
+        return PricedLeg(leg, amount, "PLN", "szacunek")
+
+    monkeypatch.setattr(variants.motis_client, "plan_leg_candidates", fake_plan_leg_candidates)
+    monkeypatch.setattr(variants.pricing, "price_leg", fake_price_leg)
+
+    itinerary = variants.build_rail_flight_rail_variant(request, hub)
+
+    assert itinerary.legs[0].leg is slower_but_cheaper[0]
+    assert itinerary.total_price_pln < 500
+
+
+def test_build_flight_regional_variant_wybiera_najlepsza_kombinacje_calosciowo(monkeypatch):
+    """Analogicznie do build_rail_flight_rail_variant: odjazd z huba sprawdza kilka alternatyw
+    zamiast automatycznie brać najszybszą."""
+    request = variants.RouteRequest(
+        origin_stop_id="lublin", destination_stop_id="gelsenkirchen",
+        origin_label="Lublin", destination_label="Gelsenkirchen", date="2026-11-15",
+    )
+    hub = variants.HubConfig("Dortmund", "LUX", "DTM", None, "dortmund_hbf")
+
+    fast_but_pricier = [make_leg(LegMode.RAIL, "Dortmund Hbf", "Gelsenkirchen Hbf", _dt(16), _dt(16, 15),
+                                  carrier="DB Regio", distance_km=25)]
+    slower_but_cheaper = [make_leg(LegMode.RAIL, "Dortmund Hbf", "Gelsenkirchen Hbf", _dt(16), _dt(16, 40),
+                                    carrier="DB Regio", distance_km=25)]
+
+    def fake_plan_leg_candidates(origin, destination, time, max_candidates=3):
+        return [fast_but_pricier, slower_but_cheaper]  # posortowane wg czasu, jak prawdziwe API
+
+    def fake_price_leg(leg, discounts, currency="PLN"):
+        amount = 500.0 if leg is fast_but_pricier[0] else 10.0
+        return PricedLeg(leg, amount, "PLN", "szacunek")
+
+    monkeypatch.setattr(variants.motis_client, "plan_leg_candidates", fake_plan_leg_candidates)
+    monkeypatch.setattr(variants.pricing, "price_leg", fake_price_leg)
+
+    itinerary = variants.build_flight_regional_variant(request, hub)
+
+    assert itinerary.legs[-1].leg is slower_but_cheaper[0]
+    assert itinerary.total_price_pln < 500
 
 
 # --- adresy: odcinki piesze (dojście z adresu / do adresu), autobus, geocoding ---------------
@@ -993,6 +1061,26 @@ def test_all_itineraries_prosi_motis_o_30_wynikow(monkeypatch):
     monkeypatch.setattr(motis_client, "plan", fake_plan)
     motis_client.all_itineraries_as_legs("a", "b", "2026-10-05T06:00:00Z")
     assert seen["n"] == 30
+
+
+def test_plan_leg_candidates_sortuje_wg_czasu_i_limituje(monkeypatch):
+    def _walk_leg(to_name, end_time):
+        return {"mode": "WALK", "from": {"name": "A", "lat": 0.0, "lon": 0.0},
+                "to": {"name": to_name, "lat": 0.0, "lon": 0.0},
+                "startTime": "2026-10-05T06:00:00Z", "endTime": end_time}
+
+    def fake_plan(from_place, to_place, time, max_transfers=4, num_itineraries=None):
+        return {"itineraries": [
+            {"duration": 7200, "legs": [_walk_leg("B", "2026-10-05T08:00:00Z")]},
+            {"duration": 3600, "legs": [_walk_leg("C", "2026-10-05T07:00:00Z")]},
+            {"duration": 5400, "legs": [_walk_leg("D", "2026-10-05T07:30:00Z")]},
+        ]}
+
+    monkeypatch.setattr(motis_client, "plan", fake_plan)
+    candidates = motis_client.plan_leg_candidates("a", "b", "2026-10-05T06:00:00Z", max_candidates=2)
+
+    assert len(candidates) == 2
+    assert [legs[0].destination_name for legs in candidates] == ["C", "D"]  # 3600s, potem 5400s
 
 
 # --- Sesja 6: alternatywne węzły przesiadkowe/miasta i dworce ----------------------------

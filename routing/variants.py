@@ -214,45 +214,74 @@ def build_rail_from_alternative_destination_variants(
     return build_rail_only_variants(alt_request, max_variants=max_variants)
 
 
+HUB_LEG_ALTERNATIVES = 3  # ile alternatywnych itinerariów MOTIS sprawdzamy dla KAŻDEGO
+# dojazdu/odjazdu z huba (patrz _best_overall) — nie tylko najszybszy fragment
+
+
+def _best_overall(itineraries: List[Itinerary]) -> Itinerary:
+    """Spośród kilku pełnych itinerariów, różniących się tylko wyborem dojazdu/odjazdu z huba,
+    wybiera najlepszy CAŁOŚCIOWO: wykonalne przed niewykonalnymi, a wśród wykonalnych najniższy
+    value_score (cena + czas + kary za ryzykowne przesiadki, patrz model.py::Itinerary.value_score).
+    Najszybszy POJEDYNCZY fragment (dojazd albo odjazd) czasem ma ciaśniejszą/ryzykowną
+    przesiadkę albo droższy bilet niż odrobinę wolniejsza alternatywa, która wygrywa całościowo."""
+    return min(itineraries, key=lambda it: (it.is_infeasible, it.value_score))
+
+
 def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Itinerary:
-    """Kolej (origin -> lotnisko wylotu) + lot + kolej (lotnisko przylotu -> destination)."""
-    legs: List[Leg] = []
+    """Kolej (origin -> lotnisko wylotu) + lot + kolej (lotnisko przylotu -> destination).
 
+    Dojazd i odjazd z huba sprawdzają po HUB_LEG_ALTERNATIVES alternatywnych itinerariów MOTIS
+    (patrz plan_leg_candidates) zamiast brać automatycznie najszybszy, i spośród wszystkich
+    zbudowanych kombinacji wybierają najlepszą całościowo (_best_overall)."""
     if hub.origin_rail_access_stop_id:
-        access_legs = motis_client.plan_leg(
-            request.origin_stop_id, hub.origin_rail_access_stop_id, request.motis_time
+        access_options = motis_client.plan_leg_candidates(
+            request.origin_stop_id, hub.origin_rail_access_stop_id, request.motis_time,
+            max_candidates=HUB_LEG_ALTERNATIVES,
         )
-        legs.extend(access_legs)
-        flight_depart = legs[-1].arrive + timedelta(minutes=150)  # bufor: odprawa/security
     else:
-        flight_depart = datetime.fromisoformat(request.motis_time.replace("Z", "+00:00"))
+        access_options = [[]]  # brak dojazdu kolejowego do lotniska — jedna "pusta" opcja
 
-    flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
-    legs.append(flight_leg)
+    candidates: List[Itinerary] = []
+    for access_legs in access_options:
+        if access_legs:
+            flight_depart = access_legs[-1].arrive + timedelta(minutes=150)  # bufor: odprawa/security
+        else:
+            flight_depart = datetime.fromisoformat(request.motis_time.replace("Z", "+00:00"))
 
-    onward_time = (flight_leg.arrive + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
-    onward_legs = motis_client.plan_leg(
-        hub.destination_rail_access_stop_id, request.destination_stop_id, onward_time
-    )
-    legs.extend(onward_legs)
+        flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
+        onward_time = (flight_leg.arrive + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
+        onward_options = motis_client.plan_leg_candidates(
+            hub.destination_rail_access_stop_id, request.destination_stop_id, onward_time,
+            max_candidates=HUB_LEG_ALTERNATIVES,
+        )
+        for onward_legs in onward_options:
+            legs = list(access_legs) + [flight_leg] + onward_legs
+            priced = _price_legs(legs, request)
+            candidates.append(build_itinerary(f"Kolej + lot ({hub.label}) + kolej lokalna", priced))
 
-    priced = _price_legs(legs, request)
-    return build_itinerary(f"Kolej + lot ({hub.label}) + kolej lokalna", priced)
+    return _best_overall(candidates)
 
 
 def build_flight_regional_variant(request: RouteRequest, hub: HubConfig) -> Itinerary:
-    """Lot (z lotniska blisko origin, bez kolei dojazdowej) + kolej lokalna do destination."""
+    """Lot (z lotniska blisko origin, bez kolei dojazdowej) + kolej lokalna do destination.
+
+    Odjazd z huba sprawdza po HUB_LEG_ALTERNATIVES alternatywnych itinerariów MOTIS (patrz
+    build_rail_flight_rail_variant) zamiast brać automatycznie najszybszy."""
     flight_depart = datetime.fromisoformat(request.motis_time.replace("Z", "+00:00"))
     flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
 
     onward_time = (flight_leg.arrive + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
-    onward_legs = motis_client.plan_leg(
-        hub.destination_rail_access_stop_id, request.destination_stop_id, onward_time
+    onward_options = motis_client.plan_leg_candidates(
+        hub.destination_rail_access_stop_id, request.destination_stop_id, onward_time,
+        max_candidates=HUB_LEG_ALTERNATIVES,
     )
-    legs = [flight_leg] + onward_legs
 
-    priced = _price_legs(legs, request)
-    return build_itinerary(f"Lot ({hub.label}) + transport regionalny", priced)
+    candidates = []
+    for onward_legs in onward_options:
+        priced = _price_legs([flight_leg] + onward_legs, request)
+        candidates.append(build_itinerary(f"Lot ({hub.label}) + transport regionalny", priced))
+
+    return _best_overall(candidates)
 
 
 def _infeasible_reason(itinerary: Itinerary) -> str:

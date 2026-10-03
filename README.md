@@ -24,12 +24,12 @@ Docker Desktop, git.
    source venv/bin/activate
    ```
 
-3. **Zainstaluj zależności** (plus `pytest`, który nie jest w `requirements.txt`, ale jest
-   potrzebny do odpalenia testów):
+3. **Zainstaluj zależności** (plus `pytest` i `httpx`, które nie są w `requirements.txt`, ale są
+   potrzebne do odpalenia testów — `httpx` tylko dla `tests/test_api.py`, patrz sekcja "API"):
 
    ```
    pip install -r requirements.txt
-   pip install pytest
+   pip install pytest httpx
    ```
 
 4. **(Opcjonalnie) skonfiguruj token do cen lotów** — skopiuj `.env.example` do `.env` i wpisz
@@ -82,6 +82,36 @@ Docker Desktop, git.
 
 Szczegóły każdego kroku, w tym pełna lista źródeł danych, pochodzenie cen i znane ograniczenia,
 są rozpisane w sekcjach „Sesja 1–6” poniżej.
+
+## API (FastAPI)
+
+Logika routingu i taryf (`routing/`, `fares/`) jest też dostępna jako samodzielne REST API w
+`api/`, niezależne od Streamlita — żeby dało się podłączyć inny frontend (appkę mobilną, inny
+klient webowy) bez przepisywania silnika. `app.py` (Streamlit) woła tę samą logikę przez import
+(`routing/search_service.py`), nie przez HTTP — to jedna implementacja, dwie fasady.
+
+Uruchomienie (wymaga działającego MOTIS z kroku 6 powyżej):
+
+```
+uvicorn api.main:app --reload
+```
+
+- `GET /health` — health-check, nie dotyka MOTIS.
+- `POST /route` — wyszukuje warianty trasy adres → adres + rekomendacje. Przykład:
+
+  ```
+  curl -X POST http://localhost:8000/route -H "Content-Type: application/json" -d '{
+    "origin": "Krakowskie Przedmieście 50, Lublin",
+    "destination": "Bahnhofstraße, Gelsenkirchen",
+    "date": "2026-10-05",
+    "discounts": {"bahncard": "50", "pkp_ulga_kod": "ulgowy"}
+  }'
+  ```
+
+Interaktywna dokumentacja (Swagger UI) pod `http://localhost:8000/docs` po starcie serwera.
+
+Testy (mockują MOTIS na poziomie `routing/variants.py`, nie wymagają działającego serwera):
+`pytest tests/test_api.py`.
 
 ### Ponowne uruchomienie (po pierwszym razie)
 

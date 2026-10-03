@@ -11,15 +11,11 @@ import streamlit as st
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from fares.model import DiscountProfile
 from routing import motis_client
-from routing.demo_route import (
-    FLIGHT_REGIONAL_HUBS,
-    RAIL_FLIGHT_RAIL_HUBS,
-    VIA_HUB_STOPS,
-)
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
-from routing.scoring import RECOMMENDATION_LABELS, SAFE_CATEGORY_KEYS, TOP_CATEGORY_KEYS, pick_recommendations
-from routing.variants import RouteRequest, generate_variants
+from routing.scoring import RECOMMENDATION_LABELS, SAFE_CATEGORY_KEYS, TOP_CATEGORY_KEYS
+from routing.search_service import search
+from routing.variants import RouteRequest
 
 with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
     PKP_ULGI = list(json.load(fh)["ulgi_procent"])
@@ -154,15 +150,11 @@ if submitted:
                 date=date.isoformat(),
                 discounts=profile,
             )
-            # UWAGA: alternative_destination_stops celowo NIE jest tu przekazywane — patrz
-            # komentarz w demo.py / routing/demo_route.py (podmieniłoby rzeczywisty adres
-            # docelowy na sztywny dworzec, ucinając ostatni odcinek do adresu).
-            built, skipped = generate_variants(
-                request,
-                rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,
-                flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
-                via_hub_stops=VIA_HUB_STOPS,
-            )
+            # search() (routing/search_service.py, współdzielone z API w api/) nie przekazuje
+            # alternative_destination_stops — patrz komentarz tam / w demo.py (podmieniłoby
+            # rzeczywisty adres docelowy na sztywny dworzec, ucinając ostatni odcinek do adresu).
+            search_result = search(request)
+            built, skipped, recs = search_result.built, search_result.skipped, search_result.recommendations
     except MotisError as exc:
         st.error(f"Błąd MOTIS / geokodowania: {exc}")
         st.stop()
@@ -175,12 +167,14 @@ if submitted:
     # znów False — bez zapamiętania wyniku cały ten blok by się nie wykonał i wyszukiwanie
     # "znikało by" przy każdej takiej interakcji.
     st.session_state["search_result"] = {
-        "request": request, "date": date, "built": built, "skipped": skipped,
+        "request": request, "date": date, "built": built, "skipped": skipped, "recs": recs,
     }
 
 result = st.session_state.get("search_result")
 if result is not None:
-    request, date, built, skipped = result["request"], result["date"], result["built"], result["skipped"]
+    request, date, built, skipped, recs = (
+        result["request"], result["date"], result["built"], result["skipped"], result["recs"],
+    )
 
     st.caption(f"{request.origin_label} → {request.destination_label}, {date}. "
                f"Zbudowano {len(built)} wariant(y), pominięto {len(skipped)}.")
@@ -191,8 +185,6 @@ if result is not None:
     if not built:
         st.error("Brak działającego wariantu — sprawdź, czy MOTIS jest uruchomiony.")
         st.stop()
-
-    recs = pick_recommendations(built)
     header_col, toggle_col = st.columns([3, 1])
     with header_col:
         st.header("Rekomendacje")

@@ -17,6 +17,11 @@ class Carrier(str, Enum):
     VRR = "vrr"
     FLIXBUS = "flixbus"
     ZTM_LUBLIN = "ztm_lublin"
+    ZTM_WARSZAWA = "ztm_warszawa"
+    MPK_KRAKOW = "mpk_krakow"
+    ZTM_POZNAN = "ztm_poznan"
+    MPK_WROCLAW = "mpk_wroclaw"
+    BVG_BERLIN = "bvg_berlin"
     INTERNATIONAL_PL_DE = "international_pl_de"  # bilet PL<->DE przekraczający granicę jednym
     # ciągłym odcinkiem kolejowym (np. Berlin-Warszawa-Express) — SZTYWNE kategorie cenowe
     # (Super Sparpreis Europa), nie tabela pasm jak krajowe kalkulatory PKP/DB. Zob. fares/international.py.
@@ -29,6 +34,11 @@ class DiscountProfile:
     pkp_ulga_kod: str = "brak"  # klucz z fares/data/pkp_intercity.json -> ulgi_procent
     bahncard: str | None = None  # None, "25", "50" lub "100" (DB, oficjalne rabaty Flexpreis)
     ztm_lublin_ulgowy: bool = False  # ZTM Lublin: bilet ulgowy zamiast normalnego
+    ztm_warszawa_ulgowy: bool = False  # ZTM/WTP Warszawa: bilet ulgowy (50%)
+    mpk_krakow_ulgowy: bool = False  # MPK Kraków (ZTP): bilet ulgowy (50%)
+    ztm_poznan_ulgowy: bool = False  # ZTM Poznań: bilet ulgowy (50%)
+    mpk_wroclaw_ulgowy: bool = False  # MPK Wrocław: bilet ulgowy (50%)
+    bvg_berlin_ulgowy: bool = False  # BVG/VBB Berlin: taryfa ulgowa (Ermäßigungstarif)
     vrr_dziecko: bool = (
         False  # VRR/eezy.nrw: Kindertarif (6-14 lat), 50% rabatu wliczając sufity cenowe
     )

@@ -322,6 +322,13 @@ with st.form("search"):
         value=6 <= wiek <= 14,
         help="Oficjalna zniżka VRR: 50% dla dzieci 6-14 lat, ściśle wg wieku.",
     )
+    st.caption("Bilety ulgowe w innych miastach (50% — zaznacz, jeśli dotyczy)")
+    u1, u2, u3, u4, u5 = st.columns(5)
+    ztm_warszawa_ulgowy = u1.checkbox("Warszawa", value=wiek < 18)
+    mpk_krakow_ulgowy = u2.checkbox("Kraków", value=wiek < 18)
+    ztm_poznan_ulgowy = u3.checkbox("Poznań", value=wiek < 18)
+    mpk_wroclaw_ulgowy = u4.checkbox("Wrocław", value=wiek < 18)
+    bvg_berlin_ulgowy = u5.checkbox("Berlin", value=wiek < 18)
     submitted = st.form_submit_button("Szukaj")
 
 if submitted:
@@ -332,6 +339,11 @@ if submitted:
         pkp_ulga_kod=pkp,
         bahncard=None if bc == "brak" else bc,
         ztm_lublin_ulgowy=ztm_ulgowy,
+        ztm_warszawa_ulgowy=ztm_warszawa_ulgowy,
+        mpk_krakow_ulgowy=mpk_krakow_ulgowy,
+        ztm_poznan_ulgowy=ztm_poznan_ulgowy,
+        mpk_wroclaw_ulgowy=mpk_wroclaw_ulgowy,
+        bvg_berlin_ulgowy=bvg_berlin_ulgowy,
         vrr_dziecko=vrr_dziecko,
     )
     try:

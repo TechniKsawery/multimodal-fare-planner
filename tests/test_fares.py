@@ -361,3 +361,113 @@ def test_flixbus_gdy_wszystkie_przejazdy_maja_cene_zero_rzuca_blad_i_spada_do_fa
     result = estimate_price(seg)
     assert result.breakdown["zrodlo"] == "fallback_km"
     assert result.amount > 0
+
+
+# --- Ulgi transportu miejskiego: Warszawa, Kraków, Poznań, Wrocław, Berlin --------------------
+
+
+def test_ztm_warszawa_bilet_20_minutowy_normalny():
+    seg = Segment(Carrier.ZTM_WARSZAWA, "Centrum", "Plac Zamkowy", ride_duration_min=10)
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "PLN"
+    assert result.amount == 3.40
+
+
+def test_ztm_warszawa_bilet_20_minutowy_ulgowy():
+    seg = Segment(
+        Carrier.ZTM_WARSZAWA, "Centrum", "Plac Zamkowy", ride_duration_min=10,
+        discounts=DiscountProfile(ztm_warszawa_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 1.70
+
+
+def test_ztm_warszawa_bilet_90_minutowy():
+    seg = Segment(Carrier.ZTM_WARSZAWA, "A", "B", ride_duration_min=80)
+    result = estimate_price(seg)
+    assert result.amount == 7.00
+
+
+def test_ztm_warszawa_bez_czasu_jazdy_podnosi_blad():
+    seg = Segment(Carrier.ZTM_WARSZAWA, "A", "B")
+    with pytest.raises(ValueError):
+        estimate_price(seg)
+
+
+def test_mpk_krakow_bilet_15_minutowy_normalny():
+    seg = Segment(Carrier.MPK_KRAKOW, "Rynek", "Wawel", ride_duration_min=10)
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.amount == 4.00
+
+
+def test_mpk_krakow_bilet_60_minutowy_ulgowy():
+    seg = Segment(
+        Carrier.MPK_KRAKOW, "Rynek", "Nowa Huta", ride_duration_min=45,
+        discounts=DiscountProfile(mpk_krakow_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 4.00  # bilet 60-minutowy ulgowy (8 PLN / 2), cennik od 2.03.2026
+
+
+def test_mpk_krakow_przekroczenie_najdluzszego_biletu_to_szacunek():
+    seg = Segment(Carrier.MPK_KRAKOW, "A", "B", ride_duration_min=120)
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.ESTIMATE
+    assert result.amount == 9.00
+
+
+def test_ztm_poznan_bilet_15_minutowy_normalny():
+    seg = Segment(Carrier.ZTM_POZNAN, "Stary Rynek", "Katedra", ride_duration_min=10)
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.amount == 5.00  # cennik od 1.09.2025
+
+
+def test_ztm_poznan_bilet_90_minutowy_ulgowy():
+    seg = Segment(
+        Carrier.ZTM_POZNAN, "A", "B", ride_duration_min=90,
+        discounts=DiscountProfile(ztm_poznan_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 4.50
+
+
+def test_mpk_wroclaw_bilet_30_minutowy_normalny():
+    seg = Segment(Carrier.MPK_WROCLAW, "Rynek", "Dworzec Główny", ride_duration_min=25)
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.amount == 4.00
+
+
+def test_mpk_wroclaw_bilet_60_minutowy_ulgowy():
+    seg = Segment(
+        Carrier.MPK_WROCLAW, "A", "B", ride_duration_min=50,
+        discounts=DiscountProfile(mpk_wroclaw_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 2.60
+
+
+def test_bvg_berlin_kurzstrecke_normalny():
+    seg = Segment(Carrier.BVG_BERLIN, "Alexanderplatz", "Hackescher Markt", ride_duration_min=10)
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == 2.80  # cennik VBB od 1.01.2026
+
+
+def test_bvg_berlin_strefa_ab_ulgowy():
+    seg = Segment(
+        Carrier.BVG_BERLIN, "Alexanderplatz", "Potsdam Hbf", ride_duration_min=60,
+        discounts=DiscountProfile(bvg_berlin_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 2.50
+
+
+def test_bvg_berlin_bez_czasu_jazdy_podnosi_blad():
+    seg = Segment(Carrier.BVG_BERLIN, "A", "B")
+    with pytest.raises(ValueError):
+        estimate_price(seg)

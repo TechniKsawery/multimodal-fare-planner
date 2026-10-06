@@ -1,0 +1,13 @@
+{
+  "_zrodlo": "Oficjalna baza wiedzy Warszawa 19115 / WTP Warszawa (ZTM) — https://warszawa19115.pl/-/bilety-kr%C3%B3tkookresowe-w-komunikacji-miejskiej , cytuje wtp.waw.pl. Zweryfikowano 2026-10-06.",
+  "_uwaga": "Bilet 20-minutowy (strefa 1+2), 75-minutowy (tylko strefa 1) oraz 90-minutowy (strefa 1+2). Ulga 50% przysługuje uprawnionym pasażerom (uczniowie, studenci, seniorzy).",
+  "waluta": "PLN",
+  "nazwa_przewoznika": "ZTM Warszawa (WTP)",
+  "as_of": "2026-10-06",
+  "typ_ceny": "oficjalna_taryfa",
+  "bilety_czasowe": [
+    {"wazny_min": 20, "normalny": 3.40, "ulgowy": 1.70, "strefa": "1+2"},
+    {"wazny_min": 75, "normalny": 4.40, "ulgowy": 2.20, "strefa": "1"},
+    {"wazny_min": 90, "normalny": 7.00, "ulgowy": 3.50, "strefa": "1+2"}
+  ]
+}

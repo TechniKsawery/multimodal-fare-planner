@@ -1,0 +1,14 @@
+{
+  "_zrodlo": "Oficjalny cennik biletów czasowych MPK / ZTM Wrocław — https://www.wroclaw.pl/rodzaje-i-ceny-biletow , obowiązujący od 1 września 2021 r. Zweryfikowano 2026-10-06.",
+  "_uwaga": "Bilety czasowe 15-minutowe, 30-minutowe, 60-minutowe oraz 90-minutowe. Ulga 50%.",
+  "waluta": "PLN",
+  "nazwa_przewoznika": "MPK Wrocław",
+  "as_of": "2026-10-06",
+  "typ_ceny": "oficjalna_taryfa",
+  "bilety_czasowe": [
+    {"wazny_min": 15, "normalny": 3.20, "ulgowy": 1.60, "strefa": "miejska"},
+    {"wazny_min": 30, "normalny": 4.00, "ulgowy": 2.00, "strefa": "miejska"},
+    {"wazny_min": 60, "normalny": 5.20, "ulgowy": 2.60, "strefa": "miejska"},
+    {"wazny_min": 90, "normalny": 7.00, "ulgowy": 3.50, "strefa": "miejska"}
+  ]
+}

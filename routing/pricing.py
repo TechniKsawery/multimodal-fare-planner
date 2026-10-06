@@ -49,8 +49,17 @@ def _flight_baggage_only_extras(origin: str, destination: str, currency: str) ->
 VRR_AREA_KEYWORDS = ("s bahn", "s-bahn", "vrr", "national express", "abellio", "regio")
 """Fragmenty agencyName traktowane jako przewoźnik w obszarze taryfowym VRR (Zagłębie Rury/NRW)."""
 
-ZTM_LUBLIN_KEYWORDS = ("lublin", "zditm", "ztm")
-"""Fragmenty agencyName/nazw przystanków traktowane jako komunikacja miejska ZTM Lublin."""
+ZTM_LUBLIN_KEYWORDS = ("lublin", "zditm", "ztm_l")
+"""Fragmenty agencyName/nazw przystanków traktowane jako komunikacja miejska ZTM Lublin.
+
+Zwężone z samego "ztm" do "ztm_l": generyczne "ztm" dopasowywało się też do ZTM Warszawa/Poznań,
+które teraz mają własne kalkulatory — zob. city_carriers w price_bus_leg poniżej."""
+
+ZTM_WARSZAWA_KEYWORDS = ("warszawa", "ztm warszawa", "wtp")
+MPK_KRAKOW_KEYWORDS = ("kraków", "krakow", "mpk kraków", "mpk krakow", "ztp kraków", "ztp krakow", "kmk")
+ZTM_POZNAN_KEYWORDS = ("poznań", "poznan", "ztm poznań", "ztm poznan", "mpk poznań", "mpk poznan")
+MPK_WROCLAW_KEYWORDS = ("wrocław", "wroclaw", "mpk wrocław", "mpk wroclaw")
+BVG_BERLIN_KEYWORDS = ("berlin", "bvg", "vbb")
 
 
 PL_MOTIS_DATASETS = frozenset({"pl", "ztml"})
@@ -331,25 +340,34 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
 
     tekst = f"{leg.carrier_name} {leg.origin_name} {leg.destination_name}".lower()
 
-    if any(k in tekst for k in ZTM_LUBLIN_KEYWORDS):
-        try:
-            segment = Segment(
-                carrier=Carrier.ZTM_LUBLIN,
-                origin=leg.origin_name,
-                destination=leg.destination_name,
-                ride_duration_min=leg.duration_min,
-                discounts=discounts,
-            )
-            result = fares_estimate_price(segment)
-            return PricedLeg(
-                leg=leg,
-                amount=result.amount,
-                currency=result.currency,
-                price_type=result.price_type.value,
-                notes=result.notes,
-            )
-        except ValueError as exc:
-            return _fallback_priced_leg(leg, f"Kalkulator ZTM Lublin zwrócił błąd ({exc}).")
+    city_carriers = [
+        (ZTM_LUBLIN_KEYWORDS, Carrier.ZTM_LUBLIN),
+        (ZTM_WARSZAWA_KEYWORDS, Carrier.ZTM_WARSZAWA),
+        (MPK_KRAKOW_KEYWORDS, Carrier.MPK_KRAKOW),
+        (ZTM_POZNAN_KEYWORDS, Carrier.ZTM_POZNAN),
+        (MPK_WROCLAW_KEYWORDS, Carrier.MPK_WROCLAW),
+        (BVG_BERLIN_KEYWORDS, Carrier.BVG_BERLIN),
+    ]
+    for keywords, carrier in city_carriers:
+        if any(k in tekst for k in keywords):
+            try:
+                segment = Segment(
+                    carrier=carrier,
+                    origin=leg.origin_name,
+                    destination=leg.destination_name,
+                    ride_duration_min=leg.duration_min,
+                    discounts=discounts,
+                )
+                result = fares_estimate_price(segment)
+                return PricedLeg(
+                    leg=leg,
+                    amount=result.amount,
+                    currency=result.currency,
+                    price_type=result.price_type.value,
+                    notes=result.notes,
+                )
+            except ValueError as exc:
+                return _fallback_priced_leg(leg, f"Kalkulator {carrier.value} zwrócił błąd ({exc}).")
 
     # Cały niemiecki fragment sieci w tym silniku to NRW (Zagłębie Rury), więc lokalny
     # autobus/tramwaj tu jest domyślnie traktowany jako obszar taryfowy VRR (eezy.nrw) —

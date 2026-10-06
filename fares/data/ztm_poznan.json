@@ -1,0 +1,13 @@
+{
+  "_zrodlo": "Podwyżka cen biletów ZTM Poznań od 1 września 2025 — potwierdzona niezależnie przez spidersweb.pl (2025-09-02) i kb.pl/cenniki (ceny normalne 5/7/9 zł). Zweryfikowano 2026-10-06.",
+  "_uwaga": "NIEPOTWIERDZONE: ceny ulgowe (50%) nie zostały znalezione w oficjalnym ogłoszeniu taryfowym dostępnym do przeszukania — przyjęto standardową zasadę 50% zniżki, zgodną z pozostałymi kalkulatorami w tym module (Kraków, Wrocław, Warszawa, Lublin wszystkie stosują dokładnie 50%), ale nie zweryfikowano jej źródłowo dla Poznania. Do potwierdzenia przed pokazaniem jako 'oficjalna_taryfa' w materiałach inwestorskich.",
+  "waluta": "PLN",
+  "nazwa_przewoznika": "ZTM Poznań",
+  "as_of": "2026-10-06",
+  "typ_ceny": "oficjalna_taryfa_normalna_ulgowa_szacunek",
+  "bilety_czasowe": [
+    {"wazny_min": 15, "normalny": 5.00, "ulgowy": 2.50, "strefa": "A+B+C+D"},
+    {"wazny_min": 45, "normalny": 7.00, "ulgowy": 3.50, "strefa": "A+B+C+D"},
+    {"wazny_min": 90, "normalny": 9.00, "ulgowy": 4.50, "strefa": "A+B+C+D"}
+  ]
+}

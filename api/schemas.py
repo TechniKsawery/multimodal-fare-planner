@@ -9,6 +9,11 @@ class DiscountProfileIn(BaseModel):
     pkp_ulga_kod: str = "brak"
     bahncard: str | None = None
     ztm_lublin_ulgowy: bool = False
+    ztm_warszawa_ulgowy: bool = False
+    mpk_krakow_ulgowy: bool = False
+    ztm_poznan_ulgowy: bool = False
+    mpk_wroclaw_ulgowy: bool = False
+    bvg_berlin_ulgowy: bool = False
     vrr_dziecko: bool = False
 
 

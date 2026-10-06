@@ -219,7 +219,8 @@ def render_attractions_and_city_cards(destination_label: str) -> None:
                 card_rows.append(
                     {
                         "Karta / Wariant": ev.variant.name,
-                        "Cena karty": f"{ev.card_price:.2f} {ev.currency}",
+                        "Cena karty": f"{ev.card_price:.2f} {ev.currency}"
+                        + ("" if ev.variant.price_verified else " (niepotwierdzona)"),
                         "Ważność": f"{ev.variant.duration_hours}h",
                         "Darmowy transport": "Tak" if ev.variant.includes_public_transit else "Nie",
                         "Koszt bez karty": f"{ev.total_cost_without_card:.2f} {ev.currency}",
@@ -245,6 +246,8 @@ def render_attractions_and_city_cards(destination_label: str) -> None:
                 if attr.normal_price > 0
                 else "Wstęp bezpłatny"
             )
+            if not attr.price_verified:
+                price_text += " (cena niepotwierdzona)"
             discount_note = (
                 f" • zniżka z kartą: do {attr.default_card_discount_percent:.0f}%"
                 if attr.default_card_discount_percent > 0

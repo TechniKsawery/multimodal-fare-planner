@@ -85,6 +85,7 @@ def get_all_attractions() -> list[Attraction]:
                 official_url=item.get("official_url", ""),
                 highlight=bool(item.get("highlight", False)),
                 tags=list(item.get("tags", [])),
+                price_verified=bool(item.get("price_verified", False)),
             )
         )
     return res
@@ -123,6 +124,7 @@ def get_all_city_cards() -> list[CityCard]:
                 includes_public_transit=bool(v["includes_public_transit"]),
                 transit_zones=v["transit_zones"],
                 description=v["description"],
+                price_verified=bool(v.get("price_verified", False)),
             )
             for v in item["variants"]
         ]

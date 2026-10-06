@@ -3,6 +3,7 @@
 Uruchomienie:  pip install streamlit  &&  streamlit run app.py
 Wymaga działającego MOTIS (localhost:8080), patrz README.md.
 """
+
 import datetime as dt
 import json
 
@@ -65,16 +66,22 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 f"+ bagaż {p.breakdown.get('bagaz', 0):.2f} {p.currency}"
             )
             zrodlo_bagazu = p.breakdown.get("bagaz_zrodlo", "")
-        rows.append({
-            "Środek": leg.mode.value,
-            "Połączenie": leg.extra.get("route_short_name") or "" if leg.mode.value in ("kolej", "autobus") else "",
-            "Trasa": f"{leg.origin_name} → {leg.destination_name}",
-            "Godziny": f"{leg.depart:%H:%M}–{leg.arrive:%H:%M} ({leg.duration_min:.0f} min)",
-            "Przewoźnik": leg.carrier_name or "",
-            "Cena / dystans": price,
-            "Rozbicie ceny lotu": rozbicie,
-            "Cennik bagażu": zrodlo_bagazu,
-        })
+        rows.append(
+            {
+                "Środek": leg.mode.value,
+                "Połączenie": (
+                    leg.extra.get("route_short_name") or ""
+                    if leg.mode.value in ("kolej", "autobus")
+                    else ""
+                ),
+                "Trasa": f"{leg.origin_name} → {leg.destination_name}",
+                "Godziny": f"{leg.depart:%H:%M}–{leg.arrive:%H:%M} ({leg.duration_min:.0f} min)",
+                "Przewoźnik": leg.carrier_name or "",
+                "Cena / dystans": price,
+                "Rozbicie ceny lotu": rozbicie,
+                "Cennik bagażu": zrodlo_bagazu,
+            }
+        )
     st.dataframe(rows, width="stretch", hide_index=True)
     if it.is_risky:
         for w in it.transfer_warnings:
@@ -94,9 +101,13 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
         st.success("Przesiadki: bezpieczne (wg przyjętych minimów)")
 
     if db_distance_km(it) <= 0:
-        st.caption("💳 Ten wariant nie zawiera odcinka DB (kolej niemiecka) — BahnCard nie ma tu zastosowania.")
+        st.caption(
+            "💳 Ten wariant nie zawiera odcinka DB (kolej niemiecka) — BahnCard nie ma tu zastosowania."
+        )
     else:
-        suggestions = suggest_bahncard_for_itinerary(it, age=wiek, existing_bahncard=posiadana_bahncard)
+        suggestions = suggest_bahncard_for_itinerary(
+            it, age=wiek, existing_bahncard=posiadana_bahncard
+        )
         if suggestions:
             best = suggestions[0]
             if best.rekomendowana:
@@ -104,8 +115,10 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             else:
                 st.caption(f"💳 {best.opis}")
         elif posiadana_bahncard:
-            st.caption(f"💳 Masz już BahnCard {posiadana_bahncard} — cena w tabeli wyżej już ją uwzględnia; "
-                       f"żadna inna karta nie da tu lepszego rabatu.")
+            st.caption(
+                f"💳 Masz już BahnCard {posiadana_bahncard} — cena w tabeli wyżej już ją uwzględnia; "
+                f"żadna inna karta nie da tu lepszego rabatu."
+            )
 
 
 def address_picker(label: str, default_text: str, state_key: str):
@@ -133,11 +146,15 @@ def address_picker(label: str, default_text: str, state_key: str):
 
 
 wiek = st.number_input(
-    "Wiek pasażera", min_value=0, max_value=120, value=30, step=1,
+    "Wiek pasażera",
+    min_value=0,
+    max_value=120,
+    value=30,
+    step=1,
     help="Używany tylko do PODPOWIEDZI zniżek zależnych od wieku (VRR Kindertarif 6-14 lat, "
-         "ZTM Lublin ulgowy). Checkboxy niżej możesz zawsze nadpisać ręcznie — np. dorosły "
-         "uczeń/student ma bilet ulgowy niezależnie od wieku, a wiek sam z siebie nie daje "
-         "pełnego obrazu uprawnień.",
+    "ZTM Lublin ulgowy). Checkboxy niżej możesz zawsze nadpisać ręcznie — np. dorosły "
+    "uczeń/student ma bilet ulgowy niezależnie od wieku, a wiek sam z siebie nie daje "
+    "pełnego obrazu uprawnień.",
 )
 
 st.subheader("Skąd i dokąd")
@@ -154,12 +171,14 @@ with st.form("search"):
     bc = c2.selectbox("BahnCard", ["brak", "25", "50", "100"])
     c3, c4 = st.columns(2)
     ztm_ulgowy = c3.checkbox(
-        "Bilet ulgowy ZTM Lublin", value=wiek < 18,
+        "Bilet ulgowy ZTM Lublin",
+        value=wiek < 18,
         help="Podpowiedź wg wieku (<18 lat) — zaznacz też ręcznie, jeśli masz ulgę z innego "
-             "tytułu (uczeń, student, senior, niepełnosprawność), niezależnie od wieku.",
+        "tytułu (uczeń, student, senior, niepełnosprawność), niezależnie od wieku.",
     )
     vrr_dziecko = c4.checkbox(
-        "Taryfa dziecięca VRR (Kindertarif)", value=6 <= wiek <= 14,
+        "Taryfa dziecięca VRR (Kindertarif)",
+        value=6 <= wiek <= 14,
         help="Oficjalna zniżka VRR: 50% dla dzieci 6-14 lat, ściśle wg wieku.",
     )
     submitted = st.form_submit_button("Szukaj")
@@ -169,14 +188,20 @@ if submitted:
         st.error("Wybierz dokładny adres z podpowiedzi (skąd i dokąd) przed wyszukiwaniem.")
         st.stop()
     profile = DiscountProfile(
-        pkp_ulga_kod=pkp, bahncard=None if bc == "brak" else bc,
-        ztm_lublin_ulgowy=ztm_ulgowy, vrr_dziecko=vrr_dziecko,
+        pkp_ulga_kod=pkp,
+        bahncard=None if bc == "brak" else bc,
+        ztm_lublin_ulgowy=ztm_ulgowy,
+        vrr_dziecko=vrr_dziecko,
     )
     try:
         with st.spinner("Szukam połączeń..."):
             request = RouteRequest(
-                origin_stop_id=motis_client.coords_place(origin_resolved["lat"], origin_resolved["lon"]),
-                destination_stop_id=motis_client.coords_place(dest_resolved["lat"], dest_resolved["lon"]),
+                origin_stop_id=motis_client.coords_place(
+                    origin_resolved["lat"], origin_resolved["lon"]
+                ),
+                destination_stop_id=motis_client.coords_place(
+                    dest_resolved["lat"], dest_resolved["lon"]
+                ),
                 origin_label=origin_resolved["name"],
                 destination_label=dest_resolved["name"],
                 date=date.isoformat(),
@@ -186,7 +211,11 @@ if submitted:
             # alternative_destination_stops — patrz komentarz tam / w demo.py (podmieniłoby
             # rzeczywisty adres docelowy na sztywny dworzec, ucinając ostatni odcinek do adresu).
             search_result = search(request)
-            built, skipped, recs = search_result.built, search_result.skipped, search_result.recommendations
+            built, skipped, recs = (
+                search_result.built,
+                search_result.skipped,
+                search_result.recommendations,
+            )
     except MotisError as exc:
         st.error(f"Błąd MOTIS / geokodowania: {exc}")
         st.stop()
@@ -199,17 +228,27 @@ if submitted:
     # znów False — bez zapamiętania wyniku cały ten blok by się nie wykonał i wyszukiwanie
     # "znikało by" przy każdej takiej interakcji.
     st.session_state["search_result"] = {
-        "request": request, "date": date, "built": built, "skipped": skipped, "recs": recs,
+        "request": request,
+        "date": date,
+        "built": built,
+        "skipped": skipped,
+        "recs": recs,
     }
 
 result = st.session_state.get("search_result")
 if result is not None:
     request, date, built, skipped, recs = (
-        result["request"], result["date"], result["built"], result["skipped"], result["recs"],
+        result["request"],
+        result["date"],
+        result["built"],
+        result["skipped"],
+        result["recs"],
     )
 
-    st.caption(f"{request.origin_label} → {request.destination_label}, {date}. "
-               f"Zbudowano {len(built)} wariant(y), pominięto {len(skipped)}.")
+    st.caption(
+        f"{request.origin_label} → {request.destination_label}, {date}. "
+        f"Zbudowano {len(built)} wariant(y), pominięto {len(skipped)}."
+    )
     if skipped:
         with st.expander("Pominięte warianty"):
             for s in skipped:
@@ -237,9 +276,13 @@ if result is not None:
     def render_recommendation_tab(key: str) -> None:
         owner_key = first_owner_key[id(recs[key])]
         if owner_key != key:
-            st.caption(f"Ta sama trasa co „{RECOMMENDATION_LABELS[owner_key]}” — to nie duplikat, po prostu ten wariant wygrywa na obu osiach naraz.")
+            st.caption(
+                f"Ta sama trasa co „{RECOMMENDATION_LABELS[owner_key]}” — to nie duplikat, po prostu ten wariant wygrywa na obu osiach naraz."
+            )
         if key in SAFE_CATEGORY_KEYS and recs[key].is_safe_fallback:
-            st.info("Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych.")
+            st.info(
+                "Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych."
+            )
         st.subheader(recs[key].variant_name)
         render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
 
@@ -257,7 +300,8 @@ if result is not None:
             risk_suffix = "  ⚠️"
         else:
             risk_suffix = ""
-        with st.expander(f"{it.variant_name} — {it.total_duration_min / 60:.1f} h, "
-                         f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}"
-                         + risk_suffix):
+        with st.expander(
+            f"{it.variant_name} — {it.total_duration_min / 60:.1f} h, "
+            f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}" + risk_suffix
+        ):
             render_itinerary(it, wiek, bc if bc != "brak" else None)

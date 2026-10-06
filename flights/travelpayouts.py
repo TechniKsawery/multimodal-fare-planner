@@ -3,9 +3,9 @@
 Wymaga darmowego tokena API (rejestracja w programie partnerskim Travelpayouts).
 Token podaj w zmiennej środowiskowej TRAVELPAYOUTS_TOKEN — patrz README.md w tym katalogu.
 """
+
 import os
 from pathlib import Path
-from typing import Optional
 
 import requests
 from dotenv import load_dotenv
@@ -36,7 +36,7 @@ def fetch_cheapest_price(
     origin: str,
     destination: str,
     depart_date: str,
-    return_date: Optional[str] = None,
+    return_date: str | None = None,
     currency: str = "PLN",
 ) -> dict:
     """GET /v1/prices/cheap — surowa odpowiedź API (zwalidowana pod kątem success=true).
@@ -70,7 +70,7 @@ def fetch_cheapest_price(
     return payload
 
 
-def cheapest_entry_or_none(payload: dict, destination: str) -> Optional[dict]:
+def cheapest_entry_or_none(payload: dict, destination: str) -> dict | None:
     """Jak cheapest_entry, ale zwraca None zamiast podnosić błąd, gdy brak wpisów dla tej
     relacji w odpowiedzi — używane przez calculator.py do próby fallbacku (np. cache
     miesięczny) zamiast od razu odrzucać cały wariant lotu."""

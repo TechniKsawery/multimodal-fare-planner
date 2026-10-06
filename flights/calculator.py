@@ -1,4 +1,5 @@
 """Szacowanie ceny segmentu lotu: cena biletu (Travelpayouts) + bagaż + dojazd + transfer."""
+
 from . import extras as extras_module
 from . import travelpayouts
 from .model import FlightSegment, PriceEstimate, PriceType
@@ -23,7 +24,10 @@ def _fetch_ticket(segment: FlightSegment):
     )
     ticket = travelpayouts.cheapest_entry_or_none(payload, segment.destination)
     if ticket is not None:
-        return ticket, "Cena biletu z cache Travelpayouts (dokładna data) — może być nieaktualna o kilka dni."
+        return (
+            ticket,
+            "Cena biletu z cache Travelpayouts (dokładna data) — może być nieaktualna o kilka dni.",
+        )
 
     month = segment.depart_date[:7]  # "YYYY-MM-DD" -> "YYYY-MM"
     if month != segment.depart_date:
@@ -41,7 +45,12 @@ def _fetch_ticket(segment: FlightSegment):
             )
 
     return (
-        {"price": GENERIC_FLIGHT_FALLBACK_PLN, "transfers": None, "airline": None, "departure_at": None},
+        {
+            "price": GENERIC_FLIGHT_FALLBACK_PLN,
+            "transfers": None,
+            "airline": None,
+            "departure_at": None,
+        },
         (
             "Brak ceny w cache Travelpayouts dla tej relacji (ani dokładna data, ani cały miesiąc) — "
             f"BARDZO ZGRUBNY szacunek stały ({GENERIC_FLIGHT_FALLBACK_PLN:.0f} PLN), nieoparty na "

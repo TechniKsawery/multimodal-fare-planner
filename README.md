@@ -319,3 +319,20 @@ prawdziwych identyfikatorów przystanków na uruchomionym lokalnie MOTIS.
 
 Testy: `pytest tests/test_routing.py` (nowe przypadki dla `build_rail_via_stop_variant` i
 dedup w `generate_variants`).
+
+## Code style
+
+Formatowanie: `black` (line length 100), lint: `ruff` (reguły i wyjątki w `pyproject.toml`).
+
+```
+pip install -r requirements-dev.txt
+black .
+ruff check . --fix
+pytest
+```
+
+Opcjonalnie pre-commit (odpala black+ruff automatycznie przy każdym commicie):
+
+```
+pre-commit install
+```

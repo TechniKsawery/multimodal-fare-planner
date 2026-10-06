@@ -9,9 +9,9 @@ global.api.flixbus.com (patrz README.md w tym katalogu), więc ten kod NIE BYŁ 
 żywo — przetestuj go lokalnie u siebie (patrz README) zanim zaczniesz na nim polegać, i popraw
 parsowanie odpowiedzi jeśli faktyczny kształt JSON-a się różni od założonego tutaj.
 """
+
 import json
 from datetime import datetime
-from typing import Optional
 
 import requests
 
@@ -25,14 +25,16 @@ class FlixbusApiError(RuntimeError):
 
 
 def _to_flixbus_date(iso_date: str) -> str:
-    """"YYYY-MM-DD" -> "dd.mm.yyyy" (format oczekiwany przez search/service/v4/search)."""
+    """ "YYYY-MM-DD" -> "dd.mm.yyyy" (format oczekiwany przez search/service/v4/search)."""
     try:
         return datetime.strptime(iso_date, "%Y-%m-%d").strftime("%d.%m.%Y")
     except ValueError as exc:
-        raise FlixbusApiError(f"travel_date musi być w formacie YYYY-MM-DD, dostano: {iso_date!r}") from exc
+        raise FlixbusApiError(
+            f"travel_date musi być w formacie YYYY-MM-DD, dostano: {iso_date!r}"
+        ) from exc
 
 
-def find_city_id(city_query: str, locale: str = "pl", country: Optional[str] = None) -> str:
+def find_city_id(city_query: str, locale: str = "pl", country: str | None = None) -> str:
     """GET /search/autocomplete/cities — zwraca id pierwszego (najlepiej dopasowanego) miasta.
 
     Cache w pamięci procesu, żeby nie odpytywać tego samego miasta wielokrotnie w jednej sesji.
@@ -49,12 +51,16 @@ def find_city_id(city_query: str, locale: str = "pl", country: Optional[str] = N
         response = requests.get(f"{API_BASE}/search/autocomplete/cities", params=params, timeout=15)
         response.raise_for_status()
     except requests.RequestException as exc:
-        raise FlixbusApiError(f"Błąd zapytania autocomplete FlixBus dla '{city_query}': {exc}") from exc
+        raise FlixbusApiError(
+            f"Błąd zapytania autocomplete FlixBus dla '{city_query}': {exc}"
+        ) from exc
 
     try:
         payload = response.json()
     except ValueError as exc:
-        raise FlixbusApiError(f"Odpowiedź autocomplete FlixBus nie jest poprawnym JSON-em: {exc}") from exc
+        raise FlixbusApiError(
+            f"Odpowiedź autocomplete FlixBus nie jest poprawnym JSON-em: {exc}"
+        ) from exc
 
     if not payload:
         raise FlixbusApiError(
@@ -105,7 +111,9 @@ def fetch_cheapest_trip(
     try:
         payload = response.json()
     except ValueError as exc:
-        raise FlixbusApiError(f"Odpowiedź search FlixBus nie jest poprawnym JSON-em: {exc}") from exc
+        raise FlixbusApiError(
+            f"Odpowiedź search FlixBus nie jest poprawnym JSON-em: {exc}"
+        ) from exc
 
     trips = payload.get("trips") or []
     if not trips:

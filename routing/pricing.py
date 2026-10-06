@@ -1,11 +1,11 @@
 """Wycena pojedynczego odcinka: dispatch do fares/ (kolej) albo flights/ (lot)."""
-from typing import Optional
 
 from fares import estimate_price as fares_estimate_price
 from fares.model import Carrier, DiscountProfile, Segment
-from flights import ExtrasProfile, FlightSegment, TravelpayoutsError
+from flights import ExtrasProfile, FlightSegment
 from flights import estimate_price as flights_estimate_price
-from flights.extras import get_baggage_by_airline, get_extras as flights_get_extras
+from flights.extras import get_baggage_by_airline
+from flights.extras import get_extras as flights_get_extras
 
 from .currency import convert as convert_currency
 from .model import Leg, LegMode, PricedLeg
@@ -72,13 +72,19 @@ _PL_BBOX = {"lat_min": 49.0, "lat_max": 54.9, "lon_min": 14.0, "lon_max": 24.2}
 _DE_BBOX = {"lat_min": 47.2, "lat_max": 55.1, "lon_min": 5.8, "lon_max": 14.9}
 
 
-def _country_from_latlon(lat: Optional[float], lon: Optional[float]) -> Optional[str]:
+def _country_from_latlon(lat: float | None, lon: float | None) -> str | None:
     """Kraj przystanku wg współrzędnych (skrzynka geograficzna) — None, gdy brak lat/lon albo
     punkt pasuje do obu/żadnej skrzynki (pas przygraniczny, ok. 14.0-14.9°E — tam nie zgadujemy)."""
     if lat is None or lon is None:
         return None
-    in_pl = _PL_BBOX["lat_min"] <= lat <= _PL_BBOX["lat_max"] and _PL_BBOX["lon_min"] <= lon <= _PL_BBOX["lon_max"]
-    in_de = _DE_BBOX["lat_min"] <= lat <= _DE_BBOX["lat_max"] and _DE_BBOX["lon_min"] <= lon <= _DE_BBOX["lon_max"]
+    in_pl = (
+        _PL_BBOX["lat_min"] <= lat <= _PL_BBOX["lat_max"]
+        and _PL_BBOX["lon_min"] <= lon <= _PL_BBOX["lon_max"]
+    )
+    in_de = (
+        _DE_BBOX["lat_min"] <= lat <= _DE_BBOX["lat_max"]
+        and _DE_BBOX["lon_min"] <= lon <= _DE_BBOX["lon_max"]
+    )
     if in_pl and not in_de:
         return "PL"
     if in_de and not in_pl:
@@ -86,7 +92,7 @@ def _country_from_latlon(lat: Optional[float], lon: Optional[float]) -> Optional
     return None
 
 
-def _motis_dataset(stop_id: Optional[str]) -> Optional[str]:
+def _motis_dataset(stop_id: str | None) -> str | None:
     """Prefiks datasetu z stopId MOTIS (`<dataset>_<id>`, patrz routing/README.md) — None,
     jeśli stopId brakuje albo nie ma prefiksu (np. punkt ze współrzędnych, nie z GTFS)."""
     if not stop_id or "_" not in stop_id:
@@ -94,7 +100,7 @@ def _motis_dataset(stop_id: Optional[str]) -> Optional[str]:
     return stop_id.split("_", 1)[0]
 
 
-def _country_from_dataset(stop_id: Optional[str]) -> Optional[str]:
+def _country_from_dataset(stop_id: str | None) -> str | None:
     """Kraj przystanku wg prefiksu datasetu MOTIS — FALLBACK, używany tylko gdy lat/lon
     niedostępne (patrz zastrzeżenie przy PL_MOTIS_DATASETS o feedzie 'pl' i stacjach w DE)."""
     dataset = _motis_dataset(stop_id)
@@ -107,7 +113,7 @@ def _country_from_dataset(stop_id: Optional[str]) -> Optional[str]:
     return None
 
 
-def _leg_endpoint_country(leg: Leg, prefix: str) -> Optional[str]:
+def _leg_endpoint_country(leg: Leg, prefix: str) -> str | None:
     """Kraj jednego końca odcinka ('origin'/'destination') — najpierw wg współrzędnych
     (rozstrzyga poprawnie nawet gdy stacja w Niemczech jest opublikowana w polskim feedzie
     GTFS dla kursu międzynarodowego), dopiero gdy lat/lon brak — wg prefiksu datasetu."""
@@ -127,7 +133,7 @@ rabatu BahnCard, patrz fares/international.py). Dla realnych tras przez inne prz
 danych geometrii realnej trasy kolejowej, tylko linię prostą między stacjami."""
 
 
-def german_portion_fraction(leg: Leg) -> Optional[float]:
+def german_portion_fraction(leg: Leg) -> float | None:
     """Szacowany udział (0-1) niemieckiego odcinka trasy międzynarodowej w całym dystansie
     (linia prosta origin-border + border-destination), używany do proporcjonalnego naliczenia
     rabatu BahnCard (oficjalnie dotyczy tylko niemieckiego odcinka). None, gdy brakuje
@@ -161,7 +167,7 @@ def is_cross_border_pl_de(leg: Leg) -> bool:
     return origin_country != destination_country
 
 
-def infer_rail_carrier(agency_name: str) -> Optional[Carrier]:
+def infer_rail_carrier(agency_name: str) -> Carrier | None:
     """Zgrubne mapowanie agencyName z MOTIS na przewoźnika z modułu fares/.
 
     To PRZYBLIŻENIE: każdy niemiecki regionalny przewoźnik poza DB Fernverkehr (S-Bahn,
@@ -208,13 +214,11 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
         # (częściowe) zasady BahnCard. Wymuszamy Carrier.INTERNATIONAL_PL_DE PRZED
         # infer_rail_carrier(), żeby nie policzyć go błędnie z krajowej tabeli pasm (patrz
         # fares/international.py i [[international-pl-de-fare-gap]] w pamięci projektu).
-        carrier: Optional[Carrier] = Carrier.INTERNATIONAL_PL_DE
+        carrier: Carrier | None = Carrier.INTERNATIONAL_PL_DE
     else:
         carrier = infer_rail_carrier(leg.carrier_name)
     if carrier is None:
-        return _fallback_priced_leg(
-            leg, f"Brak modułu taryf dla przewoźnika '{leg.carrier_name}'."
-        )
+        return _fallback_priced_leg(leg, f"Brak modułu taryf dla przewoźnika '{leg.carrier_name}'.")
 
     try:
         segment = Segment(
@@ -253,7 +257,9 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
         currency=currency,
         extras=_flight_baggage_only_extras(origin_iata, destination_iata, currency),
     )
-    result = flights_estimate_price(segment)  # może podnieść TravelpayoutsError — obsługa wyżej (variants.py)
+    result = flights_estimate_price(
+        segment
+    )  # może podnieść TravelpayoutsError — obsługa wyżej (variants.py)
 
     # Dociągamy REALNY cennik bagażu wg linii z biletu (result.breakdown["linia"], np. "FR" dla
     # Ryanaira), jeśli go znamy — nadpisuje szacunek z tabeli relacji/domyślny użyty wyżej
@@ -304,12 +310,15 @@ def price_flixbus_leg(leg: Leg) -> PricedLeg:
         return _fallback_priced_leg(leg, f"Kalkulator FlixBus zwrócił błąd ({exc}).")
 
     return PricedLeg(
-        leg=leg, amount=result.amount, currency=result.currency,
-        price_type=result.price_type.value, notes=result.notes,
+        leg=leg,
+        amount=result.amount,
+        currency=result.currency,
+        price_type=result.price_type.value,
+        notes=result.notes,
     )
 
 
-def price_bus_leg(leg: Leg, discounts: Optional[DiscountProfile] = None) -> PricedLeg:
+def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedLeg:
     discounts = discounts or DiscountProfile()
 
     is_coach = leg.extra.get("motis_mode") == "COACH" or any(
@@ -333,8 +342,11 @@ def price_bus_leg(leg: Leg, discounts: Optional[DiscountProfile] = None) -> Pric
             )
             result = fares_estimate_price(segment)
             return PricedLeg(
-                leg=leg, amount=result.amount, currency=result.currency,
-                price_type=result.price_type.value, notes=result.notes,
+                leg=leg,
+                amount=result.amount,
+                currency=result.currency,
+                price_type=result.price_type.value,
+                notes=result.notes,
             )
         except ValueError as exc:
             return _fallback_priced_leg(leg, f"Kalkulator ZTM Lublin zwrócił błąd ({exc}).")
@@ -353,20 +365,28 @@ def price_bus_leg(leg: Leg, discounts: Optional[DiscountProfile] = None) -> Pric
             )
             result = fares_estimate_price(segment)
             return PricedLeg(
-                leg=leg, amount=result.amount, currency=result.currency,
-                price_type=result.price_type.value, notes=result.notes,
+                leg=leg,
+                amount=result.amount,
+                currency=result.currency,
+                price_type=result.price_type.value,
+                notes=result.notes,
             )
         except ValueError as exc:
             return _fallback_priced_leg(leg, f"Kalkulator VRR zwrócił błąd ({exc}).")
 
     return PricedLeg(
-        leg=leg, amount=LOCAL_BUS_FLAT_PLN, currency="PLN", price_type="szacunek",
+        leg=leg,
+        amount=LOCAL_BUS_FLAT_PLN,
+        currency="PLN",
+        price_type="szacunek",
         notes="Ryczałt za przejazd komunikacją miejską (placeholder, nieznany operator lokalny).",
     )
 
 
 def price_walk_leg(leg: Leg) -> PricedLeg:
-    return PricedLeg(leg=leg, amount=0.0, currency="PLN", price_type="oficjalna_taryfa", notes="Dojście pieszo.")
+    return PricedLeg(
+        leg=leg, amount=0.0, currency="PLN", price_type="oficjalna_taryfa", notes="Dojście pieszo."
+    )
 
 
 def price_leg(leg: Leg, discounts: DiscountProfile, flight_currency: str = "PLN") -> PricedLeg:

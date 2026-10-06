@@ -1,6 +1,7 @@
 """Testy REST API (api/main.py) — mockują MOTIS na tym samym poziomie co tests/test_routing.py
 (routing/variants.py::motis_client), bez wymagania działającego MOTIS ani sieci."""
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
 
@@ -13,7 +14,7 @@ client = TestClient(app)
 
 
 def _dt(hour, minute=0, day=5):
-    return datetime(2026, 10, day, hour, minute, tzinfo=timezone.utc)
+    return datetime(2026, 10, day, hour, minute, tzinfo=UTC)
 
 
 def test_health_endpoint():
@@ -99,17 +100,16 @@ def test_route_endpoint_przekazuje_discounts_do_wyceny(monkeypatch):
     def fake_request_from_addresses(origin_text, destination_text, date, **overrides):
         captured.update(overrides)
         return variants.RouteRequest(
-            origin_stop_id="a", destination_stop_id="b",
-            origin_label="A", destination_label="B", date=date,
+            origin_stop_id="a",
+            destination_stop_id="b",
+            origin_label="A",
+            destination_label="B",
+            date=date,
             discounts=overrides.get("discounts"),
         )
 
-    monkeypatch.setattr(
-        "api.main.request_from_addresses", fake_request_from_addresses
-    )
-    monkeypatch.setattr(
-        variants.motis_client, "all_itineraries_as_legs", lambda *a, **k: []
-    )
+    monkeypatch.setattr("api.main.request_from_addresses", fake_request_from_addresses)
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **k: [])
 
     response = client.post(
         "/route",

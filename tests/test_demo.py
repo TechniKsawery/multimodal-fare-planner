@@ -7,6 +7,7 @@ Przyczyna: demo.py/app.py przekazywały do generate_variants() sztywną listę
 ALTERNATIVE_DESTINATION_STOPS = [Essen Hbf] (z routing/demo_route.py, zbudowaną dla zapytania
 stacja->stacja Lublin Główny -> Gelsenkirchen Hbf), która dla zapytań adres->adres podmienia
 destination_stop_id/destination_label na Essen Hbf, odcinając prawdziwy adres."""
+
 from unittest.mock import patch
 
 import demo
@@ -17,7 +18,8 @@ def test_demo_main_nie_przekazuje_alternative_destination_stops(monkeypatch, cap
     """demo.main() (wyszukiwanie adres->adres) nie może wołać generate_variants z
     alternative_destination_stops — to podmieniłoby prawdziwy adres docelowy na dworzec."""
     fake_request = variants.RouteRequest(
-        origin_stop_id="51.0,22.0", destination_stop_id="51.5,7.1",
+        origin_stop_id="51.0,22.0",
+        destination_stop_id="51.5,7.1",
         origin_label="Skubiszewskiego 22, Lublin",
         destination_label="Buerer Strasse 8, Gelsenkirchen",
         date="2026-10-05",
@@ -33,8 +35,15 @@ def test_demo_main_nie_przekazuje_alternative_destination_stops(monkeypatch, cap
     monkeypatch.setattr(demo, "generate_variants", fake_generate_variants)
     monkeypatch.setattr(
         "sys.argv",
-        ["demo.py", "--from", "Skubiszewskiego 22, Lublin", "--to", "Buerer Strasse 8, Gelsenkirchen",
-         "--date", "2026-10-05"],
+        [
+            "demo.py",
+            "--from",
+            "Skubiszewskiego 22, Lublin",
+            "--to",
+            "Buerer Strasse 8, Gelsenkirchen",
+            "--date",
+            "2026-10-05",
+        ],
     )
 
     demo.main()
@@ -50,8 +59,10 @@ def test_alternative_destination_stop_nie_moze_ucinac_adresu_docelowego():
     wolno go używać tylko dla zapytań stacja->stacja (patrz routing/demo_route.py), nigdy dla
     zapytań zbudowanych przez request_from_addresses()."""
     request = variants.RouteRequest(
-        origin_stop_id="a", destination_stop_id="prawdziwy_adres_docelowy",
-        origin_label="A", destination_label="Buerer Strasse 8, Gelsenkirchen",
+        origin_stop_id="a",
+        destination_stop_id="prawdziwy_adres_docelowy",
+        origin_label="A",
+        destination_label="Buerer Strasse 8, Gelsenkirchen",
         date="2026-11-15",
     )
     alt = variants.AlternativeStop("Essen Hbf", "essen_hbf_stop")

@@ -2,14 +2,17 @@
 
 Progi minimalne są SZACUNKIEM (nie oficjalnymi zaleceniami przewoźników) — patrz README.md.
 """
-from typing import List, Optional
 
 from .model import Leg, LegMode, TransferWarning
 
-MIN_TRANSFER_MINUTES_SAME_PLATFORM = 20   # kolej->kolej, bez zmiany peronu/dworca (brak legu WALK w MOTIS)
-MIN_TRANSFER_MINUTES_WALK = 30            # kolej->kolej, ze zmianą peronu/dworca (jest leg WALK w MOTIS)
+MIN_TRANSFER_MINUTES_SAME_PLATFORM = (
+    20  # kolej->kolej, bez zmiany peronu/dworca (brak legu WALK w MOTIS)
+)
+MIN_TRANSFER_MINUTES_WALK = 30  # kolej->kolej, ze zmianą peronu/dworca (jest leg WALK w MOTIS)
 MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT = 120  # dojście do terminala, odprawa, kontrola bezpieczeństwa
-MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL = 90   # wyjście z samolotu, odbiór bagażu, dojście/dojazd do stacji
+MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL = (
+    90  # wyjście z samolotu, odbiór bagażu, dojście/dojazd do stacji
+)
 
 
 # ABSOLUTNE minima wykonalności — poniżej nich człowiek fizycznie nie zdąży (wariant jest
@@ -26,7 +29,7 @@ FEASIBLE_MIN_MINUTES_FLIGHT_TO_RAIL = 45
 # przejście między nimi trwa minuty, nie 30 min jak przy prawdziwej zmianie dworca w mieście.
 # Zweryfikowane ręcznie (Moovit/opisy dworców) — patrz PR #9. Dopisuj tu kolejne potwierdzone
 # przypadki, gdy user zgłosi kolejną fałszywie odrzuconą przesiadkę.
-KNOWN_STATION_COMPLEX_ALIASES: List[frozenset] = [
+KNOWN_STATION_COMPLEX_ALIASES: list[frozenset] = [
     # Dworzec metropolitalny w Lublinie (ul. Kunickiego) — GTFS/MOTIS zna go pod kilkoma
     # nazwami wg przystanku/peronu (MPK Lublin: "Dworzec Lublin - Kunickiego", "Dworzec Lublin
     # 51/52"); "Lublin Główny" to sąsiadujący dworzec kolejowy połączony z nim przejściem
@@ -55,7 +58,9 @@ def _same_stop(prev_leg: Leg, next_leg: Leg) -> bool:
     return any(pair <= alias for alias in KNOWN_STATION_COMPLEX_ALIASES)
 
 
-def feasible_minimum_minutes(prev_mode: LegMode, next_mode: LegMode, requires_walk: bool, same_stop: bool = False) -> float:
+def feasible_minimum_minutes(
+    prev_mode: LegMode, next_mode: LegMode, requires_walk: bool, same_stop: bool = False
+) -> float:
     if prev_mode is LegMode.FLIGHT and next_mode is LegMode.FLIGHT:
         return FEASIBLE_MIN_MINUTES_RAIL_TO_FLIGHT
     if next_mode is LegMode.FLIGHT:
@@ -67,7 +72,9 @@ def feasible_minimum_minutes(prev_mode: LegMode, next_mode: LegMode, requires_wa
     return FEASIBLE_MIN_MINUTES_WALK if requires_walk else FEASIBLE_MIN_MINUTES_SAME_PLATFORM
 
 
-def minimum_transfer_minutes(prev_mode: LegMode, next_mode: LegMode, requires_walk: bool, same_stop: bool = False) -> float:
+def minimum_transfer_minutes(
+    prev_mode: LegMode, next_mode: LegMode, requires_walk: bool, same_stop: bool = False
+) -> float:
     if prev_mode is LegMode.RAIL and next_mode is LegMode.FLIGHT:
         return MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT
     if prev_mode is LegMode.FLIGHT and next_mode is LegMode.RAIL:
@@ -79,13 +86,17 @@ def minimum_transfer_minutes(prev_mode: LegMode, next_mode: LegMode, requires_wa
     return MIN_TRANSFER_MINUTES_WALK if requires_walk else MIN_TRANSFER_MINUTES_SAME_PLATFORM
 
 
-def check_transfer(prev_leg: Leg, next_leg: Leg, after_leg_index: int) -> Optional[TransferWarning]:
+def check_transfer(prev_leg: Leg, next_leg: Leg, after_leg_index: int) -> TransferWarning | None:
     gap_minutes = (next_leg.depart - prev_leg.arrive).total_seconds() / 60
     same_stop = next_leg.requires_walk and _same_stop(prev_leg, next_leg)
-    minimum = minimum_transfer_minutes(prev_leg.mode, next_leg.mode, next_leg.requires_walk, same_stop)
+    minimum = minimum_transfer_minutes(
+        prev_leg.mode, next_leg.mode, next_leg.requires_walk, same_stop
+    )
 
     if gap_minutes < minimum:
-        infeasible = gap_minutes < feasible_minimum_minutes(prev_leg.mode, next_leg.mode, next_leg.requires_walk, same_stop)
+        infeasible = gap_minutes < feasible_minimum_minutes(
+            prev_leg.mode, next_leg.mode, next_leg.requires_walk, same_stop
+        )
         if same_stop:
             powod_zmiany = "ten sam przystanek, inny peron/wejście wg MOTIS"
         elif next_leg.requires_walk:
@@ -107,8 +118,8 @@ def check_transfer(prev_leg: Leg, next_leg: Leg, after_leg_index: int) -> Option
     return None
 
 
-def check_all_transfers(legs: List[Leg]) -> List[TransferWarning]:
-    warnings: List[TransferWarning] = []
+def check_all_transfers(legs: list[Leg]) -> list[TransferWarning]:
+    warnings: list[TransferWarning] = []
     # odcinki piesze (dojście z adresu / do adresu) nie są przesiadkami — pomijamy je,
     # ale zachowujemy oryginalne indeksy legów w after_leg_index
     indexed = [(i, leg) for i, leg in enumerate(legs) if leg.mode is not LegMode.WALK]

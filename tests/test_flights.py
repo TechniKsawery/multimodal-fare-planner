@@ -1,7 +1,14 @@
 import pytest
 
-from flights import ExtrasProfile, FlightSegment, PriceType, estimate_price
-from flights import calculator, extras as extras_module, travelpayouts
+from flights import (
+    ExtrasProfile,
+    FlightSegment,
+    PriceType,
+    calculator,
+    estimate_price,
+    travelpayouts,
+)
+from flights import extras as extras_module
 from flights.travelpayouts import TravelpayoutsError, cheapest_entry
 
 SAMPLE_PAYLOAD = {
@@ -49,11 +56,18 @@ def test_fetch_cheapest_price_bez_tokena(monkeypatch):
 
 
 def test_estimate_price_dolicza_wlasny_extras_profile(monkeypatch):
-    monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: SAMPLE_PAYLOAD)
+    monkeypatch.setattr(
+        calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: SAMPLE_PAYLOAD
+    )
 
     seg = FlightSegment(
-        origin="WAW", destination="DUS", depart_date="2026-11-15", currency="PLN",
-        extras=ExtrasProfile(baggage_cost=100, airport_access_cost=30, destination_transfer_cost=20),
+        origin="WAW",
+        destination="DUS",
+        depart_date="2026-11-15",
+        currency="PLN",
+        extras=ExtrasProfile(
+            baggage_cost=100, airport_access_cost=30, destination_transfer_cost=20
+        ),
     )
     result = estimate_price(seg)
 
@@ -67,7 +81,9 @@ def test_estimate_price_dolicza_wlasny_extras_profile(monkeypatch):
 
 
 def test_estimate_price_uzywa_placeholderowej_tabeli_gdy_brak_extras(monkeypatch):
-    monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: SAMPLE_PAYLOAD)
+    monkeypatch.setattr(
+        calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: SAMPLE_PAYLOAD
+    )
 
     seg = FlightSegment(origin="WAW", destination="DUS", depart_date="2026-11-15")
     result = estimate_price(seg)
@@ -87,7 +103,10 @@ def test_estimate_price_brak_dokladnej_daty_uzywa_cache_miesiecznego(monkeypatch
     monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", fake_fetch)
 
     seg = FlightSegment(
-        origin="WAW", destination="DUS", depart_date="2026-11-15", currency="PLN",
+        origin="WAW",
+        destination="DUS",
+        depart_date="2026-11-15",
+        currency="PLN",
         extras=ExtrasProfile(baggage_cost=0),
     )
     result = estimate_price(seg)
@@ -100,10 +119,15 @@ def test_estimate_price_brak_ceny_w_ogole_uzywa_zgrubnego_szacunku(monkeypatch):
     """Gdy nawet cały miesiąc nie ma ceny dla tej relacji (zbyt egzotyczna trasa/data poza
     zakresem cache), użyj stałego zgrubnego szacunku zamiast podnosić błąd i tracić cały wariant."""
     empty_payload = {"success": True, "data": {}}
-    monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: empty_payload)
+    monkeypatch.setattr(
+        calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: empty_payload
+    )
 
     seg = FlightSegment(
-        origin="WAW", destination="DTM", depart_date="2026-11-15", currency="PLN",
+        origin="WAW",
+        destination="DTM",
+        depart_date="2026-11-15",
+        currency="PLN",
         extras=ExtrasProfile(baggage_cost=0),
     )
     result = estimate_price(seg)
@@ -115,10 +139,15 @@ def test_estimate_price_brak_ceny_w_ogole_uzywa_zgrubnego_szacunku(monkeypatch):
 
 
 def test_estimate_price_niezgodna_waluta_extras(monkeypatch):
-    monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: SAMPLE_PAYLOAD)
+    monkeypatch.setattr(
+        calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: SAMPLE_PAYLOAD
+    )
 
     seg = FlightSegment(
-        origin="WAW", destination="DUS", depart_date="2026-11-15", currency="PLN",
+        origin="WAW",
+        destination="DUS",
+        depart_date="2026-11-15",
+        currency="PLN",
         extras=ExtrasProfile(baggage_cost=10, currency="EUR"),
     )
     with pytest.raises(ValueError):

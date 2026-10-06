@@ -22,6 +22,7 @@ Kod wyjścia: 0 = brak zmian (albo pierwsze sprawdzenie), 1 = wykryto zmianę w 
 """
 
 import argparse
+import contextlib
 import hashlib
 import json
 import re
@@ -29,7 +30,6 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 import requests
 
@@ -103,13 +103,13 @@ class CheckResult:
     source: Source
     changed: bool = False
     first_check: bool = False
-    error: Optional[str] = None
-    previous_sha256: Optional[str] = None
-    new_sha256: Optional[str] = None
-    size_bytes: Optional[int] = None
+    error: str | None = None
+    previous_sha256: str | None = None
+    new_sha256: str | None = None
+    size_bytes: int | None = None
 
 
-def discover_sources() -> List[Source]:
+def discover_sources() -> list[Source]:
     """Wyciąga wszystkie URL-e z pól zaczynających się od "_zrodlo" w fares/data/*.json."""
     sources = []
     for path in sorted(DATA_DIR.glob("*.json")):
@@ -118,9 +118,7 @@ def discover_sources() -> List[Source]:
             if not field.startswith("_zrodlo") or not isinstance(value, str):
                 continue
             for url in URL_RE.findall(value):
-                sources.append(
-                    Source(data_file=path.name, field=field, url=url.rstrip(".,)"))
-                )
+                sources.append(Source(data_file=path.name, field=field, url=url.rstrip(".,)")))
     return sources
 
 
@@ -132,7 +130,7 @@ def _snapshot_path(source: Source) -> Path:
 def _fetch_with_retry(url: str, timeout: int) -> requests.Response:
     """GET z `RETRY_ATTEMPTS` próbami i narastającym odstępem — patrz komentarz przy
     RETRY_BACKOFF_SECONDS. Podnosi wyjątek z OSTATNIEJ próby, jeśli żadna się nie powiodła."""
-    last_exc: Optional[requests.RequestException] = None
+    last_exc: requests.RequestException | None = None
     for attempt in range(RETRY_ATTEMPTS):
         try:
             response = requests.get(url, headers=BROWSER_LIKE_HEADERS, timeout=timeout)
@@ -147,11 +145,7 @@ def _fetch_with_retry(url: str, timeout: int) -> requests.Response:
 
 def check_source(source: Source, timeout: int = 120) -> CheckResult:
     snap_file = _snapshot_path(source)
-    previous = (
-        json.loads(snap_file.read_text(encoding="utf-8"))
-        if snap_file.exists()
-        else None
-    )
+    previous = json.loads(snap_file.read_text(encoding="utf-8")) if snap_file.exists() else None
 
     try:
         response = _fetch_with_retry(source.url, timeout)
@@ -192,15 +186,13 @@ def check_source(source: Source, timeout: int = 120) -> CheckResult:
     return result
 
 
-def render_markdown(results: List[CheckResult]) -> str:
+def render_markdown(results: list[CheckResult]) -> str:
     changed = [r for r in results if r.changed]
     errors = [r for r in results if r.error]
     first = [r for r in results if r.first_check]
     lines = ["# Raport: sprawdzenie źródeł cenników\n"]
     if changed:
-        lines.append(
-            f"## ⚠️ Wykryto zmianę w {len(changed)} źródle/źródłach — sprawdź ręcznie\n"
-        )
+        lines.append(f"## ⚠️ Wykryto zmianę w {len(changed)} źródle/źródłach — sprawdź ręcznie\n")
         for r in changed:
             lines.append(
                 f"- **{r.source.data_file}** ({r.source.field}): {r.source.url}\n"
@@ -214,9 +206,7 @@ def render_markdown(results: List[CheckResult]) -> str:
         for r in errors:
             lines.append(f"- {r.source.data_file} ({r.source.url}): {r.error}\n")
     if first:
-        lines.append(
-            f"\n## Pierwsze sprawdzenie (brak punktu odniesienia) — {len(first)}\n"
-        )
+        lines.append(f"\n## Pierwsze sprawdzenie (brak punktu odniesienia) — {len(first)}\n")
         for r in first:
             lines.append(f"- {r.source.data_file}: {r.source.url}\n")
     return "\n".join(lines)
@@ -227,10 +217,9 @@ def _ensure_utf8_stdout() -> None:
     znaków w raporcie (⚠️, polskie znaki w pewnych kombinacjach) — bez tego `print(report)`
     wywala się UnicodeEncodeError (zweryfikowane na żywo 2026-10-03). `reconfigure` jest
     no-opem na Linuksie/macOS (tam stdout już jest UTF-8), więc wołamy to bezwarunkowo."""
-    try:
+    with contextlib.suppress(AttributeError, OSError):
+        # stdout przekierowany na coś bez reconfigure (np. w testach) — nic nie robimy
         sys.stdout.reconfigure(encoding="utf-8")
-    except (AttributeError, OSError):
-        pass  # stdout przekierowany na coś bez reconfigure (np. w testach) — nic nie robimy
 
 
 def main() -> int:

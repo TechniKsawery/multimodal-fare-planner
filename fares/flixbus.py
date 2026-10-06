@@ -10,11 +10,12 @@ w czasie, nie "oficjalna taryfa" w rozumieniu tego, co OFFICIAL oznacza dla PKP/
 to dało się odróżnić realną cenę od zgrubnego fallbacku, breakdown["zrodlo"] jest zawsze
 "api_flixbus_live" albo "fallback_km".
 """
+
 import re
 
-from .model import Carrier, PriceEstimate, PriceType, Segment
-from ._data_loading import load
 from . import _flixbus_api
+from ._data_loading import load
+from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _FALLBACK = load("flixbus_fallback.json")
 
@@ -43,7 +44,9 @@ def _clean_city_name(station_name: str) -> str:
 
 def _fallback_estimate(segment: Segment, reason: str) -> PriceEstimate:
     if segment.distance_km is None:
-        raise ValueError("FlixBus: distance_km jest wymagane (do fallbacku po km, gdy API niedostępne)")
+        raise ValueError(
+            "FlixBus: distance_km jest wymagane (do fallbacku po km, gdy API niedostępne)"
+        )
 
     pln_per_km = _FALLBACK["pln_per_km"]
     amount = round(pln_per_km * segment.distance_km, 2)

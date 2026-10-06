@@ -4,7 +4,13 @@
 Użycie:  python scripts/fetch_data.py [katalog_danych]   (domyślnie ./data)
 Działa na Windowsie, Linuksie i macOS, wymaga tylko Pythona 3.8+.
 """
-import hashlib, os, shutil, subprocess, sys, urllib.request
+
+import hashlib
+import os
+import shutil
+import subprocess
+import sys
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -24,18 +30,21 @@ GTFS = {
 }
 OSM = {
     "osm/poland-latest.osm.pbf": "https://download.geofabrik.de/europe/poland-latest.osm.pbf",
-    "osm/nordrhein-westfalen-latest.osm.pbf":
-        "https://download.geofabrik.de/europe/germany/nordrhein-westfalen-latest.osm.pbf",
+    "osm/nordrhein-westfalen-latest.osm.pbf": "https://download.geofabrik.de/europe/germany/nordrhein-westfalen-latest.osm.pbf",
 }
 # Część serwerów (np. mkuran.pl) odrzuca domyślny User-Agent urllib kodem 403
-UA = {"User-Agent": "multimodal-fare-planner/0.1 (+https://github.com/TechniKsawery/multimodal-fare-planner)"}
+UA = {
+    "User-Agent": "multimodal-fare-planner/0.1 (+https://github.com/TechniKsawery/multimodal-fare-planner)"
+}
 
 
 def download(url, dest):
     dest.parent.mkdir(parents=True, exist_ok=True)
     part = dest.with_name(dest.name + ".part")
     have = part.stat().st_size if part.exists() else 0
-    req = urllib.request.Request(url, headers={**UA, **({"Range": f"bytes={have}-"} if have else {})})
+    req = urllib.request.Request(
+        url, headers={**UA, **({"Range": f"bytes={have}-"} if have else {})}
+    )
     print(f">> {url}")
     with urllib.request.urlopen(req) as r:
         mode = "ab" if have and r.status == 206 else "wb"
@@ -69,9 +78,13 @@ def main():
 
     print("\n== Walidacja GTFS")
     zips = [str(DATA / rel) for rel in GTFS]
-    res = subprocess.run([sys.executable, str(ROOT / "check_gtfs.py"), *zips],
-                         capture_output=True, text=True, encoding="utf-8",
-                         env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+    res = subprocess.run(
+        [sys.executable, str(ROOT / "check_gtfs.py"), *zips],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+    )
     print(res.stdout, res.stderr, sep="")
     (DATA / "gtfs" / "REPORT.txt").write_text(res.stdout, encoding="utf-8")
     ok &= res.returncode == 0

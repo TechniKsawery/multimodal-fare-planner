@@ -9,6 +9,7 @@ Uruchomienie:
 
 Wymaga działającego MOTIS (patrz README.md) — bez niego /route zwróci 502.
 """
+
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 

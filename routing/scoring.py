@@ -18,7 +18,6 @@ wszystkie warianty w tolerancji od najszybszego czasu (patrz FASTEST_TOLERANCE_*
 wybiera wśród nich najtańszy, czyli z uwzględnieniem konkretnych ulg usera (BahnCard, ulgi
 PKP itd. są już wliczone w total_price_pln każdego wariantu).
 """
-from typing import Dict, List
 
 from .currency import to_pln
 from .model import Itinerary, LegMode, PricedLeg
@@ -64,7 +63,7 @@ FASTEST_TOLERANCE_FRACTION = 0.10
 FASTEST_TOLERANCE_MIN_MINUTES = 10
 
 
-def _compromise_key(pool: List[Itinerary]):
+def _compromise_key(pool: list[Itinerary]):
     """Buduje funkcję key() do min(): średnia znormalizowanej (0..1) pozycji w cenie i czasie
     WZGLĘDEM `pool` (nie względem wszystkich wariantów w ogóle — patrz docstring modułu)."""
     prices = [i.total_price_pln for i in pool]
@@ -76,13 +75,15 @@ def _compromise_key(pool: List[Itinerary]):
         return 0.0 if hi <= lo else (value - lo) / (hi - lo)
 
     def key(itinerary: Itinerary) -> float:
-        return (norm(itinerary.total_price_pln, p_lo, p_hi)
-                + norm(itinerary.total_duration_min, d_lo, d_hi)) / 2
+        return (
+            norm(itinerary.total_price_pln, p_lo, p_hi)
+            + norm(itinerary.total_duration_min, d_lo, d_hi)
+        ) / 2
 
     return key
 
 
-def _fastest_within_tolerance(pool: List[Itinerary], key=lambda i: i.total_price_pln) -> Itinerary:
+def _fastest_within_tolerance(pool: list[Itinerary], key=lambda i: i.total_price_pln) -> Itinerary:
     """Spośród `pool` bierze warianty w tolerancji od najszybszego czasu (FASTEST_TOLERANCE_*)
     i zwraca ten najlepszy wg `key` (domyślnie najtańszy) spośród nich."""
     fastest_duration = min(i.total_duration_min for i in pool)
@@ -91,7 +92,7 @@ def _fastest_within_tolerance(pool: List[Itinerary], key=lambda i: i.total_price
     return min(candidates, key=key)
 
 
-def build_itinerary(variant_name: str, priced_legs: List[PricedLeg]) -> Itinerary:
+def build_itinerary(variant_name: str, priced_legs: list[PricedLeg]) -> Itinerary:
     if not priced_legs:
         raise ValueError(f"wariant '{variant_name}': brak odcinków")
 
@@ -111,7 +112,7 @@ def build_itinerary(variant_name: str, priced_legs: List[PricedLeg]) -> Itinerar
     )
 
 
-def pick_recommendations(itineraries: List[Itinerary]) -> Dict[str, Itinerary]:
+def pick_recommendations(itineraries: list[Itinerary]) -> dict[str, Itinerary]:
     """Wybiera rekomendacje z listy wariantów. Może się zdarzyć, że ten sam wariant wygra
     w kilku kategoriach naraz (np. jest jednocześnie najtańszy i najszybszy) — to nie błąd.
 
@@ -119,14 +120,18 @@ def pick_recommendations(itineraries: List[Itinerary]) -> Dict[str, Itinerary]:
     żaden taki wariant nie istnieje, bierzemy najmniej ryzykowny z dostępnych (patrz
     is_safe_recommendation_fallback na Itinerary, ustawiane niżej) — lepiej pokazać
     "najbezpieczniejszy z tego, co jest" niż nic, ale trzeba to wyraźnie oznaczyć w UI."""
-    itineraries = [i for i in itineraries if not i.is_infeasible]  # niewykonalnych nie rekomendujemy
+    itineraries = [
+        i for i in itineraries if not i.is_infeasible
+    ]  # niewykonalnych nie rekomendujemy
     if not itineraries:
         raise ValueError("brak wariantów do wyboru rekomendacji")
 
     safe = [i for i in itineraries if not i.is_risky]
     safe_pool = safe if safe else itineraries
     for i in itineraries:
-        i.is_safe_fallback = not safe  # True: nawet "bezpieczna" rekomendacja ma tu ryzykowną przesiadkę
+        i.is_safe_fallback = (
+            not safe
+        )  # True: nawet "bezpieczna" rekomendacja ma tu ryzykowną przesiadkę
 
     compromise_key = _compromise_key(itineraries)
     safe_compromise_key = _compromise_key(safe_pool)
@@ -138,8 +143,12 @@ def pick_recommendations(itineraries: List[Itinerary]) -> Dict[str, Itinerary]:
         "najlepszy_stosunek_ceny_do_czasu": min(itineraries, key=lambda i: i.value_score),
         "najlepszy_kompromis": min(itineraries, key=compromise_key),
         "najszybsza_z_ulgami": _fastest_within_tolerance(itineraries),
-        "najszybsza_bezpieczna": min(safe_pool, key=lambda i: (i.num_risky_transfers, i.total_duration_min)),
-        "najtansza_bezpieczna": min(safe_pool, key=lambda i: (i.num_risky_transfers, i.total_price_pln)),
+        "najszybsza_bezpieczna": min(
+            safe_pool, key=lambda i: (i.num_risky_transfers, i.total_duration_min)
+        ),
+        "najtansza_bezpieczna": min(
+            safe_pool, key=lambda i: (i.num_risky_transfers, i.total_price_pln)
+        ),
         "najlepszy_kompromis_bezpieczny": min(
             safe_pool, key=lambda i: (i.num_risky_transfers, safe_compromise_key(i))
         ),

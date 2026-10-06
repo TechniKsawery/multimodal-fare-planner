@@ -4,6 +4,7 @@ Identyfikatory stopId pochodzą z MOTIS (Sesja 2, GTFS PL+DE) — zweryfikowane 
 zapytaniami do /api/v1/geocode i /api/v6/plan pod uruchomionym lokalnie MOTIS. Huby (lotniska
 + stacje dojazdowe) są ustalone RAZ, bez przeszukiwania alternatyw — patrz README.md.
 """
+
 from .variants import AlternativeStop, HubConfig, RouteRequest
 
 LUBLIN_GLOWNY_STOP = "pl_50500"

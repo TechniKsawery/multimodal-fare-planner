@@ -9,14 +9,15 @@ Użycie (adres -> adres, z dojściem pieszym; geocoding OSM z Sesji 4b):
     python demo.py
     python demo.py --from "Krakowskie Przedmieście 50, Lublin" --to "Bahnhofstraße, Gelsenkirchen" --date 2026-10-05
 """
+
 import argparse
 
+from routing.card_suggestions import suggest_bahncard_for_itinerary
 from routing.demo_route import (
     FLIGHT_REGIONAL_HUBS,
     RAIL_FLIGHT_RAIL_HUBS,
     VIA_HUB_STOPS,
 )
-from routing.card_suggestions import suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
 from routing.variants import generate_variants, request_from_addresses
@@ -83,11 +84,17 @@ def format_itinerary(itinerary, age=None) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Wyszukiwarka tras adres -> adres")
-    parser.add_argument("--from", dest="origin", default=DEFAULT_FROM, help="adres startowy (z miastem)")
-    parser.add_argument("--to", dest="destination", default=DEFAULT_TO, help="adres docelowy (z miastem)")
+    parser.add_argument(
+        "--from", dest="origin", default=DEFAULT_FROM, help="adres startowy (z miastem)"
+    )
+    parser.add_argument(
+        "--to", dest="destination", default=DEFAULT_TO, help="adres docelowy (z miastem)"
+    )
     parser.add_argument("--date", default=DEMO_DATE, help="dzień wyjazdu YYYY-MM-DD")
     parser.add_argument(
-        "--age", type=int, default=None,
+        "--age",
+        type=int,
+        default=None,
         help="wiek pasażera — używany tylko do podpowiedzi BahnCard (My/Jugend BahnCard 6-26 lat)",
     )
     args = parser.parse_args()
@@ -98,7 +105,9 @@ def main() -> None:
         print(f"Nie udało się zgeokodować adresów: {exc}")
         return
 
-    print(f"Multimodalna wyszukiwarka — {request.origin_label} -> {request.destination_label}, {args.date}\n")
+    print(
+        f"Multimodalna wyszukiwarka — {request.origin_label} -> {request.destination_label}, {args.date}\n"
+    )
 
     # UWAGA: alternative_destination_stops (np. Essen Hbf z routing/demo_route.py) celowo NIE
     # jest tu przekazywane — dla wyszukiwania adres->adres podmieniłoby rzeczywisty adres

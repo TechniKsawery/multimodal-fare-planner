@@ -5,8 +5,9 @@ Intercity — patrz pole "_zrodlo" w fares/data/pkp_intercity.json oraz README.m
 katalogu. Obejmują wyłącznie pociągi TLK/IC 2. klasy; ceny EIC/EIP są ustalane per
 relacja i nie są tu uwzględnione.
 """
-from .model import Carrier, PriceEstimate, PriceType, Segment
+
 from ._data_loading import load
+from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _TABLE = load("pkp_intercity.json")
 

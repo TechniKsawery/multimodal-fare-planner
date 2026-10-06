@@ -2,10 +2,9 @@
 
 Dane w flights/data/extras_placeholder.json są PRZYKŁADOWE — patrz README.md w tym katalogu.
 """
-from typing import Optional, Tuple
 
-from .model import ExtrasProfile
 from ._data_loading import load
+from .model import ExtrasProfile
 
 _TABLE = load("extras_placeholder.json")
 _BAGGAGE_BY_AIRLINE = load("baggage_by_airline.json")
@@ -38,7 +37,7 @@ def get_extras(origin: str, destination: str) -> ExtrasProfile:
     )
 
 
-def get_baggage_by_airline(airline_code: Optional[str]) -> Optional[Tuple[float, str, str]]:
+def get_baggage_by_airline(airline_code: str | None) -> tuple[float, str, str] | None:
     """Zwraca (kwota, waluta, opis_zrodla) dla znanego kodu IATA przewoźnika, albo None gdy
     przewoźnik nieznany w tabeli.
 
@@ -51,4 +50,8 @@ def get_baggage_by_airline(airline_code: Optional[str]) -> Optional[Tuple[float,
     entry = _BAGGAGE_BY_AIRLINE["przewoznicy"].get(airline_code.upper())
     if entry is None:
         return None
-    return entry["koszt"], entry["waluta"], f"{entry['nazwa']}: {entry['zakres']} (źródło: {entry['zrodlo']})"
+    return (
+        entry["koszt"],
+        entry["waluta"],
+        f"{entry['nazwa']}: {entry['zakres']} (źródło: {entry['zrodlo']})",
+    )

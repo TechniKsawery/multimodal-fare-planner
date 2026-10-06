@@ -1,0 +1,17 @@
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+# E501: egzekwuje to black (line-length). E741/E731/B905/UP042: liczne przypadki
+# w testach (zmienne l/pl jako leg, lambdy pomocnicze w testach) to świadomy
+# wybór czytelności, nie przeoczenie — nie warto wymuszać przepisywania.
+ignore = ["E501", "E741", "E731", "B905", "UP042"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["routing", "fares", "flights", "scripts"]

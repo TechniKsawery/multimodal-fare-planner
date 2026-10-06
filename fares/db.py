@@ -5,8 +5,9 @@ oficjalnej tabeli cena-za-km (Flexpreis zależy dynamicznie od trasy/daty w syst
 Mnożniki BahnCard 25/50 są potwierdzone oficjalnie (bahn.de/faq) — patrz "_zrodlo_bahncard"
 w danych. Patrz też README.md w tym katalogu.
 """
-from .model import Carrier, PriceEstimate, PriceType, Segment
+
 from ._data_loading import load
+from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _TABLE = load("db_flexpreis.json")
 

@@ -1,4 +1,5 @@
 """Dispatch do kalkulatora właściwego dla przewoźnika w segmencie."""
+
 from . import db, flixbus, international, pkp, vrr, ztm_lublin
 from .model import Carrier, PriceEstimate, Segment
 

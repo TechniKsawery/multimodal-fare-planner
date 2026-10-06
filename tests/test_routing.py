@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -10,11 +10,21 @@ from routing.motis_client import MotisError
 
 
 def _dt(hour, minute=0, day=28):
-    return datetime(2026, 9, day, hour, minute, tzinfo=timezone.utc)
+    return datetime(2026, 9, day, hour, minute, tzinfo=UTC)
 
 
-def make_leg(mode, origin, destination, depart, arrive, *, carrier="", requires_walk=True,
-             distance_km=100.0, extra=None):
+def make_leg(
+    mode,
+    origin,
+    destination,
+    depart,
+    arrive,
+    *,
+    carrier="",
+    requires_walk=True,
+    distance_km=100.0,
+    extra=None,
+):
     return Leg(
         mode=mode,
         origin_name=origin,
@@ -35,10 +45,20 @@ RAW_ITINERARY = {
     "legs": [
         {
             "mode": "REGIONAL_RAIL",
-            "from": {"name": "Lublin Główny", "stopId": "pl_50500_RAIL_1_52", "lat": 51.23, "lon": 22.57,
-                      "departure": "2026-09-28T06:25:00Z"},
-            "to": {"name": "Warszawa Wschodnia", "stopId": "pl_38653_RAIL_1_10", "lat": 52.25, "lon": 21.05,
-                    "arrival": "2026-09-28T08:11:00Z"},
+            "from": {
+                "name": "Lublin Główny",
+                "stopId": "pl_50500_RAIL_1_52",
+                "lat": 51.23,
+                "lon": 22.57,
+                "departure": "2026-09-28T06:25:00Z",
+            },
+            "to": {
+                "name": "Warszawa Wschodnia",
+                "stopId": "pl_38653_RAIL_1_10",
+                "lat": 52.25,
+                "lon": 21.05,
+                "arrival": "2026-09-28T08:11:00Z",
+            },
             "duration": 6360,
             "startTime": "2026-09-28T06:25:00Z",
             "endTime": "2026-09-28T08:11:00Z",
@@ -55,10 +75,20 @@ RAW_ITINERARY = {
         },
         {
             "mode": "REGIONAL_RAIL",
-            "from": {"name": "Warszawa Wschodnia", "stopId": "pl_38653_RAIL_1_10", "lat": 52.25, "lon": 21.05,
-                      "departure": "2026-09-28T08:49:00Z"},
-            "to": {"name": "Berlin-Lichtenberg", "stopId": "pl_140533_FALLBACK", "lat": 52.51, "lon": 13.5,
-                    "arrival": "2026-09-28T14:03:00Z"},
+            "from": {
+                "name": "Warszawa Wschodnia",
+                "stopId": "pl_38653_RAIL_1_10",
+                "lat": 52.25,
+                "lon": 21.05,
+                "departure": "2026-09-28T08:49:00Z",
+            },
+            "to": {
+                "name": "Berlin-Lichtenberg",
+                "stopId": "pl_140533_FALLBACK",
+                "lat": 52.51,
+                "lon": 13.5,
+                "arrival": "2026-09-28T14:03:00Z",
+            },
             "duration": 18840,
             "startTime": "2026-09-28T08:49:00Z",
             "endTime": "2026-09-28T14:03:00Z",
@@ -76,7 +106,7 @@ def test_itinerary_to_legs_pomija_walk_i_wykrywa_przesiadke_z_przejsciem():
     assert legs[0].origin_name == "Lublin Główny"
     assert legs[0].destination_name == "Warszawa Wschodnia"
     assert legs[0].requires_walk is False  # pierwszy leg, nic przed nim
-    assert legs[1].requires_walk is True   # poprzedzony legiem WALK w surowych danych
+    assert legs[1].requires_walk is True  # poprzedzony legiem WALK w surowych danych
     assert legs[0].carrier_name == "PKP Intercity"
     assert legs[0].distance_km > 0
 
@@ -119,6 +149,7 @@ def test_plan_bez_itinerariow_podnosi_motiserror(monkeypatch):
 
 # --- transfers: bezpieczeństwo przesiadek -------------------------------------------------
 
+
 def test_przesiadka_na_tym_samym_peronie_wystarczajaca():
     prev = make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), requires_walk=False)
     nxt = make_leg(LegMode.RAIL, "B", "C", _dt(8, 25), _dt(10), requires_walk=False)
@@ -153,16 +184,20 @@ def test_przesiadka_ten_sam_przystanek_mimo_requires_walk_nie_wymaga_pelnego_buf
     assert warning.infeasible is False
     assert warning.minimum_required_minutes == transfers.MIN_TRANSFER_MINUTES_SAME_PLATFORM
 
-    ok_nxt = make_leg(LegMode.RAIL, "Essen Altenessen Bf", "C", _dt(8, 25), _dt(10), requires_walk=True)
+    ok_nxt = make_leg(
+        LegMode.RAIL, "Essen Altenessen Bf", "C", _dt(8, 25), _dt(10), requires_walk=True
+    )
     assert transfers.check_transfer(prev, ok_nxt, 0) is None  # 25 min >= 20 min, ten sam przystanek
 
 
 def test_przesiadka_znany_alias_kompleksu_dworcowego_nie_wymaga_pelnego_bufora():
-    """"Dworzec Lublin - Kunickiego" i "Lublin Główny" to różne nazwy tego samego budynku
+    """ "Dworzec Lublin - Kunickiego" i "Lublin Główny" to różne nazwy tego samego budynku
     (potwierdzone ręcznie, patrz KNOWN_STATION_COMPLEX_ALIASES) — mimo różnych nazw powinno
     dostać próg "ten sam peron" (20 min / 3 min absolutnego minimum), nie "zmiana dworca"
     (30 min / 8 min)."""
-    prev = make_leg(LegMode.BUS, "A", "Dworzec Lublin - Kunickiego", _dt(6), _dt(8), requires_walk=False)
+    prev = make_leg(
+        LegMode.BUS, "A", "Dworzec Lublin - Kunickiego", _dt(6), _dt(8), requires_walk=False
+    )
 
     # 5 min: poniżej absolutnego minimum "zmiana dworca" (8 min) -> pod starą logiką byłoby to
     # NIEWYKONALNE, mimo że to jeden budynek. Po poprawce: nadal za krótko na próg bezpieczny
@@ -182,7 +217,7 @@ def test_przesiadka_znany_alias_kompleksu_dworcowego_nie_wymaga_pelnego_bufora()
 
 
 def test_przesiadka_dworzec_lublin_krotsza_nazwa_tez_jest_znanym_aliasem():
-    """"Dworzec Lublin" (bez "- Kunickiego") to ten sam kompleks metropolitalny w Lublinie —
+    """ "Dworzec Lublin" (bez "- Kunickiego") to ten sam kompleks metropolitalny w Lublinie —
     zaobserwowane w praktyce jako osobna nazwa przystanku w GTFS/MOTIS obok "Dworzec Lublin -
     Kunickiego" i "Lublin Główny" (patrz KNOWN_STATION_COMPLEX_ALIASES)."""
     prev = make_leg(LegMode.BUS, "A", "Dworzec Lublin", _dt(6), _dt(8), requires_walk=False)
@@ -206,7 +241,9 @@ def test_przesiadka_berlin_lichtenberg_i_su_lichtenberg_to_ten_sam_wezel():
     połączony przejściem podziemnym (potwierdzone na Wikipedii), patrz
     KNOWN_STATION_COMPLEX_ALIASES."""
     prev = make_leg(LegMode.RAIL, "A", "Berlin-Lichtenberg", _dt(6), _dt(8), requires_walk=False)
-    nxt = make_leg(LegMode.BUS, "S+U Lichtenberg Bhf (Berlin)", "C", _dt(8, 3), _dt(10), requires_walk=True)
+    nxt = make_leg(
+        LegMode.BUS, "S+U Lichtenberg Bhf (Berlin)", "C", _dt(8, 3), _dt(10), requires_walk=True
+    )
     warning = transfers.check_transfer(prev, nxt, 0)
     assert warning is not None  # 3 min < 20 min, nadal ryzykowne
     assert warning.infeasible is False  # ale 3 min >= 3 min absolutnego minimum -> nie niewykonalne
@@ -230,7 +267,7 @@ def test_przesiadka_lot_kolej_z_wystarczajacym_buforem():
 def test_check_all_transfers_zbiera_wiele_ostrzezen():
     legs = [
         make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), requires_walk=False),
-        make_leg(LegMode.RAIL, "B", "C", _dt(8, 5), _dt(10), requires_walk=False),   # zbyt krótko
+        make_leg(LegMode.RAIL, "B", "C", _dt(8, 5), _dt(10), requires_walk=False),  # zbyt krótko
         make_leg(LegMode.RAIL, "C", "D", _dt(10, 30), _dt(12), requires_walk=False),  # ok
     ]
     warnings = transfers.check_all_transfers(legs)
@@ -239,6 +276,7 @@ def test_check_all_transfers_zbiera_wiele_ostrzezen():
 
 
 # --- pricing: dispatch kolej/lot -----------------------------------------------------------
+
 
 def test_infer_rail_carrier_pkp():
     assert pricing.infer_rail_carrier("PKP Intercity") is Carrier.PKP_INTERCITY
@@ -258,6 +296,7 @@ def test_infer_rail_carrier_nieznany_zwraca_none():
 
 def test_currency_convert_ten_sam_kurs_co_to_pln():
     from routing import currency
+
     # 10 EUR -> PLN po kursie z PLACEHOLDER_RATES_TO_PLN (4.30)
     assert currency.convert(10.0, "EUR", "PLN") == pytest.approx(43.0)
     # PLN -> EUR to odwrotność tego samego kursu
@@ -267,7 +306,9 @@ def test_currency_convert_ten_sam_kurs_co_to_pln():
 
 
 def test_price_rail_leg_nieznany_przewoznik_uzywa_fallbacku():
-    leg = make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="Coś Nieznanego", distance_km=100)
+    leg = make_leg(
+        LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="Coś Nieznanego", distance_km=100
+    )
     priced = pricing.price_rail_leg(leg, DiscountProfile())
     assert priced.price_type == "szacunek"
     assert priced.amount == pytest.approx(100 * pricing.GENERIC_FALLBACK_PLN_PER_KM)
@@ -275,17 +316,29 @@ def test_price_rail_leg_nieznany_przewoznik_uzywa_fallbacku():
 
 
 def test_price_rail_leg_pkp_woła_fares(monkeypatch):
-    leg = make_leg(LegMode.RAIL, "Lublin", "Warszawa Wschodnia", _dt(6), _dt(8),
-                    carrier="PKP Intercity", distance_km=170)
+    leg = make_leg(
+        LegMode.RAIL,
+        "Lublin",
+        "Warszawa Wschodnia",
+        _dt(6),
+        _dt(8),
+        carrier="PKP Intercity",
+        distance_km=170,
+    )
 
     calls = {}
 
     def fake_estimate(segment):
         calls["segment"] = segment
         from fares.model import PriceEstimate, PriceType
+
         return PriceEstimate(
-            carrier=segment.carrier, amount=49.0, currency="PLN",
-            price_type=PriceType.OFFICIAL, breakdown={}, notes="test",
+            carrier=segment.carrier,
+            amount=49.0,
+            currency="PLN",
+            price_type=PriceType.OFFICIAL,
+            breakdown={},
+            notes="test",
         )
 
     monkeypatch.setattr(pricing, "fares_estimate_price", fake_estimate)
@@ -309,14 +362,26 @@ def test_price_rail_leg_gdy_fares_odrzuci_segment_uzywa_fallbacku(monkeypatch):
 
 
 def test_price_flight_leg_woła_flights(monkeypatch):
-    leg = make_leg(LegMode.FLIGHT, "WAW", "DTM", _dt(6), _dt(8),
-                    extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"})
+    leg = make_leg(
+        LegMode.FLIGHT,
+        "WAW",
+        "DTM",
+        _dt(6),
+        _dt(8),
+        extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"},
+    )
 
     def fake_estimate(segment):
         from flights.model import PriceEstimate, PriceType
+
         return PriceEstimate(
-            origin="WAW", destination="DTM", amount=350.0, currency="PLN",
-            price_type=PriceType.ESTIMATE, breakdown={"cena_biletu": 200.0, "bagaz": 150.0}, notes="test",
+            origin="WAW",
+            destination="DTM",
+            amount=350.0,
+            currency="PLN",
+            price_type=PriceType.ESTIMATE,
+            breakdown={"cena_biletu": 200.0, "bagaz": 150.0},
+            notes="test",
         )
 
     monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
@@ -330,17 +395,29 @@ def test_price_flight_leg_doklada_tylko_bagaz_bez_dojazdu_i_transferu(monkeypatc
     """WAW-DTM ma w flights/data/extras_placeholder.json wpis z bagaz+dojazd_na_lotnisko+
     transfer_z_lotniska — routing ma doliczyć TYLKO bagaz, bo dojazd/transfer są już osobnymi
     odcinkami kolejowymi w wariancie mieszanym (patrz build_rail_flight_rail_variant)."""
-    leg = make_leg(LegMode.FLIGHT, "WAW", "DTM", _dt(6), _dt(8),
-                    extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"})
+    leg = make_leg(
+        LegMode.FLIGHT,
+        "WAW",
+        "DTM",
+        _dt(6),
+        _dt(8),
+        extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"},
+    )
 
     captured = {}
 
     def fake_estimate(segment):
         captured["segment"] = segment
         from flights.model import PriceEstimate, PriceType
+
         return PriceEstimate(
-            origin="WAW", destination="DTM", amount=0.0, currency="PLN",
-            price_type=PriceType.ESTIMATE, breakdown={}, notes="test",
+            origin="WAW",
+            destination="DTM",
+            amount=0.0,
+            currency="PLN",
+            price_type=PriceType.ESTIMATE,
+            breakdown={},
+            notes="test",
         )
 
     monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
@@ -348,25 +425,36 @@ def test_price_flight_leg_doklada_tylko_bagaz_bez_dojazdu_i_transferu(monkeypatc
 
     extras = captured["segment"].extras
     assert extras is not None
-    assert extras.baggage_cost == 150.0        # z tabeli WAW-DTM
-    assert extras.airport_access_cost == 0.0   # NIE dokładamy — to już osobny leg kolejowy
+    assert extras.baggage_cost == 150.0  # z tabeli WAW-DTM
+    assert extras.airport_access_cost == 0.0  # NIE dokładamy — to już osobny leg kolejowy
     assert extras.destination_transfer_cost == 0.0
 
 
 def test_price_flight_leg_nadpisuje_bagaz_realnym_cennikiem_linii(monkeypatch):
     """Gdy bilet wraca z linią znaną w flights/data/baggage_by_airline.json (tu: Ryanair, FR),
     routing ma nadpisać placeholderowy bagaż z tabeli relacji realną ceną tej linii."""
-    leg = make_leg(LegMode.FLIGHT, "WAW", "DTM", _dt(6), _dt(8),
-                    extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"})
+    leg = make_leg(
+        LegMode.FLIGHT,
+        "WAW",
+        "DTM",
+        _dt(6),
+        _dt(8),
+        extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"},
+    )
 
     def fake_estimate(segment):
         from flights.model import PriceEstimate, PriceType
+
         # symuluje flights.calculator: bagaz=150 z placeholderowej tabeli WAW-DTM, zanim
         # routing dowie się, że linią jest Ryanair (FR)
         return PriceEstimate(
-            origin="WAW", destination="DTM", amount=650.0, currency="PLN",
+            origin="WAW",
+            destination="DTM",
+            amount=650.0,
+            currency="PLN",
             price_type=PriceType.ESTIMATE,
-            breakdown={"cena_biletu": 500.0, "linia": "FR", "bagaz": 150.0}, notes="test",
+            breakdown={"cena_biletu": 500.0, "linia": "FR", "bagaz": 150.0},
+            notes="test",
         )
 
     monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
@@ -380,15 +468,26 @@ def test_price_flight_leg_nadpisuje_bagaz_realnym_cennikiem_linii(monkeypatch):
 
 
 def test_price_flight_leg_nieznana_linia_zostawia_bagaz_z_tabeli_relacji(monkeypatch):
-    leg = make_leg(LegMode.FLIGHT, "WAW", "DTM", _dt(6), _dt(8),
-                    extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"})
+    leg = make_leg(
+        LegMode.FLIGHT,
+        "WAW",
+        "DTM",
+        _dt(6),
+        _dt(8),
+        extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"},
+    )
 
     def fake_estimate(segment):
         from flights.model import PriceEstimate, PriceType
+
         return PriceEstimate(
-            origin="WAW", destination="DTM", amount=650.0, currency="PLN",
+            origin="WAW",
+            destination="DTM",
+            amount=650.0,
+            currency="PLN",
             price_type=PriceType.ESTIMATE,
-            breakdown={"cena_biletu": 500.0, "linia": "ZZ", "bagaz": 150.0}, notes="test",
+            breakdown={"cena_biletu": 500.0, "linia": "ZZ", "bagaz": 150.0},
+            notes="test",
         )
 
     monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
@@ -400,17 +499,29 @@ def test_price_flight_leg_nieznana_linia_zostawia_bagaz_z_tabeli_relacji(monkeyp
 
 
 def test_price_flight_leg_nieznana_relacja_uzywa_domyslnego_szacunku_bagazu(monkeypatch):
-    leg = make_leg(LegMode.FLIGHT, "XXX", "YYY", _dt(6), _dt(8),
-                    extra={"origin_iata": "XXX", "destination_iata": "YYY", "depart_date": "2026-11-15"})
+    leg = make_leg(
+        LegMode.FLIGHT,
+        "XXX",
+        "YYY",
+        _dt(6),
+        _dt(8),
+        extra={"origin_iata": "XXX", "destination_iata": "YYY", "depart_date": "2026-11-15"},
+    )
 
     captured = {}
 
     def fake_estimate(segment):
         captured["segment"] = segment
         from flights.model import PriceEstimate, PriceType
+
         return PriceEstimate(
-            origin="XXX", destination="YYY", amount=0.0, currency="PLN",
-            price_type=PriceType.ESTIMATE, breakdown={}, notes="test",
+            origin="XXX",
+            destination="YYY",
+            amount=0.0,
+            currency="PLN",
+            price_type=PriceType.ESTIMATE,
+            breakdown={},
+            notes="test",
         )
 
     monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
@@ -430,6 +541,7 @@ def test_price_leg_dispatch_na_podstawie_mode(monkeypatch):
 
 
 # --- scoring: budowa Itinerary i wybór rekomendacji ---------------------------------------
+
 
 def _priced(mode, origin, destination, depart, arrive, amount, currency="PLN", requires_walk=False):
     leg = make_leg(mode, origin, destination, depart, arrive, requires_walk=requires_walk)
@@ -464,6 +576,7 @@ def test_build_itinerary_konwertuje_eur_do_pln_dla_sumy():
     legs = [_priced(LegMode.RAIL, "A", "B", _dt(6), _dt(8), 10.0, currency="EUR")]
     itinerary = scoring.build_itinerary("Test", legs)
     from routing.currency import PLACEHOLDER_RATES_TO_PLN
+
     assert itinerary.total_price_pln == pytest.approx(10.0 * PLACEHOLDER_RATES_TO_PLN["EUR"])
 
 
@@ -474,17 +587,21 @@ def test_build_itinerary_bez_legow_podnosi_blad():
 
 def _itinerary(name, price_pln, duration_min, num_transfers):
     from routing.model import Itinerary
+
     return Itinerary(
-        variant_name=name, legs=[], total_price_pln=price_pln,
-        total_duration_min=duration_min, num_transfers=num_transfers,
+        variant_name=name,
+        legs=[],
+        total_price_pln=price_pln,
+        total_duration_min=duration_min,
+        num_transfers=num_transfers,
     )
 
 
 def test_pick_recommendations_wybiera_cztery_kategorie():
-    cheap = _itinerary("tania", 50, 600, 3)              # 50 + 10h*40 = 450
-    fast = _itinerary("szybka", 400, 30, 1)              # 400 + 0.5h*40 = 420
+    cheap = _itinerary("tania", 50, 600, 3)  # 50 + 10h*40 = 450
+    fast = _itinerary("szybka", 400, 30, 1)  # 400 + 0.5h*40 = 420
     few_transfers = _itinerary("bez przesiadek", 300, 500, 0)  # ~633
-    balanced = _itinerary("zbalansowana", 150, 120, 2)   # 150 + 2h*40 = 230, najniższe
+    balanced = _itinerary("zbalansowana", 150, 120, 2)  # 150 + 2h*40 = 230, najniższe
 
     recs = scoring.pick_recommendations([cheap, fast, few_transfers, balanced])
 
@@ -501,10 +618,11 @@ def test_pick_recommendations_pusta_lista_podnosi_blad():
 
 # --- "najlepszy kompromis": znormalizowana pozycja w cenie i czasie względem puli ------------
 
+
 def test_pick_recommendations_kompromis_wybiera_srodek_a_nie_ekstrema():
-    tania_wolna = _itinerary("tania i wolna", 50, 600, 2)   # cena 0.0, czas 1.0 -> 0.5
+    tania_wolna = _itinerary("tania i wolna", 50, 600, 2)  # cena 0.0, czas 1.0 -> 0.5
     droga_szybka = _itinerary("droga i szybka", 500, 60, 2)  # cena 1.0, czas 0.0 -> 0.5
-    srodek = _itinerary("kompromisowa", 200, 250, 2)         # cena ~0.33, czas ~0.35 -> najniższe
+    srodek = _itinerary("kompromisowa", 200, 250, 2)  # cena ~0.33, czas ~0.35 -> najniższe
 
     recs = scoring.pick_recommendations([tania_wolna, droga_szybka, srodek])
 
@@ -542,6 +660,7 @@ def test_pick_recommendations_kompromis_bezpieczny_ma_fallback_gdy_wszystko_ryzy
 
 def test_pick_recommendations_kompromis_pomija_niewykonalne():
     from routing.model import TransferWarning
+
     impossible = _itinerary("niewykonalna", 1, 1, 0)
     impossible.transfer_warnings = [TransferWarning(0, 2, 8, "x", infeasible=True)]
     ok = _itinerary("ok", 100, 300, 2)
@@ -552,12 +671,19 @@ def test_pick_recommendations_kompromis_pomija_niewykonalne():
 
 # --- "najszybsza (z Twoimi ulgami)": trzyma się czubka rankingu czasowego, cena rozstrzyga --
 
-def test_pick_recommendations_najszybsza_z_ulgami_wybiera_tansza_wsrod_blisko_najszybszych():
-    najszybsza_droga = _itinerary("najszybsza, droga", 500, 600, 1)     # czas referencyjny
-    prawie_tak_szybka_tansza = _itinerary("prawie tak szybka, tania", 100, 640, 1)  # +40 min (<10%=60)
-    dużo_wolniejsza_bardzo_tania = _itinerary("dużo wolniejsza, bardzo tania", 10, 1200, 1)  # poza tolerancją
 
-    recs = scoring.pick_recommendations([najszybsza_droga, prawie_tak_szybka_tansza, dużo_wolniejsza_bardzo_tania])
+def test_pick_recommendations_najszybsza_z_ulgami_wybiera_tansza_wsrod_blisko_najszybszych():
+    najszybsza_droga = _itinerary("najszybsza, droga", 500, 600, 1)  # czas referencyjny
+    prawie_tak_szybka_tansza = _itinerary(
+        "prawie tak szybka, tania", 100, 640, 1
+    )  # +40 min (<10%=60)
+    dużo_wolniejsza_bardzo_tania = _itinerary(
+        "dużo wolniejsza, bardzo tania", 10, 1200, 1
+    )  # poza tolerancją
+
+    recs = scoring.pick_recommendations(
+        [najszybsza_droga, prawie_tak_szybka_tansza, dużo_wolniejsza_bardzo_tania]
+    )
 
     assert recs["najszybsza_z_ulgami"] is prawie_tak_szybka_tansza
     # samo "najszybsza" (bez tolerancji) nadal bierze czysty czas
@@ -567,9 +693,11 @@ def test_pick_recommendations_najszybsza_z_ulgami_wybiera_tansza_wsrod_blisko_na
 
 
 def test_pick_recommendations_najszybsza_z_ulgami_ma_minimalna_tolerancje_dla_krotkich_tras():
-    najszybsza = _itinerary("najszybsza", 200, 60, 0)          # 10% z 60 min = 6 min < próg 10 min
-    w_progu_taniej = _itinerary("w progu 10 min, taniej", 50, 69, 0)   # +9 min, w tolerancji (próg=10)
-    poza_progiem = _itinerary("poza progiem", 10, 80, 0)        # +20 min, poza tolerancją
+    najszybsza = _itinerary("najszybsza", 200, 60, 0)  # 10% z 60 min = 6 min < próg 10 min
+    w_progu_taniej = _itinerary(
+        "w progu 10 min, taniej", 50, 69, 0
+    )  # +9 min, w tolerancji (próg=10)
+    poza_progiem = _itinerary("poza progiem", 10, 80, 0)  # +20 min, poza tolerancją
 
     recs = scoring.pick_recommendations([najszybsza, w_progu_taniej, poza_progiem])
 
@@ -588,6 +716,7 @@ def test_pick_recommendations_najszybsza_z_ulgami_bezpieczna_pomija_ryzykowne():
 
 def test_pick_recommendations_najszybsza_z_ulgami_pomija_niewykonalne():
     from routing.model import TransferWarning
+
     impossible = _itinerary("niewykonalna", 1, 1, 0)
     impossible.transfer_warnings = [TransferWarning(0, 2, 8, "x", infeasible=True)]
     ok = _itinerary("ok", 100, 300, 2)
@@ -598,14 +727,22 @@ def test_pick_recommendations_najszybsza_z_ulgami_pomija_niewykonalne():
 
 # --- variants: generowanie wariantów, w tym pomijanie na błędach -------------------------
 
+
 def test_generate_variants_pomija_lot_bez_tokena(monkeypatch):
     request = variants.RouteRequest(
-        origin_stop_id="a", destination_stop_id="b",
-        origin_label="A", destination_label="B", date="2026-11-15",
+        origin_stop_id="a",
+        destination_stop_id="b",
+        origin_label="A",
+        destination_label="B",
+        date="2026-11-15",
     )
 
-    rail_legs = [make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)]
-    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [rail_legs])
+    rail_legs = [
+        make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)
+    ]
+    monkeypatch.setattr(
+        variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [rail_legs]
+    )
 
     def raise_travelpayouts(*args, **kwargs):
         raise TravelpayoutsError("brak tokena")
@@ -625,8 +762,11 @@ def test_generate_variants_pomija_lot_bez_tokena(monkeypatch):
 
 def test_generate_variants_pomija_kolej_gdy_motis_nie_znajduje_polaczenia(monkeypatch):
     request = variants.RouteRequest(
-        origin_stop_id="a", destination_stop_id="b",
-        origin_label="A", destination_label="B", date="2026-11-15",
+        origin_stop_id="a",
+        destination_stop_id="b",
+        origin_label="A",
+        destination_label="B",
+        date="2026-11-15",
     )
 
     def raise_motis_error(*args, **kwargs):
@@ -642,14 +782,22 @@ def test_generate_variants_pomija_kolej_gdy_motis_nie_znajduje_polaczenia(monkey
 
 def test_build_rail_only_variants_deduplikuje_identyczne_trasy(monkeypatch):
     request = variants.RouteRequest(
-        origin_stop_id="a", destination_stop_id="b",
-        origin_label="A", destination_label="B", date="2026-11-15",
+        origin_stop_id="a",
+        destination_stop_id="b",
+        origin_label="A",
+        destination_label="B",
+        date="2026-11-15",
     )
-    legs_a = [make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)]
-    legs_b = [make_leg(LegMode.RAIL, "A", "B", _dt(7), _dt(9), carrier="PKP Intercity", distance_km=170)]
+    legs_a = [
+        make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)
+    ]
+    legs_b = [
+        make_leg(LegMode.RAIL, "A", "B", _dt(7), _dt(9), carrier="PKP Intercity", distance_km=170)
+    ]
 
-    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs",
-                         lambda *a, **kw: [legs_a, legs_b])
+    monkeypatch.setattr(
+        variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [legs_a, legs_b]
+    )
 
     result = variants.build_rail_only_variants(request, max_variants=5)
     assert len(result) == 1  # ta sama sygnatura trasy (A->B) -> zliczona raz
@@ -657,15 +805,36 @@ def test_build_rail_only_variants_deduplikuje_identyczne_trasy(monkeypatch):
 
 def test_build_rail_flight_rail_variant_laczy_trzy_odcinki(monkeypatch):
     request = variants.RouteRequest(
-        origin_stop_id="lublin", destination_stop_id="gelsenkirchen",
-        origin_label="Lublin", destination_label="Gelsenkirchen", date="2026-11-15",
+        origin_stop_id="lublin",
+        destination_stop_id="gelsenkirchen",
+        origin_label="Lublin",
+        destination_label="Gelsenkirchen",
+        date="2026-11-15",
     )
     hub = variants.HubConfig("Warszawa-Dortmund", "WAW", "DTM", "waw_airport", "dortmund_hbf")
 
-    access_legs = [make_leg(LegMode.RAIL, "Lublin", "Warszawa Lotnisko Chopina", _dt(6), _dt(8),
-                             carrier="PKP Intercity", distance_km=170)]
-    onward_legs = [make_leg(LegMode.RAIL, "Dortmund Hbf", "Gelsenkirchen Hbf", _dt(16), _dt(16, 30),
-                             carrier="DB Regio", distance_km=25)]
+    access_legs = [
+        make_leg(
+            LegMode.RAIL,
+            "Lublin",
+            "Warszawa Lotnisko Chopina",
+            _dt(6),
+            _dt(8),
+            carrier="PKP Intercity",
+            distance_km=170,
+        )
+    ]
+    onward_legs = [
+        make_leg(
+            LegMode.RAIL,
+            "Dortmund Hbf",
+            "Gelsenkirchen Hbf",
+            _dt(16),
+            _dt(16, 30),
+            carrier="DB Regio",
+            distance_km=25,
+        )
+    ]
 
     calls = []
 
@@ -674,8 +843,11 @@ def test_build_rail_flight_rail_variant_laczy_trzy_odcinki(monkeypatch):
         return [access_legs] if origin == "lublin" else [onward_legs]
 
     monkeypatch.setattr(variants.motis_client, "plan_leg_candidates", fake_plan_leg_candidates)
-    monkeypatch.setattr(variants.pricing, "price_leg",
-                         lambda leg, discounts, currency="PLN": PricedLeg(leg, 10.0, "PLN", "szacunek"))
+    monkeypatch.setattr(
+        variants.pricing,
+        "price_leg",
+        lambda leg, discounts, currency="PLN": PricedLeg(leg, 10.0, "PLN", "szacunek"),
+    )
 
     itinerary = variants.build_rail_flight_rail_variant(request, hub)
 
@@ -690,20 +862,50 @@ def test_build_rail_flight_rail_variant_wybiera_najlepsza_kombinacje_calosciowo(
     wolniejsza alternatywa — wariant powinien wybrać tę drugą, nie automatycznie najszybszy
     pojedynczy fragment (single-itinerary limitation, patrz backlog)."""
     request = variants.RouteRequest(
-        origin_stop_id="lublin", destination_stop_id="gelsenkirchen",
-        origin_label="Lublin", destination_label="Gelsenkirchen", date="2026-11-15",
+        origin_stop_id="lublin",
+        destination_stop_id="gelsenkirchen",
+        origin_label="Lublin",
+        destination_label="Gelsenkirchen",
+        date="2026-11-15",
     )
     hub = variants.HubConfig("Warszawa-Dortmund", "WAW", "DTM", "waw_airport", "dortmund_hbf")
 
     # Najszybszy dojazd: przyjazd 7:55, zostawia tylko 5 min do (sztywnego) bufora 150 min
     # przed lotem liczonym od MOMENTU PRZYJAZDU, więc to akurat nie wpływa na wykonalność —
     # różnicuje je za to CENA (symulowana przez różne distance_km -> różna cena via fares).
-    fast_but_pricier = [make_leg(LegMode.RAIL, "Lublin", "Warszawa Lotnisko Chopina", _dt(6), _dt(7, 55),
-                                  carrier="PKP Intercity", distance_km=170)]
-    slower_but_cheaper = [make_leg(LegMode.RAIL, "Lublin", "Warszawa Lotnisko Chopina", _dt(6), _dt(8, 30),
-                                    carrier="PKP Intercity", distance_km=170)]
-    onward_legs = [make_leg(LegMode.RAIL, "Dortmund Hbf", "Gelsenkirchen Hbf", _dt(16), _dt(16, 30),
-                             carrier="DB Regio", distance_km=25)]
+    fast_but_pricier = [
+        make_leg(
+            LegMode.RAIL,
+            "Lublin",
+            "Warszawa Lotnisko Chopina",
+            _dt(6),
+            _dt(7, 55),
+            carrier="PKP Intercity",
+            distance_km=170,
+        )
+    ]
+    slower_but_cheaper = [
+        make_leg(
+            LegMode.RAIL,
+            "Lublin",
+            "Warszawa Lotnisko Chopina",
+            _dt(6),
+            _dt(8, 30),
+            carrier="PKP Intercity",
+            distance_km=170,
+        )
+    ]
+    onward_legs = [
+        make_leg(
+            LegMode.RAIL,
+            "Dortmund Hbf",
+            "Gelsenkirchen Hbf",
+            _dt(16),
+            _dt(16, 30),
+            carrier="DB Regio",
+            distance_km=25,
+        )
+    ]
 
     def fake_plan_leg_candidates(origin, destination, time, max_candidates=3):
         if origin == "lublin":
@@ -727,15 +929,36 @@ def test_build_flight_regional_variant_wybiera_najlepsza_kombinacje_calosciowo(m
     """Analogicznie do build_rail_flight_rail_variant: odjazd z huba sprawdza kilka alternatyw
     zamiast automatycznie brać najszybszą."""
     request = variants.RouteRequest(
-        origin_stop_id="lublin", destination_stop_id="gelsenkirchen",
-        origin_label="Lublin", destination_label="Gelsenkirchen", date="2026-11-15",
+        origin_stop_id="lublin",
+        destination_stop_id="gelsenkirchen",
+        origin_label="Lublin",
+        destination_label="Gelsenkirchen",
+        date="2026-11-15",
     )
     hub = variants.HubConfig("Dortmund", "LUX", "DTM", None, "dortmund_hbf")
 
-    fast_but_pricier = [make_leg(LegMode.RAIL, "Dortmund Hbf", "Gelsenkirchen Hbf", _dt(16), _dt(16, 15),
-                                  carrier="DB Regio", distance_km=25)]
-    slower_but_cheaper = [make_leg(LegMode.RAIL, "Dortmund Hbf", "Gelsenkirchen Hbf", _dt(16), _dt(16, 40),
-                                    carrier="DB Regio", distance_km=25)]
+    fast_but_pricier = [
+        make_leg(
+            LegMode.RAIL,
+            "Dortmund Hbf",
+            "Gelsenkirchen Hbf",
+            _dt(16),
+            _dt(16, 15),
+            carrier="DB Regio",
+            distance_km=25,
+        )
+    ]
+    slower_but_cheaper = [
+        make_leg(
+            LegMode.RAIL,
+            "Dortmund Hbf",
+            "Gelsenkirchen Hbf",
+            _dt(16),
+            _dt(16, 40),
+            carrier="DB Regio",
+            distance_km=25,
+        )
+    ]
 
     def fake_plan_leg_candidates(origin, destination, time, max_candidates=3):
         return [fast_but_pricier, slower_but_cheaper]  # posortowane wg czasu, jak prawdziwe API
@@ -757,21 +980,50 @@ def test_build_flight_regional_variant_wybiera_najlepsza_kombinacje_calosciowo(m
 
 ADDRESS_ITINERARY = {
     "legs": [
-        {"mode": "WALK", "from": {"name": "START", "lat": 51.2477, "lon": 22.5592},
-         "to": {"name": "Ogród Saski", "stopId": "ztml_1001", "lat": 51.2474, "lon": 22.5514},
-         "startTime": "2026-10-05T07:16:00Z", "endTime": "2026-10-05T07:24:00Z", "distance": 565.0},
-        {"mode": "BUS", "from": {"name": "Ogród Saski", "stopId": "ztml_1001", "lat": 51.2474, "lon": 22.5514},
-         "to": {"name": "Dworzec Lublin", "stopId": "ztml_2", "lat": 51.2318, "lon": 22.5692},
-         "startTime": "2026-10-05T07:24:00Z", "endTime": "2026-10-05T07:32:00Z", "agencyName": "ZDiTM Lublin"},
-        {"mode": "WALK", "from": {"name": "Dworzec Lublin", "lat": 51.2318, "lon": 22.5692},
-         "to": {"name": "Lublin Główny", "lat": 51.2313, "lon": 22.5692},
-         "startTime": "2026-10-05T07:32:00Z", "endTime": "2026-10-05T07:34:00Z"},
-        {"mode": "REGIONAL_RAIL", "from": {"name": "Lublin Główny", "stopId": "pl_50500", "lat": 51.2313, "lon": 22.5692},
-         "to": {"name": "Gelsenkirchen Hbf", "stopId": "defv_344028", "lat": 51.5049, "lon": 7.1022},
-         "startTime": "2026-10-05T08:00:00Z", "endTime": "2026-10-05T20:00:00Z", "agencyName": "PKP Intercity"},
-        {"mode": "WALK", "from": {"name": "Gelsenkirchen Hbf", "lat": 51.5049, "lon": 7.1022},
-         "to": {"name": "END", "lat": 51.5060, "lon": 7.1016},
-         "startTime": "2026-10-05T20:00:00Z", "endTime": "2026-10-05T20:04:00Z", "distance": 246.0},
+        {
+            "mode": "WALK",
+            "from": {"name": "START", "lat": 51.2477, "lon": 22.5592},
+            "to": {"name": "Ogród Saski", "stopId": "ztml_1001", "lat": 51.2474, "lon": 22.5514},
+            "startTime": "2026-10-05T07:16:00Z",
+            "endTime": "2026-10-05T07:24:00Z",
+            "distance": 565.0,
+        },
+        {
+            "mode": "BUS",
+            "from": {"name": "Ogród Saski", "stopId": "ztml_1001", "lat": 51.2474, "lon": 22.5514},
+            "to": {"name": "Dworzec Lublin", "stopId": "ztml_2", "lat": 51.2318, "lon": 22.5692},
+            "startTime": "2026-10-05T07:24:00Z",
+            "endTime": "2026-10-05T07:32:00Z",
+            "agencyName": "ZDiTM Lublin",
+        },
+        {
+            "mode": "WALK",
+            "from": {"name": "Dworzec Lublin", "lat": 51.2318, "lon": 22.5692},
+            "to": {"name": "Lublin Główny", "lat": 51.2313, "lon": 22.5692},
+            "startTime": "2026-10-05T07:32:00Z",
+            "endTime": "2026-10-05T07:34:00Z",
+        },
+        {
+            "mode": "REGIONAL_RAIL",
+            "from": {"name": "Lublin Główny", "stopId": "pl_50500", "lat": 51.2313, "lon": 22.5692},
+            "to": {
+                "name": "Gelsenkirchen Hbf",
+                "stopId": "defv_344028",
+                "lat": 51.5049,
+                "lon": 7.1022,
+            },
+            "startTime": "2026-10-05T08:00:00Z",
+            "endTime": "2026-10-05T20:00:00Z",
+            "agencyName": "PKP Intercity",
+        },
+        {
+            "mode": "WALK",
+            "from": {"name": "Gelsenkirchen Hbf", "lat": 51.5049, "lon": 7.1022},
+            "to": {"name": "END", "lat": 51.5060, "lon": 7.1016},
+            "startTime": "2026-10-05T20:00:00Z",
+            "endTime": "2026-10-05T20:04:00Z",
+            "distance": 246.0,
+        },
     ]
 }
 
@@ -884,9 +1136,18 @@ def test_request_from_addresses_uzywa_wspolrzednych(monkeypatch):
 
 def test_tramwaj_i_metro_to_transport_lokalny_a_pociag_to_kolej():
     def raw(mode):
-        return {"legs": [{"mode": mode, "from": {"name": "A", "lat": 51.0, "lon": 7.0},
-                          "to": {"name": "B", "lat": 51.1, "lon": 7.0},
-                          "startTime": "2026-10-05T07:00:00Z", "endTime": "2026-10-05T07:10:00Z"}]}
+        return {
+            "legs": [
+                {
+                    "mode": mode,
+                    "from": {"name": "A", "lat": 51.0, "lon": 7.0},
+                    "to": {"name": "B", "lat": 51.1, "lon": 7.0},
+                    "startTime": "2026-10-05T07:00:00Z",
+                    "endTime": "2026-10-05T07:10:00Z",
+                }
+            ]
+        }
+
     assert motis_client.itinerary_to_legs(raw("TRAM"))[0].mode is LegMode.BUS
     assert motis_client.itinerary_to_legs(raw("SUBWAY"))[0].mode is LegMode.BUS
     assert motis_client.itinerary_to_legs(raw("REGIONAL_RAIL"))[0].mode is LegMode.RAIL
@@ -894,13 +1155,31 @@ def test_tramwaj_i_metro_to_transport_lokalny_a_pociag_to_kolej():
 
 
 def test_autobus_lubelski_taryfa_czasowa_a_inny_autokar_dalekobiezny_fallback_km():
-    city = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(7), carrier="ZDiTM Lublin", distance_km=5,
-                    extra={"motis_mode": "BUS"})
-    coach = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(12), carrier="RegioJet", distance_km=500,
-                     extra={"motis_mode": "BUS"})
+    city = make_leg(
+        LegMode.BUS,
+        "A",
+        "B",
+        _dt(6),
+        _dt(7),
+        carrier="ZDiTM Lublin",
+        distance_km=5,
+        extra={"motis_mode": "BUS"},
+    )
+    coach = make_leg(
+        LegMode.BUS,
+        "A",
+        "B",
+        _dt(6),
+        _dt(12),
+        carrier="RegioJet",
+        distance_km=500,
+        extra={"motis_mode": "BUS"},
+    )
     # 60 min jazdy -> najkrótszy pokrywający bilet to 90-minutowy (5.20 PLN normalny)
     assert pricing.price_bus_leg(city).amount == 5.20
-    assert pricing.price_bus_leg(coach).amount == pytest.approx(500 * pricing.GENERIC_FALLBACK_PLN_PER_KM)
+    assert pricing.price_bus_leg(coach).amount == pytest.approx(
+        500 * pricing.GENERIC_FALLBACK_PLN_PER_KM
+    )
 
 
 def test_flixbus_idzie_przez_fares_flixbus_i_spada_do_fallbacku_km_gdy_api_niedostepne(monkeypatch):
@@ -910,16 +1189,32 @@ def test_flixbus_idzie_przez_fares_flixbus_i_spada_do_fallbacku_km_gdy_api_niedo
         raise _flixbus_api.FlixbusApiError("brak sieci (test)")
 
     monkeypatch.setattr(_flixbus_api, "find_city_id", boom)
-    coach = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(12), carrier="Flixbus", distance_km=500,
-                     extra={"motis_mode": "BUS"})
+    coach = make_leg(
+        LegMode.BUS,
+        "A",
+        "B",
+        _dt(6),
+        _dt(12),
+        carrier="Flixbus",
+        distance_km=500,
+        extra={"motis_mode": "BUS"},
+    )
     priced = pricing.price_bus_leg(coach)
     assert priced.amount == pytest.approx(500 * pricing.GENERIC_FALLBACK_PLN_PER_KM)
     assert priced.price_type == "szacunek"
 
 
 def test_tramwaj_vrr_wyceniany_eezy_nrw():
-    tram = make_leg(LegMode.BUS, "Essen Hbf", "Essen Rüttenscheid", _dt(6), _dt(6, 12),
-                     carrier="Ruhrbahn", distance_km=3.5, extra={"motis_mode": "TRAM"})
+    tram = make_leg(
+        LegMode.BUS,
+        "Essen Hbf",
+        "Essen Rüttenscheid",
+        _dt(6),
+        _dt(6, 12),
+        carrier="Ruhrbahn",
+        distance_km=3.5,
+        extra={"motis_mode": "TRAM"},
+    )
     priced = pricing.price_bus_leg(tram)
     assert priced.currency == "EUR"
     assert priced.price_type == "oficjalna_taryfa"
@@ -927,14 +1222,23 @@ def test_tramwaj_vrr_wyceniany_eezy_nrw():
 
 
 def test_autobus_nieznanego_operatora_bez_dystansu_ryczalt():
-    leg = make_leg(LegMode.BUS, "A", "B", _dt(6), _dt(6, 10), carrier="Jakiś Nieznany Operator",
-                    distance_km=None, extra={"motis_mode": "BUS"})
+    leg = make_leg(
+        LegMode.BUS,
+        "A",
+        "B",
+        _dt(6),
+        _dt(6, 10),
+        carrier="Jakiś Nieznany Operator",
+        distance_km=None,
+        extra={"motis_mode": "BUS"},
+    )
     priced = pricing.price_bus_leg(leg)
     assert priced.amount == pricing.LOCAL_BUS_FLAT_PLN
     assert priced.price_type == "szacunek"
 
 
 # --- przesiadki niewykonalne (poniżej absolutnego minimum) są odrzucane, ciasne = ryzykowne -----
+
 
 def test_przesiadka_2_min_ze_zmiana_dworca_jest_niewykonalna():
     prev = make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8))
@@ -948,10 +1252,13 @@ def test_przesiadka_ciasna_ale_wykonalna_to_tylko_ryzyko():
     nxt = make_leg(LegMode.RAIL, "B2", "C", _dt(8, 15), _dt(9), requires_walk=True)
     warning = transfers.check_transfer(prev, nxt, 0)
     assert warning is not None and warning.infeasible is False
-    itinerary = scoring.build_itinerary("t", [
-        _priced(LegMode.RAIL, "A", "B", _dt(6), _dt(8), 10),
-        _priced(LegMode.RAIL, "B2", "C", _dt(8, 15), _dt(9), 10, requires_walk=True),
-    ])
+    itinerary = scoring.build_itinerary(
+        "t",
+        [
+            _priced(LegMode.RAIL, "A", "B", _dt(6), _dt(8), 10),
+            _priced(LegMode.RAIL, "B2", "C", _dt(8, 15), _dt(9), 10, requires_walk=True),
+        ],
+    )
     assert itinerary.is_risky and not itinerary.is_infeasible
 
 
@@ -965,10 +1272,14 @@ def test_rail_to_flight_45_min_niewykonalne_90_ryzykowne():
 
 def _itinerary_z_ryzykiem(name, price_pln, duration_min, num_transfers, num_risky):
     from routing.model import Itinerary, TransferWarning
+
     warnings = [TransferWarning(0, 5, 10, "ciasna przesiadka") for _ in range(num_risky)]
     return Itinerary(
-        variant_name=name, legs=[], total_price_pln=price_pln,
-        total_duration_min=duration_min, num_transfers=num_transfers,
+        variant_name=name,
+        legs=[],
+        total_price_pln=price_pln,
+        total_duration_min=duration_min,
+        num_transfers=num_transfers,
         transfer_warnings=warnings,
     )
 
@@ -995,6 +1306,7 @@ def test_pick_recommendations_bezpieczna_ma_fallback_gdy_wszystko_ryzykowne():
 
 def test_pick_recommendations_pomija_niewykonalne():
     from routing.model import TransferWarning
+
     impossible = _itinerary("niewykonalna", 1, 1, 0)
     impossible.transfer_warnings = [TransferWarning(0, 2, 8, "x", infeasible=True)]
     ok = _itinerary("ok", 100, 300, 2)
@@ -1004,11 +1316,25 @@ def test_pick_recommendations_pomija_niewykonalne():
 
 def test_rail_only_odrzuca_warianty_z_niewykonalna_przesiadka(monkeypatch):
     request = variants.RouteRequest("a", "b", "A", "B", "2026-10-05")
-    bad = [make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=100),
-           make_leg(LegMode.RAIL, "B2", "C", _dt(8, 2), _dt(9), carrier="PKP Intercity", distance_km=100,
-                    requires_walk=True)]
-    good = [make_leg(LegMode.RAIL, "A", "C", _dt(6), _dt(10), carrier="PKP Intercity", distance_km=200)]
-    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [bad, good])
+    bad = [
+        make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=100),
+        make_leg(
+            LegMode.RAIL,
+            "B2",
+            "C",
+            _dt(8, 2),
+            _dt(9),
+            carrier="PKP Intercity",
+            distance_km=100,
+            requires_walk=True,
+        ),
+    ]
+    good = [
+        make_leg(LegMode.RAIL, "A", "C", _dt(6), _dt(10), carrier="PKP Intercity", distance_km=200)
+    ]
+    monkeypatch.setattr(
+        variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [bad, good]
+    )
     result = variants.build_rail_only_variants(request, max_variants=5)
     assert len(result) == 1 and result[0].num_transfers == 0
 
@@ -1016,7 +1342,17 @@ def test_rail_only_odrzuca_warianty_z_niewykonalna_przesiadka(monkeypatch):
 def test_rail_only_domyslnie_zwraca_wszystkie_rozne_warianty(monkeypatch):
     request = variants.RouteRequest("a", "b", "A", "B", "2026-10-05")
     options = [
-        [make_leg(LegMode.RAIL, f"A{i}", "B", _dt(6), _dt(8 + i), carrier="PKP Intercity", distance_km=100)]
+        [
+            make_leg(
+                LegMode.RAIL,
+                f"A{i}",
+                "B",
+                _dt(6),
+                _dt(8 + i),
+                carrier="PKP Intercity",
+                distance_km=100,
+            )
+        ]
         for i in range(4)
     ]
     monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: options)
@@ -1025,8 +1361,10 @@ def test_rail_only_domyslnie_zwraca_wszystkie_rozne_warianty(monkeypatch):
 
 # --- kary w "najlepszy stosunek cena/czas": ryzykowne przesiadki i liczba przewoźników -------
 
+
 def _scored(price, minutes, risky=0, carriers=("PKP Intercity",)):
     from routing.model import Itinerary, TransferWarning
+
     legs = [_priced(LegMode.RAIL, "A", "B", _dt(6), _dt(7), 0) for _ in carriers]
     for pl, c in zip(legs, carriers):
         pl.leg.carrier_name = c
@@ -1035,13 +1373,15 @@ def _scored(price, minutes, risky=0, carriers=("PKP Intercity",)):
 
 
 def test_kara_za_ryzykowne_przesiadki_zmienia_zwyciezce():
-    prosta = _scored(400, 900)                 # 26.7 PLN/h
-    ryzykowna = _scored(350, 850, risky=3)     # bez kary 24.7 PLN/h (lepsza), z karą gorsza
+    prosta = _scored(400, 900)  # 26.7 PLN/h
+    ryzykowna = _scored(350, 850, risky=3)  # bez kary 24.7 PLN/h (lepsza), z karą gorsza
     assert ryzykowna.price_per_hour < prosta.price_per_hour
     assert ryzykowna.value_score > prosta.value_score
     recs = scoring.pick_recommendations([prosta, ryzykowna])
     assert recs["najlepszy_stosunek_ceny_do_czasu"] is prosta
-    assert recs["najtansza"] is ryzykowna and recs["najszybsza"] is ryzykowna  # czyste kryteria bez kar
+    assert (
+        recs["najtansza"] is ryzykowna and recs["najszybsza"] is ryzykowna
+    )  # czyste kryteria bez kar
 
 
 def test_kara_za_dodatkowych_przewoznikow():
@@ -1065,19 +1405,27 @@ def test_all_itineraries_prosi_motis_o_30_wynikow(monkeypatch):
 
 def test_plan_leg_candidates_sortuje_wg_czasu_i_limituje(monkeypatch):
     def _walk_leg(to_name, end_time):
-        return {"mode": "WALK", "from": {"name": "A", "lat": 0.0, "lon": 0.0},
-                "to": {"name": to_name, "lat": 0.0, "lon": 0.0},
-                "startTime": "2026-10-05T06:00:00Z", "endTime": end_time}
+        return {
+            "mode": "WALK",
+            "from": {"name": "A", "lat": 0.0, "lon": 0.0},
+            "to": {"name": to_name, "lat": 0.0, "lon": 0.0},
+            "startTime": "2026-10-05T06:00:00Z",
+            "endTime": end_time,
+        }
 
     def fake_plan(from_place, to_place, time, max_transfers=4, num_itineraries=None):
-        return {"itineraries": [
-            {"duration": 7200, "legs": [_walk_leg("B", "2026-10-05T08:00:00Z")]},
-            {"duration": 3600, "legs": [_walk_leg("C", "2026-10-05T07:00:00Z")]},
-            {"duration": 5400, "legs": [_walk_leg("D", "2026-10-05T07:30:00Z")]},
-        ]}
+        return {
+            "itineraries": [
+                {"duration": 7200, "legs": [_walk_leg("B", "2026-10-05T08:00:00Z")]},
+                {"duration": 3600, "legs": [_walk_leg("C", "2026-10-05T07:00:00Z")]},
+                {"duration": 5400, "legs": [_walk_leg("D", "2026-10-05T07:30:00Z")]},
+            ]
+        }
 
     monkeypatch.setattr(motis_client, "plan", fake_plan)
-    candidates = motis_client.plan_leg_candidates("a", "b", "2026-10-05T06:00:00Z", max_candidates=2)
+    candidates = motis_client.plan_leg_candidates(
+        "a", "b", "2026-10-05T06:00:00Z", max_candidates=2
+    )
 
     assert len(candidates) == 2
     assert [legs[0].destination_name for legs in candidates] == ["C", "D"]  # 3600s, potem 5400s
@@ -1085,22 +1433,47 @@ def test_plan_leg_candidates_sortuje_wg_czasu_i_limituje(monkeypatch):
 
 # --- Sesja 6: alternatywne węzły przesiadkowe/miasta i dworce ----------------------------
 
+
 def _flat_price_leg(monkeypatch):
-    monkeypatch.setattr(variants.pricing, "price_leg",
-                         lambda leg, discounts, currency="PLN": PricedLeg(leg, 10.0, "PLN", "szacunek"))
+    monkeypatch.setattr(
+        variants.pricing,
+        "price_leg",
+        lambda leg, discounts, currency="PLN": PricedLeg(leg, 10.0, "PLN", "szacunek"),
+    )
 
 
 def test_build_rail_via_stop_variant_spina_dwa_zapytania_przez_wezel(monkeypatch):
     request = variants.RouteRequest(
-        origin_stop_id="lublin", destination_stop_id="gelsenkirchen",
-        origin_label="Lublin", destination_label="Gelsenkirchen", date="2026-11-15",
+        origin_stop_id="lublin",
+        destination_stop_id="gelsenkirchen",
+        origin_label="Lublin",
+        destination_label="Gelsenkirchen",
+        date="2026-11-15",
     )
     via = variants.AlternativeStop("Poznań Główny", "pl_poznan")
 
-    first_legs = [make_leg(LegMode.RAIL, "Lublin", "Poznań Główny", _dt(6), _dt(10),
-                            carrier="PKP Intercity", distance_km=300)]
-    second_legs = [make_leg(LegMode.RAIL, "Poznań Główny", "Gelsenkirchen", _dt(11), _dt(18),
-                             carrier="DB Fernverkehr AG", distance_km=500)]
+    first_legs = [
+        make_leg(
+            LegMode.RAIL,
+            "Lublin",
+            "Poznań Główny",
+            _dt(6),
+            _dt(10),
+            carrier="PKP Intercity",
+            distance_km=300,
+        )
+    ]
+    second_legs = [
+        make_leg(
+            LegMode.RAIL,
+            "Poznań Główny",
+            "Gelsenkirchen",
+            _dt(11),
+            _dt(18),
+            carrier="DB Fernverkehr AG",
+            distance_km=500,
+        )
+    ]
 
     calls = []
 
@@ -1113,7 +1486,10 @@ def test_build_rail_via_stop_variant_spina_dwa_zapytania_przez_wezel(monkeypatch
 
     itinerary = variants.build_rail_via_stop_variant(request, via)
 
-    assert [(o, d) for o, d, _ in calls] == [("lublin", "pl_poznan"), ("pl_poznan", "gelsenkirchen")]
+    assert [(o, d) for o, d, _ in calls] == [
+        ("lublin", "pl_poznan"),
+        ("pl_poznan", "gelsenkirchen"),
+    ]
     assert len(itinerary.legs) == 2
     assert "Poznań Główny" in itinerary.variant_name
 
@@ -1121,7 +1497,9 @@ def test_build_rail_via_stop_variant_spina_dwa_zapytania_przez_wezel(monkeypatch
     # przesiadki, żeby nie łapać połączenia na styk kilku minut
     second_query_time = datetime.fromisoformat(calls[1][2].replace("Z", "+00:00"))
     assert second_query_time > first_legs[0].arrive
-    assert (second_query_time - first_legs[0].arrive).total_seconds() / 60 == transfers.MIN_TRANSFER_MINUTES_WALK
+    assert (
+        second_query_time - first_legs[0].arrive
+    ).total_seconds() / 60 == transfers.MIN_TRANSFER_MINUTES_WALK
 
     # przesiadka w węźle pośrednim jest jawnie oznaczona jako wymagająca przejścia (nie wiemy,
     # czy to ten sam peron — to dwa niezależnie zapytane odcinki)
@@ -1132,14 +1510,23 @@ def test_generate_variants_via_hub_stops_dedup_wobec_glownego_zapytania(monkeypa
     """Trasa via-hub identyczna z tą, którą MOTIS już zwrócił w głównym zapytaniu, nie
     powinna się zdublować w wyniku."""
     request = variants.RouteRequest(
-        origin_stop_id="a", destination_stop_id="b",
-        origin_label="A", destination_label="B", date="2026-11-15",
+        origin_stop_id="a",
+        destination_stop_id="b",
+        origin_label="A",
+        destination_label="B",
+        date="2026-11-15",
     )
     main_legs = [
-        make_leg(LegMode.RAIL, "A", "Hub", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170),
-        make_leg(LegMode.RAIL, "Hub", "B", _dt(9), _dt(12), carrier="DB Fernverkehr AG", distance_km=300),
+        make_leg(
+            LegMode.RAIL, "A", "Hub", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170
+        ),
+        make_leg(
+            LegMode.RAIL, "Hub", "B", _dt(9), _dt(12), carrier="DB Fernverkehr AG", distance_km=300
+        ),
     ]
-    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [main_legs])
+    monkeypatch.setattr(
+        variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [main_legs]
+    )
 
     def fake_plan_leg(origin, destination, time, **kw):
         return [main_legs[0]] if origin == "a" else [main_legs[1]]
@@ -1156,14 +1543,35 @@ def test_generate_variants_via_hub_stops_dedup_wobec_glownego_zapytania(monkeypa
 
 def test_generate_variants_via_hub_dodaje_nowa_trase_gdy_rozna_od_glownej(monkeypatch):
     request = variants.RouteRequest(
-        origin_stop_id="a", destination_stop_id="b",
-        origin_label="A", destination_label="B", date="2026-11-15",
+        origin_stop_id="a",
+        destination_stop_id="b",
+        origin_label="A",
+        destination_label="B",
+        date="2026-11-15",
     )
-    main_legs = [make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)]
-    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [main_legs])
+    main_legs = [
+        make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)
+    ]
+    monkeypatch.setattr(
+        variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [main_legs]
+    )
 
-    via_first = [make_leg(LegMode.RAIL, "A", "Poznań", _dt(6), _dt(9), carrier="PKP Intercity", distance_km=300)]
-    via_second = [make_leg(LegMode.RAIL, "Poznań", "B", _dt(10), _dt(16), carrier="DB Fernverkehr AG", distance_km=500)]
+    via_first = [
+        make_leg(
+            LegMode.RAIL, "A", "Poznań", _dt(6), _dt(9), carrier="PKP Intercity", distance_km=300
+        )
+    ]
+    via_second = [
+        make_leg(
+            LegMode.RAIL,
+            "Poznań",
+            "B",
+            _dt(10),
+            _dt(16),
+            carrier="DB Fernverkehr AG",
+            distance_km=500,
+        )
+    ]
 
     def fake_plan_leg(origin, destination, time, **kw):
         return via_first if origin == "a" else via_second
@@ -1180,11 +1588,18 @@ def test_generate_variants_via_hub_dodaje_nowa_trase_gdy_rozna_od_glownej(monkey
 
 def test_generate_variants_via_hub_motis_error_laduje_w_skipped(monkeypatch):
     request = variants.RouteRequest(
-        origin_stop_id="a", destination_stop_id="b",
-        origin_label="A", destination_label="B", date="2026-11-15",
+        origin_stop_id="a",
+        destination_stop_id="b",
+        origin_label="A",
+        destination_label="B",
+        date="2026-11-15",
     )
-    main_legs = [make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)]
-    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [main_legs])
+    main_legs = [
+        make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)
+    ]
+    monkeypatch.setattr(
+        variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [main_legs]
+    )
     _flat_price_leg(monkeypatch)
 
     def raise_motis_error(*a, **kw):
@@ -1202,13 +1617,34 @@ def test_generate_variants_via_hub_motis_error_laduje_w_skipped(monkeypatch):
 
 def test_generate_variants_alternative_origin_stops_dodaje_i_dedupikuje(monkeypatch):
     request = variants.RouteRequest(
-        origin_stop_id="warszawa_centralna", destination_stop_id="b",
-        origin_label="Warszawa", destination_label="B", date="2026-11-15",
+        origin_stop_id="warszawa_centralna",
+        destination_stop_id="b",
+        origin_label="Warszawa",
+        destination_label="B",
+        date="2026-11-15",
     )
-    main_legs = [make_leg(LegMode.RAIL, "Warszawa Centralna", "B", _dt(6), _dt(8),
-                           carrier="PKP Intercity", distance_km=170)]
-    alt_legs = [make_leg(LegMode.RAIL, "Warszawa Wschodnia", "B", _dt(6, 30), _dt(8, 30),
-                          carrier="PKP Intercity", distance_km=175)]
+    main_legs = [
+        make_leg(
+            LegMode.RAIL,
+            "Warszawa Centralna",
+            "B",
+            _dt(6),
+            _dt(8),
+            carrier="PKP Intercity",
+            distance_km=170,
+        )
+    ]
+    alt_legs = [
+        make_leg(
+            LegMode.RAIL,
+            "Warszawa Wschodnia",
+            "B",
+            _dt(6, 30),
+            _dt(8, 30),
+            carrier="PKP Intercity",
+            distance_km=175,
+        )
+    ]
 
     def fake_all_itineraries(origin, destination, time):
         return [main_legs] if origin == "warszawa_centralna" else [alt_legs]
@@ -1225,9 +1661,14 @@ def test_generate_variants_alternative_origin_stops_dodaje_i_dedupikuje(monkeypa
     # ta sama trasa (sygnatura) z alternatywnego dworca -> zdedup'owana wobec głównej
     built2, _ = variants.generate_variants(
         variants.RouteRequest(
-            origin_stop_id="warszawa_centralna", destination_stop_id="b",
-            origin_label="Warszawa", destination_label="B", date="2026-11-15",
+            origin_stop_id="warszawa_centralna",
+            destination_stop_id="b",
+            origin_label="Warszawa",
+            destination_label="B",
+            date="2026-11-15",
         ),
-        alternative_origin_stops=[variants.AlternativeStop("Centralna-duplikat", "warszawa_centralna")],
+        alternative_origin_stops=[
+            variants.AlternativeStop("Centralna-duplikat", "warszawa_centralna")
+        ],
     )
     assert len(built2) == 1

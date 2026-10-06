@@ -42,9 +42,7 @@ def _write_source_file(data_dir: Path, name: str, url: str) -> None:
 
 
 def test_discover_sources_extracts_urls_from_zrodlo_fields(isolated_data_dir):
-    _write_source_file(
-        isolated_data_dir, "pkp_intercity.json", "https://example.com/pkp.pdf"
-    )
+    _write_source_file(isolated_data_dir, "pkp_intercity.json", "https://example.com/pkp.pdf")
     sources = ffs.discover_sources()
     assert len(sources) == 1
     assert sources[0].url == "https://example.com/pkp.pdf"
@@ -54,9 +52,7 @@ def test_discover_sources_extracts_urls_from_zrodlo_fields(isolated_data_dir):
 def test_first_check_has_no_previous_snapshot_and_is_not_flagged_changed(
     isolated_data_dir, monkeypatch
 ):
-    _write_source_file(
-        isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf"
-    )
+    _write_source_file(isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf")
     monkeypatch.setattr(ffs.requests, "get", lambda *a, **k: FakeResponse(b"wersja 1"))
 
     [source] = ffs.discover_sources()
@@ -68,12 +64,8 @@ def test_first_check_has_no_previous_snapshot_and_is_not_flagged_changed(
 
 
 def test_unchanged_content_between_runs_is_not_flagged(isolated_data_dir, monkeypatch):
-    _write_source_file(
-        isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf"
-    )
-    monkeypatch.setattr(
-        ffs.requests, "get", lambda *a, **k: FakeResponse(b"ta sama zawartosc")
-    )
+    _write_source_file(isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf")
+    monkeypatch.setattr(ffs.requests, "get", lambda *a, **k: FakeResponse(b"ta sama zawartosc"))
     [source] = ffs.discover_sources()
 
     ffs.check_source(source)  # pierwszy przebieg: zapisuje snapshot
@@ -84,9 +76,7 @@ def test_unchanged_content_between_runs_is_not_flagged(isolated_data_dir, monkey
 
 
 def test_changed_content_between_runs_is_flagged(isolated_data_dir, monkeypatch):
-    _write_source_file(
-        isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf"
-    )
+    _write_source_file(isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf")
     [source] = ffs.discover_sources()
 
     monkeypatch.setattr(ffs.requests, "get", lambda *a, **k: FakeResponse(b"wersja 1"))
@@ -104,9 +94,7 @@ def test_changed_content_between_runs_is_flagged(isolated_data_dir, monkeypatch)
 
 
 def test_fetch_error_is_reported_without_crashing(isolated_data_dir, monkeypatch):
-    _write_source_file(
-        isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf"
-    )
+    _write_source_file(isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf")
     [source] = ffs.discover_sources()
 
     def raise_error(*a, **k):
@@ -119,14 +107,10 @@ def test_fetch_error_is_reported_without_crashing(isolated_data_dir, monkeypatch
     assert result.changed is False
 
 
-def test_retry_po_jednej_nieudanej_probie_udaje_sie_na_kolejnej(
-    isolated_data_dir, monkeypatch
-):
+def test_retry_po_jednej_nieudanej_probie_udaje_sie_na_kolejnej(isolated_data_dir, monkeypatch):
     """Retry ma przeżyć pojedynczy gubiony connect/read bez wpisywania źródła do raportu
     jako błąd."""
-    _write_source_file(
-        isolated_data_dir, "pkp_intercity.json", "https://example.com/pkp.pdf"
-    )
+    _write_source_file(isolated_data_dir, "pkp_intercity.json", "https://example.com/pkp.pdf")
     [source] = ffs.discover_sources()
 
     calls = {"n": 0}
@@ -146,9 +130,7 @@ def test_retry_po_jednej_nieudanej_probie_udaje_sie_na_kolejnej(
 
 
 def test_retry_wyczerpany_zglasza_blad_z_ostatniej_proby(isolated_data_dir, monkeypatch):
-    _write_source_file(
-        isolated_data_dir, "pkp_intercity.json", "https://example.com/pkp.pdf"
-    )
+    _write_source_file(isolated_data_dir, "pkp_intercity.json", "https://example.com/pkp.pdf")
     [source] = ffs.discover_sources()
 
     calls = {"n": 0}
@@ -178,9 +160,7 @@ def test_fetch_with_retry_wysyla_realistyczny_user_agent(monkeypatch):
 
 
 def test_main_exit_codes(isolated_data_dir, monkeypatch, capsys):
-    _write_source_file(
-        isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf"
-    )
+    _write_source_file(isolated_data_dir, "vrr_eezy.json", "https://example.com/vrr.pdf")
     monkeypatch.setattr(sys, "argv", ["fetch_fare_sources.py"])
 
     monkeypatch.setattr(ffs.requests, "get", lambda *a, **k: FakeResponse(b"v1"))
@@ -224,9 +204,7 @@ def test_check_source_ignoruje_zmiane_tylko_w_script_na_stronie_html(
     """To jest regresja na żywo złapany false-positive: bahn.de wyszło jako "zmienione" w
     dwóch przebiegach ~20 min od siebie, mimo że cena najpewniej się nie zmieniła — podejrzenie
     paść na niedeterministyczną treść w <script> (nonce/cache-busting)."""
-    _write_source_file(
-        isolated_data_dir, "bahncard.json", "https://example.com/bahncard"
-    )
+    _write_source_file(isolated_data_dir, "bahncard.json", "https://example.com/bahncard")
     [source] = ffs.discover_sources()
 
     monkeypatch.setattr(
@@ -250,15 +228,11 @@ def test_check_source_ignoruje_zmiane_tylko_w_script_na_stronie_html(
     assert result.changed is False
 
 
-def test_check_source_wykrywa_realna_zmiane_w_tekscie_poza_script(
-    isolated_data_dir, monkeypatch
-):
+def test_check_source_wykrywa_realna_zmiane_w_tekscie_poza_script(isolated_data_dir, monkeypatch):
     """Normalizacja nie może ukrywać realnych zmian — to jest sedno przewagi tego projektu
     (dokładność cen/zniżek), więc zmiana w tekście widocznym (nie w <script>/<style>) musi
     nadal być wykrywana."""
-    _write_source_file(
-        isolated_data_dir, "bahncard.json", "https://example.com/bahncard"
-    )
+    _write_source_file(isolated_data_dir, "bahncard.json", "https://example.com/bahncard")
     [source] = ffs.discover_sources()
 
     monkeypatch.setattr(

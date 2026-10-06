@@ -7,8 +7,8 @@ routingu i taryf, a nie duplikowały tę samą sekwencję wywołań. demo.py (CL
 patchujące generate_variants() wprost i zostaje bez zmian — to nie jest fasada do podłączenia
 pod inny frontend/klienta, tylko skrypt demonstracyjny.
 """
+
 from dataclasses import dataclass
-from typing import Dict, List
 
 from .demo_route import FLIGHT_REGIONAL_HUBS, RAIL_FLIGHT_RAIL_HUBS, VIA_HUB_STOPS
 from .model import Itinerary, SkippedVariant
@@ -19,9 +19,9 @@ from .variants import RouteRequest, generate_variants
 @dataclass
 class SearchResult:
     request: RouteRequest
-    built: List[Itinerary]
-    skipped: List[SkippedVariant]
-    recommendations: Dict[str, Itinerary]
+    built: list[Itinerary]
+    skipped: list[SkippedVariant]
+    recommendations: dict[str, Itinerary]
 
 
 def search(request: RouteRequest) -> SearchResult:
@@ -40,4 +40,6 @@ def search(request: RouteRequest) -> SearchResult:
         via_hub_stops=VIA_HUB_STOPS,
     )
     recommendations = pick_recommendations(built) if built else {}
-    return SearchResult(request=request, built=built, skipped=skipped, recommendations=recommendations)
+    return SearchResult(
+        request=request, built=built, skipped=skipped, recommendations=recommendations
+    )

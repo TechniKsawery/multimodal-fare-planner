@@ -1,7 +1,7 @@
 """Wspólny model danych dla modułu cen lotów: segment lotu i wynik szacowania ceny."""
+
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 
 class PriceType(str, Enum):
@@ -30,12 +30,12 @@ class ExtrasProfile:
 class FlightSegment:
     """Jeden odcinek lotu do wycenienia."""
 
-    origin: str                          # kod IATA miasta/lotniska wylotu, np. "WAW"
-    destination: str                     # kod IATA miasta/lotniska przylotu, np. "DUS"
-    depart_date: str                     # "YYYY-MM-DD" lub "YYYY-MM"
-    return_date: Optional[str] = None
+    origin: str  # kod IATA miasta/lotniska wylotu, np. "WAW"
+    destination: str  # kod IATA miasta/lotniska przylotu, np. "DUS"
+    depart_date: str  # "YYYY-MM-DD" lub "YYYY-MM"
+    return_date: str | None = None
     currency: str = "PLN"
-    extras: Optional[ExtrasProfile] = None   # None -> dociągnięte z placeholderowej tabeli
+    extras: ExtrasProfile | None = None  # None -> dociągnięte z placeholderowej tabeli
 
 
 @dataclass

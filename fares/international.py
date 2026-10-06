@@ -5,8 +5,9 @@ Sparpreis Europa), NIE tabela pasm liniowa od km jak krajowe kalkulatory `fares/
 PL/DE w danych, więc to uproszczone. Patrz `_uwaga`/`_uwaga_bahncard` w
 fares/data/international_pl_de.json dla pełnych zastrzeżeń i źródeł.
 """
-from .model import Carrier, PriceEstimate, PriceType, Segment
+
 from ._data_loading import load
+from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _TABLE = load("international_pl_de.json")
 
@@ -20,7 +21,9 @@ def _tier(distance_km: float):
 
 def estimate(segment: Segment) -> PriceEstimate:
     if segment.carrier is not Carrier.INTERNATIONAL_PL_DE:
-        raise ValueError(f"nieprawidłowy przewoźnik dla kalkulatora międzynarodowego: {segment.carrier}")
+        raise ValueError(
+            f"nieprawidłowy przewoźnik dla kalkulatora międzynarodowego: {segment.carrier}"
+        )
     if segment.distance_km is None:
         raise ValueError("bilet międzynarodowy PL-DE: distance_km jest wymagane")
 
@@ -39,7 +42,9 @@ def estimate(segment: Segment) -> PriceEstimate:
         # To ZAWYŻA realny rabat (oficjalnie dotyczy tylko niemieckiego odcinka), ale bez
         # geografii nie mamy jak wydzielić część niemiecką — jedyny dostępny fallback.
         efektywny_rabat_procent = rabat_procent
-        podzial_note = "brak współrzędnych stacji — rabat naliczony od całej ceny biletu (zawyża realny rabat)"
+        podzial_note = (
+            "brak współrzędnych stacji — rabat naliczony od całej ceny biletu (zawyża realny rabat)"
+        )
     else:
         fraction = max(0.0, min(1.0, fraction))
         efektywny_rabat_procent = rabat_procent * fraction

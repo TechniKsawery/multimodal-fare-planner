@@ -2,8 +2,7 @@ from datetime import date
 
 import pytest
 
-from fares import PriceType, estimate_price
-from fares import _flixbus_api, flixbus
+from fares import PriceType, _flixbus_api, estimate_price
 from fares.cards import suggest_bahncard
 from fares.model import Carrier, DiscountProfile, Segment
 
@@ -30,7 +29,10 @@ def test_pkp_z_ulga_studencka_51():
 
 def test_pkp_nieznana_ulga():
     seg = Segment(
-        Carrier.PKP_INTERCITY, "A", "B", distance_km=100,
+        Carrier.PKP_INTERCITY,
+        "A",
+        "B",
+        distance_km=100,
         discounts=DiscountProfile(pkp_ulga_kod="nieistniejaca"),
     )
     with pytest.raises(ValueError):
@@ -47,20 +49,26 @@ def test_db_flexpreis_bez_bahncard():
 
 def test_db_flexpreis_z_bahncard25():
     seg = Segment(
-        Carrier.DB, "Berlin Hbf", "Gelsenkirchen Hbf", distance_km=550,
+        Carrier.DB,
+        "Berlin Hbf",
+        "Gelsenkirchen Hbf",
+        distance_km=550,
         discounts=DiscountProfile(bahncard="25"),
     )
     result = estimate_price(seg)
     assert result.amount == pytest.approx(148 * 0.75)
 
 
-@pytest.mark.parametrize("km,lo,hi", [(190, 42.30, 114.20), (285, 80, 100), (373, 106, 127), (570, 99.90, 185.10)])
+@pytest.mark.parametrize(
+    "km,lo,hi", [(190, 42.30, 114.20), (285, 80, 100), (373, 106, 127), (570, 99.90, 185.10)]
+)
 def test_db_flexpreis_miesci_sie_w_realnych_przedzialach(km, lo, hi):
     seg = Segment(Carrier.DB, "A", "B", distance_km=km)
     assert lo <= estimate_price(seg).amount <= hi
 
 
 # --- FlixBus: realna cena z API (zmockowana), z fallbackiem do PLN/km -----------------------
+
 
 def test_flixbus_bez_travel_date_spada_od_razu_do_fallbacku_km():
     seg = Segment(Carrier.FLIXBUS, "Lublin", "Berlin", distance_km=600)
@@ -71,9 +79,12 @@ def test_flixbus_bez_travel_date_spada_od_razu_do_fallbacku_km():
 
 
 def test_flixbus_uzywa_najtanszego_wyniku_z_api(monkeypatch):
-    monkeypatch.setattr(_flixbus_api, "find_city_id", lambda city, **kw: {"Lublin": "1", "Berlin": "2"}[city])
     monkeypatch.setattr(
-        _flixbus_api, "fetch_cheapest_trip",
+        _flixbus_api, "find_city_id", lambda city, **kw: {"Lublin": "1", "Berlin": "2"}[city]
+    )
+    monkeypatch.setattr(
+        _flixbus_api,
+        "fetch_cheapest_trip",
         lambda *a, **kw: {"price": {"total": 89.99, "currency": "EUR"}, "transfer_count": 0},
     )
     seg = Segment(Carrier.FLIXBUS, "Lublin", "Berlin", distance_km=600, travel_date="2026-11-15")
@@ -89,7 +100,9 @@ def test_flixbus_spada_do_fallbacku_km_gdy_api_rzuca_blad(monkeypatch):
         raise _flixbus_api.FlixbusApiError("brak połączenia dla tej relacji/daty")
 
     monkeypatch.setattr(_flixbus_api, "find_city_id", boom)
-    seg = Segment(Carrier.FLIXBUS, "Lublin", "Gelsenkirchen", distance_km=1000, travel_date="2026-11-15")
+    seg = Segment(
+        Carrier.FLIXBUS, "Lublin", "Gelsenkirchen", distance_km=1000, travel_date="2026-11-15"
+    )
     result = estimate_price(seg)
     assert result.breakdown["zrodlo"] == "fallback_km"
     assert result.amount == pytest.approx(1000 * 0.35)
@@ -142,7 +155,10 @@ def test_flixbus_api_find_city_id_cache_uzywa_pamieci_procesu(monkeypatch):
 def test_vrr_kindertarif_50_procent_rabatu():
     normalny = Segment(Carrier.VRR, "Gelsenkirchen Hbf", "Essen Hbf", distance_km=10)
     dziecko = Segment(
-        Carrier.VRR, "Gelsenkirchen Hbf", "Essen Hbf", distance_km=10,
+        Carrier.VRR,
+        "Gelsenkirchen Hbf",
+        "Essen Hbf",
+        distance_km=10,
         discounts=DiscountProfile(vrr_dziecko=True),
     )
     cena_normalna = estimate_price(normalny).amount
@@ -153,7 +169,10 @@ def test_vrr_kindertarif_50_procent_rabatu():
 
 def test_vrr_kindertarif_dziala_tez_na_sufit_cenowy():
     dziecko = Segment(
-        Carrier.VRR, "Gelsenkirchen Hbf", "Bonn Hbf", distance_km=200,
+        Carrier.VRR,
+        "Gelsenkirchen Hbf",
+        "Bonn Hbf",
+        distance_km=200,
         discounts=DiscountProfile(vrr_dziecko=True),
     )
     assert estimate_price(dziecko).amount == pytest.approx(19.80 * 0.5, abs=0.01)
@@ -169,7 +188,10 @@ def test_ztm_lublin_krotki_przejazd_bilet_15_minutowy():
 
 def test_ztm_lublin_ulgowy():
     seg = Segment(
-        Carrier.ZTM_LUBLIN, "Ogród Saski", "Dworzec Lublin", ride_duration_min=8,
+        Carrier.ZTM_LUBLIN,
+        "Ogród Saski",
+        "Dworzec Lublin",
+        ride_duration_min=8,
         discounts=DiscountProfile(ztm_lublin_ulgowy=True),
     )
     result = estimate_price(seg)
@@ -196,6 +218,7 @@ def test_ztm_lublin_bez_czasu_jazdy_podnosi_blad():
 
 
 # --- BahnCard: sugestia opłacalności karty ------------------------------------------------
+
 
 def test_bahncard_bez_wieku_widzi_tylko_warianty_standardowe():
     results = suggest_bahncard(550, journeys_per_year=2, age=None)
@@ -225,7 +248,10 @@ def test_bahncard_50_standard_nie_oplaca_sie_przy_jednej_podrozy_ale_podaje_prog
 def test_bahncard_mloda_osoba_19_26_widzi_tansze_warianty_my_bahncard():
     results = suggest_bahncard(550, journeys_per_year=2, age=22)
     assert {r.variant_key for r in results} == {
-        "bc25_standard", "bc50_standard", "my_bc25_19_26", "my_bc50_19_26",
+        "bc25_standard",
+        "bc50_standard",
+        "my_bc25_19_26",
+        "my_bc50_19_26",
     }
     assert results[0].variant_key in {"my_bc25_19_26", "my_bc50_19_26"}
 
@@ -254,7 +280,11 @@ def test_bahncard_juz_posiadana_ta_sama_karta_nie_jest_sugerowana():
     # o dokładnie takim samym rabacie (25%), którą już posiada. Jugend BC25 (25%, tak samo
     # jak posiadana) nie powinna się już pojawić — jedyny sensowny upgrade to BC50 (50%).
     results = suggest_bahncard(
-        550, journeys_per_year=2, age=15, reference_date=date(2026, 9, 27), existing_bahncard="25",
+        550,
+        journeys_per_year=2,
+        age=15,
+        reference_date=date(2026, 9, 27),
+        existing_bahncard="25",
     )
     assert "jugend_bc25_6_18" not in {r.variant_key for r in results}
     assert {r.variant_key for r in results} == {"bc50_standard"}

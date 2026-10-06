@@ -7,21 +7,29 @@ from fares.model import Carrier, DiscountProfile, Segment
 from routing.model import Leg, LegMode
 from routing.pricing import is_cross_border_pl_de, price_rail_leg
 
-
 WARSZAWA = {"lat": 52.2288, "lon": 21.0034}
 BERLIN = {"lat": 52.5251, "lon": 13.3694}
 LUBLIN = {"lat": 51.2465, "lon": 22.5684}
 GELSENKIRCHEN = {"lat": 51.5177, "lon": 7.0857}
 
 
-def _leg(origin_stop_id, destination_stop_id, distance_km=500.0, carrier_name="PKP Intercity",
-         origin_latlon=None, destination_latlon=None):
+def _leg(
+    origin_stop_id,
+    destination_stop_id,
+    distance_km=500.0,
+    carrier_name="PKP Intercity",
+    origin_latlon=None,
+    destination_latlon=None,
+):
     depart = datetime(2026, 10, 1, 8, 0)
     extra = {"origin_stop_id": origin_stop_id, "destination_stop_id": destination_stop_id}
     if origin_latlon:
         extra["origin_lat"], extra["origin_lon"] = origin_latlon["lat"], origin_latlon["lon"]
     if destination_latlon:
-        extra["destination_lat"], extra["destination_lon"] = destination_latlon["lat"], destination_latlon["lon"]
+        extra["destination_lat"], extra["destination_lon"] = (
+            destination_latlon["lat"],
+            destination_latlon["lon"],
+        )
     return Leg(
         mode=LegMode.RAIL,
         origin_name="A",
@@ -35,6 +43,7 @@ def _leg(origin_stop_id, destination_stop_id, distance_km=500.0, carrier_name="P
 
 
 # --- is_cross_border_pl_de --------------------------------------------------------------
+
 
 def test_pl_do_de_jest_miedzynarodowy():
     assert is_cross_border_pl_de(_leg("pl_50500", "defv_344028")) is True
@@ -96,6 +105,7 @@ def test_brak_wspolrzednych_spada_do_prefiksu_datasetu():
 
 # --- fares/international.py ---------------------------------------------------------------
 
+
 def test_krotka_relacja_cena_od_19_99():
     seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Berlin", "Poznan", distance_km=240)
     result = international_estimate(seg)
@@ -118,9 +128,13 @@ def test_dluga_relacja_cena_od_39_99():
 # To zawyża realny rabat (oficjalnie dotyczy tylko niemieckiego odcinka trasy) — patrz testy
 # "..._proporcjonalnie_do_niemieckiego_odcinka" niżej dla poprawnego, geografia-aware liczenia.
 
+
 def test_bahncard_25_bez_wspolrzednych_daje_25_procent_od_calej_ceny_fallback():
     seg = Segment(
-        Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519,
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
         discounts=DiscountProfile(bahncard="25"),
     )
     assert international_estimate(seg).amount == pytest.approx(29.99 * 0.75, abs=0.01)
@@ -128,7 +142,10 @@ def test_bahncard_25_bez_wspolrzednych_daje_25_procent_od_calej_ceny_fallback():
 
 def test_bahncard_50_bez_wspolrzednych_daje_25_procent_od_calej_ceny_fallback():
     seg = Segment(
-        Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519,
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
         discounts=DiscountProfile(bahncard="50"),
     )
     assert international_estimate(seg).amount == pytest.approx(29.99 * 0.75, abs=0.01)
@@ -140,7 +157,10 @@ def test_bahncard_100_bez_wspolrzednych_daje_25_procent_nie_100_procent_fallback
     # Super Sparpreis Europa (bahn.de FAQ + bahnpedia.de) WSZYSTKIE poziomy BahnCard dają
     # nominalnie tę samą zniżkę 25% — BahnCard 100 nie daje tu przejazdu za darmo.
     seg = Segment(
-        Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519,
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
         discounts=DiscountProfile(bahncard="100"),
     )
     assert international_estimate(seg).amount == pytest.approx(29.99 * 0.75, abs=0.01)
@@ -152,8 +172,12 @@ def test_bahncard_z_udzialem_niemieckiego_odcinka_liczy_rabat_tylko_od_tej_czesc
     # tego odcinka (patrz routing/pricing.py::german_portion_fraction), efektywny rabat na
     # całą cenę biletu to rabat_nominalny * udział, NIE cały rabat_nominalny.
     seg = Segment(
-        Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519,
-        discounts=DiscountProfile(bahncard="50"), german_portion_fraction=0.2,
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(bahncard="50"),
+        german_portion_fraction=0.2,
     )
     result = international_estimate(seg)
     # 25% nominalnego rabatu * 20% udziału niemieckiego odcinka = 5% efektywnego rabatu na całość
@@ -162,7 +186,13 @@ def test_bahncard_z_udzialem_niemieckiego_odcinka_liczy_rabat_tylko_od_tej_czesc
 
 
 def test_brak_bahncard_ignoruje_udzial_niemieckiego_odcinka():
-    seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519, german_portion_fraction=0.2)
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        german_portion_fraction=0.2,
+    )
     assert international_estimate(seg).amount == 29.99
 
 
@@ -173,11 +203,18 @@ def test_bledny_przewoznik_podnosi_blad():
 
 # --- routing/pricing.py::price_rail_leg — międzynarodowy leg wymusza Carrier.INTERNATIONAL_PL_DE
 
+
 def test_price_rail_leg_wymusza_taryfe_miedzynarodowa_dla_odcinka_z_niemiecka_stacja_w_polskim_feedzie():
     # replika zgłoszonego bugu: oba stopId z prefiksem 'pl_' (Berlin-Lichtenberg opublikowany w
     # polskim feedzie GTFS dla kursu PKP Intercity), rozstrzyga geografia.
-    leg = _leg("pl_50500", "pl_999999", distance_km=519, carrier_name="PKP Intercity",
-               origin_latlon=WARSZAWA, destination_latlon=BERLIN)
+    leg = _leg(
+        "pl_50500",
+        "pl_999999",
+        distance_km=519,
+        carrier_name="PKP Intercity",
+        origin_latlon=WARSZAWA,
+        destination_latlon=BERLIN,
+    )
     priced = price_rail_leg(leg, DiscountProfile())
     assert priced.currency == "EUR"
     assert priced.amount == 29.99
@@ -195,8 +232,14 @@ def test_price_rail_leg_z_bahncard_i_wspolrzednymi_liczy_rabat_proporcjonalnie_n
     # ZGŁOSZONE DOPRECYZOWANIE (2026-09-29): mając realne współrzędne (Warszawa/Berlin), rabat
     # BahnCard musi być dużo mniejszy niż flat 25% na całą cenę, bo Berlin leży blisko granicy —
     # niemiecki odcinek to tylko ok. 16% dystansu w linii prostej. Efektywny rabat: 25% * ~16% ≈ 4%.
-    leg = _leg("pl_50500", "pl_999999", distance_km=519, carrier_name="PKP Intercity",
-               origin_latlon=WARSZAWA, destination_latlon=BERLIN)
+    leg = _leg(
+        "pl_50500",
+        "pl_999999",
+        distance_km=519,
+        carrier_name="PKP Intercity",
+        origin_latlon=WARSZAWA,
+        destination_latlon=BERLIN,
+    )
     priced = price_rail_leg(leg, DiscountProfile(bahncard="50"))
     assert priced.currency == "EUR"
     assert 28.0 < priced.amount < 29.99  # rabat realny, ale dużo mniejszy niż 29.99*0.75=22.49

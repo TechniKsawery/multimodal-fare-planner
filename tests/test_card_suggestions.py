@@ -57,7 +57,11 @@ def test_bilet_miedzynarodowy_pl_de_wykluczony_z_sumy_krajowego_flexpreis():
     # agencyName brzmi jak DB Fernverkehr, ale stopId pokazuje że to odcinek PL->DE (Berlin-
     # Warszawa-Express) — ma WŁASNE zasady BahnCard (patrz fares/international.py), nie
     # powinien wchodzić do sumy "krajowego" Flexpreis DB.
-    krajowy = _db_leg(180, 60.0, extra={"origin_stop_id": "defv_1", "destination_stop_id": "defv_2"})
-    miedzynarodowy = _db_leg(519, 29.99, extra={"origin_stop_id": "pl_1", "destination_stop_id": "defv_9"})
+    krajowy = _db_leg(
+        180, 60.0, extra={"origin_stop_id": "defv_1", "destination_stop_id": "defv_2"}
+    )
+    miedzynarodowy = _db_leg(
+        519, 29.99, extra={"origin_stop_id": "pl_1", "destination_stop_id": "defv_9"}
+    )
     it = _itinerary([krajowy, miedzynarodowy])
     assert db_flexpreis_upper_bound_total(it) == pytest.approx(flexpreis_upper_bound(180), abs=0.01)

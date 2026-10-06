@@ -3,10 +3,10 @@
 MOTIS musi być uruchomiony lokalnie (scripts/run_motis.sh|ps1 server) — domyślnie
 http://localhost:8080, konfigurowalne przez zmienną środowiskową MOTIS_BASE_URL.
 """
+
 import math
 import os
 from datetime import datetime
-from typing import List, Optional
 
 import requests
 
@@ -15,8 +15,12 @@ from .model import Leg, LegMode
 MOTIS_BASE_URL = os.environ.get("MOTIS_BASE_URL", "http://localhost:8080")
 
 
-TRANSFER_BUFFER_MINUTES = 10  # additionalTransferTime: MOTIS szuka przesiadek z zapasem, zamiast najkrótszych "na styk"
-MAIN_QUERY_ITINERARIES = 30  # ~6 s na zapytanie; domyślne ~5 wyników gubiło proste trasy (np. przez Berlin)
+TRANSFER_BUFFER_MINUTES = (
+    10  # additionalTransferTime: MOTIS szuka przesiadek z zapasem, zamiast najkrótszych "na styk"
+)
+MAIN_QUERY_ITINERARIES = (
+    30  # ~6 s na zapytanie; domyślne ~5 wyników gubiło proste trasy (np. przez Berlin)
+)
 MAX_WALK_SECONDS = 3600  # do godziny pieszo do/z pierwszego/ostatniego przystanku
 
 
@@ -38,7 +42,7 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2 * r * math.asin(math.sqrt(a))
 
 
-def geocode_suggestions(text: str, limit: int = 5) -> List[dict]:
+def geocode_suggestions(text: str, limit: int = 5) -> list[dict]:
     """Podpowiedzi adresów przez /api/v1/geocode: lista {lat, lon, name} do wyboru w UI.
 
     Pusty tekst albo brak dopasowań -> pusta lista (nie jest to błąd, w przeciwieństwie
@@ -47,14 +51,15 @@ def geocode_suggestions(text: str, limit: int = 5) -> List[dict]:
     if not text or not text.strip():
         return []
     try:
-        response = requests.get(f"{MOTIS_BASE_URL}/api/v1/geocode", params={"text": text}, timeout=30)
+        response = requests.get(
+            f"{MOTIS_BASE_URL}/api/v1/geocode", params={"text": text}, timeout=30
+        )
         response.raise_for_status()
         results = response.json()
     except requests.RequestException as exc:
         raise MotisError(f"Błąd geocodingu w MOTIS ({MOTIS_BASE_URL}): {exc}") from exc
     return [
-        {"lat": r["lat"], "lon": r["lon"], "name": r.get("name") or text}
-        for r in results[:limit]
+        {"lat": r["lat"], "lon": r["lon"], "name": r.get("name") or text} for r in results[:limit]
     ]
 
 
@@ -76,9 +81,19 @@ def coords_place(lat: float, lon: float) -> str:
     return f"{lat},{lon}"
 
 
-def plan(from_place: str, to_place: str, time: str, max_transfers: int = 4, num_itineraries: Optional[int] = None) -> dict:
+def plan(
+    from_place: str,
+    to_place: str,
+    time: str,
+    max_transfers: int = 4,
+    num_itineraries: int | None = None,
+) -> dict:
     """GET /api/v6/plan — surowa odpowiedź MOTIS, zwalidowana pod kątem obecności itinerariów."""
-    extra = {"numItineraries": num_itineraries, "additionalTransferTime": TRANSFER_BUFFER_MINUTES} if num_itineraries else {}
+    extra = (
+        {"numItineraries": num_itineraries, "additionalTransferTime": TRANSFER_BUFFER_MINUTES}
+        if num_itineraries
+        else {}
+    )
     try:
         response = requests.get(
             f"{MOTIS_BASE_URL}/api/v6/plan",
@@ -118,7 +133,7 @@ def fewest_transfers_itinerary(payload: dict) -> dict:
     return min(payload["itineraries"], key=lambda it: (it["transfers"], it["duration"]))
 
 
-def itinerary_to_legs(itinerary: dict) -> List[Leg]:
+def itinerary_to_legs(itinerary: dict) -> list[Leg]:
     """Zamienia itinerary MOTIS na listę Leg.
 
     Odcinki WALK na początku i końcu (dojście z adresu / do adresu) stają się legami
@@ -126,14 +141,16 @@ def itinerary_to_legs(itinerary: dict) -> List[Leg]:
     (przesiadka wymagająca przejścia). Tryb BUS z MOTIS -> LegMode.BUS, reszta transitu -> RAIL.
     """
     raw_legs = itinerary["legs"]
-    legs: List[Leg] = []
+    legs: list[Leg] = []
     preceded_by_walk = False
     last_index = len(raw_legs) - 1
 
     for idx, raw in enumerate(raw_legs):
         origin = raw["from"]
         destination = raw["to"]
-        distance_km = haversine_km(origin["lat"], origin["lon"], destination["lat"], destination["lon"])
+        distance_km = haversine_km(
+            origin["lat"], origin["lon"], destination["lat"], destination["lon"]
+        )
         common = dict(
             origin_name=origin["name"],
             destination_name=destination["name"],
@@ -150,8 +167,11 @@ def itinerary_to_legs(itinerary: dict) -> List[Leg]:
                         mode=LegMode.WALK,
                         carrier_name="pieszo",
                         requires_walk=False,
-                        extra={"motis_mode": "WALK", "walk_role": "dojscie" if access else "dojscie_do_celu",
-                               "walk_distance_m": raw.get("distance")},
+                        extra={
+                            "motis_mode": "WALK",
+                            "walk_role": "dojscie" if access else "dojscie_do_celu",
+                            "walk_distance_m": raw.get("distance"),
+                        },
                         **common,
                     )
                 )
@@ -159,7 +179,9 @@ def itinerary_to_legs(itinerary: dict) -> List[Leg]:
                 preceded_by_walk = True
             continue
 
-        mode = LegMode.RAIL if "RAIL" in raw["mode"] or raw["mode"] == "TRAIN" else LegMode.BUS  # tramwaj/metro/autobus = transport lokalny
+        mode = (
+            LegMode.RAIL if "RAIL" in raw["mode"] or raw["mode"] == "TRAIN" else LegMode.BUS
+        )  # tramwaj/metro/autobus = transport lokalny
         has_prev_transit = any(l.mode is not LegMode.WALK for l in legs)
         legs.append(
             Leg(
@@ -184,7 +206,7 @@ def itinerary_to_legs(itinerary: dict) -> List[Leg]:
     return legs
 
 
-def plan_leg(from_place: str, to_place: str, time: str, *, pick: str = "fastest") -> List[Leg]:
+def plan_leg(from_place: str, to_place: str, time: str, *, pick: str = "fastest") -> list[Leg]:
     """Zapytanie do MOTIS + wybór jednego itinerary (fastest/fewest_transfers) -> lista Leg.
 
     To NIE przeszukuje alternatywnych węzłów przesiadkowych — from_place/to_place są ustalone
@@ -196,7 +218,9 @@ def plan_leg(from_place: str, to_place: str, time: str, *, pick: str = "fastest"
     return itinerary_to_legs(picker(payload))
 
 
-def plan_leg_candidates(from_place: str, to_place: str, time: str, max_candidates: int = 3) -> List[List[Leg]]:
+def plan_leg_candidates(
+    from_place: str, to_place: str, time: str, max_candidates: int = 3
+) -> list[list[Leg]]:
     """Jak `plan_leg`, ale zwraca do `max_candidates` alternatywnych itinerariów (posortowanych
     rosnąco wg czasu trwania) zamiast automatycznie wybierać tylko najszybszy.
 
@@ -205,12 +229,16 @@ def plan_leg_candidates(from_place: str, to_place: str, time: str, max_candidate
     pojedynczym fragmentem MOTIS-a — czasem ma ciaśniejszą/ryzykowną przesiadkę albo droższy
     bilet niż odrobinę wolniejsza alternatywa, która wypada lepiej w CAŁYM wariancie (patrz
     `routing/variants.py::_best_overall`)."""
-    payload = plan(from_place, to_place, time, max_transfers=5, num_itineraries=max(max_candidates, 1))
+    payload = plan(
+        from_place, to_place, time, max_transfers=5, num_itineraries=max(max_candidates, 1)
+    )
     itineraries = sorted(payload["itineraries"], key=lambda it: it["duration"])[:max_candidates]
     return [itinerary_to_legs(it) for it in itineraries]
 
 
-def all_itineraries_as_legs(from_place: str, to_place: str, time: str) -> List[List[Leg]]:
+def all_itineraries_as_legs(from_place: str, to_place: str, time: str) -> list[list[Leg]]:
     """Wszystkie itineraria zwrócone przez MOTIS dla jednej relacji/daty, każde jako lista Leg."""
-    payload = plan(from_place, to_place, time, max_transfers=5, num_itineraries=MAIN_QUERY_ITINERARIES)
+    payload = plan(
+        from_place, to_place, time, max_transfers=5, num_itineraries=MAIN_QUERY_ITINERARIES
+    )
     return [itinerary_to_legs(it) for it in payload["itineraries"]]

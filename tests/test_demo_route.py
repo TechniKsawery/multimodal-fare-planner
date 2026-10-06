@@ -8,15 +8,16 @@ modeluje lot zawsze jako JEDEN odcinek ze sztywnym czasem 2h). Fałszywy wariant
 HUB_LUBLIN_AIRPORT_DORTMUND w routing/demo_route.py, połączonego z GENERIC_FLIGHT_FALLBACK_PLN
 w flights/calculator.py (fallback ceny, gdy Travelpayouts nie ma danych dla tej relacji) —
 fallback szacuje tylko CENĘ, nie sprawdzając czy dany hub w ogóle ma bezpośrednie połączenie."""
+
 from routing import demo_route
 
 
 def test_flight_regional_hubs_nie_zawiera_lublina():
     """LUZ (Lublin) nie ma żadnych lotów do Niemiec — nie może być origin_iata żadnego huba."""
     for hub in demo_route.FLIGHT_REGIONAL_HUBS:
-        assert hub.origin_iata != "LUZ", (
-            f"Hub {hub.label!r} zakłada lot z LUZ (Lublin), który w rzeczywistości nie istnieje"
-        )
+        assert (
+            hub.origin_iata != "LUZ"
+        ), f"Hub {hub.label!r} zakłada lot z LUZ (Lublin), który w rzeczywistości nie istnieje"
 
 
 def test_flight_regional_hubs_pusta_po_usunieciu_nierealistycznego_hubu():
@@ -30,11 +31,16 @@ def test_rail_flight_rail_hubs_zawiera_tylko_zweryfikowane_zrealne_kierunki():
     (Ryanair + Wizz Air) mają realne bezpośrednie połączenia lotnicze — WAW-CGN (Warszawa-Köln/
     Bonn) zostało jawnie sprawdzone i ODRZUCONE (0 lotów bezpośrednich), więc nie może się tu
     pojawić — patrz UWAGA w routing/demo_route.py, ten sam błąd co wcześniej dla LUZ-DTM."""
-    iata_pairs = {(hub.origin_iata, hub.destination_iata) for hub in demo_route.RAIL_FLIGHT_RAIL_HUBS}
+    iata_pairs = {
+        (hub.origin_iata, hub.destination_iata) for hub in demo_route.RAIL_FLIGHT_RAIL_HUBS
+    }
     assert ("WAW", "DUS") in iata_pairs
     assert ("KRK", "DTM") in iata_pairs
     assert ("WAW", "DTM") in iata_pairs  # istniejący hub, nie usuwamy
-    assert ("WAW", "CGN") not in iata_pairs, "WAW-CGN nie ma realnych lotów bezpośrednich — nie dodawać"
+    assert (
+        "WAW",
+        "CGN",
+    ) not in iata_pairs, "WAW-CGN nie ma realnych lotów bezpośrednich — nie dodawać"
 
 
 def test_rail_flight_rail_hubs_maja_wymagane_stacje_dojazdowe():
@@ -42,4 +48,6 @@ def test_rail_flight_rail_hubs_maja_wymagane_stacje_dojazdowe():
     (destination_rail_access_stop_id) — bez tego build_rail_flight_rail_variant nie ma gdzie
     dojechać kolejowo z lotniska do celu."""
     for hub in demo_route.RAIL_FLIGHT_RAIL_HUBS:
-        assert hub.destination_rail_access_stop_id, f"Hub {hub.label!r} bez destination_rail_access_stop_id"
+        assert (
+            hub.destination_rail_access_stop_id
+        ), f"Hub {hub.label!r} bez destination_rail_access_stop_id"

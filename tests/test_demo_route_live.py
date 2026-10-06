@@ -10,13 +10,14 @@ Znane, zaakceptowane ograniczenie: defekt danych GTFS Berlin->Gelsenkirchen w ok
 2026-10-09 (patrz pamięć projektu) może odrzucać/pomijać konkretne warianty wokół tej daty —
 to jest oczekiwane i NIE jest tu łapane jako regresja, dopóki silnik nadal zwraca przynajmniej
 jeden wykonalny wariant."""
-import requests
+
 import pytest
+import requests
 
 from fares.model import DiscountProfile
+from routing import pricing
 from routing.motis_client import MOTIS_BASE_URL
 from routing.variants import generate_variants, request_from_addresses
-from routing import pricing
 
 DEMO_FROM = "Skubiszewskiego 22, Lublin"
 DEMO_TO = "Buerer Straße 8, Gelsenkirchen"
@@ -54,7 +55,9 @@ def test_demo_route_buduje_przynajmniej_jeden_wariant(date):
         via_hub_stops=VIA_HUB_STOPS,
     )
 
-    assert built, f"Brak żadnego wykonalnego wariantu dla {date}; pominięte: {[s.reason for s in skipped]}"
+    assert (
+        built
+    ), f"Brak żadnego wykonalnego wariantu dla {date}; pominięte: {[s.reason for s in skipped]}"
     for itinerary in built:
         assert itinerary.total_price_pln > 0
         assert itinerary.total_duration_min > 0
@@ -84,14 +87,22 @@ DISCOUNT_PROFILES = [
     ("bahncard_25", DiscountProfile(bahncard="25")),
     ("bahncard_50", DiscountProfile(bahncard="50")),
     ("bahncard_100", DiscountProfile(bahncard="100")),
-    ("pkp_student_i_bahncard_25", DiscountProfile(
-        pkp_ulga_kod="student_do_26_lat_doktorant_do_35_lat", bahncard="25",
-    )),
+    (
+        "pkp_student_i_bahncard_25",
+        DiscountProfile(
+            pkp_ulga_kod="student_do_26_lat_doktorant_do_35_lat",
+            bahncard="25",
+        ),
+    ),
 ]
 
 
-@pytest.mark.parametrize("label, discounts", DISCOUNT_PROFILES, ids=[p[0] for p in DISCOUNT_PROFILES])
-def test_wycena_dla_profilu_ulg_nie_wywala_sie_i_jest_sensowna(demo_date_itineraries, label, discounts):
+@pytest.mark.parametrize(
+    "label, discounts", DISCOUNT_PROFILES, ids=[p[0] for p in DISCOUNT_PROFILES]
+)
+def test_wycena_dla_profilu_ulg_nie_wywala_sie_i_jest_sensowna(
+    demo_date_itineraries, label, discounts
+):
     """Dla każdego profilu ulg: ponowna wycena REALNYCH odcinków (z żywego MOTIS, data pitchu)
     nie podnosi wyjątku, a łączna cena wariantu jest dodatnia i w rozsądnym przedziale (nie
     ujemna, nie absurdalnie wysoka — górny próg dobrany z marginesem na warianty z lotem lub
@@ -101,15 +112,23 @@ def test_wycena_dla_profilu_ulg_nie_wywala_sie_i_jest_sensowna(demo_date_itinera
         repriced = [pricing.price_leg(leg, discounts, "PLN") for leg in raw_legs]
 
         for priced in repriced:
-            assert priced.amount >= 0, f"[{label}] ujemna cena odcinka {priced.leg.origin_name}->{priced.leg.destination_name}"
-            assert priced.amount < 5000, f"[{label}] absurdalnie wysoka cena odcinka: {priced.amount} {priced.currency}"
+            assert (
+                priced.amount >= 0
+            ), f"[{label}] ujemna cena odcinka {priced.leg.origin_name}->{priced.leg.destination_name}"
+            assert (
+                priced.amount < 5000
+            ), f"[{label}] absurdalnie wysoka cena odcinka: {priced.amount} {priced.currency}"
 
         total_pln = sum(
-            p.amount if p.currency == "PLN" else p.amount * 4.5  # górny szacunek kursu, tylko do sanity-check
+            (
+                p.amount if p.currency == "PLN" else p.amount * 4.5
+            )  # górny szacunek kursu, tylko do sanity-check
             for p in repriced
         )
         assert total_pln > 0
-        assert total_pln < 20000, f"[{label}] absurdalnie wysoka cena całkowita wariantu: {total_pln}"
+        assert (
+            total_pln < 20000
+        ), f"[{label}] absurdalnie wysoka cena całkowita wariantu: {total_pln}"
 
 
 def test_bahncard_100_nie_jest_drozsza_niz_brak_ulgi_na_odcinkach_db(demo_date_itineraries):

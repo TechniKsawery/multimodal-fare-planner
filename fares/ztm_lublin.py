@@ -5,8 +5,9 @@ czas jazdy odcinka.
 Dane pochodzą z oficjalnego cennika LUBIKA (system biletu elektronicznego ZDiTM Lublin) —
 patrz pole "_zrodlo" w fares/data/ztm_lublin.json oraz README.md w tym katalogu.
 """
-from .model import Carrier, DiscountProfile, PriceEstimate, PriceType, Segment
+
 from ._data_loading import load
+from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _TABLE = load("ztm_lublin.json")
 _BILETY = sorted(_TABLE["bilety_czasowe"], key=lambda b: b["wazny_min"])

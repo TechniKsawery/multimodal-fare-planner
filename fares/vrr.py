@@ -5,8 +5,9 @@ Dane pochodzą z oficjalnej "Preistabelle ab 01.06.2026" VRR — patrz pole "_zr
 w fares/data/vrr_eezy.json oraz README.md w tym katalogu. Sufit cenowy jest uproszczony
 (patrz "_uwaga" w tym samym pliku) — nie mamy mapowania relacja -> strefa cenowa (A/B/C).
 """
-from .model import Carrier, PriceEstimate, PriceType, Segment
+
 from ._data_loading import load
+from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _TABLE = load("vrr_eezy.json")
 

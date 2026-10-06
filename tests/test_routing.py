@@ -734,7 +734,7 @@ def test_generate_variants_pomija_lot_bez_tokena(monkeypatch):
         destination_stop_id="b",
         origin_label="A",
         destination_label="B",
-        date="2026-11-15",
+        date="2026-09-28",
     )
 
     rail_legs = [
@@ -766,7 +766,7 @@ def test_generate_variants_pomija_kolej_gdy_motis_nie_znajduje_polaczenia(monkey
         destination_stop_id="b",
         origin_label="A",
         destination_label="B",
-        date="2026-11-15",
+        date="2026-09-28",
     )
 
     def raise_motis_error(*args, **kwargs):
@@ -786,7 +786,7 @@ def test_build_rail_only_variants_deduplikuje_identyczne_trasy(monkeypatch):
         destination_stop_id="b",
         origin_label="A",
         destination_label="B",
-        date="2026-11-15",
+        date="2026-09-28",
     )
     legs_a = [
         make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)
@@ -809,7 +809,7 @@ def test_build_rail_flight_rail_variant_laczy_trzy_odcinki(monkeypatch):
         destination_stop_id="gelsenkirchen",
         origin_label="Lublin",
         destination_label="Gelsenkirchen",
-        date="2026-11-15",
+        date="2026-09-28",
     )
     hub = variants.HubConfig("Warszawa-Dortmund", "WAW", "DTM", "waw_airport", "dortmund_hbf")
 
@@ -866,7 +866,7 @@ def test_build_rail_flight_rail_variant_wybiera_najlepsza_kombinacje_calosciowo(
         destination_stop_id="gelsenkirchen",
         origin_label="Lublin",
         destination_label="Gelsenkirchen",
-        date="2026-11-15",
+        date="2026-09-28",
     )
     hub = variants.HubConfig("Warszawa-Dortmund", "WAW", "DTM", "waw_airport", "dortmund_hbf")
 
@@ -933,7 +933,7 @@ def test_build_flight_regional_variant_wybiera_najlepsza_kombinacje_calosciowo(m
         destination_stop_id="gelsenkirchen",
         origin_label="Lublin",
         destination_label="Gelsenkirchen",
-        date="2026-11-15",
+        date="2026-09-28",
     )
     hub = variants.HubConfig("Dortmund", "LUX", "DTM", None, "dortmund_hbf")
 
@@ -1315,7 +1315,7 @@ def test_pick_recommendations_pomija_niewykonalne():
 
 
 def test_rail_only_odrzuca_warianty_z_niewykonalna_przesiadka(monkeypatch):
-    request = variants.RouteRequest("a", "b", "A", "B", "2026-10-05")
+    request = variants.RouteRequest("a", "b", "A", "B", "2026-09-28")
     bad = [
         make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=100),
         make_leg(
@@ -1340,7 +1340,7 @@ def test_rail_only_odrzuca_warianty_z_niewykonalna_przesiadka(monkeypatch):
 
 
 def test_rail_only_domyslnie_zwraca_wszystkie_rozne_warianty(monkeypatch):
-    request = variants.RouteRequest("a", "b", "A", "B", "2026-10-05")
+    request = variants.RouteRequest("a", "b", "A", "B", "2026-09-28")
     options = [
         [
             make_leg(
@@ -1448,7 +1448,7 @@ def test_build_rail_via_stop_variant_spina_dwa_zapytania_przez_wezel(monkeypatch
         destination_stop_id="gelsenkirchen",
         origin_label="Lublin",
         destination_label="Gelsenkirchen",
-        date="2026-11-15",
+        date="2026-09-28",
     )
     via = variants.AlternativeStop("Poznań Główny", "pl_poznan")
 
@@ -1514,7 +1514,7 @@ def test_generate_variants_via_hub_stops_dedup_wobec_glownego_zapytania(monkeypa
         destination_stop_id="b",
         origin_label="A",
         destination_label="B",
-        date="2026-11-15",
+        date="2026-09-28",
     )
     main_legs = [
         make_leg(
@@ -1547,7 +1547,7 @@ def test_generate_variants_via_hub_dodaje_nowa_trase_gdy_rozna_od_glownej(monkey
         destination_stop_id="b",
         origin_label="A",
         destination_label="B",
-        date="2026-11-15",
+        date="2026-09-28",
     )
     main_legs = [
         make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)
@@ -1592,7 +1592,7 @@ def test_generate_variants_via_hub_motis_error_laduje_w_skipped(monkeypatch):
         destination_stop_id="b",
         origin_label="A",
         destination_label="B",
-        date="2026-11-15",
+        date="2026-09-28",
     )
     main_legs = [
         make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=170)
@@ -1621,7 +1621,7 @@ def test_generate_variants_alternative_origin_stops_dodaje_i_dedupikuje(monkeypa
         destination_stop_id="b",
         origin_label="Warszawa",
         destination_label="B",
-        date="2026-11-15",
+        date="2026-09-28",
     )
     main_legs = [
         make_leg(
@@ -1665,10 +1665,90 @@ def test_generate_variants_alternative_origin_stops_dodaje_i_dedupikuje(monkeypa
             destination_stop_id="b",
             origin_label="Warszawa",
             destination_label="B",
-            date="2026-11-15",
+            date="2026-09-28",
         ),
         alternative_origin_stops=[
             variants.AlternativeStop("Centralna-duplikat", "warszawa_centralna")
         ],
     )
     assert len(built2) == 1
+
+
+def test_motis_time_jest_czasem_lokalnym_z_offsetem():
+    # 06:00 czasu polskiego w październiku to 04:00 UTC (CEST), nie 06:00Z
+    request = variants.RouteRequest(
+        origin_stop_id="a",
+        destination_stop_id="b",
+        origin_label="A",
+        destination_label="B",
+        date="2026-10-09",
+    )
+    assert request.motis_time == "2026-10-09T06:00:00+02:00"
+
+
+def test_build_rail_only_variants_pomija_polaczenia_z_dnia_nastepnego(monkeypatch):
+    request = variants.RouteRequest(
+        origin_stop_id="a",
+        destination_stop_id="b",
+        origin_label="A",
+        destination_label="B",
+        date="2026-10-09",
+    )
+    # 2026-10-09 07:00 czasu lokalnego = 05:00 UTC; odjazd 2026-10-10 o 06:30 lokalnie = 04:30 UTC
+    same_day = [
+        make_leg(
+            LegMode.RAIL,
+            "A",
+            "B",
+            datetime(2026, 10, 9, 5, 0, tzinfo=UTC),
+            datetime(2026, 10, 9, 9, 0, tzinfo=UTC),
+            carrier="PKP Intercity",
+            distance_km=170,
+        )
+    ]
+    next_day = [
+        make_leg(
+            LegMode.RAIL,
+            "A",
+            "B",
+            datetime(2026, 10, 10, 4, 30, tzinfo=UTC),
+            datetime(2026, 10, 10, 6, 0, tzinfo=UTC),
+            carrier="PKP Intercity",
+            distance_km=170,
+        )
+    ]
+    monkeypatch.setattr(
+        variants.motis_client,
+        "all_itineraries_as_legs",
+        lambda *a, **kw: [next_day, same_day],
+    )
+
+    result = variants.build_rail_only_variants(request, max_variants=5)
+    assert len(result) == 1
+    assert result[0].legs[0].leg.depart.astimezone(variants.LOCAL_TIMEZONE).day == 9
+
+
+def test_build_rail_only_variants_nocny_przejazd_z_dnia_wyszukiwania_zostaje(monkeypatch):
+    request = variants.RouteRequest(
+        origin_stop_id="a",
+        destination_stop_id="b",
+        origin_label="A",
+        destination_label="B",
+        date="2026-10-09",
+    )
+    # odjazd 23:30 lokalnie 2026-10-09 (21:30 UTC), przyjazd następnego dnia — to nadal dzień wyszukiwania
+    night = [
+        make_leg(
+            LegMode.RAIL,
+            "A",
+            "B",
+            datetime(2026, 10, 9, 21, 30, tzinfo=UTC),
+            datetime(2026, 10, 10, 5, 0, tzinfo=UTC),
+            carrier="PKP Intercity",
+            distance_km=500,
+        )
+    ]
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **kw: [night])
+
+    result = variants.build_rail_only_variants(request, max_variants=5)
+    assert len(result) == 1

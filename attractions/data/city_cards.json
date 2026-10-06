@@ -1,0 +1,143 @@
+{
+  "_zrodlo": "Oficjalne cenniki kart miejskich: Berlin WelcomeCard, WelcomeCard Ruhr, KrakowCard",
+  "_data_aktualizacji": "2026-10-06",
+  "karty": [
+    {
+      "id": "berlin_welcomecard",
+      "city": "berlin",
+      "name": "Berlin WelcomeCard",
+      "description": "Najpopularniejsza karta turystyczna Berlina: nielimitowany transport publiczny (S-Bahn, U-Bahn, tramwaje, autobusy) oraz zniżki od 25% do 50% na ponad 180 atrakcji, muzeów i teatrów.",
+      "official_url": "https://www.berlin-welcomecard.de",
+      "default_discount_percent": 25.0,
+      "custom_discounts": {
+        "berlin_museumsinsel": 25.0,
+        "berlin_fernsehturm": 25.0,
+        "berlin_olympiastadion": 25.0
+      },
+      "variants": [
+        {
+          "id": "bwc_48h_ab",
+          "name": "Berlin WelcomeCard 48h (Strefa AB)",
+          "duration_hours": 48,
+          "price": 27.00,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "Berlin Strefa AB",
+          "description": "48 godzin nielimitowanego transportu w strefie AB (obszar miejski Berlina) + min. 25% zniżki na atrakcje."
+        },
+        {
+          "id": "bwc_72h_ab",
+          "name": "Berlin WelcomeCard 72h (Strefa AB)",
+          "duration_hours": 72,
+          "price": 37.00,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "Berlin Strefa AB",
+          "description": "72 godziny transportu w strefie AB + min. 25% zniżki na atrakcje."
+        },
+        {
+          "id": "bwc_72h_museumsinsel",
+          "name": "Berlin WelcomeCard 72h + Wyspa Muzeów",
+          "duration_hours": 72,
+          "price": 54.00,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "Berlin Strefa AB",
+          "description": "72 godziny transportu AB + darmowy wstęp (100% zniżki) do muzeów na Wyspie Muzeów (Museumsinsel) + rabaty na pozostałe atrakcje."
+        },
+        {
+          "id": "bwc_48h_abc",
+          "name": "Berlin WelcomeCard 48h (Strefa ABC)",
+          "duration_hours": 48,
+          "price": 32.00,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "Berlin Strefa ABC (w tym lotnisko BER i Poczdam)",
+          "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje."
+        }
+      ]
+    },
+    {
+      "id": "welcomecard_ruhr",
+      "city": "gelsenkirchen",
+      "name": "WelcomeCard Ruhr",
+      "description": "Oficjalna karta turystyczna Metropolii Ruhry (obejmuje m.in. Gelsenkirchen, Essen, Dortmund, Bochum, Duisburg, Oberhausen). Obejmuje nielimitowany transport VRR oraz darmowe wstępy lub 50% zniżki na ponad 100 atrakcji przemysłowych, kulturalnych i sportowych.",
+      "official_url": "https://www.welcomecard.ruhr",
+      "default_discount_percent": 50.0,
+      "custom_discounts": {
+        "gelsenkirchen_veltins_arena": 50.0,
+        "essen_zeche_zollverein": 50.0,
+        "gelsenkirchen_zoom_erlebniswelt": 25.0,
+        "dortmund_signal_iduna_park": 25.0,
+        "dortmund_fussballmuseum": 25.0
+      },
+      "variants": [
+        {
+          "id": "wcr_24h_vrr",
+          "name": "WelcomeCard Ruhr 24h (z transportem VRR)",
+          "duration_hours": 24,
+          "price": 29.90,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
+          "description": "24h nielimitowanego transportu w całym VRR + zniżki/darmowe wejścia do atrakcji Ruhrgebiet."
+        },
+        {
+          "id": "wcr_48h_vrr",
+          "name": "WelcomeCard Ruhr 48h (z transportem VRR)",
+          "duration_hours": 48,
+          "price": 49.90,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
+          "description": "48h nielimitowanego transportu w całym VRR + zniżki do atrakcji."
+        },
+        {
+          "id": "wcr_72h_vrr",
+          "name": "WelcomeCard Ruhr 72h (z transportem VRR)",
+          "duration_hours": 72,
+          "price": 69.90,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
+          "description": "72h nielimitowanego transportu w całym VRR + zniżki do atrakcji."
+        }
+      ]
+    },
+    {
+      "id": "krakow_card",
+      "city": "krakow",
+      "name": "Kraków Card (Karta Turystyczna)",
+      "description": "Oficjalna karta miejska Krakowa: nielimitowana komunikacja miejska w strefach I i II oraz bezpłatny wstęp do blisko 40 najpopularniejszych krakowskich muzeów i obiektów turystycznych.",
+      "official_url": "https://krakowcard.com",
+      "default_discount_percent": 100.0,
+      "custom_discounts": {
+        "krakow_schindler_factory": 100.0,
+        "krakow_wawel": 20.0,
+        "krakow_stadion_wisly": 0.0
+      },
+      "variants": [
+        {
+          "id": "krakow_card_2_dni",
+          "name": "Kraków Card 2 dni (Transport + Muzea)",
+          "duration_hours": 48,
+          "price": 140.00,
+          "currency": "PLN",
+          "includes_public_transit": true,
+          "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
+          "description": "2 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
+        },
+        {
+          "id": "krakow_card_3_dni",
+          "name": "Kraków Card 3 dni (Transport + Muzea)",
+          "duration_hours": 72,
+          "price": 160.00,
+          "currency": "PLN",
+          "includes_public_transit": true,
+          "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
+          "description": "3 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
+        }
+      ]
+    }
+  ]
+}

@@ -9,6 +9,15 @@ import json
 
 import streamlit as st
 
+from attractions import (
+    CATEGORY_LABELS,
+    AttractionCategory,
+    evaluate_city_cards,
+    get_attractions,
+    get_city_cards,
+    normalize_city,
+    suggest_best_city_card,
+)
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from fares.model import DiscountProfile
 from routing import motis_client
@@ -119,6 +128,138 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 f"💳 Masz już BahnCard {posiadana_bahncard} — cena w tabeli wyżej już ją uwzględnia; "
                 f"żadna inna karta nie da tu lepszego rabatu."
             )
+
+
+def render_attractions_and_city_cards(destination_label: str) -> None:
+    norm_city = normalize_city(destination_label)
+    if not norm_city:
+        return
+
+    city_names = {
+        "gelsenkirchen": "Gelsenkirchen & Zagłębie Ruhry",
+        "berlin": "Berlin",
+        "krakow": "Kraków",
+        "lublin": "Lublin",
+        "warszawa": "Warszawa",
+    }
+    display_city = city_names.get(norm_city, norm_city.capitalize())
+
+    st.markdown("---")
+    st.header(f"🏛️ Miejsca warte odwiedzenia i zniżki: {display_city}")
+    st.caption(
+        "Wybierz interesujące Cię kategorie miejsc (np. stadiony sportowe, zabytki) "
+        "i sprawdź, czy dedykowana Karta Miejska (City Card) pozwoli Ci zaoszczędzić na wstępach i komunikacji."
+    )
+
+    all_city_attrs = get_attractions(city=norm_city)
+    if not all_city_attrs:
+        st.info(f"Brak skatalogowanych atrakcji dla: {display_city}.")
+        return
+
+    # Filtrowanie kategorii
+    cat_options = ["Wszystkie"] + [cat.value for cat in AttractionCategory]
+    cat_labels = {"Wszystkie": "Wszystkie kategorie"}
+    cat_labels.update({cat.value: CATEGORY_LABELS[cat] for cat in AttractionCategory})
+
+    selected_cat = st.selectbox(
+        "Filtruj wg kategorii",
+        options=cat_options,
+        format_func=lambda c: cat_labels.get(c, c),
+        key="attr_cat_filter",
+    )
+
+    filtered_attrs = (
+        all_city_attrs
+        if selected_cat == "Wszystkie"
+        else [a for a in all_city_attrs if a.category.value == selected_cat]
+    )
+
+    # Wybór planowanych atrakcji do kalkulatora karty
+    attr_names = [a.name for a in all_city_attrs]
+    default_selected = [a.name for a in all_city_attrs if a.highlight]
+
+    st.subheader("Zaplanuj wizytę")
+    chosen_names = st.multiselect(
+        "Zaznacz miejsca, które planujesz odwiedzić (posłużą do kalkulacji opłacalności karty):",
+        options=attr_names,
+        default=default_selected,
+        key="chosen_attractions",
+    )
+    chosen_objects = [a for a in all_city_attrs if a.name in chosen_names]
+
+    # Kalkulator City Card
+    cards = get_city_cards(norm_city)
+    if cards:
+        st.subheader("💳 Analiza opłacalności Karty Miejskiej")
+        default_transit_cost = 15.0 if all_city_attrs[0].currency == "EUR" else 25.0
+        transit_cost = st.number_input(
+            f"Szacowany wydatek na komunikację miejską bez karty ({all_city_attrs[0].currency})",
+            min_value=0.0,
+            value=default_transit_cost,
+            step=5.0,
+            key="transit_est_cost",
+            help="Jeśli karta miejska zawiera nielimitowany transport, ten koszt odpada i staje się Twoją oszczędnością.",
+        )
+
+        best_eval = suggest_best_city_card(
+            norm_city, chosen_objects, estimated_transit_cost=transit_cost
+        )
+        if best_eval and best_eval.is_recommended:
+            st.success(f"🎉 **Rekomendacja:** {best_eval.summary}")
+        elif chosen_objects:
+            st.info(
+                f"ℹ️ Przy obecnie wybranych {len(chosen_objects)} atrakcjach zakup karty miejskiej nie jest jeszcze optymalny. "
+                "Poniżej znajdziesz porównanie wszystkich dostępnych wariantów."
+            )
+
+        evals = evaluate_city_cards(norm_city, chosen_objects, estimated_transit_cost=transit_cost)
+        if evals:
+            card_rows = []
+            for ev in evals:
+                card_rows.append(
+                    {
+                        "Karta / Wariant": ev.variant.name,
+                        "Cena karty": f"{ev.card_price:.2f} {ev.currency}",
+                        "Ważność": f"{ev.variant.duration_hours}h",
+                        "Darmowy transport": "Tak" if ev.variant.includes_public_transit else "Nie",
+                        "Koszt bez karty": f"{ev.total_cost_without_card:.2f} {ev.currency}",
+                        "Koszt z kartą": f"{ev.total_cost_with_card:.2f} {ev.currency}",
+                        "Bilans": (
+                            f"+{ev.net_savings:.2f} {ev.currency} (zysk)"
+                            if ev.net_savings > 0
+                            else f"{ev.net_savings:.2f} {ev.currency}"
+                        ),
+                        "Rekomendowana": "✅ Tak" if ev.is_recommended else "❌ Nie",
+                    }
+                )
+            st.dataframe(card_rows, width="stretch", hide_index=True)
+
+    # Prezentacja listy atrakcji w wybranej kategorii
+    st.subheader(f"Miejsca w kategorii: {cat_labels.get(selected_cat, selected_cat)}")
+    cols = st.columns(2)
+    for idx, attr in enumerate(filtered_attrs):
+        col = cols[idx % 2]
+        with col:
+            price_text = (
+                f"{attr.normal_price:.2f} {attr.currency}"
+                if attr.normal_price > 0
+                else "Wstęp bezpłatny"
+            )
+            discount_note = (
+                f" • zniżka z kartą: do {attr.default_card_discount_percent:.0f}%"
+                if attr.default_card_discount_percent > 0
+                else ""
+            )
+            with st.container(border=True):
+                st.markdown(f"**{attr.name}**")
+                st.caption(
+                    f"{CATEGORY_LABELS.get(attr.category, attr.category.value)} • {price_text}{discount_note}"
+                )
+                st.write(attr.description)
+                if attr.address:
+                    st.caption(f"📍 {attr.address}")
+                if attr.official_url:
+                    st.markdown(f"[Strona oficjalna]({attr.official_url})")
 
 
 def address_picker(label: str, default_text: str, state_key: str):
@@ -305,3 +446,6 @@ if result is not None:
             f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}" + risk_suffix
         ):
             render_itinerary(it, wiek, bc if bc != "brak" else None)
+
+    render_attractions_and_city_cards(request.destination_label)
+

@@ -1,0 +1,386 @@
+{
+  "_zrodlo": "Katalog atrakcji i rekomendowanych miejsc (PL + DE)",
+  "_data_aktualizacji": "2026-10-06",
+  "atrakcje": [
+    {
+      "id": "gelsenkirchen_veltins_arena",
+      "name": "Veltins-Arena & Muzeum Schalke 04",
+      "city": "gelsenkirchen",
+      "category": "sport",
+      "description": "Dom klubu FC Schalke 04 w Gelsenkirchen.",
+      "normal_price": 11.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 50.0,
+      "address": "Arenaring 1, 45891 Gelsenkirchen",
+      "official_url": "https://veltins-arena.de",
+      "highlight": true,
+      "tags": [
+        "piłka nożna",
+        "stadion",
+        "schalke",
+        "bundesliga"
+      ]
+    },
+    {
+      "id": "gelsenkirchen_zoom_erlebniswelt",
+      "name": "ZOOM Erlebniswelt Gelsenkirchen",
+      "city": "gelsenkirchen",
+      "category": "rozrywka",
+      "description": "Nagradzany ogród zoologiczny nowej generacji z immersyjnymi światami tematycznymi: Alaska, Afryka i Azja.",
+      "normal_price": 21.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 25.0,
+      "address": "Bleckstraße 64, 45889 Gelsenkirchen",
+      "official_url": "https://www.zoom-erlebniswelt.de",
+      "highlight": true,
+      "tags": [
+        "zoo",
+        "zwierzęta",
+        "rodzina",
+        "przygoda"
+      ]
+    },
+    {
+      "id": "gelsenkirchen_nordsternpark",
+      "name": "Nordsternpark & Wieża Nordstern",
+      "city": "gelsenkirchen",
+      "category": "natura",
+      "description": "Zrewitalizowany teren dawnej kopalni węgla Zeche Nordstern przekształcony w park krajobrazowy z rzeźbą Herkulesa Markusa Lüpertza na szczycie wieży szybowej.",
+      "normal_price": 0.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Am Bugapark 1, 45899 Gelsenkirchen",
+      "official_url": "https://www.nordsternpark.de",
+      "highlight": false,
+      "tags": [
+        "park",
+        "industrial",
+        "spacer",
+        "widok"
+      ]
+    },
+    {
+      "id": "essen_zeche_zollverein",
+      "name": "Zeche Zollverein (Essen / Ruhrgebiet)",
+      "city": "gelsenkirchen",
+      "category": "turystyka_kultura",
+      "description": "Ikona Szlaku Dziedzictwa Przemysłowego, wpisana na listę UNESCO.",
+      "normal_price": 10.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 50.0,
+      "address": "Gelsenkirchener Str. 181, 45309 Essen",
+      "official_url": "https://www.zollverein.de",
+      "highlight": true,
+      "tags": [
+        "unesco",
+        "muzeum",
+        "kopalnia",
+        "architektura"
+      ]
+    },
+    {
+      "id": "dortmund_signal_iduna_park",
+      "name": "Signal Iduna Park (Westfalenstadion)",
+      "city": "gelsenkirchen",
+      "category": "sport",
+      "description": "Największy stadion piłkarski w Niemczech (81 tys.",
+      "normal_price": 15.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 25.0,
+      "address": "Strobelallee 50, 44139 Dortmund",
+      "official_url": "https://www.bvb.de",
+      "highlight": true,
+      "tags": [
+        "piłka nożna",
+        "stadion",
+        "bvb",
+        "dortmund"
+      ]
+    },
+    {
+      "id": "dortmund_fussballmuseum",
+      "name": "Deutsches Fußballmuseum",
+      "city": "gelsenkirchen",
+      "category": "sport",
+      "description": "Oficjalne Niemieckie Muzeum Piłki Nożnej DFB tuż przy dworcu głównym w Dortmundzie.",
+      "normal_price": 19.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 25.0,
+      "address": "Platz der Deutschen Einheit 1, 44137 Dortmund",
+      "official_url": "https://www.fussballmuseum.de",
+      "highlight": true,
+      "tags": [
+        "piłka nożna",
+        "muzeum",
+        "dfb",
+        "sport"
+      ]
+    },
+    {
+      "id": "berlin_olympiastadion",
+      "name": "Olympiastadion Berlin",
+      "city": "berlin",
+      "category": "sport",
+      "description": "Legendarny stadion olimpijski z 1936 roku, dom Herthy BSC i arena finałów DFB-Pokal oraz Mistrzostw Europy.",
+      "normal_price": 15.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 25.0,
+      "address": "Olympischer Platz 3, 14053 Berlin",
+      "official_url": "https://olympiastadion.berlin",
+      "highlight": true,
+      "tags": [
+        "stadion",
+        "sport",
+        "historia",
+        "olimpiada"
+      ]
+    },
+    {
+      "id": "berlin_alte_foersterei",
+      "name": "Stadion An der Alten Försterei",
+      "city": "berlin",
+      "category": "sport",
+      "description": "Kultowy, leśny stadion 1.",
+      "normal_price": 12.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "An der Wuhlheide 263, 12555 Berlin",
+      "official_url": "https://www.stadion-an-der-alten-foersterei.de",
+      "highlight": false,
+      "tags": [
+        "sport",
+        "piłka nożna",
+        "union berlin",
+        "klimat"
+      ]
+    },
+    {
+      "id": "berlin_museumsinsel",
+      "name": "Museumsinsel (Wyspa Muzeów)",
+      "city": "berlin",
+      "category": "turystyka_kultura",
+      "description": "Światowej sławy kompleks 5 muzeów UNESCO w sercu Berlina (w tym Neues Museum ze słynnym popiersiem Nefertiti i Altes Museum).",
+      "normal_price": 14.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 25.0,
+      "address": "Bodestraße 1-3, 10178 Berlin",
+      "official_url": "https://www.smb.museum",
+      "highlight": true,
+      "tags": [
+        "muzeum",
+        "unesco",
+        "sztuka",
+        "starożytność"
+      ]
+    },
+    {
+      "id": "berlin_fernsehturm",
+      "name": "Berliner Fernsehturm (Wieża Telewizyjna)",
+      "city": "berlin",
+      "category": "rozrywka",
+      "description": "Najwyższy obiekt w Niemczech (368 m) na Alexanderplatz.",
+      "normal_price": 24.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 25.0,
+      "address": "Panoramastraße 1A, 10178 Berlin",
+      "official_url": "https://tv-turm.de",
+      "highlight": true,
+      "tags": [
+        "panorama",
+        "widok",
+        "alexanderplatz",
+        "wieża"
+      ]
+    },
+    {
+      "id": "berlin_brandenburger_tor",
+      "name": "Brama Brandenburska i Reichstag",
+      "city": "berlin",
+      "category": "turystyka_kultura",
+      "description": "Symbol zjednoczenia Niemiec oraz neoklasycystyczna brama z kwadrygą, tuż obok szklanej kopuły Reichstagu.",
+      "normal_price": 0.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Pariser Platz, 10117 Berlin",
+      "official_url": "https://www.berlin.de/sehenswuerdigkeiten/3560242-3558930-brandenburger-tor.html",
+      "highlight": true,
+      "tags": [
+        "zabytki",
+        "ikona",
+        "historia",
+        "bezpłatne"
+      ]
+    },
+    {
+      "id": "berlin_curry36",
+      "name": "Kultowy Currywurst (Curry 36 & Mehringdamm)",
+      "city": "berlin",
+      "category": "gastronomia",
+      "description": "Legendarna berlińska kiełbaska z sosem curry w Kreuzbergu, serwowana od pokoleń obok słynnego kebaba Mustafa's.",
+      "normal_price": 7.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Mehringdamm 36, 10961 Berlin",
+      "official_url": "https://curry36.de",
+      "highlight": false,
+      "tags": [
+        "street food",
+        "currywurst",
+        "gastronomia",
+        "tradycja"
+      ]
+    },
+    {
+      "id": "krakow_wawel",
+      "name": "Zamek Królewski na Wawelu i Katedra",
+      "city": "krakow",
+      "category": "turystyka_kultura",
+      "description": "Historyczna siedziba królów Polski, Reprezentacyjne Komnaty Królewskie, Skarbiec Koronny oraz Katedra z Dzwonem Zygmunta.",
+      "normal_price": 35.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 20.0,
+      "address": "Wawel 5, 31-001 Kraków",
+      "official_url": "https://wawel.krakow.pl",
+      "highlight": true,
+      "tags": [
+        "zamek",
+        "historia",
+        "królowie",
+        "unesco"
+      ]
+    },
+    {
+      "id": "krakow_schindler_factory",
+      "name": "Fabryka Emalia Oskara Schindlera",
+      "city": "krakow",
+      "category": "turystyka_kultura",
+      "description": "Światowej sławy ekspozycja 'Kraków - czas okupacji 1939-1945' w dawnej fabryce naczyń emaliowanych.",
+      "normal_price": 36.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 100.0,
+      "address": "Lipowa 4, 30-702 Kraków",
+      "official_url": "https://muzeumkrakowa.pl",
+      "highlight": true,
+      "tags": [
+        "muzeum",
+        "ii wojna",
+        "historia",
+        "krakow card free"
+      ]
+    },
+    {
+      "id": "krakow_stadion_wisly",
+      "name": "Stadion Miejski im. Henryka Reymana (Wisła Kraków)",
+      "city": "krakow",
+      "category": "sport",
+      "description": "Dom 13-krotnego Mistrza Polski Wisły Kraków.",
+      "normal_price": 25.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Reymonta 20, 30-059 Kraków",
+      "official_url": "https://wisla.krakow.pl",
+      "highlight": false,
+      "tags": [
+        "sport",
+        "piłka nożna",
+        "wisła kraków",
+        "stadion"
+      ]
+    },
+    {
+      "id": "krakow_kazimierz_zapiekanki",
+      "name": "Zapiekanki z Okrąglaka na Kazimierzu",
+      "city": "krakow",
+      "category": "gastronomia",
+      "description": "Tradycyjne chrupiące zapiekanki z pieczarkami i serem na Placu Nowym w historycznej żydowskiej dzielnicy Kazimierz.",
+      "normal_price": 18.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Plac Nowy 4, 31-056 Kraków",
+      "official_url": "https://krakow.travel",
+      "highlight": false,
+      "tags": [
+        "street food",
+        "kazimierz",
+        "zapiekanki",
+        "klimat"
+      ]
+    },
+    {
+      "id": "lublin_arena_lublin",
+      "name": "Arena Lublin",
+      "city": "lublin",
+      "category": "sport",
+      "description": "Nowoczesny stadion piłkarski Motoru Lublin (15,5 tys.",
+      "normal_price": 15.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Stadionowa 1, 20-405 Lublin",
+      "official_url": "https://mosir.lublin.pl/obiekty/arena-lublin",
+      "highlight": true,
+      "tags": [
+        "sport",
+        "stadion",
+        "motor lublin",
+        "piłka nożna"
+      ]
+    },
+    {
+      "id": "lublin_zamek_muzeum",
+      "name": "Zamek Lubelski & Kaplica Trójcy Świętej",
+      "city": "lublin",
+      "category": "turystyka_kultura",
+      "description": "Zamek z romańskim donżonem oraz bezcenna Kaplica Trójcy Świętej z XIV-wiecznymi rusko-bizantyjskimi freskami.",
+      "normal_price": 25.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 20.0,
+      "address": "Zamkowa 9, 20-117 Lublin",
+      "official_url": "https://zamek-lublin.pl",
+      "highlight": true,
+      "tags": [
+        "zamek",
+        "zabytki",
+        "freski",
+        "sztuka"
+      ]
+    },
+    {
+      "id": "lublin_majdanek",
+      "name": "Państwowe Muzeum na Majdanku",
+      "city": "lublin",
+      "category": "turystyka_kultura",
+      "description": "Miejsc pamięci i martyrologii na terenie dawnego niemieckiego obozu koncentracyjnego i zagłady.",
+      "normal_price": 0.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Droga Męczenników Majdanka 67, 20-325 Lublin",
+      "official_url": "https://www.majdanek.eu",
+      "highlight": true,
+      "tags": [
+        "historia",
+        "pamięć",
+        "muzeum",
+        "edukacja"
+      ]
+    },
+    {
+      "id": "lublin_cebularz",
+      "name": "Regionalne Muzeum Cebularza",
+      "city": "lublin",
+      "category": "gastronomia",
+      "description": "Interaktywny pokaz tradycyjnego wypieku słynnego lubelskiego cebularza z cebulą i makiem pod ochroną unijną.",
+      "normal_price": 26.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Szewska 4, 20-086 Lublin",
+      "official_url": "https://muzeumcebularza.com.pl",
+      "highlight": false,
+      "tags": [
+        "tradycja",
+        "kulinaria",
+        "cebularz",
+        "warsztaty"
+      ]
+    }
+  ]
+}

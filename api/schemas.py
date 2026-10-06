@@ -1,5 +1,4 @@
-"""Modele requestów REST API (api/main.py) — odzwierciedlają fares.model.DiscountProfile i
-parametry używane przez routing.variants.request_from_addresses()."""
+"""Modele requestów i response'ów REST API (api/main.py)."""
 
 from pydantic import BaseModel, Field
 
@@ -26,3 +25,15 @@ class RouteSearchRequest(BaseModel):
     )
     discounts: DiscountProfileIn = Field(default_factory=DiscountProfileIn)
     flight_currency: str = "PLN"
+
+
+class CityCardEvaluateRequest(BaseModel):
+    """Żądanie oceny opłacalności kart miejskich dla wskazanych atrakcji i miasta."""
+
+    city: str = Field(..., description="Nazwa lub adres miasta, np. 'Berlin' lub 'Gelsenkirchen'")
+    attraction_ids: list[str] = Field(
+        default_factory=list, description="Lista identyfikatorów wybranych atrakcji"
+    )
+    estimated_transit_cost: float = Field(
+        0.0, description="Szacowany koszt lokalnego transportu miejskiego w walucie docelowej"
+    )

@@ -108,10 +108,15 @@ uvicorn api.main:app --reload
   }'
   ```
 
+- `GET /attractions` — katalog rekomendowanych miejsc i atrakcji (parametry opcjonalne: `city`, `category`).
+- `GET /city-cards` — karty miejskie dla danego miasta (parametr opcjonalny: `city`).
+- `POST /city-cards/evaluate` — kalkulator opłacalności kart miejskich dla wskazanych atrakcji i szacowanego kosztu transportu.
+
 Interaktywna dokumentacja (Swagger UI) pod `http://localhost:8000/docs` po starcie serwera.
 
 Testy (mockują MOTIS na poziomie `routing/variants.py`, nie wymagają działającego serwera):
 `pytest tests/test_api.py`.
+
 
 ### Ponowne uruchomienie (po pierwszym razie)
 
@@ -320,7 +325,22 @@ prawdziwych identyfikatorów przystanków na uruchomionym lokalnie MOTIS.
 Testy: `pytest tests/test_routing.py` (nowe przypadki dla `build_rail_via_stop_variant` i
 dedup w `generate_variants`).
 
+## Sesja 7: atrakcje i karty miejskie (City Cards)
+
+Moduł `attractions/` integruje katalog rekomendowanych miejsc z podziałem na kategorie
+(sport i stadiony, turystyka i zabytki, rozrywka, gastronomia, natura) dla miast docelowych
+(m.in. Berlin, Gelsenkirchen & Zagłębie Ruhry, Kraków, Lublin) oraz kalkulator opłacalności
+zakupu oficjalnych kart miejskich (Berlin WelcomeCard, WelcomeCard Ruhr, Kraków Card).
+
+Silnik ocenia, czy zakup karty zwraca się przy wybranym zestawie atrakcji oraz darmowym
+transporcie miejskim (np. VRR / Berlin AB / Kraków strefa I+II), wyliczając realne oszczędności netto.
+
+Szczegóły: [`attractions/README.md`](attractions/README.md).
+
+Testy: `pytest tests/test_attractions.py`.
+
 ## Code style
+
 
 Formatowanie: `black` (line length 100), lint: `ruff` (reguły i wyjątki w `pyproject.toml`).
 

@@ -126,3 +126,57 @@ def test_route_endpoint_przekazuje_discounts_do_wyceny(monkeypatch):
     assert captured["discounts"].pkp_ulga_kod == "ulgowy"
     assert response.json()["built"] == []
     assert response.json()["recommendations"] == {}
+
+
+def test_attractions_endpoint():
+    # Pobranie wszystkich atrakcji
+    res = client.get("/attractions")
+    assert res.status_code == 200
+    items = res.json()
+    assert len(items) >= 15
+
+    # Filtrowanie po mieście i kategorii sport
+    res_berlin_sport = client.get("/attractions?city=Berlin&category=sport")
+    assert res_berlin_sport.status_code == 200
+    berlin_sports = res_berlin_sport.json()
+    assert len(berlin_sports) >= 2
+    assert all(a["city"] == "berlin" and a["category"] == "sport" for a in berlin_sports)
+
+
+def test_city_cards_endpoint():
+    res = client.get("/city-cards?city=Berlin")
+    assert res.status_code == 200
+    cards = res.json()
+    assert len(cards) == 1
+    assert cards[0]["id"] == "berlin_welcomecard"
+    assert len(cards[0]["variants"]) >= 4
+
+
+def test_city_cards_evaluate_endpoint():
+    res = client.post(
+        "/city-cards/evaluate",
+        json={
+            "city": "Berlin",
+            "attraction_ids": ["berlin_fernsehturm", "berlin_olympiastadion", "berlin_museumsinsel"],
+            "estimated_transit_cost": 20.0,
+        },
+    )
+    assert res.status_code == 200
+    evals = res.json()
+    assert len(evals) >= 4
+    # Sprawdzamy czy któryś wariant jest rekomendowany
+    assert any(e["is_recommended"] for e in evals)
+
+
+def test_city_cards_evaluate_unknown_city_returns_400():
+    res = client.post(
+        "/city-cards/evaluate",
+        json={
+            "city": "NowhereLand",
+            "attraction_ids": [],
+            "estimated_transit_cost": 0.0,
+        },
+    )
+    assert res.status_code == 400
+    assert "Nie rozpoznano obsługiwanego miasta" in res.json()["detail"]
+

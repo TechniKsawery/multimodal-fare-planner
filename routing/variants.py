@@ -21,6 +21,7 @@ są odchudzane wspólnym dedup po sygnaturze trasy (sekwencja origin/destination
 
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from fares.model import DiscountProfile
 
@@ -34,6 +35,9 @@ try:
     from flights.travelpayouts import TravelpayoutsError
 except ImportError:  # pragma: no cover
     TravelpayoutsError = RuntimeError
+
+# Strefa, w której użytkownik podaje datę i godzinę wyjazdu (rozkłady PL/DE — czas lokalny).
+LOCAL_TIMEZONE = ZoneInfo("Europe/Warsaw")
 
 
 @dataclass
@@ -53,7 +57,10 @@ class RouteRequest:
 
     @property
     def motis_time(self) -> str:
-        return f"{self.date}T{self.departure_time}Z"
+        # czas LOKALNY z offsetem (np. 2026-10-09T06:00:00+02:00) — wcześniej "…Z" traktowało
+        # 06:00 jako UTC, czyli okno wyszukiwania zaczynało się o 08:00 czasu polskiego
+        local = datetime.fromisoformat(f"{self.date}T{self.departure_time}")
+        return local.replace(tzinfo=LOCAL_TIMEZONE).isoformat()
 
 
 def request_from_addresses(
@@ -117,6 +124,15 @@ def _price_legs(legs: list[Leg], request: RouteRequest):
     return [pricing.price_leg(leg, request.discounts, request.flight_currency) for leg in legs]
 
 
+def _departs_on_request_date(legs: list[Leg], request: RouteRequest) -> bool:
+    """True, gdy pierwszy odcinek wariantu rusza w dniu wyszukiwania (czas lokalny).
+
+    MOTIS szuka od podanego czasu bez górnej granicy, więc bez tego filtra w wynikach
+    pojawiają się połączenia z dnia następnego (np. najtańszy wariant dla 2026-10-09 ruszał
+    2026-10-10). Nocny przejazd, który rusza wieczorem dnia wyszukiwania, nadal przechodzi."""
+    return legs[0].depart.astimezone(LOCAL_TIMEZONE).date().isoformat() == request.date
+
+
 def _legs_signature(legs: list[Leg]) -> tuple[tuple[str, str], ...]:
     """Sygnatura trasy (sekwencja origin/destination nazw odcinków) do dedup: ta sama fizyczna
     trasa znaleziona przez różne zapytania (główne + alternatywne huby/dworce) liczy się raz."""
@@ -140,6 +156,8 @@ def build_rail_only_variants(
         seen_signatures = set()
     variants: list[Itinerary] = []
     for legs in sorted(all_legs_options, key=lambda ls: (ls[-1].arrive - ls[0].depart)):
+        if not _departs_on_request_date(legs, request):
+            continue
         signature = _legs_signature(legs)
         if signature in seen_signatures:
             continue
@@ -185,6 +203,8 @@ def build_rail_via_stop_variant(request: RouteRequest, via: AlternativeStop) -> 
     też jest jawnie oznaczona jako wymagająca przejścia (requires_walk), bo w przeciwieństwie
     do itinerary z jednego zapytania nie wiemy, czy to ten sam peron."""
     first_legs = motis_client.plan_leg(request.origin_stop_id, via.stop_id, request.motis_time)
+    if not _departs_on_request_date(first_legs, request):
+        raise MotisError(f"Brak połączenia do {via.label} w dniu {request.date}.")
     # bufor na przesiadkę w węźle via — bez niego MOTIS podaje odjazd tuż po przyjeździe
     # i wariant odpada jako fizycznie niewykonalny
     onward = first_legs[-1].arrive + timedelta(minutes=MIN_TRANSFER_MINUTES_WALK)
@@ -249,6 +269,11 @@ def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Iti
             request.motis_time,
             max_candidates=HUB_LEG_ALTERNATIVES,
         )
+        access_options = [o for o in access_options if _departs_on_request_date(o, request)]
+        if not access_options:
+            raise MotisError(
+                f"Brak dojazdu do {hub.origin_rail_access_stop_id} w dniu {request.date}."
+            )
     else:
         access_options = [[]]  # brak dojazdu kolejowego do lotniska — jedna "pusta" opcja
 

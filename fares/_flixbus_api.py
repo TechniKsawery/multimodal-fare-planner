@@ -130,11 +130,20 @@ def fetch_cheapest_trip(
         )
 
     try:
-        cheapest = min(results.values(), key=lambda trip: trip["price"]["total"])
-    except (KeyError, TypeError) as exc:
+        priced = [trip for trip in results.values() if float(trip["price"]["total"]) > 0]
+        cheapest = min(priced, key=lambda trip: trip["price"]["total"])
+    except (KeyError, TypeError, ValueError) as exc:
         raise FlixbusApiError(
             "Nieoczekiwany kształt odpowiedzi FlixBus API (endpoint mógł się zmienić od czasu "
             f"napisania tego klienta): {exc}. Fragment surowej odpowiedzi: {str(results)[:500]}"
         ) from exc
+
+    if not priced:
+        # API zwraca czasem przejazdy z ceną 0 (brak miejsc/niewycenione) — to nie jest cena,
+        # więc nie wolno ich traktować jak najtańszej oferty.
+        raise FlixbusApiError(
+            f"FlixBus nie zwrócił przejazdu z dodatnią ceną dla {from_city_id}->{to_city_id} "
+            f"na {departure_date} (wszystkie wyniki mają cenę 0)."
+        )
 
     return cheapest

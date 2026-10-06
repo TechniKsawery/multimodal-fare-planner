@@ -306,3 +306,58 @@ def test_bahncard_juz_posiadana_najlepsza_karta_brak_sugestii():
     # (zamiast mylącej sugestii kupna czegoś gorszego lub tego samego).
     results = suggest_bahncard(550, journeys_per_year=2, age=None, existing_bahncard="50")
     assert results == []
+
+
+def _flixbus_search_payload(results: dict) -> dict:
+    """Kształt odpowiedzi /search/service/v4/search (trips[0].results)."""
+    return {"trips": [{"results": results}]}
+
+
+class _FakeFlixbusResponse:
+    def __init__(self, payload):
+        self._payload = payload
+
+    def raise_for_status(self):
+        return None
+
+    def json(self):
+        return self._payload
+
+
+def test_flixbus_pomija_przejazdy_z_cena_zero_z_api(monkeypatch):
+    # Regresja: live API zwróciło przejazd z ceną 0 (08:15) obok realnych ofert po 16,99 EUR;
+    # wcześniej min() wybierał 0,00 EUR i cała trasa była błędnie tania.
+    payload = _flixbus_search_payload(
+        {
+            "direct:a": {"price": {"total": 17.99, "currency": "EUR"}},
+            "direct:zero": {"price": {"total": 0, "currency": "EUR"}},
+            "direct:b": {"price": {"total": 16.99, "currency": "EUR"}},
+        }
+    )
+    monkeypatch.setattr(
+        _flixbus_api.requests, "get", lambda *a, **kw: _FakeFlixbusResponse(payload)
+    )
+    trip = _flixbus_api.fetch_cheapest_trip("1", "2", "2026-10-09")
+    assert trip["price"]["total"] == 16.99
+
+
+def test_flixbus_gdy_wszystkie_przejazdy_maja_cene_zero_rzuca_blad_i_spada_do_fallbacku(
+    monkeypatch,
+):
+    payload = _flixbus_search_payload({"direct:zero": {"price": {"total": 0, "currency": "EUR"}}})
+    monkeypatch.setattr(
+        _flixbus_api.requests, "get", lambda *a, **kw: _FakeFlixbusResponse(payload)
+    )
+    with pytest.raises(_flixbus_api.FlixbusApiError):
+        _flixbus_api.fetch_cheapest_trip("1", "2", "2026-10-09")
+
+    monkeypatch.setattr(_flixbus_api, "find_city_id", lambda city, **kw: "1")
+    monkeypatch.setattr(
+        _flixbus_api,
+        "fetch_cheapest_trip",
+        lambda *a, **kw: (_ for _ in ()).throw(_flixbus_api.FlixbusApiError("cena 0")),
+    )
+    seg = Segment(Carrier.FLIXBUS, "Lublin", "Berlin", distance_km=600, travel_date="2026-10-09")
+    result = estimate_price(seg)
+    assert result.breakdown["zrodlo"] == "fallback_km"
+    assert result.amount > 0

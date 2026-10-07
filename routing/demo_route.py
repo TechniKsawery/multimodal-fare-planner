@@ -1,26 +1,34 @@
 """Konfiguracja przykładowej relacji Lublin -> Gelsenkirchen (demo.py, tests/test_routing.py).
 
-Identyfikatory stopId pochodzą z MOTIS (Sesja 2, GTFS PL+DE) — zweryfikowane manualnie
-zapytaniami do /api/v1/geocode i /api/v6/plan pod uruchomionym lokalnie MOTIS. Huby (lotniska
-+ stacje dojazdowe) są ustalone RAZ, bez przeszukiwania alternatyw — patrz README.md.
+Przystanki są podawane jako StopRef (nazwa + współrzędne), a nie zaszyte stopId z GTFS: stopId
+zmienia się przy każdym odświeżeniu paczki danych (np. Gelsenkirchen Hbf z derv_344028 na
+defv_381192 po nowym pobraniu z gtfs.de). Właściwe ID rozwiązuje MOTIS w runtime przez
+/api/v1/geocode (najbliższy przystanek typu STOP do współrzędnych, cache w pamięci — patrz
+routing/motis_client.py::find_stop_id). Współrzędne to okolice dworca, nie dokładne punkty.
+
+Huby (lotniska + stacje dojazdowe) są ustalone RAZ, bez przeszukiwania alternatyw — patrz README.md.
 """
 
+from . import motis_client
+from .motis_client import StopRef
 from .variants import AlternativeStop, HubConfig, RouteRequest
 
-LUBLIN_GLOWNY_STOP = "pl_50500"
-GELSENKIRCHEN_HBF_STOP = "defv_344028"
+LUBLIN_GLOWNY_STOP = StopRef("Lublin Główny", 51.2314, 22.5692)
+GELSENKIRCHEN_HBF_STOP = StopRef("Gelsenkirchen Hbf", 51.5049, 7.1022)
 
-WARSZAWA_LOTNISKO_CHOPINA_STOP = "pl_241994"
-DORTMUND_HBF_STOP = "defv_64583"
-DUSSELDORF_HBF_STOP = "defv_126321"
-KRAKOW_LOTNISKO_STOP = "pl_235879"
+WARSZAWA_LOTNISKO_CHOPINA_STOP = StopRef("Warszawa Lotnisko Chopina", 52.1657, 20.9671)
+DORTMUND_HBF_STOP = StopRef("Dortmund Hbf", 51.5172, 7.4595)
+DUSSELDORF_HBF_STOP = StopRef("Düsseldorf Hbf", 51.2200, 6.7944)
+KRAKOW_LOTNISKO_STOP = StopRef("Kraków Lotnisko", 50.0777, 19.7848)
 
 
 def lublin_gelsenkirchen_request(date: str, **overrides) -> RouteRequest:
-    """RouteRequest dla Lublin Główny -> Gelsenkirchen Hbf w podanym dniu (YYYY-MM-DD)."""
+    """RouteRequest dla Lublin Główny -> Gelsenkirchen Hbf w podanym dniu (YYYY-MM-DD).
+
+    Rozwiązuje przystanki w MOTIS (jedno zapytanie na przystanek, potem cache)."""
     kwargs = dict(
-        origin_stop_id=LUBLIN_GLOWNY_STOP,
-        destination_stop_id=GELSENKIRCHEN_HBF_STOP,
+        origin_stop_id=motis_client.stop_id(LUBLIN_GLOWNY_STOP),
+        destination_stop_id=motis_client.stop_id(GELSENKIRCHEN_HBF_STOP),
         origin_label="Lublin",
         destination_label="Gelsenkirchen",
         date=date,
@@ -81,8 +89,8 @@ HUB_KRAKOW_DORTMUND = HubConfig(
 RAIL_FLIGHT_RAIL_HUBS = [HUB_WARSZAWA_DORTMUND, HUB_WARSZAWA_DUSSELDORF, HUB_KRAKOW_DORTMUND]
 FLIGHT_REGIONAL_HUBS = []
 
-POZNAN_GLOWNY_STOP = "pl_30601"
-ESSEN_HBF_STOP = "defv_351643"
+POZNAN_GLOWNY_STOP = StopRef("Poznań Główny", 52.4019, 16.9125)
+ESSEN_HBF_STOP = StopRef("Essen Hbf", 51.4515, 7.0131)
 
 # Sesja 6: jawnie sprawdzane węzły pośrednie / alternatywne dworce mety (tylko kolej).
 VIA_HUB_STOPS = [AlternativeStop(label="Poznań Główny", stop_id=POZNAN_GLOWNY_STOP)]

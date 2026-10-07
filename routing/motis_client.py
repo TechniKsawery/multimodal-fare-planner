@@ -6,6 +6,7 @@ http://localhost:8080, konfigurowalne przez zmienną środowiskową MOTIS_BASE_U
 
 import math
 import os
+from dataclasses import dataclass
 from datetime import datetime
 
 import requests
@@ -42,6 +43,18 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2 * r * math.asin(math.sqrt(a))
 
 
+def _geocode_raw(text: str) -> list[dict]:
+    """Surowa odpowiedź /api/v1/geocode (z polami type/id, jeśli MOTIS je zwraca)."""
+    try:
+        response = requests.get(
+            f"{MOTIS_BASE_URL}/api/v1/geocode", params={"text": text}, timeout=30
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as exc:
+        raise MotisError(f"Błąd geocodingu w MOTIS ({MOTIS_BASE_URL}): {exc}") from exc
+
+
 def geocode_suggestions(text: str, limit: int = 5) -> list[dict]:
     """Podpowiedzi adresów przez /api/v1/geocode: lista {lat, lon, name} do wyboru w UI.
 
@@ -50,17 +63,61 @@ def geocode_suggestions(text: str, limit: int = 5) -> list[dict]:
     """
     if not text or not text.strip():
         return []
-    try:
-        response = requests.get(
-            f"{MOTIS_BASE_URL}/api/v1/geocode", params={"text": text}, timeout=30
-        )
-        response.raise_for_status()
-        results = response.json()
-    except requests.RequestException as exc:
-        raise MotisError(f"Błąd geocodingu w MOTIS ({MOTIS_BASE_URL}): {exc}") from exc
+    results = _geocode_raw(text)
     return [
         {"lat": r["lat"], "lon": r["lon"], "name": r.get("name") or text} for r in results[:limit]
     ]
+
+
+@dataclass(frozen=True)
+class StopRef:
+    """Przystanek opisany nazwą i współrzędnymi zamiast zaszytego stopId MOTIS.
+
+    stopId z GTFS (np. "defv_344028") zmienia się przy każdym odświeżeniu paczki danych, więc
+    zamiast niego trzymamy nazwę i miejsce stacji; właściwe ID rozwiązuje `find_stop_id`."""
+
+    name: str
+    lat: float
+    lon: float
+
+
+# Maksymalna odległość między współrzędnymi StopRef a znalezionym przystankiem MOTIS. Większa
+# wartość oznacza, że MOTIS nie ma tam stacji o tej nazwie — wtedy wolimy błąd niż zły przystanek.
+STOP_MATCH_RADIUS_KM = 5.0
+
+_STOP_ID_CACHE: dict[StopRef, str] = {}
+
+
+def find_stop_id(ref: StopRef) -> str:
+    """Rozwiązuje StopRef na stopId MOTIS: najbliższy wynik typu STOP do podanych współrzędnych.
+
+    Wynik jest cache'owany w pamięci procesu (jedno zapytanie na przystanek). Zapytanie idzie
+    przez /api/v1/geocode po nazwie, więc działa z każdą paczką GTFS bez zmian w kodzie."""
+    cached = _STOP_ID_CACHE.get(ref)
+    if cached is not None:
+        return cached
+
+    best_id, best_km = None, STOP_MATCH_RADIUS_KM
+    for result in _geocode_raw(ref.name):
+        if result.get("type") != "STOP" or not result.get("id"):
+            continue
+        km = haversine_km(ref.lat, ref.lon, result["lat"], result["lon"])
+        if km <= best_km:
+            best_id, best_km = result["id"], km
+
+    if best_id is None:
+        raise MotisError(
+            f"MOTIS nie znalazł przystanku {ref.name!r} w promieniu {STOP_MATCH_RADIUS_KM} km "
+            f"od ({ref.lat}, {ref.lon})."
+        )
+    _STOP_ID_CACHE[ref] = best_id
+    return best_id
+
+
+def stop_id(value: str | StopRef) -> str:
+    """Zwraca stopId MOTIS: wartość już podaną jako string przechodzi bez zmian (np. współrzędne
+    "lat,lon" albo ręcznie podane ID), StopRef jest rozwiązywany przez `find_stop_id`."""
+    return find_stop_id(value) if isinstance(value, StopRef) else value
 
 
 def geocode(text: str) -> tuple:

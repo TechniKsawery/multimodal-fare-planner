@@ -27,7 +27,7 @@ from fares.model import DiscountProfile
 
 from . import motis_client, pricing
 from .model import Itinerary, Leg, LegMode, SkippedVariant
-from .motis_client import MotisError
+from .motis_client import MotisError, StopRef
 from .scoring import build_itinerary
 from .transfers import MIN_TRANSFER_MINUTES_WALK
 
@@ -91,10 +91,10 @@ class HubConfig:
     origin_iata: str
     destination_iata: str
     origin_rail_access_stop_id: (
-        str | None
-    )  # stacja przy lotnisku wylotu (np. "Warszawa Lotnisko Chopina")
+        str | StopRef | None
+    )  # stacja przy lotnisku wylotu (np. StopRef("Warszawa Lotnisko Chopina", ...))
     destination_rail_access_stop_id: (
-        str  # stacja przy/blisko lotniska przylotu (np. "Dortmund Hbf")
+        str | StopRef  # stacja przy/blisko lotniska przylotu (np. StopRef("Dortmund Hbf", ...))
     )
 
 
@@ -186,7 +186,7 @@ class AlternativeStop:
     w swoich topowych itinerariach dla zapytania origin->destination wprost."""
 
     label: str
-    stop_id: str
+    stop_id: str | StopRef
 
 
 def build_rail_via_stop_variant(request: RouteRequest, via: AlternativeStop) -> Itinerary:
@@ -202,14 +202,15 @@ def build_rail_via_stop_variant(request: RouteRequest, via: AlternativeStop) -> 
     transfers.py). Przesiadka w węźle pośrednim między dwoma NIEZALEŻNIE zapytanymi odcinkami
     też jest jawnie oznaczona jako wymagająca przejścia (requires_walk), bo w przeciwieństwie
     do itinerary z jednego zapytania nie wiemy, czy to ten sam peron."""
-    first_legs = motis_client.plan_leg(request.origin_stop_id, via.stop_id, request.motis_time)
+    via_id = motis_client.stop_id(via.stop_id)
+    first_legs = motis_client.plan_leg(request.origin_stop_id, via_id, request.motis_time)
     if not _departs_on_request_date(first_legs, request):
         raise MotisError(f"Brak połączenia do {via.label} w dniu {request.date}.")
     # bufor na przesiadkę w węźle via — bez niego MOTIS podaje odjazd tuż po przyjeździe
     # i wariant odpada jako fizycznie niewykonalny
     onward = first_legs[-1].arrive + timedelta(minutes=MIN_TRANSFER_MINUTES_WALK)
     onward_time = onward.isoformat().replace("+00:00", "Z")
-    second_legs = motis_client.plan_leg(via.stop_id, request.destination_stop_id, onward_time)
+    second_legs = motis_client.plan_leg(via_id, request.destination_stop_id, onward_time)
     second_legs[0] = replace(second_legs[0], requires_walk=True)
 
     legs = first_legs + second_legs
@@ -224,7 +225,9 @@ def build_rail_from_alternative_origin_variants(
     mieście niż domyślnie skonfigurowany/geokodowany origin_stop_id) — tą samą metodą co
     `build_rail_only_variants`, tylko dla przestawionego origin."""
     alt_request = replace(
-        request, origin_stop_id=alt.stop_id, origin_label=f"{request.origin_label} ({alt.label})"
+        request,
+        origin_stop_id=motis_client.stop_id(alt.stop_id),
+        origin_label=f"{request.origin_label} ({alt.label})",
     )
     return build_rail_only_variants(alt_request, max_variants=max_variants)
 
@@ -236,7 +239,7 @@ def build_rail_from_alternative_destination_variants(
     docelowego."""
     alt_request = replace(
         request,
-        destination_stop_id=alt.stop_id,
+        destination_stop_id=motis_client.stop_id(alt.stop_id),
         destination_label=f"{request.destination_label} ({alt.label})",
     )
     return build_rail_only_variants(alt_request, max_variants=max_variants)
@@ -262,18 +265,18 @@ def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Iti
     (patrz plan_leg_candidates) zamiast brać automatycznie najszybszy, i spośród wszystkich
     zbudowanych kombinacji wybierają najlepszą całościowo (_best_overall)."""
     legs: list[Leg] = []
+    destination_access_id = motis_client.stop_id(hub.destination_rail_access_stop_id)
     if hub.origin_rail_access_stop_id:
+        origin_access_id = motis_client.stop_id(hub.origin_rail_access_stop_id)
         access_options = motis_client.plan_leg_candidates(
             request.origin_stop_id,
-            hub.origin_rail_access_stop_id,
+            origin_access_id,
             request.motis_time,
             max_candidates=HUB_LEG_ALTERNATIVES,
         )
         access_options = [o for o in access_options if _departs_on_request_date(o, request)]
         if not access_options:
-            raise MotisError(
-                f"Brak dojazdu do {hub.origin_rail_access_stop_id} w dniu {request.date}."
-            )
+            raise MotisError(f"Brak dojazdu do {origin_access_id} w dniu {request.date}.")
     else:
         access_options = [[]]  # brak dojazdu kolejowego do lotniska — jedna "pusta" opcja
 
@@ -289,7 +292,7 @@ def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Iti
         flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
         onward_time = (flight_leg.arrive + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
         onward_options = motis_client.plan_leg_candidates(
-            hub.destination_rail_access_stop_id,
+            destination_access_id,
             request.destination_stop_id,
             onward_time,
             max_candidates=HUB_LEG_ALTERNATIVES,
@@ -312,7 +315,7 @@ def build_flight_regional_variant(request: RouteRequest, hub: HubConfig) -> Itin
 
     onward_time = (flight_leg.arrive + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
     onward_options = motis_client.plan_leg_candidates(
-        hub.destination_rail_access_stop_id,
+        motis_client.stop_id(hub.destination_rail_access_stop_id),
         request.destination_stop_id,
         onward_time,
         max_candidates=HUB_LEG_ALTERNATIVES,

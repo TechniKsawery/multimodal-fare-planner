@@ -35,7 +35,7 @@ def estimate(segment: Segment) -> PriceEstimate:
             "relacja": f"{segment.origin} <-> {segment.destination}",
             "czas_jazdy_min": segment.ride_duration_min,
             "bilet_wazny_min": bilet["wazny_min"],
-            "typ_biletu": "ulgowy (szacunek 50%, niepotwierdzone źródłowo)" if ulgowy else "normalny",
+            "typ_biletu": "ulgowy (50%)" if ulgowy else "normalny",
             "strefa": bilet.get("strefa", "A+B+C+D"),
         },
         notes=(

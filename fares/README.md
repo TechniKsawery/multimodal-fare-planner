@@ -14,7 +14,11 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
   więc taki odcinek nigdy nie trafia do krajowej tabeli PKP/DB, nawet jeśli agencyName brzmi jak
   jeden z nich. BahnCard: oficjalnie rabat dotyczy tylko niemieckiego odcinka trasy — nie mamy
   podziału PL/DE, więc to uproszczone (patrz `_uwaga_bahncard` w
-  `fares/data/international_pl_de.json`).
+  `fares/data/international_pl_de.json`). Pasażerowie 15-26 lat (`DiscountProfile.age`) dostają
+  zamiast tego taryfę "Super Sparpreis Europa Young" — JEDNA cena "od" dla wszystkich relacji
+  (bahn.de nie publikuje progów zależnych od odległości dla tej oferty), BahnCard działa tak samo
+  jak dla dorosłych. `age` NIE wpływa na żaden inny moduł taryf w tym katalogu — zob.
+  `_uwaga_young` w `fares/data/international_pl_de.json`.
 - **VRR** (`fares/vrr.py`) — taryfa eezy.nrw: cena = Grundpreis + cena za km (linii prostej),
   z sufitem cenowym. Obejmuje pociągi regionalne VRR ORAZ lokalny bus/tramwaj/U-Bahn w obszarze
   VRR (Zagłębie Rury/NRW) — to jedna, wspólna taryfa strefowa dla całego transportu VRR.
@@ -38,6 +42,7 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 | DB — tabela pasm odległości Flexpreis | **szacunek, skalibrowany do 1 realnej próbki** | DB nie publikuje takiej tabeli (cena dynamiczna); próba żywego wyszukiwania na bahn.de zablokowana jako ruch bota (błąd 751) — użyto zamiast tego realnej ceny Halle→München (373 km, 106–127 EUR) z bahndampf.de + oficjalnie cytowanej górnej granicy (150 EUR 2. klasa) do skalibrowania prostej formuły baza+km |
 | ZTM Lublin — bilety czasowe (15/40/90 min, strefa 1+2) | **oficjalne** | [Cennik LUBIKA](https://lubika.zdtm.lublin.eu/cennik/) (system biletu elektronicznego ZDiTM Lublin), ważny od 16.02.2026 |
 | Międzynarodowy PL↔DE — 3 kategorie cenowe (krótka/średnia/długa) | **oficjalne ceny "od", progi km SZACUNEK** | [Super Sparpreis Europa Polska](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-polen), [zasada BahnCard tylko na niemiecki odcinek](https://int.bahn.de/en/offers/saver-fare-flexible-fare/super-saver-fare-europe-poland) — sprawdzone 2026-09-29 |
+| Międzynarodowy PL↔DE — taryfa Young (15-26 lat) | **oficjalna cena "od" (MINIMUM, nie realna cena — bahn.de explicite nie podaje górnej granicy, "je nach Verfügbarkeit"), flat (bez progów km — tak reklamuje to bahn.de)** | [Super Sparpreis Europa Young Polen](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-young-polen), [FAQ cena](https://www.bahn.de/bahnbusiness/faq/preis-super-sparpreis-europa-polen), [FAQ Young](https://www.bahn.de/faq/pk/angebot/sparpreis/young/super-sparpreis-young) — sprawdzone 2026-10-07 (2x, niezależnie) |
 
 Każdy wynik niesie `price_type`: `PriceType.OFFICIAL` ("oficjalna_taryfa") tam, gdzie dane są
 oficjalne, `PriceType.ESTIMATE` ("szacunek") tam, gdzie nadal szacujemy (obecnie: cały wynik DB,

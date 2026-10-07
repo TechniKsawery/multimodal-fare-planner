@@ -201,6 +201,92 @@ def test_bledny_przewoznik_podnosi_blad():
         international_estimate(Segment(Carrier.DB, "Berlin", "Warszawa", distance_km=519))
 
 
+# --- taryfa "Super Sparpreis Europa Young" (15-26 lat, bahn.de) ---------------------------
+#
+# ZNALEZIONA DZIURA (audyt zniżek, 2026-10-07): DiscountProfile.age istniał wcześniej TYLKO
+# jako parametr sugestii zakupu BahnCard (routing/card_suggestions.py) — nigdy nie wpływał na
+# cenę biletu. Dla 15-26 lat bahn.de sprzedaje odrębną, dużo tańszą taryfę "Super Sparpreis
+# Europa Young" z JEDNĄ ceną "od" (18.99 EUR) dla WSZYSTKICH relacji — w przeciwieństwie do
+# wersji dla dorosłych, która ma 3 progi zależne od odległości. Testy niżej sprawdzają granice
+# przedziału wiekowego (14/15/25/26/27) i współdziałanie z BahnCard.
+
+
+@pytest.mark.parametrize("age", [15, 20, 26])
+def test_wiek_w_przedziale_young_dostaje_cene_young_niezaleznie_od_dystansu(age):
+    for distance_km in (240, 519, 532):  # krótka / średnia / długa relacja dla dorosłych
+        seg = Segment(
+            Carrier.INTERNATIONAL_PL_DE,
+            "Berlin",
+            "X",
+            distance_km=distance_km,
+            discounts=DiscountProfile(age=age),
+        )
+        result = international_estimate(seg)
+        assert result.amount == 18.99
+        assert result.breakdown["kategoria_relacji"] == "young"
+
+
+@pytest.mark.parametrize("age", [0, 14, 27, 60])
+def test_wiek_poza_przedzialem_young_dostaje_normalna_taryfe_wg_progu_km(age):
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=age),
+    )
+    result = international_estimate(seg)
+    assert result.amount == 29.99
+    assert result.breakdown["kategoria_relacji"] == "srednia"
+
+
+def test_brak_wieku_dostaje_normalna_taryfe():
+    seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519)
+    result = international_estimate(seg)
+    assert result.amount == 29.99
+
+
+def test_young_z_bahncard_25_bez_wspolrzednych_daje_25_procent_od_calej_ceny_fallback():
+    # Ta sama zasada "BahnCard = 25% nominalnie, niezależnie od poziomu karty" dotyczy Young
+    # (bahn.de, dosłowny cytat identyczny jak dla dorosłych — zob. _zrodlo_young w danych).
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=16, bahncard="25"),
+    )
+    result = international_estimate(seg)
+    assert result.amount == pytest.approx(18.99 * 0.75, abs=0.01)
+
+
+def test_young_z_bahncard_i_wspolrzednymi_liczy_rabat_proporcjonalnie_do_niemieckiego_odcinka():
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=16, bahncard="50"),
+        german_portion_fraction=0.2,
+    )
+    result = international_estimate(seg)
+    # 25% nominalnego rabatu * 20% udziału niemieckiego odcinka = 5% efektywnego rabatu
+    assert result.amount == pytest.approx(18.99 * 0.95, abs=0.01)
+    assert result.breakdown["rabat_procent_efektywny"] == pytest.approx(5.0, abs=0.1)
+
+
+def test_young_bez_bahncard_ignoruje_udzial_niemieckiego_odcinka():
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=16),
+        german_portion_fraction=0.2,
+    )
+    assert international_estimate(seg).amount == 18.99
+
+
 # --- routing/pricing.py::price_rail_leg — międzynarodowy leg wymusza Carrier.INTERNATIONAL_PL_DE
 
 

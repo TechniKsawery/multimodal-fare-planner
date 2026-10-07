@@ -15,6 +15,7 @@ class DiscountProfileIn(BaseModel):
     mpk_wroclaw_ulgowy: bool = False
     bvg_berlin_ulgowy: bool = False
     vrr_dziecko: bool = False
+    age: int | None = None
 
 
 class RouteSearchRequest(BaseModel):

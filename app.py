@@ -345,6 +345,7 @@ if submitted:
         mpk_wroclaw_ulgowy=mpk_wroclaw_ulgowy,
         bvg_berlin_ulgowy=bvg_berlin_ulgowy,
         vrr_dziecko=vrr_dziecko,
+        age=wiek,
     )
     try:
         with st.spinner("Szukam połączeń..."):

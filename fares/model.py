@@ -42,6 +42,13 @@ class DiscountProfile:
     vrr_dziecko: bool = (
         False  # VRR/eezy.nrw: Kindertarif (6-14 lat), 50% rabatu wliczając sufity cenowe
     )
+    age: int | None = None
+    """Wiek pasażera w dniu podróży. Używany WYŁĄCZNIE przez fares/international.py do wyboru
+    taryfy "Super Sparpreis Europa Young" (15-26 lat, bahn.de) na bilecie międzynarodowym PL-DE
+    — nie wpływa na żaden inny moduł taryf (PKP/DB/VRR/ZTM mają własne, osobne pola ulg wyżej,
+    bo te zniżki zależą od STATUSU, nie samego wieku). Przed tym polem `age` z CLI/API trafiał
+    tylko do routing/card_suggestions.py (sugestia zakupu BahnCard), nigdy do ceny biletu —
+    zob. audyt zniżek w projekcie (2026-10-07)."""
 
 
 @dataclass

@@ -18,6 +18,7 @@ from routing.demo_route import (
     RAIL_FLIGHT_RAIL_HUBS,
     VIA_HUB_STOPS,
 )
+from fares.model import DiscountProfile
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
 from routing.variants import generate_variants, request_from_addresses
@@ -95,12 +96,18 @@ def main() -> None:
         "--age",
         type=int,
         default=None,
-        help="wiek pasażera — używany tylko do podpowiedzi BahnCard (My/Jugend BahnCard 6-26 lat)",
+        help="wiek pasażera — wpływa na podpowiedź BahnCard (My/Jugend BahnCard 6-26 lat) ORAZ "
+        "na cenę biletu międzynarodowego PL-DE (taryfa 'Super Sparpreis Europa Young' 15-26 lat)",
     )
     args = parser.parse_args()
 
     try:
-        request = request_from_addresses(args.origin, args.destination, args.date)
+        request = request_from_addresses(
+            args.origin,
+            args.destination,
+            args.date,
+            discounts=DiscountProfile(age=args.age),
+        )
     except MotisError as exc:
         print(f"Nie udało się zgeokodować adresów: {exc}")
         return

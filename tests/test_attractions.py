@@ -139,3 +139,41 @@ def test_special_variant_discount_museumsinsel():
     )
     # Zniżka na bilet wynosi pełne 100% (bilet 14 EUR staje się darmowy 0 EUR)
     assert museum_variant_eval.attractions_price_with_card == 0.0
+
+
+def test_gelsenkirchen_destination_ma_atrakcje_i_karte_ruhr():
+    """Trasa testowa Lublin -> Buerer Straße, Gelsenkirchen: demo ma pokazać atrakcje i karty."""
+    assert normalize_city("Buerer Straße 8, Gelsenkirchen") == "gelsenkirchen"
+    attrs = get_attractions(city="Buerer Straße 8, Gelsenkirchen")
+    assert len(attrs) >= 5
+    categories = {a.category for a in attrs}
+    assert AttractionCategory.SPORT in categories
+    assert AttractionCategory.CULTURE in categories
+    card_ids = [c.id for c in get_city_cards("Gelsenkirchen")]
+    assert "welcomecard_ruhr" in card_ids
+
+
+def test_niepotwierdzone_ceny_sa_oznaczone():
+    """Ceny bez potwierdzenia w źródle muszą mieć price_verified=False (flaga w UI)."""
+    by_id = {a.id: a for a in get_all_attractions()}
+    assert by_id["gelsenkirchen_zoom_erlebniswelt"].price_verified is True
+    assert by_id["gelsenkirchen_veltins_arena"].price_verified is False
+    ruhr = next(c for c in get_all_city_cards() if c.id == "welcomecard_ruhr")
+    assert ruhr.variants and all(v.price_verified is False for v in ruhr.variants)
+
+
+def test_demo_format_city_section_dla_gelsenkirchen():
+    import demo
+
+    text = demo.format_city_section("Buerer Straße 8, Gelsenkirchen")
+    assert "Veltins-Arena" in text
+    assert "ZOOM Erlebniswelt" in text
+    assert "WelcomeCard Ruhr 24h" in text
+    assert "cena niepotwierdzona" in text
+    assert "Rekomendacja" in text
+
+
+def test_demo_format_city_section_nieznane_miasto():
+    import demo
+
+    assert "nie rozpoznano" in demo.format_city_section("Nieznane miasto, Atlantyda")

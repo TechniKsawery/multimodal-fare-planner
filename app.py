@@ -130,8 +130,12 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             )
 
 
-def render_attractions_and_city_cards(destination_label: str) -> None:
-    norm_city = normalize_city(destination_label)
+def render_attractions_and_city_cards(destination_label: str, fallback_text: str = "") -> None:
+    # destination_label pochodzi z podpowiedzi geocodingu MOTIS i dla konkretnego adresu
+    # (np. "Buerer Straße 8") często NIE zawiera nazwy miasta, więc normalize_city się nie
+    # trafia — spada wtedy na fallback_text, czyli surowy tekst wpisany w pole "Dokąd (adres)"
+    # (zwykle z miastem, np. "Buerer Straße 8, Gelsenkirchen").
+    norm_city = normalize_city(destination_label) or normalize_city(fallback_text)
     if not norm_city:
         return
 
@@ -219,7 +223,8 @@ def render_attractions_and_city_cards(destination_label: str) -> None:
                 card_rows.append(
                     {
                         "Karta / Wariant": ev.variant.name,
-                        "Cena karty": f"{ev.card_price:.2f} {ev.currency}",
+                        "Cena karty": f"{ev.card_price:.2f} {ev.currency}"
+                        + ("" if ev.variant.price_verified else " (niepotwierdzona)"),
                         "Ważność": f"{ev.variant.duration_hours}h",
                         "Darmowy transport": "Tak" if ev.variant.includes_public_transit else "Nie",
                         "Koszt bez karty": f"{ev.total_cost_without_card:.2f} {ev.currency}",
@@ -245,6 +250,8 @@ def render_attractions_and_city_cards(destination_label: str) -> None:
                 if attr.normal_price > 0
                 else "Wstęp bezpłatny"
             )
+            if not attr.price_verified:
+                price_text += " (cena niepotwierdzona)"
             discount_note = (
                 f" • zniżka z kartą: do {attr.default_card_discount_percent:.0f}%"
                 if attr.default_card_discount_percent > 0
@@ -460,5 +467,7 @@ if result is not None:
         ):
             render_itinerary(it, wiek, bc if bc != "brak" else None)
 
-    render_attractions_and_city_cards(request.destination_label)
+    render_attractions_and_city_cards(
+        request.destination_label, fallback_text=st.session_state.get("dest_query", "")
+    )
 

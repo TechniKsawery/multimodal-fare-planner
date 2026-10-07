@@ -12,6 +12,13 @@ Użycie (adres -> adres, z dojściem pieszym; geocoding OSM z Sesji 4b):
 
 import argparse
 
+from attractions import (
+    AttractionCategory,
+    evaluate_city_cards,
+    get_attractions,
+    normalize_city,
+    suggest_best_city_card,
+)
 from routing.card_suggestions import suggest_bahncard_for_itinerary
 from routing.demo_route import (
     FLIGHT_REGIONAL_HUBS,
@@ -38,6 +45,59 @@ def format_bahncard_suggestion(itinerary, age) -> str:
         return ""
     best = suggestions[0]
     return f"  BahnCard: {best.opis}"
+
+
+# Etykiety bez emoji: konsola Windows (cp1250) nie wyświetli emoji z attractions.CATEGORY_LABELS
+CATEGORY_PLAIN = {
+    AttractionCategory.SPORT: "sport",
+    AttractionCategory.CULTURE: "turystyka i zabytki",
+    AttractionCategory.ENTERTAINMENT: "rozrywka",
+    AttractionCategory.GASTRONOMY: "gastronomia",
+    AttractionCategory.NATURE: "natura",
+}
+
+
+def format_city_section(destination_label: str) -> str:
+    """Atrakcje i opłacalność kart miejskich dla miasta docelowego (nie wymaga MOTIS).
+
+    Atrakcje wyróżnione (highlight) traktujemy jako zaplanowane; transport bez karty to
+    szacunek (domyślnie 15 EUR / 25 PLN, jak w app.py). Ceny bez potwierdzenia są oznaczane.
+    """
+    city = normalize_city(destination_label)
+    if not city:
+        return "Atrakcje i karty miejskie: nie rozpoznano miasta docelowego."
+    attrs = get_attractions(city=city)
+    if not attrs:
+        return f"Atrakcje i karty miejskie: brak skatalogowanych atrakcji dla {city}."
+    currency = attrs[0].currency
+    transit_cost = 15.0 if currency == "EUR" else 25.0
+    planned = [a for a in attrs if a.highlight]
+
+    lines = [
+        f"=== Atrakcje i karty miejskie: {city} ===",
+        f"Katalog: {len(attrs)} miejsc, zaplanowane (wyróżnione) do kalkulacji: {len(planned)}",
+    ]
+    for a in attrs:
+        price = f"{a.normal_price:.2f} {a.currency}" if a.normal_price > 0 else "wstęp bezpłatny"
+        if not a.price_verified:
+            price += ", cena niepotwierdzona"
+        lines.append(f"  - [{CATEGORY_PLAIN[a.category]}] {a.name}: {price}")
+
+    best = suggest_best_city_card(city, planned, estimated_transit_cost=transit_cost)
+    if best and best.is_recommended:
+        lines.append(f"  Rekomendacja: {best.summary}")
+    else:
+        lines.append("  Rekomendacja: żadna karta miejska nie zwraca kosztu przy wyróżnionych atrakcjach.")
+    for ev in evaluate_city_cards(city, planned, estimated_transit_cost=transit_cost):
+        verified = "" if ev.variant.price_verified else ", cena karty niepotwierdzona"
+        lines.append(
+            f"  - {ev.variant.name}: karta {ev.card_price:.2f} {ev.currency}, "
+            f"bilans {ev.net_savings:+.2f} {ev.currency}{verified}"
+        )
+    lines.append(
+        f"  Szacunek: transport bez karty przyjęty na {transit_cost:.2f} {currency} (stała w demo.py)."
+    )
+    return "\n".join(lines)
 
 
 def format_itinerary(itinerary, age=None) -> str:
@@ -115,6 +175,9 @@ def main() -> None:
     print(
         f"Multimodalna wyszukiwarka — {request.origin_label} -> {request.destination_label}, {args.date}\n"
     )
+
+    print(format_city_section(request.destination_label))
+    print()
 
     # UWAGA: alternative_destination_stops (np. Essen Hbf z routing/demo_route.py) celowo NIE
     # jest tu przekazywane — dla wyszukiwania adres->adres podmieniłoby rzeczywisty adres

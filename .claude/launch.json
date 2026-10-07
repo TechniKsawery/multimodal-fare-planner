@@ -6,6 +6,15 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "streamlit", "run", "app.py", "--server.headless", "true"],
       "port": 8501
+    },
+    {
+      "name": "streamlit-pr35-pr34-pr32-merged",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-c",
+        "import os,sys; os.chdir(r'.'); sys.argv=['streamlit','run','app.py','--server.headless','true','--server.port','8520']; from streamlit.web import cli; sys.exit(cli.main())"
+      ],
+      "port": 8520
     }
   ]
 }

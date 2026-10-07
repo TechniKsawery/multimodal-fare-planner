@@ -32,6 +32,7 @@
       "default_card_discount_percent": 25.0,
       "address": "Bleckstraße 64, 45889 Gelsenkirchen",
       "official_url": "https://www.zoom-erlebniswelt.de",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "zoo",

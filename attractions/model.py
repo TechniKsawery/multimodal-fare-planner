@@ -37,6 +37,8 @@ class Attraction:
     official_url: str = ""
     highlight: bool = False
     tags: list[str] = field(default_factory=list)
+    # False = cena nie została potwierdzona w oficjalnym źródle (oznaczana w UI jako niepotwierdzona)
+    price_verified: bool = False
 
 
 @dataclass
@@ -51,6 +53,8 @@ class CityCardVariant:
     includes_public_transit: bool
     transit_zones: str
     description: str
+    # False = cena nie została potwierdzona w oficjalnym cenniku na dziś
+    price_verified: bool = False
 
 
 @dataclass

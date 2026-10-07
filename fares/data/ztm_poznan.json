@@ -1,0 +1,13 @@
+{
+  "_zrodlo": "Oficjalny cennik ZTM Poznań — https://www.ztm.poznan.pl/wszystko-o-biletach/cennik-biletow/ , obowiązujący od 1 września 2025 r. Ceny normalne potwierdzone niezależnie też przez spidersweb.pl (2025-09-02) i kb.pl/cenniki. Ceny ulgowe (50%) potwierdzone na tej samej stronie ZTM Poznań. Zweryfikowano 2026-10-07.",
+  "_uwaga": "Bilety czasowe bez podziału na strefy (sieć ZTM Poznań), uprawniają do przesiadek.",
+  "waluta": "PLN",
+  "nazwa_przewoznika": "ZTM Poznań",
+  "as_of": "2026-10-07",
+  "typ_ceny": "oficjalna_taryfa",
+  "bilety_czasowe": [
+    {"wazny_min": 15, "normalny": 5.00, "ulgowy": 2.50, "strefa": "A+B+C+D"},
+    {"wazny_min": 45, "normalny": 7.00, "ulgowy": 3.50, "strefa": "A+B+C+D"},
+    {"wazny_min": 90, "normalny": 9.00, "ulgowy": 4.50, "strefa": "A+B+C+D"}
+  ]
+}

@@ -130,8 +130,12 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             )
 
 
-def render_attractions_and_city_cards(destination_label: str) -> None:
-    norm_city = normalize_city(destination_label)
+def render_attractions_and_city_cards(destination_label: str, fallback_text: str = "") -> None:
+    # destination_label pochodzi z podpowiedzi geocodingu MOTIS i dla konkretnego adresu
+    # (np. "Buerer Straße 8") często NIE zawiera nazwy miasta, więc normalize_city się nie
+    # trafia — spada wtedy na fallback_text, czyli surowy tekst wpisany w pole "Dokąd (adres)"
+    # (zwykle z miastem, np. "Buerer Straße 8, Gelsenkirchen").
+    norm_city = normalize_city(destination_label) or normalize_city(fallback_text)
     if not norm_city:
         return
 
@@ -450,5 +454,7 @@ if result is not None:
         ):
             render_itinerary(it, wiek, bc if bc != "brak" else None)
 
-    render_attractions_and_city_cards(request.destination_label)
+    render_attractions_and_city_cards(
+        request.destination_label, fallback_text=st.session_state.get("dest_query", "")
+    )
 

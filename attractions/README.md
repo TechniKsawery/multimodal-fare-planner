@@ -10,7 +10,7 @@ Moduł odpowiada za:
    - **Natura** (parki poprzemysłowe, ogrody)
 3. Sugestie i kalkulator opłacalności kart miejskich (**City Cards**):
    - **Berlin WelcomeCard** (strefy AB, ABC, wariant 72h + Museumsinsel)
-   - **WelcomeCard Ruhr** (całe Zagłębie Ruhry z Gelsenkirchen, Essen, Bochum, Dortmund z transportem VRR)
+   - **RUHR.TOPCARD** (roczna karta regionu Ruhry — Gelsenkirchen, Essen, Bochum, Dortmund; BEZ transportu publicznego w cenie, zastąpiła tu dawną WelcomeCard Ruhr, która okazała się martwym produktem)
    - **Kraków Card** (Krakowska Karta Turystyczna)
    - Wyliczanie oszczędności netto: czy koszt karty zwraca się przy wybranych atrakcjach i darmowym transporcie miejskim.
 

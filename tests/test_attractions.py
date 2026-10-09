@@ -75,7 +75,7 @@ def test_get_city_cards():
     assert len(cards) >= 3
     card_ids = [c.id for c in cards]
     assert "berlin_welcomecard" in card_ids
-    assert "welcomecard_ruhr" in card_ids
+    assert "ruhrtopcard" in card_ids
     assert "krakow_card" in card_ids
 
     berlin_cards = get_city_cards("Berlin")
@@ -150,7 +150,7 @@ def test_gelsenkirchen_destination_ma_atrakcje_i_karte_ruhr():
     assert AttractionCategory.SPORT in categories
     assert AttractionCategory.CULTURE in categories
     card_ids = [c.id for c in get_city_cards("Gelsenkirchen")]
-    assert "welcomecard_ruhr" in card_ids
+    assert "ruhrtopcard" in card_ids
 
 
 def test_niepotwierdzone_ceny_sa_oznaczone():
@@ -159,8 +159,8 @@ def test_niepotwierdzone_ceny_sa_oznaczone():
     assert by_id["gelsenkirchen_zoom_erlebniswelt"].price_verified is True
     assert by_id["gelsenkirchen_veltins_arena"].price_verified is True
     assert by_id["krakow_kazimierz_zapiekanki"].price_verified is False
-    ruhr = next(c for c in get_all_city_cards() if c.id == "welcomecard_ruhr")
-    assert ruhr.variants and all(v.price_verified is False for v in ruhr.variants)
+    ruhr = next(c for c in get_all_city_cards() if c.id == "ruhrtopcard")
+    assert ruhr.variants and all(v.price_verified is True for v in ruhr.variants)
 
 
 def test_demo_format_city_section_dla_gelsenkirchen():
@@ -169,7 +169,7 @@ def test_demo_format_city_section_dla_gelsenkirchen():
     text = demo.format_city_section("Buerer Straße 8, Gelsenkirchen")
     assert "Veltins-Arena" in text
     assert "ZOOM Erlebniswelt" in text
-    assert "WelcomeCard Ruhr 24h" in text
+    assert "RUHR.TOPCARD 2026" in text
     assert "cena niepotwierdzona" in text
     assert "Rekomendacja" in text
 

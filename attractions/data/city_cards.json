@@ -126,6 +126,17 @@
       },
       "variants": [
         {
+          "id": "krakow_card_1_dzien",
+          "name": "Kraków Card 1 dzień (Transport + Muzea)",
+          "duration_hours": 24,
+          "price": 32.00,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "Kraków — cała sieć komunikacji miejskiej (bez ograniczeń strefowych)",
+          "description": "1 dzień nielimitowanego transportu publicznego + bezpłatny wstęp do 20+ muzeów i atrakcji.",
+          "price_verified": true
+        },
+        {
           "id": "krakow_card_2_dni",
           "name": "Kraków Card 2 dni (Transport + Muzea)",
           "duration_hours": 48,

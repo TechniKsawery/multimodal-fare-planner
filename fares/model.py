@@ -43,12 +43,22 @@ class DiscountProfile:
         False  # VRR/eezy.nrw: Kindertarif (6-14 lat), 50% rabatu wliczając sufity cenowe
     )
     age: int | None = None
-    """Wiek pasażera w dniu podróży. Używany WYŁĄCZNIE przez fares/international.py do wyboru
-    taryfy "Super Sparpreis Europa Young" (15-26 lat, bahn.de) na bilecie międzynarodowym PL-DE
-    — nie wpływa na żaden inny moduł taryf (PKP/DB/VRR/ZTM mają własne, osobne pola ulg wyżej,
-    bo te zniżki zależą od STATUSU, nie samego wieku). Przed tym polem `age` z CLI/API trafiał
-    tylko do routing/card_suggestions.py (sugestia zakupu BahnCard), nigdy do ceny biletu —
-    zob. audyt zniżek w projekcie (2026-10-07)."""
+    """Wiek pasażera w dniu podróży. Używany przez fares/international.py (bilet DB PL-DE) do
+    wyboru taryfy wiekowej: dziecko/niemowlę (bis 5 lat gratis, 6-14 lat zależnie od
+    `child_with_guardian`), "Super Sparpreis Europa Young" (15-26 lat) albo taryfa normalna —
+    i przez fares/international_pkp.py (własna oferta PKP) do ulgi dziecięcej (6-14 -50%,
+    <6 gratis) — nie wpływa na żaden INNY moduł taryf (PKP/DB/VRR/ZTM krajowe mają własne,
+    osobne pola ulg wyżej, bo te zniżki zależą od STATUSU, nie samego wieku). Przed tym polem
+    `age` z CLI/API trafiał tylko do routing/card_suggestions.py (sugestia zakupu BahnCard),
+    nigdy do ceny biletu — zob. audyt zniżek w projekcie (2026-10-07)."""
+    child_with_guardian: bool = False
+    """Tylko bilet międzynarodowy PL-DE, dziecko 6-14 lat (`age`): czy dziecko podróżuje w
+    towarzystwie osoby od 15 lat zgłoszonej przy tej samej rezerwacji — bahn.de: takie dziecko
+    jedzie bezpłatnie na ofercie DB (zob. fares/data/international_pl_de.json::_zrodlo_dziecko).
+    Domyślnie False (dziecko liczone jako podróżujące SAMODZIELNIE -> tylko 50% zniżki na
+    niemiecki odcinek, NIE za darmo) — bezpieczniejszy domyślny wybór: nie zakładamy opiekuna,
+    którego nie potwierdzono, żeby nie zaniżyć ceny biletu. PKP (fares/international_pkp.py) nie
+    rozróżnia opiekuna — jego ulga dziecięca 50%/100% obowiązuje niezależnie od tego pola."""
 
 
 @dataclass

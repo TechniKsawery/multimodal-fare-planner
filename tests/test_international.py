@@ -227,8 +227,10 @@ def test_wiek_w_przedziale_young_dostaje_cene_young_niezaleznie_od_dystansu(age)
         assert result.breakdown["kategoria_relacji"] == "young"
 
 
-@pytest.mark.parametrize("age", [0, 14, 27, 60])
-def test_wiek_poza_przedzialem_young_dostaje_normalna_taryfe_wg_progu_km(age):
+@pytest.mark.parametrize("age", [27, 60])
+def test_wiek_poza_przedzialem_dziecko_young_dostaje_normalna_taryfe_wg_progu_km(age):
+    # 60 lat: brak osobnej taryfy seniora na TEJ ofercie (zweryfikowane 2026-10-09 — "Super
+    # Sparpreis Senioren" 65+ to inny, wyłącznie krajowy produkt DB) — normalna taryfa jak każdy dorosły.
     seg = Segment(
         Carrier.INTERNATIONAL_PL_DE,
         "Berlin",
@@ -245,6 +247,85 @@ def test_brak_wieku_dostaje_normalna_taryfe():
     seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519)
     result = international_estimate(seg)
     assert result.amount == 29.99
+
+
+# --- rabat dziecięcy DB (bahn.de, zweryfikowane NA ŻYWO 2026-10-09) -----------------------
+#
+# ROZSTRZYGNIĘCIE 2026-10-09: ta sama strona co źródło BahnCard/Young (super-sparpreis-europa-
+# polen) ma TEŻ zasady dla dzieci, których wcześniej nie modelowaliśmy: do 5 lat zawsze gratis,
+# 6-14 lat gratis Z opiekunem (zgłoszonym przy rezerwacji), 6-14 lat SAMODZIELNIE -50% ale TYLKO
+# na niemiecki odcinek trasy (jak BahnCard).
+
+
+@pytest.mark.parametrize("age", [0, 3, 5])
+def test_dziecko_do_5_lat_zawsze_gratis(age):
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=age),
+    )
+    result = international_estimate(seg)
+    assert result.amount == 0.0
+    assert result.breakdown["kategoria_relacji"] == "niemowle"
+
+
+@pytest.mark.parametrize("age", [6, 10, 14])
+def test_dziecko_6_14_lat_z_opiekunem_gratis(age):
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=age, child_with_guardian=True),
+    )
+    result = international_estimate(seg)
+    assert result.amount == 0.0
+    assert result.breakdown["kategoria_relacji"] == "dziecko_z_opiekunem"
+
+
+def test_dziecko_6_14_lat_samodzielnie_bez_wspolrzednych_50_procent_fallback():
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=10),
+    )
+    result = international_estimate(seg)
+    assert result.amount == pytest.approx(29.99 * 0.5, abs=0.01)
+    assert result.breakdown["kategoria_relacji"] == "dziecko_samodzielnie"
+
+
+def test_dziecko_6_14_lat_samodzielnie_domyslnie_bez_opiekuna():
+    # child_with_guardian domyślnie False — dziecko bez jawnie zgłoszonego opiekuna liczone jako
+    # podróżujące samodzielnie (bezpieczniejszy domyślny wybór, nie zakłada opiekuna na wyrost).
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=10),
+    )
+    assert DiscountProfile().child_with_guardian is False
+    result = international_estimate(seg)
+    assert result.breakdown["kategoria_relacji"] == "dziecko_samodzielnie"
+
+
+def test_dziecko_6_14_lat_samodzielnie_z_wspolrzednymi_liczy_proporcjonalnie():
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=10),
+        german_portion_fraction=0.2,
+    )
+    result = international_estimate(seg)
+    # 50% nominalnego rabatu * 20% udziału niemieckiego odcinka = 10% efektywnego rabatu na całość
+    assert result.amount == pytest.approx(29.99 * 0.9, abs=0.01)
+    assert result.breakdown["rabat_procent_efektywny"] == pytest.approx(10.0, abs=0.1)
 
 
 def test_young_z_bahncard_25_bez_wspolrzednych_daje_25_procent_od_calej_ceny_fallback():
@@ -453,10 +534,10 @@ def _international_leg(origin_name: str, destination_name: str, distance_km: flo
     )
 
 
-def test_price_rail_leg_pokazuje_tansza_oferte_pkp_gdy_tansza_niz_db():
-    # Dziecko poniżej 6 lat: PKP daje przejazd bezpłatny (-100%, cennik "Polska-Niemcy") — zawsze
-    # taniej niż jakikolwiek próg DB Super Sparpreis Europa (19.99/29.99/39.99 EUR), więc PKP ma
-    # zostać ceną główną, z DB jako (droższa) alternatywa w breakdown.
+def test_price_rail_leg_dziecko_ponizej_6_lat_oba_kanaly_gratis_remis_na_rzecz_pkp():
+    # Dziecko poniżej 6 lat jedzie za darmo w OBU kanałach (DB: bahn.de "Kinder bis 5 Jahre fahren
+    # immer kostenfrei"; PKP: cennik "Polska-Niemcy" -100%) — remis 0 EUR vs 0 EUR, kod rozstrzyga
+    # remisy na rzecz PKP (`<=` w _with_pkp_alternative), ale obie ceny są identyczne.
     leg = _international_leg("Warszawa Centralna", "Berlin Hauptbahnhof", distance_km=519)
     priced = price_rail_leg(leg, DiscountProfile(age=3))
     assert priced.currency == "EUR"
@@ -464,7 +545,7 @@ def test_price_rail_leg_pokazuje_tansza_oferte_pkp_gdy_tansza_niz_db():
     alt = priced.breakdown.get("alternatywna_oferta")
     assert alt is not None
     assert alt["zrodlo"] == "db"
-    assert alt["cena"] == 29.99
+    assert alt["cena"] == 0
 
 
 def test_price_rail_leg_pokazuje_tansza_oferte_db_gdy_pkp_drozsza():

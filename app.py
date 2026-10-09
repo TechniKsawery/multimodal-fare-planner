@@ -335,6 +335,15 @@ with st.form("search"):
         value=6 <= wiek <= 14,
         help="Oficjalna zniżka VRR: 50% dla dzieci 6-14 lat, ściśle wg wieku.",
     )
+    child_with_guardian = False
+    if 6 <= wiek <= 14:
+        child_with_guardian = st.checkbox(
+            "Dziecko (6-14 lat) podróżuje z opiekunem (15+)",
+            value=False,
+            help="Dotyczy TYLKO biletu DB na odcinku PL-DE: dziecko z opiekunem jedzie "
+            "bezpłatnie (bahn.de); bez zaznaczenia liczone jako podróżujące samodzielnie "
+            "(-50% tylko na niemiecki odcinek trasy). Oferta PKP nie rozróżnia opiekuna.",
+        )
     st.caption("Bilety ulgowe w innych miastach (50% — zaznacz, jeśli dotyczy)")
     u1, u2, u3, u4, u5 = st.columns(5)
     ztm_warszawa_ulgowy = u1.checkbox("Warszawa", value=wiek < 18)
@@ -359,6 +368,7 @@ if submitted:
         bvg_berlin_ulgowy=bvg_berlin_ulgowy,
         vrr_dziecko=vrr_dziecko,
         age=wiek,
+        child_with_guardian=child_with_guardian,
     )
     try:
         with st.spinner("Szukam połączeń..."):

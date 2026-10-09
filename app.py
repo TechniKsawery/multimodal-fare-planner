@@ -6,6 +6,8 @@ Wymaga działającego MOTIS (localhost:8080), patrz README.md.
 
 import datetime as dt
 import json
+import re
+from pathlib import Path
 
 import streamlit as st
 
@@ -38,6 +40,39 @@ st.title("Multimodalna wyszukiwarka tras")
 # tylko odrobinę, dostaje łagodniejszą adnotację "prawie bezpieczna" zamiast zwykłego
 # ostrzeżenia o ryzykownej przesiadce.
 NEAR_MISS_MARGIN_MINUTES = 10
+
+# Lokalne profile użytkowników (zaznaczone atrakcje per miasto), żeby kilka osób mogło
+# współdzielić to samo demo i każda wracała do swoich wyborów pod własną nazwą profilu.
+# Katalog data/ jest w .gitignore — to dane runtime, nie repo.
+PROFILES_DIR = Path("data/profiles")
+
+
+def _profile_slug(name: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", name.strip().lower()).strip("-")
+    return slug or "profil"
+
+
+def _profile_path(name: str) -> Path:
+    return PROFILES_DIR / f"{_profile_slug(name)}.json"
+
+
+def _load_profile(name: str) -> dict:
+    path = _profile_path(name)
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_profile_selection(name: str, city: str, attraction_names: list[str]) -> None:
+    PROFILES_DIR.mkdir(parents=True, exist_ok=True)
+    data = _load_profile(name)
+    data[city] = attraction_names
+    _profile_path(name).write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def _is_near_miss(warning) -> bool:
@@ -183,6 +218,44 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
     default_selected = [a.name for a in all_city_attrs if a.highlight]
 
     st.subheader("Zaplanuj wizytę")
+    st.caption(
+        "Kilka osób korzysta z tego samego demo? Podaj swoją nazwę profilu, by zapisać "
+        "zaznaczenia pod sobą i wrócić do nich później, bez nadpisywania cudzych wyborów."
+    )
+    profile_col, save_col, load_col = st.columns([3, 1, 1])
+    with profile_col:
+        profile_name = st.text_input(
+            "Twój profil",
+            key="profile_name",
+            placeholder="np. Kasia",
+        )
+    with save_col:
+        st.markdown("<div style='height: 1.6em'></div>", unsafe_allow_html=True)
+        if st.button(
+            "💾 Zapisz",
+            key="save_profile_btn",
+            disabled=not profile_name.strip(),
+            help="Zapisuje bieżące zaznaczenia dla tego miasta pod podaną nazwą profilu.",
+        ):
+            _save_profile_selection(
+                profile_name, norm_city, st.session_state.get("chosen_attractions", default_selected)
+            )
+            st.success(f"Zapisano zaznaczenia dla {display_city} w profilu „{profile_name.strip()}”.")
+    with load_col:
+        st.markdown("<div style='height: 1.6em'></div>", unsafe_allow_html=True)
+        if st.button(
+            "📂 Wczytaj",
+            key="load_profile_btn",
+            disabled=not profile_name.strip(),
+            help="Wczytuje wcześniej zapisane zaznaczenia dla tego miasta z tego profilu.",
+        ):
+            saved = _load_profile(profile_name).get(norm_city, [])
+            st.session_state["chosen_attractions"] = [n for n in saved if n in attr_names]
+            if saved:
+                st.success(f"Wczytano zaznaczenia dla {display_city} z profilu „{profile_name.strip()}”.")
+            else:
+                st.info(f"Profil „{profile_name.strip()}” nie ma jeszcze zapisanych zaznaczeń dla {display_city}.")
+
     chosen_names = st.multiselect(
         "Zaznacz miejsca, które planujesz odwiedzić (posłużą do kalkulacji opłacalności karty):",
         options=attr_names,

@@ -1,7 +1,7 @@
 {
-  "_zrodlo": "Oficjalne cenniki kart miejskich: Berlin WelcomeCard, WelcomeCard Ruhr, KrakowCard",
+  "_zrodlo": "Oficjalne cenniki kart miejskich: Berlin WelcomeCard, WelcomeCard Ruhr, Kraków City Pass (Discover Cracow, następca krakowcard.com)",
   "_data_aktualizacji": "2026-10-09",
-  "_UWAGA_weryfikacja": "Berlin WelcomeCard: warianty AB/ABC (48h/72h/4dni/6dni) i 'Museumsinsel' potwierdzone DWOMA niezależnymi fetchami na bvg.de (oficjalny partner sprzedaży BVG) — price_verified: true na variantach. Warianty 'Basic' i 'All Inclusive' NIE są w tym pliku (niepotwierdzone, berlin-welcomecard.de blokuje automatyczny dostęp nawet przez web.archive.org). WelcomeCard Ruhr: oficjalna domena welcomecard.ruhr ma stopkę '© 2022' (strona prawdopodobnie zaniedbana/nieaktualizowana) i wcześniej wyświetlała linki do kasyn online w sekcji partnerów — możliwe przejęcie/zaśmiecenie domeny. Ani stare ceny repo (29,90-69,90 EUR), ani nowe z zewnętrznego raportu (39,90-89,90 EUR) nie mają potwierdzenia w żadnym żywym źródle; produkt może być zastąpiony przez 'Ruhr Card West/East' (Musement) lub 'Ruhr.TOPCARD' (inny produkt rabatowy) — wymaga kontaktu z Ruhr Tourismus GmbH/VRR, NIE zgadywać. Kraków Card: krakowcard.com zablokowane (403 na proxy); niezależny portal discovercracow.com (10.02.2026) wskazuje, że karta jest cenowana głównie w EUR (3-dniowy wariant ok. 50 EUR), a obecne ceny repo w PLN (140/160) wyglądają na przestarzałe/zaniżone wobec wszystkich znalezionych świeższych źródeł (177-220 PLN) — ale żadna liczba nie jest potwierdzona wprost na stronie operatora, więc ceny NIE zostały zmienione.",
+  "_UWAGA_weryfikacja": "Berlin WelcomeCard: warianty AB/ABC (48h/72h/4dni/6dni) i 'Museumsinsel' potwierdzone DWOMA niezależnymi fetchami na bvg.de (oficjalny partner sprzedaży BVG) — price_verified: true na variantach. Warianty 'Basic' i 'All Inclusive' NIE są w tym pliku (niepotwierdzone, berlin-welcomecard.de blokuje automatyczny dostęp nawet przez web.archive.org). WelcomeCard Ruhr: zweryfikowano NA ŻYWO w przeglądarce 2026-10-09 (welcomecard.ruhr) — strona istnieje i produkt (24/48/72h, transport VRR + zniżki) formalnie nadal figuruje w ofercie, ALE panel rezerwacji dla WSZYSTKICH trzech wariantów pokazuje 'Momentan sind leider keine Termine verfügbar' (obecnie brak dostępnych terminów) — żadna cena nie jest aktualnie wyświetlana nigdzie na żywo. Stopka serwisu zmieniła się na '© 2026 | Ein Produkt der destination.one GmbH' (strona została odświeżona, ale bez cen); sekcja partnerów nadal zawiera linki do kasyn online (prawdopodobne zaśmiecenie/przejęcie reklamowe domeny — NIE klikano w te linki). Sprawdzono też domniemanego następcę 'RUHR.TOPCARD' (ruhrtopcard.de, potwierdzone 70 EUR/dorosły, 43 EUR/dziecko na sezon 2026) — to jest JEDNAK inny produkt: roczna karta rabatowa bez limitu czasowego i BEZ transportu publicznego w cenie, więc NIE jest zamiennikiem WelcomeCard Ruhr w tym kalkulatorze. Ceny WelcomeCard Ruhr pozostają niepotwierdzone (price_verified: false) — do ręcznej weryfikacji przez kontakt z Ruhr Tourismus GmbH/VRR. Kraków Card: krakowcard.com teraz daje HTTP 301 redirect (potwierdzone przez web.archive.org, zrzut 2025-10-05) na discovercracow.com/tickets — to jest oficjalny następca produktu pod nazwą 'Krakow City Pass - Museums and Attractions + Transport'. Zweryfikowano NA ŻYWO 2026-10-09 na discovercracow.com: warianty 1 dzień 32,00 EUR, 2 dni 40,00 EUR, 3 dni 50,00 EUR; obejmuje wstęp do 20+ muzeów/atrakcji (m.in. Muzeum Czartoryskich z 'Damą z gronostajem', Kopiec Kościuszki, Muzeum Lotnictwa Polskiego) oraz darmowy nielimitowany transport publiczny na czas ważności karty. Ceny podane WYŁĄCZNIE w EUR (brak oficjalnego cennika w PLN) — zaktualizowano price + currency na EUR i price_verified: true dla wariantów 2 i 3 dni.",
   "karty": [
     {
       "id": "berlin_welcomecard",
@@ -66,7 +66,7 @@
       "id": "welcomecard_ruhr",
       "city": "gelsenkirchen",
       "name": "WelcomeCard Ruhr",
-      "description": "Oficjalna karta turystyczna Metropolii Ruhry (obejmuje m.in. Gelsenkirchen, Essen, Dortmund, Bochum, Duisburg, Oberhausen). Obejmuje nielimitowany transport VRR oraz darmowe wstępy lub 50% zniżki na ponad 100 atrakcji przemysłowych, kulturalnych i sportowych. UWAGA: oficjalna domena wygląda na nieaktualizowaną od ok. 2022 r. i wcześniej wyświetlała podejrzaną treść — ceny poniżej NIEPOTWIERDZONE, produkt może być zastąpiony przez 'Ruhr Card West/East' lub 'Ruhr.TOPCARD', patrz _UWAGA_weryfikacja.",
+      "description": "Oficjalna karta turystyczna Metropolii Ruhry (obejmuje m.in. Gelsenkirchen, Essen, Dortmund, Bochum, Duisburg, Oberhausen). Obejmuje nielimitowany transport VRR oraz darmowe wstępy lub 50% zniżki na ponad 100 atrakcji przemysłowych, kulturalnych i sportowych. UWAGA: zweryfikowano na żywo 2026-10-09 — oficjalna strona welcomecard.ruhr istnieje, ale panel rezerwacji pokazuje brak dostępnych terminów dla wszystkich wariantów (24/48/72h) i nie wyświetla aktualnych cen; ceny poniżej NIEPOTWIERDZONE, patrz _UWAGA_weryfikacja.",
       "official_url": "https://www.welcomecard.ruhr",
       "default_discount_percent": 50.0,
       "custom_discounts": {
@@ -85,7 +85,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
-          "description": "24h nielimitowanego transportu w całym VRR + zniżki/darmowe wejścia do atrakcji Ruhrgebiet."
+          "description": "24h nielimitowanego transportu w całym VRR + zniżki/darmowe wejścia do atrakcji Ruhrgebiet.",
+          "price_verified": false
         },
         {
           "id": "wcr_48h_vrr",
@@ -95,7 +96,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
-          "description": "48h nielimitowanego transportu w całym VRR + zniżki do atrakcji."
+          "description": "48h nielimitowanego transportu w całym VRR + zniżki do atrakcji.",
+          "price_verified": false
         },
         {
           "id": "wcr_72h_vrr",
@@ -105,7 +107,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
-          "description": "72h nielimitowanego transportu w całym VRR + zniżki do atrakcji."
+          "description": "72h nielimitowanego transportu w całym VRR + zniżki do atrakcji.",
+          "price_verified": false
         }
       ]
     },
@@ -113,8 +116,8 @@
       "id": "krakow_card",
       "city": "krakow",
       "name": "Kraków Card (Karta Turystyczna)",
-      "description": "Oficjalna karta miejska Krakowa: nielimitowana komunikacja miejska w strefach I i II oraz bezpłatny wstęp do blisko 40 najpopularniejszych krakowskich muzeów i obiektów turystycznych. UWAGA: krakowcard.com niedostępne dla automatycznej weryfikacji; niezależne źródła sugerują, że ceny poniżej (140/160 PLN) mogą być nieaktualne/zaniżone i że karta jest obecnie cenowana głównie w EUR — do ręcznej weryfikacji, patrz _UWAGA_weryfikacja.",
-      "official_url": "https://krakowcard.com",
+      "description": "Oficjalna karta miejska Krakowa (obecnie sprzedawana jako 'Krakow City Pass' przez Discover Cracow, następcę krakowcard.com): nielimitowany transport publiczny oraz bezpłatny wstęp do 20+ krakowskich muzeów i obiektów turystycznych (m.in. Muzeum Czartoryskich, Kopiec Kościuszki, Muzeum Lotnictwa Polskiego). UWAGA: krakowcard.com przekierowuje (HTTP 301) na discovercracow.com/tickets; ceny podane wyłącznie w EUR — zweryfikowano na żywo 2026-10-09, patrz _UWAGA_weryfikacja.",
+      "official_url": "https://discovercracow.com/tickets/?category%5B1396%5D=1396",
       "default_discount_percent": 100.0,
       "custom_discounts": {
         "krakow_schindler_factory": 20.0,
@@ -126,21 +129,23 @@
           "id": "krakow_card_2_dni",
           "name": "Kraków Card 2 dni (Transport + Muzea)",
           "duration_hours": 48,
-          "price": 140.00,
-          "currency": "PLN",
+          "price": 40.00,
+          "currency": "EUR",
           "includes_public_transit": true,
-          "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
-          "description": "2 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
+          "transit_zones": "Kraków — cała sieć komunikacji miejskiej (bez ograniczeń strefowych)",
+          "description": "2 dni nielimitowanego transportu publicznego + bezpłatny wstęp do 20+ muzeów i atrakcji.",
+          "price_verified": true
         },
         {
           "id": "krakow_card_3_dni",
           "name": "Kraków Card 3 dni (Transport + Muzea)",
           "duration_hours": 72,
-          "price": 160.00,
-          "currency": "PLN",
+          "price": 50.00,
+          "currency": "EUR",
           "includes_public_transit": true,
-          "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
-          "description": "3 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
+          "transit_zones": "Kraków — cała sieć komunikacji miejskiej (bez ograniczeń strefowych)",
+          "description": "3 dni nielimitowanego transportu publicznego + bezpłatny wstęp do 20+ muzeów i atrakcji.",
+          "price_verified": true
         }
       ]
     }

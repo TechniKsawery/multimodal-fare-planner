@@ -130,6 +130,10 @@ def format_itinerary(itinerary, age=None) -> str:
             zrodlo_bagazu = priced.breakdown.get("bagaz_zrodlo")
             if zrodlo_bagazu:
                 line += f"\n      bagaż wg cennika: {zrodlo_bagazu}"
+        alt = priced.breakdown.get("alternatywna_oferta")
+        if alt:
+            zrodlo = "DB Super Sparpreis Europa" if alt["zrodlo"] == "db" else "PKP Oferta Polska-Niemcy"
+            line += f"\n      alternatywa: {alt['cena']:.2f} {alt['waluta']} ({zrodlo})"
         lines.append(line)
     if itinerary.is_risky:
         lines.append("  RYZYKOWNY:")

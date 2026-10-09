@@ -75,6 +75,11 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 f"+ bagaż {p.breakdown.get('bagaz', 0):.2f} {p.currency}"
             )
             zrodlo_bagazu = p.breakdown.get("bagaz_zrodlo", "")
+        alt = p.breakdown.get("alternatywna_oferta")
+        alternatywa = ""
+        if alt:
+            zrodlo_oferty = "DB Super Sparpreis Europa" if alt["zrodlo"] == "db" else "PKP Oferta Polska-Niemcy"
+            alternatywa = f"{alt['cena']:.2f} {alt['waluta']} ({zrodlo_oferty})"
         rows.append(
             {
                 "Środek": leg.mode.value,
@@ -89,6 +94,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 "Cena / dystans": price,
                 "Rozbicie ceny lotu": rozbicie,
                 "Cennik bagażu": zrodlo_bagazu,
+                "Alternatywna oferta (PL-DE)": alternatywa,
             }
         )
     st.dataframe(rows, width="stretch", hide_index=True)

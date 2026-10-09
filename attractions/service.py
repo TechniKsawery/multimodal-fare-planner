@@ -28,6 +28,17 @@ _CITY_ALIASES = {
     "lublin": "lublin",
     "warszawa": "warszawa",
     "warsaw": "warszawa",
+    "hamburg": "hamburg",
+    "munchen": "munchen",
+    "münchen": "munchen",
+    "munich": "munchen",
+    "monachium": "munchen",
+    "koln": "koln",
+    "köln": "koln",
+    "cologne": "koln",
+    "kolonia": "koln",
+    "wroclaw": "wroclaw",
+    "wrocław": "wroclaw",
 }
 
 

@@ -1,6 +1,6 @@
 {
   "_zrodlo": "Oficjalne cenniki kart miejskich: Berlin WelcomeCard, WelcomeCard Ruhr, KrakowCard",
-  "_data_aktualizacji": "2026-10-06",
+  "_data_aktualizacji": "2026-10-09",
   "karty": [
     {
       "id": "berlin_welcomecard",
@@ -19,7 +19,7 @@
           "id": "bwc_48h_ab",
           "name": "Berlin WelcomeCard 48h (Strefa AB)",
           "duration_hours": 48,
-          "price": 27.00,
+          "price": 27.0,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
@@ -29,7 +29,7 @@
           "id": "bwc_72h_ab",
           "name": "Berlin WelcomeCard 72h (Strefa AB)",
           "duration_hours": 72,
-          "price": 37.00,
+          "price": 37.0,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
@@ -39,7 +39,7 @@
           "id": "bwc_72h_museumsinsel",
           "name": "Berlin WelcomeCard 72h + Wyspa Muzeów",
           "duration_hours": 72,
-          "price": 54.00,
+          "price": 54.0,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
@@ -49,7 +49,7 @@
           "id": "bwc_48h_abc",
           "name": "Berlin WelcomeCard 48h (Strefa ABC)",
           "duration_hours": 48,
-          "price": 32.00,
+          "price": 32.0,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa ABC (w tym lotnisko BER i Poczdam)",
@@ -76,7 +76,7 @@
           "id": "wcr_24h_vrr",
           "name": "WelcomeCard Ruhr 24h (z transportem VRR)",
           "duration_hours": 24,
-          "price": 29.90,
+          "price": 29.9,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
@@ -86,7 +86,7 @@
           "id": "wcr_48h_vrr",
           "name": "WelcomeCard Ruhr 48h (z transportem VRR)",
           "duration_hours": 48,
-          "price": 49.90,
+          "price": 49.9,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
@@ -96,7 +96,7 @@
           "id": "wcr_72h_vrr",
           "name": "WelcomeCard Ruhr 72h (z transportem VRR)",
           "duration_hours": 72,
-          "price": 69.90,
+          "price": 69.9,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
@@ -121,7 +121,7 @@
           "id": "krakow_card_2_dni",
           "name": "Kraków Card 2 dni (Transport + Muzea)",
           "duration_hours": 48,
-          "price": 140.00,
+          "price": 140.0,
           "currency": "PLN",
           "includes_public_transit": true,
           "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
@@ -131,11 +131,88 @@
           "id": "krakow_card_3_dni",
           "name": "Kraków Card 3 dni (Transport + Muzea)",
           "duration_hours": 72,
-          "price": 160.00,
+          "price": 160.0,
           "currency": "PLN",
           "includes_public_transit": true,
           "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
           "description": "3 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
+        }
+      ]
+    },
+    {
+      "id": "hamburg_card",
+      "city": "hamburg",
+      "name": "Hamburg CARD",
+      "description": "Karta turystyczna Hamburga w dwóch wariantach: Green (bez transportu) i Green Plus (z całodniowym transportem HVV). Oficjalna strona NIE publikuje listy konkretnych atrakcji-partnerów z przypisanym % zniżki (tylko ogólne kategorie) — żadnych procentowych zniżek na konkretne atrakcje nie dało się potwierdzić w tej turze.",
+      "official_url": "https://www.hamburg-tourism.de/buchen/hamburg-card/green",
+      "default_discount_percent": 0.0,
+      "custom_discounts": {},
+      "variants": [
+        {
+          "id": "hamburg_card_green",
+          "name": "Hamburg CARD Green",
+          "duration_hours": 24,
+          "price": 5.0,
+          "currency": "EUR",
+          "includes_public_transit": false,
+          "transit_zones": "brak transportu w cenie",
+          "description": "Cena od (ggf. zzgl. Servicepauschale — opłata serwisowa niepotwierdzona). Do ok. 20% zniżki na ponad 40 'zielonych' ofert (zwiedzanie, gastronomia, zakupy) — bez listy nazwanych partnerów.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_green_plus",
+          "name": "Hamburg CARD Green Plus",
+          "duration_hours": 24,
+          "price": 11.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (autobusy, pociągi, promy portowe) — całodniowo, bez dopłat",
+          "description": "Cena od (ggf. zzgl. Servicepauschale — opłata serwisowa niepotwierdzona). Jak Green + całodniowy bezpłatny transport HVV. Pełna tabela cen dla dłuższych okresów (2-5 dni) nie została ustalona w tej turze.",
+          "price_verified": true
+        }
+      ]
+    },
+    {
+      "id": "koln_card",
+      "city": "koln",
+      "name": "KölnCard",
+      "description": "Oficjalna karta turystyczna Kolonii (Köln Tourismus): bezpłatny transport publiczny KVB/VRS + zniżki do 50% u 'licznych partnerów'. Strona operatora NIE wymienia żadnej konkretnej atrakcji z nazwy jako partnera (lista jest w PDF-ulotce niedostępnej w tej sesji) — żadnych zniżek na konkretne atrakcje nie potwierdzono.",
+      "official_url": "https://www.koelntourismus.de/buchen/koelncard",
+      "default_discount_percent": 0.0,
+      "custom_discounts": {},
+      "variants": [
+        {
+          "id": "koln_card_from",
+          "name": "KölnCard (cena od, dokładne warianty 24h/48h nieustalone)",
+          "duration_hours": 24,
+          "price": 9.0,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "KVB/VRS (autobusy, Stadtbahn, S-Bahn i pociągi regionalne 2. klasy) — dokładne strefy niepotwierdzone",
+          "description": "Oficjalna strona podaje tylko cenę 'ab 9,00 €' bez rozbicia na warianty 24h/48h/single/family/group. NIE WPISYWAĆ jako finalnej ceny bez dalszej weryfikacji (PDF-ulotka lub kontakt z Köln Tourismus).",
+          "price_verified": false
+        }
+      ]
+    },
+    {
+      "id": "warsaw_pass",
+      "city": "warszawa",
+      "name": "Warsaw Pass",
+      "description": "UWAGA: to NIE jest oficjalna karta miejska Warszawy (nie istnieje taka prowadzona przez miasto/ZTM) — to komercyjny produkt OTA (sprzedawca: City Info, dystrybuowany przez GetYourGuide/Headout/Musement). NIE obejmuje transportu publicznego ZTM. Lista ok. 24 muzeów/atrakcji podana przez sprzedawcę zawiera co najmniej 2-3 nieaktualne pozycje (np. Muzeum Chopina zamknięte na remont) — żadnych % zniżek per atrakcja nie potwierdzono, nie są to darmowe wstępy z gwarancją.",
+      "official_url": "https://www.getyourguide.com/warsaw-l910/warsaw-pass-t390318/",
+      "default_discount_percent": 0.0,
+      "custom_discounts": {},
+      "variants": [
+        {
+          "id": "warsaw_pass_24h",
+          "name": "Warsaw Pass 24h",
+          "duration_hours": 24,
+          "price": 179.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "brak transportu w cenie",
+          "description": "Cena niepotwierdzona u pierwotnego źródła (przeliczenie z ok. 46 USD wg wzmianki prasowej) — ceny OTA zmieniają się dynamicznie. Warianty 48h/72h nieustalone.",
+          "price_verified": false
         }
       ]
     }

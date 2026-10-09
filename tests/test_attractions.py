@@ -20,7 +20,17 @@ def test_get_all_attractions():
     for a in attractions:
         assert a.id
         assert a.name
-        assert a.city in ("gelsenkirchen", "berlin", "krakow", "lublin")
+        assert a.city in (
+            "gelsenkirchen",
+            "berlin",
+            "krakow",
+            "lublin",
+            "warszawa",
+            "hamburg",
+            "munchen",
+            "koln",
+            "wroclaw",
+        )
         assert isinstance(a.category, AttractionCategory)
         assert a.normal_price >= 0.0
         assert a.currency in ("EUR", "PLN")
@@ -177,3 +187,33 @@ def test_demo_format_city_section_nieznane_miasto():
     import demo
 
     assert "nie rozpoznano" in demo.format_city_section("Nieznane miasto, Atlantyda")
+
+
+def test_nowe_miasta_rozpoznawane_i_maja_atrakcje():
+    """Miasta dodane 2026-10-09 (Warszawa doprecyzowana, Hamburg, Monachium, Kolonia, Wrocław)."""
+    cases = {
+        "Plac Defilad 1, Warszawa": "warszawa",
+        "Speersort 1, Hamburg": "hamburg",
+        "Marienplatz 1, München": "munchen",
+        "Domkloster 4, Köln": "koln",
+        "Rynek 1, Wrocław": "wroclaw",
+    }
+    for address, expected_city in cases.items():
+        assert normalize_city(address) == expected_city
+        attrs = get_attractions(city=expected_city)
+        assert len(attrs) >= 5, f"{expected_city}: oczekiwano co najmniej 5 atrakcji"
+
+
+def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
+    """Hamburg CARD/KölnCard/Warsaw Pass: tam gdzie cena nie jest potwierdzona u operatora, price_verified musi być False."""
+    cards_by_id = {c.id: c for c in get_all_city_cards() if c.id in ("hamburg_card", "koln_card", "warsaw_pass")}
+    assert set(cards_by_id) == {"hamburg_card", "koln_card", "warsaw_pass"}
+
+    hamburg_card = cards_by_id["hamburg_card"]
+    assert all(v.price_verified for v in hamburg_card.variants)
+    assert not hamburg_card.custom_discounts  # żadnej zniżki na konkretną atrakcję nie potwierdzono
+
+    for card_id in ("koln_card", "warsaw_pass"):
+        card = cards_by_id[card_id]
+        assert all(not v.price_verified for v in card.variants)
+        assert not card.custom_discounts

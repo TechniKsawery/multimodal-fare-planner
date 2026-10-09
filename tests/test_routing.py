@@ -297,10 +297,10 @@ def test_infer_rail_carrier_nieznany_zwraca_none():
 def test_currency_convert_ten_sam_kurs_co_to_pln():
     from routing import currency
 
-    # 10 EUR -> PLN po kursie z PLACEHOLDER_RATES_TO_PLN (4.30)
-    assert currency.convert(10.0, "EUR", "PLN") == pytest.approx(43.0)
+    # 10 EUR -> PLN po kursie z PLACEHOLDER_RATES_TO_PLN (4.3775, kurs NBP 2026-10-09)
+    assert currency.convert(10.0, "EUR", "PLN") == pytest.approx(43.775)
     # PLN -> EUR to odwrotność tego samego kursu
-    assert currency.convert(43.0, "PLN", "EUR") == pytest.approx(10.0)
+    assert currency.convert(43.775, "PLN", "EUR") == pytest.approx(10.0)
     # ta sama waluta: bez zmian
     assert currency.convert(10.0, "EUR", "EUR") == 10.0
 
@@ -460,9 +460,9 @@ def test_price_flight_leg_nadpisuje_bagaz_realnym_cennikiem_linii(monkeypatch):
     monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
     priced = pricing.price_flight_leg(leg)
 
-    # 21 EUR (Ryanair, tabela baggage_by_airline.json) x 4.30 PLN/EUR (routing/currency.py) = 90.3
-    assert priced.breakdown["bagaz"] == pytest.approx(90.3)
-    assert priced.amount == pytest.approx(500.0 + 90.3)
+    # 21 EUR (Ryanair, tabela baggage_by_airline.json) x 4.3775 PLN/EUR (routing/currency.py) = 91.9275, zaokrąglone do 91.93
+    assert priced.breakdown["bagaz"] == pytest.approx(91.93)
+    assert priced.amount == pytest.approx(500.0 + 91.93)
     assert "Ryanair" in priced.breakdown["bagaz_zrodlo"]
     assert "Ryanair" in priced.notes
 
@@ -577,7 +577,7 @@ def test_build_itinerary_konwertuje_eur_do_pln_dla_sumy():
     itinerary = scoring.build_itinerary("Test", legs)
     from routing.currency import PLACEHOLDER_RATES_TO_PLN
 
-    assert itinerary.total_price_pln == pytest.approx(10.0 * PLACEHOLDER_RATES_TO_PLN["EUR"])
+    assert itinerary.total_price_pln == pytest.approx(10.0 * PLACEHOLDER_RATES_TO_PLN["EUR"], abs=0.01)
 
 
 def test_build_itinerary_bez_legow_podnosi_blad():

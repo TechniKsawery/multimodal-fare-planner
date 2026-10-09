@@ -1,6 +1,7 @@
 {
   "_zrodlo": "Oficjalne cenniki kart miejskich: Berlin WelcomeCard, WelcomeCard Ruhr, KrakowCard",
-  "_data_aktualizacji": "2026-10-06",
+  "_data_aktualizacji": "2026-10-09",
+  "_UWAGA_weryfikacja": "Oficjalne strony wszystkich 3 kart (berlin-welcomecard.de, welcomecard.ruhr, krakowcard.com) blokują automatyczny dostęp (robots/JS) — ceny i zniżki w tym pliku NIE są potwierdzone bezpośrednim cytatem z official_url, tylko z danych historycznych repo lub wskazówek z resellerów (traktować jako niepewne, do ręcznej weryfikacji w przeglądarce). welcomecard.ruhr dodatkowo wyświetlała 2026-10-09 podejrzaną treść (linki do kasyn online w sekcji partnerów) — możliwe przejęcie/zaśmiecenie domeny, do zgłoszenia zespołowi przed dalszym użyciem tego źródła.",
   "karty": [
     {
       "id": "berlin_welcomecard",
@@ -112,7 +113,7 @@
       "official_url": "https://krakowcard.com",
       "default_discount_percent": 100.0,
       "custom_discounts": {
-        "krakow_schindler_factory": 100.0,
+        "krakow_schindler_factory": 20.0,
         "krakow_wawel": 20.0,
         "krakow_stadion_wisly": 0.0
       },

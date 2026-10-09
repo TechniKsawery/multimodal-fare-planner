@@ -30,6 +30,7 @@ def test_get_all_attractions():
             "munchen",
             "koln",
             "wroclaw",
+            "poznan",
         )
         assert isinstance(a.category, AttractionCategory)
         assert a.normal_price >= 0.0
@@ -202,6 +203,17 @@ def test_nowe_miasta_rozpoznawane_i_maja_atrakcje():
         assert normalize_city(address) == expected_city
         attrs = get_attractions(city=expected_city)
         assert len(attrs) >= 5, f"{expected_city}: oczekiwano co najmniej 5 atrakcji"
+
+
+def test_poznan_ma_fares_i_atrakcje_pelny_pakiet():
+    """Poznań miał już kalkulator transportu (fares/ztm_poznan.py) — dociągnęliśmy atrakcje, żeby domknąć pełny pakiet."""
+    attrs = get_attractions(city="Poznań")
+    assert len(attrs) >= 5
+    card_ids = [c.id for c in get_city_cards("Poznań")]
+    assert "poznan_city_card" in card_ids
+    poznan_card = next(c for c in get_all_city_cards() if c.id == "poznan_city_card")
+    assert all(v.price_verified for v in poznan_card.variants)
+    assert poznan_card.custom_discounts.get("poznan_brama_poznania") == 40.0
 
 
 def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():

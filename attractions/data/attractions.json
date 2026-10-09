@@ -1364,6 +1364,133 @@
         "odra"
       ],
       "price_verified": true
+    },
+    {
+      "id": "poznan_termy_maltanskie",
+      "name": "Termy Maltańskie",
+      "city": "poznan",
+      "category": "sport",
+      "description": "Kompleks basenów termalnych i sportowych nad Jeziorem Maltańskim, ze zjeżdżalniami i strefą saun (cena za 1h w Aquaparku).",
+      "normal_price": 46.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Termalna 1, 61-028 Poznań",
+      "official_url": "https://termymaltanskie.com.pl/cenniki/",
+      "highlight": true,
+      "tags": [
+        "baseny",
+        "termy",
+        "sport"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_brama_poznania",
+      "name": "Brama Poznania ICHOT",
+      "city": "poznan",
+      "category": "turystyka_kultura",
+      "description": "Interaktywne centrum interpretacji dziedzictwa nad Cybiną, wystawa o historii Ostrowa Tumskiego i katedry.",
+      "normal_price": 35.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Gdańska 2, 61-123 Poznań",
+      "official_url": "https://bramapoznania.pl/cennik",
+      "highlight": true,
+      "tags": [
+        "muzeum",
+        "historia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_nowe_zoo",
+      "name": "Nowe ZOO Poznań",
+      "city": "poznan",
+      "category": "rozrywka",
+      "description": "Drugie co do wielkości zoo w Polsce, ponad 170 gatunków zwierząt.",
+      "normal_price": 45.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Krańcowa 81, 61-021 Poznań",
+      "official_url": "https://zoo.poznan.pl/ceny-biletow-wstepu-do-ogrodu-zoologicznego/",
+      "highlight": true,
+      "tags": [
+        "zoo",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_fotoplastykon",
+      "name": "Fotoplastykon Poznański",
+      "city": "poznan",
+      "category": "rozrywka",
+      "description": "XIX-wieczne urządzenie do oglądania zdjęć stereoskopowych 3D, jedno z niewielu działających w Europie.",
+      "normal_price": 6.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Ratajczaka 44, 61-816 Poznań",
+      "official_url": "https://www.poznan.pl/mim/main/fotoplastykon,p,23153,45268.html",
+      "highlight": false,
+      "tags": [
+        "muzeum",
+        "ciekawostka"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_rogalowe_muzeum",
+      "name": "Rogalowe Muzeum Poznania",
+      "city": "poznan",
+      "category": "gastronomia",
+      "description": "Interaktywny warsztat/spektakl o historii rogala świętomarcińskiego, z degustacją.",
+      "normal_price": 39.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Stary Rynek 41, 61-772 Poznań",
+      "official_url": "https://rogalowemuzeum.pl",
+      "highlight": true,
+      "tags": [
+        "rogal świętomarciński",
+        "warsztat"
+      ],
+      "price_verified": false
+    },
+    {
+      "id": "poznan_palmiarnia",
+      "name": "Palmiarnia Poznańska",
+      "city": "poznan",
+      "category": "natura",
+      "description": "Jedna z największych palmiarni w Europie, w Parku Wilsona, kolekcje roślin tropikalnych i mała zoo (ptaki, ryby).",
+      "normal_price": 19.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Matejki 18, 60-767 Poznań",
+      "official_url": "https://palmiarnia.poznan.pl/wp-content/uploads/2024/12/cennik-od-1.01.2025-roku-Zarzadzenie-Prezydenta-Miasta-Poznania-1.pdf",
+      "highlight": true,
+      "tags": [
+        "palmiarnia",
+        "rośliny"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_park_cytadela",
+      "name": "Park Cytadela",
+      "city": "poznan",
+      "category": "natura",
+      "description": "Największy park Poznania, na terenie dawnej pruskiej cytadeli.",
+      "normal_price": 0.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Niepodległości / Winogrady, Poznań",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "park",
+        "historia"
+      ],
+      "price_verified": true
     }
   ]
 }

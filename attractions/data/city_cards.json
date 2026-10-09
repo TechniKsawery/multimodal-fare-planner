@@ -215,6 +215,86 @@
           "price_verified": false
         }
       ]
+    },
+    {
+      "id": "poznan_city_card",
+      "city": "poznan",
+      "name": "Poznań City Card",
+      "description": "Oficjalna karta turystyczna Poznania (visitpoznan.pl): bezpłatny wstęp do ok. 21 atrakcji i zniżki w ponad 50 innych. Jednorazowe użycie na każdą atrakcję. Pełna lista partnerów zweryfikowana na karta.visitpoznan.pl — tylko potwierdzone % wpisane poniżej.",
+      "official_url": "https://visitpoznan.pl/en/poznan-city-card",
+      "default_discount_percent": 0.0,
+      "custom_discounts": {
+        "poznan_brama_poznania": 40.0,
+        "poznan_fotoplastykon": 100.0
+      },
+      "variants": [
+        {
+          "id": "poznan_card_24h_transport",
+          "name": "Poznań City Card 24h (z transportem ZTM)",
+          "duration_hours": 24,
+          "price": 65.0,
+          "currency": "PLN",
+          "includes_public_transit": true,
+          "transit_zones": "ZTM Poznań, strefy A-D",
+          "description": "Cena normalna z transportem. Ulgowy wariant: 50 PLN.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_card_24h_bez_transportu",
+          "name": "Poznań City Card 24h (bez transportu)",
+          "duration_hours": 24,
+          "price": 59.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "brak transportu w cenie",
+          "description": "Cena normalna bez transportu. Ulgowy wariant: 44 PLN.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_card_48h_transport",
+          "name": "Poznań City Card 48h (z transportem ZTM)",
+          "duration_hours": 48,
+          "price": 83.0,
+          "currency": "PLN",
+          "includes_public_transit": true,
+          "transit_zones": "ZTM Poznań, strefy A-D",
+          "description": "Cena normalna z transportem. Ulgowy wariant: 65 PLN.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_card_48h_bez_transportu",
+          "name": "Poznań City Card 48h (bez transportu)",
+          "duration_hours": 48,
+          "price": 72.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "brak transportu w cenie",
+          "description": "Cena normalna bez transportu. Ulgowy wariant: 55 PLN.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_card_72h_transport",
+          "name": "Poznań City Card 72h (z transportem ZTM)",
+          "duration_hours": 72,
+          "price": 98.0,
+          "currency": "PLN",
+          "includes_public_transit": true,
+          "transit_zones": "ZTM Poznań, strefy A-D",
+          "description": "Cena normalna z transportem. Ulgowy wariant: 76 PLN.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_card_72h_bez_transportu",
+          "name": "Poznań City Card 72h (bez transportu)",
+          "duration_hours": 72,
+          "price": 83.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "brak transportu w cenie",
+          "description": "Cena normalna bez transportu. Ulgowy wariant: 65 PLN.",
+          "price_verified": true
+        }
+      ]
     }
   ]
 }

@@ -1,14 +1,14 @@
 {
   "_zrodlo": "Oficjalne cenniki kart miejskich: Berlin WelcomeCard, WelcomeCard Ruhr, KrakowCard",
   "_data_aktualizacji": "2026-10-09",
-  "_UWAGA_weryfikacja": "Oficjalne strony wszystkich 3 kart (berlin-welcomecard.de, welcomecard.ruhr, krakowcard.com) blokują automatyczny dostęp (robots/JS) — ceny i zniżki w tym pliku NIE są potwierdzone bezpośrednim cytatem z official_url, tylko z danych historycznych repo lub wskazówek z resellerów (traktować jako niepewne, do ręcznej weryfikacji w przeglądarce). welcomecard.ruhr dodatkowo wyświetlała 2026-10-09 podejrzaną treść (linki do kasyn online w sekcji partnerów) — możliwe przejęcie/zaśmiecenie domeny, do zgłoszenia zespołowi przed dalszym użyciem tego źródła.",
+  "_UWAGA_weryfikacja": "Berlin WelcomeCard: warianty AB/ABC (48h/72h/4dni/6dni) i 'Museumsinsel' potwierdzone DWOMA niezależnymi fetchami na bvg.de (oficjalny partner sprzedaży BVG) — price_verified: true na variantach. Warianty 'Basic' i 'All Inclusive' NIE są w tym pliku (niepotwierdzone, berlin-welcomecard.de blokuje automatyczny dostęp nawet przez web.archive.org). WelcomeCard Ruhr: oficjalna domena welcomecard.ruhr ma stopkę '© 2022' (strona prawdopodobnie zaniedbana/nieaktualizowana) i wcześniej wyświetlała linki do kasyn online w sekcji partnerów — możliwe przejęcie/zaśmiecenie domeny. Ani stare ceny repo (29,90-69,90 EUR), ani nowe z zewnętrznego raportu (39,90-89,90 EUR) nie mają potwierdzenia w żadnym żywym źródle; produkt może być zastąpiony przez 'Ruhr Card West/East' (Musement) lub 'Ruhr.TOPCARD' (inny produkt rabatowy) — wymaga kontaktu z Ruhr Tourismus GmbH/VRR, NIE zgadywać. Kraków Card: krakowcard.com zablokowane (403 na proxy); niezależny portal discovercracow.com (10.02.2026) wskazuje, że karta jest cenowana głównie w EUR (3-dniowy wariant ok. 50 EUR), a obecne ceny repo w PLN (140/160) wyglądają na przestarzałe/zaniżone wobec wszystkich znalezionych świeższych źródeł (177-220 PLN) — ale żadna liczba nie jest potwierdzona wprost na stronie operatora, więc ceny NIE zostały zmienione.",
   "karty": [
     {
       "id": "berlin_welcomecard",
       "city": "berlin",
       "name": "Berlin WelcomeCard",
       "description": "Najpopularniejsza karta turystyczna Berlina: nielimitowany transport publiczny (S-Bahn, U-Bahn, tramwaje, autobusy) oraz zniżki od 25% do 50% na ponad 180 atrakcji, muzeów i teatrów.",
-      "official_url": "https://www.berlin-welcomecard.de",
+      "official_url": "https://www.bvg.de/de/touristen/welcomecard",
       "default_discount_percent": 25.0,
       "custom_discounts": {
         "berlin_museumsinsel": 25.0,
@@ -20,41 +20,45 @@
           "id": "bwc_48h_ab",
           "name": "Berlin WelcomeCard 48h (Strefa AB)",
           "duration_hours": 48,
-          "price": 27.00,
+          "price": 28.50,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "48 godzin nielimitowanego transportu w strefie AB (obszar miejski Berlina) + min. 25% zniżki na atrakcje."
+          "description": "48 godzin nielimitowanego transportu w strefie AB (obszar miejski Berlina) + min. 25% zniżki na atrakcje.",
+          "price_verified": true
         },
         {
           "id": "bwc_72h_ab",
           "name": "Berlin WelcomeCard 72h (Strefa AB)",
           "duration_hours": 72,
-          "price": 37.00,
+          "price": 39.50,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "72 godziny transportu w strefie AB + min. 25% zniżki na atrakcje."
+          "description": "72 godziny transportu w strefie AB + min. 25% zniżki na atrakcje.",
+          "price_verified": true
         },
         {
           "id": "bwc_72h_museumsinsel",
-          "name": "Berlin WelcomeCard 72h + Wyspa Muzeów",
+          "name": "Berlin WelcomeCard 72h + Wyspa Muzeów (Strefa AB)",
           "duration_hours": 72,
-          "price": 54.00,
+          "price": 62.00,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "72 godziny transportu AB + darmowy wstęp (100% zniżki) do muzeów na Wyspie Muzeów (Museumsinsel) + rabaty na pozostałe atrakcje."
+          "description": "Samodzielny wariant (nie dopłata do zwykłej 72h): 72 godziny transportu AB + darmowy wstęp do muzeów na Wyspie Muzeów (Museumsinsel) + rabaty na pozostałe atrakcje.",
+          "price_verified": true
         },
         {
           "id": "bwc_48h_abc",
           "name": "Berlin WelcomeCard 48h (Strefa ABC)",
           "duration_hours": 48,
-          "price": 32.00,
+          "price": 34.50,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa ABC (w tym lotnisko BER i Poczdam)",
-          "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje."
+          "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje.",
+          "price_verified": true
         }
       ]
     },
@@ -62,7 +66,7 @@
       "id": "welcomecard_ruhr",
       "city": "gelsenkirchen",
       "name": "WelcomeCard Ruhr",
-      "description": "Oficjalna karta turystyczna Metropolii Ruhry (obejmuje m.in. Gelsenkirchen, Essen, Dortmund, Bochum, Duisburg, Oberhausen). Obejmuje nielimitowany transport VRR oraz darmowe wstępy lub 50% zniżki na ponad 100 atrakcji przemysłowych, kulturalnych i sportowych.",
+      "description": "Oficjalna karta turystyczna Metropolii Ruhry (obejmuje m.in. Gelsenkirchen, Essen, Dortmund, Bochum, Duisburg, Oberhausen). Obejmuje nielimitowany transport VRR oraz darmowe wstępy lub 50% zniżki na ponad 100 atrakcji przemysłowych, kulturalnych i sportowych. UWAGA: oficjalna domena wygląda na nieaktualizowaną od ok. 2022 r. i wcześniej wyświetlała podejrzaną treść — ceny poniżej NIEPOTWIERDZONE, produkt może być zastąpiony przez 'Ruhr Card West/East' lub 'Ruhr.TOPCARD', patrz _UWAGA_weryfikacja.",
       "official_url": "https://www.welcomecard.ruhr",
       "default_discount_percent": 50.0,
       "custom_discounts": {
@@ -109,7 +113,7 @@
       "id": "krakow_card",
       "city": "krakow",
       "name": "Kraków Card (Karta Turystyczna)",
-      "description": "Oficjalna karta miejska Krakowa: nielimitowana komunikacja miejska w strefach I i II oraz bezpłatny wstęp do blisko 40 najpopularniejszych krakowskich muzeów i obiektów turystycznych.",
+      "description": "Oficjalna karta miejska Krakowa: nielimitowana komunikacja miejska w strefach I i II oraz bezpłatny wstęp do blisko 40 najpopularniejszych krakowskich muzeów i obiektów turystycznych. UWAGA: krakowcard.com niedostępne dla automatycznej weryfikacji; niezależne źródła sugerują, że ceny poniżej (140/160 PLN) mogą być nieaktualne/zaniżone i że karta jest obecnie cenowana głównie w EUR — do ręcznej weryfikacji, patrz _UWAGA_weryfikacja.",
       "official_url": "https://krakowcard.com",
       "default_discount_percent": 100.0,
       "custom_discounts": {

@@ -158,7 +158,7 @@ def test_niepotwierdzone_ceny_sa_oznaczone():
     by_id = {a.id: a for a in get_all_attractions()}
     assert by_id["gelsenkirchen_zoom_erlebniswelt"].price_verified is True
     assert by_id["gelsenkirchen_veltins_arena"].price_verified is True
-    assert by_id["lublin_cebularz"].price_verified is False
+    assert by_id["krakow_kazimierz_zapiekanki"].price_verified is False
     ruhr = next(c for c in get_all_city_cards() if c.id == "welcomecard_ruhr")
     assert ruhr.variants and all(v.price_verified is False for v in ruhr.variants)
 

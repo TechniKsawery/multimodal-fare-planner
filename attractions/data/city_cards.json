@@ -6,7 +6,7 @@
       "id": "berlin_welcomecard",
       "city": "berlin",
       "name": "Berlin WelcomeCard",
-      "description": "Najpopularniejsza karta turystyczna Berlina: nielimitowany transport publiczny (S-Bahn, U-Bahn, tramwaje, autobusy) oraz zniżki od 25% do 50% na ponad 180 atrakcji, muzeów i teatrów.",
+      "description": "Najpopularniejsza karta turystyczna Berlina: nielimitowany transport publiczny (S-Bahn, U-Bahn, tramwaje, autobusy) oraz zniżki od 25% do 50% na ponad 180 atrakcji, muzeów i teatrów. Istnienie i ogólna oferta potwierdzone (realny konfigurator biletów z kalendarzem/płatnością na oficjalnej stronie) - patrz verification_notes co do dokładnych cen poszczególnych wariantów.",
       "official_url": "https://www.berlin-welcomecard.de",
       "default_discount_percent": 25.0,
       "custom_discounts": {
@@ -14,6 +14,15 @@
         "berlin_fernsehturm": 25.0,
         "berlin_olympiastadion": 25.0
       },
+      "price_verified": false,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Strona porównania produktów (nie checkout) podaje ceny jako \"od X\": Classic od 28,50 EUR, +Museum Island od 62,00 EUR, all inclusive od 99,00 EUR - lekko wyższe niż nasz zapisany bwc_48h_ab=27,00 EUR. Przeszedłem część konfiguratora biletów (produkt Classic, 48h, strefa AB) bez finalizacji zakupu, ale konkretna cena ujawnia się dopiero po wybraniu daty/godziny startu, czego nie dokończono w tej turze - ceny poniżej NIE są ponownie potwierdzone, zostawione bez zmian do czasu pełnej weryfikacji.",
+          "url": "https://www.berlin-welcomecard.de/en/ticket-configurator"
+        }
+      ],
       "variants": [
         {
           "id": "bwc_48h_ab",
@@ -23,7 +32,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "48 godzin nielimitowanego transportu w strefie AB (obszar miejski Berlina) + min. 25% zniżki na atrakcje."
+          "description": "48 godzin nielimitowanego transportu w strefie AB (obszar miejski Berlina) + min. 25% zniżki na atrakcje.",
+          "price_verified": false
         },
         {
           "id": "bwc_72h_ab",
@@ -33,7 +43,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "72 godziny transportu w strefie AB + min. 25% zniżki na atrakcje."
+          "description": "72 godziny transportu w strefie AB + min. 25% zniżki na atrakcje.",
+          "price_verified": false
         },
         {
           "id": "bwc_72h_museumsinsel",
@@ -43,7 +54,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "72 godziny transportu AB + darmowy wstęp (100% zniżki) do muzeów na Wyspie Muzeów (Museumsinsel) + rabaty na pozostałe atrakcje."
+          "description": "72 godziny transportu AB + darmowy wstęp (100% zniżki) do muzeów na Wyspie Muzeów (Museumsinsel) + rabaty na pozostałe atrakcje.",
+          "price_verified": false
         },
         {
           "id": "bwc_48h_abc",
@@ -53,7 +65,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa ABC (w tym lotnisko BER i Poczdam)",
-          "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje."
+          "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje.",
+          "price_verified": false
         }
       ]
     },
@@ -89,10 +102,102 @@
       "variants": []
     },
     {
+      "id": "poznan_city_card",
+      "city": "poznan",
+      "name": "Poznańska Karta Turystyczna (Poznań City Card)",
+      "description": "Oficjalna karta turystyczna Poznania: bezpłatna komunikacja miejska i podmiejska (opcjonalnie) oraz darmowy wstęp lub zniżki w ponad 90 obiektach (muzea, restauracje, obiekty sportowo-rekreacyjne, w tym Zoo i Palmiarnia). Dostępna w wariancie normalnym i ulgowym (dzieci/młodzież ucząca się 7-23 lata, studenci, seniorzy, osoby niepełnosprawne), każdy z opcją z transportem lub bez. Cennik poniżej to wariant NORMALNY (model karty obsługuje jeden poziom cen na wariant czasowy — ulgowe ceny są niższe, patrz źródło).",
+      "official_url": "https://visitpoznan.pl/karta",
+      "default_discount_percent": 100.0,
+      "custom_discounts": {},
+      "price_verified": true,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Pełny, aktualny cennik (6 wariantów: 24/48/72h × z transportem/bez, normalny/ulgowy) na oficjalnym portalu turystycznym miasta, strona datowana \"Ostatnia aktualizacja: 2026-09-14\". Lista partnerów (>90 obiektów) potwierdzona jako realna na karta.visitpoznan.pl/pl/szczegoly-pakietu (dziesiątki konkretnych, nazwanych obiektów z Poznania, nie spam).",
+          "url": "https://visitpoznan.pl/karta"
+        },
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Zakup wymaga założenia konta w serwisie karta.visitpoznan.pl (nie zakładano konta, zgodnie z zasadami bezpieczeństwa) - ceny potwierdzone z oficjalnego cennika na visitpoznan.pl/karta, nie z panelu zakupowego.",
+          "url": "https://karta.visitpoznan.pl/pl/pakiety"
+        }
+      ],
+      "variants": [
+        {
+          "id": "poznan_24h_transport",
+          "name": "Pakiet Poznań 24h (z transportem)",
+          "duration_hours": 24,
+          "price": 65.00,
+          "currency": "PLN",
+          "includes_public_transit": true,
+          "transit_zones": "Poznań + gminy objęte porozumieniem (strefa A+B+C+D)",
+          "description": "24h bezpłatnej komunikacji miejskiej i podmiejskiej + wstęp wolny/zniżki do >90 obiektów.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_48h_transport",
+          "name": "Pakiet Poznań 48h (z transportem)",
+          "duration_hours": 48,
+          "price": 83.00,
+          "currency": "PLN",
+          "includes_public_transit": true,
+          "transit_zones": "Poznań + gminy objęte porozumieniem (strefa A+B+C+D)",
+          "description": "48h bezpłatnej komunikacji miejskiej i podmiejskiej + wstęp wolny/zniżki do >90 obiektów.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_72h_transport",
+          "name": "Pakiet Poznań 72h (z transportem)",
+          "duration_hours": 72,
+          "price": 98.00,
+          "currency": "PLN",
+          "includes_public_transit": true,
+          "transit_zones": "Poznań + gminy objęte porozumieniem (strefa A+B+C+D)",
+          "description": "72h bezpłatnej komunikacji miejskiej i podmiejskiej + wstęp wolny/zniżki do >90 obiektów.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_24h_bez_transportu",
+          "name": "Pakiet Poznań 24h (bez transportu)",
+          "duration_hours": 24,
+          "price": 59.00,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "Wstęp wolny/zniżki do >90 obiektów przez 24h, bez komunikacji miejskiej.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_48h_bez_transportu",
+          "name": "Pakiet Poznań 48h (bez transportu)",
+          "duration_hours": 48,
+          "price": 72.00,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "Wstęp wolny/zniżki do >90 obiektów przez 48h, bez komunikacji miejskiej.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_72h_bez_transportu",
+          "name": "Pakiet Poznań 72h (bez transportu)",
+          "duration_hours": 72,
+          "price": 83.00,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "Wstęp wolny/zniżki do >90 obiektów przez 72h, bez komunikacji miejskiej.",
+          "price_verified": true
+        }
+      ]
+    },
+    {
       "id": "krakow_card",
       "city": "krakow",
       "name": "Kraków Card (Karta Turystyczna)",
-      "description": "Oficjalna karta miejska Krakowa: nielimitowana komunikacja miejska w strefach I i II oraz bezpłatny wstęp do blisko 40 najpopularniejszych krakowskich muzeów i obiektów turystycznych.",
+      "description": "UWAGA: official_url (krakowcard.com) obecnie PRZEKIEROWUJE na discovercracow.com - komercyjny serwis odsprzedażowy biletów (tickets/tours), nie wygląda na oficjalną stronę miejskiej karty. Tam ceny są w EUR i mają inną strukturę (np. \"Krakow City Pass - Museums and Attractions + Transport (3 Days)\" za 50 EUR, \"Krakow Museum Pass for Students (3 Days)\" za 28,57 EUR) niż poniższe warianty w PLN (140/160 zł), których pierwotnego źródła nie udało się odtworzyć. Możliwe, że karta zmieniła operatora/markę od czasu ostatniej weryfikacji. Ceny poniżej oznaczone jako NIEPOTWIERDZONE do czasu znalezienia aktualnego oficjalnego źródła w PLN.",
       "official_url": "https://krakowcard.com",
       "default_discount_percent": 100.0,
       "custom_discounts": {
@@ -100,6 +205,15 @@
         "krakow_wawel": 20.0,
         "krakow_stadion_wisly": 0.0
       },
+      "price_verified": false,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "krakowcard.com przekierowuje na discovercracow.com (komercyjny sklep z biletami), z cenami w EUR na innych produktach (\"Krakow City Pass\", \"Krakow Museum Pass for Students\") niż nasze dane w PLN. Nie znaleziono aktualnego oficjalnego cennika w PLN odpowiadającego wariantom 140/160 zł zapisanym poniżej.",
+          "url": "http://krakowcard.com"
+        }
+      ],
       "variants": [
         {
           "id": "krakow_card_2_dni",
@@ -109,7 +223,8 @@
           "currency": "PLN",
           "includes_public_transit": true,
           "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
-          "description": "2 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
+          "description": "2 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów.",
+          "price_verified": false
         },
         {
           "id": "krakow_card_3_dni",
@@ -119,7 +234,67 @@
           "currency": "PLN",
           "includes_public_transit": true,
           "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
-          "description": "3 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
+          "description": "3 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów.",
+          "price_verified": false
+        }
+      ]
+    },
+    {
+      "id": "warsaw_pass",
+      "city": "warszawa",
+      "name": "Warsaw Pass",
+      "description": "Komercyjna karta turystyczna Warszawy (nie miejska/samorządowa) - darmowy wstęp bez kolejki do ponad 20 muzeów i atrakcji (m.in. POLIN, Centrum Nauki Kopernik, Muzeum Narodowe, taras widokowy PKiN) + codzienny koncert chopinowski w Starym Mieście + zniżki do 15% na tury/restauracje/hotele. NIE obejmuje transportu publicznego. Wymieniona jako projekt partnerski przez Warszawską Organizację Turystyczną (wot.waw.pl).",
+      "official_url": "https://shop.warsawpass.com",
+      "default_discount_percent": 100.0,
+      "custom_discounts": {},
+      "price_verified": true,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Oficjalny sklep z konkretnymi, aktualnymi cenami PLN bez logowania: 179/229/269 PLN za 24h/48h/72h.",
+          "url": "https://shop.warsawpass.com"
+        },
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Niezależne potwierdzenie tych samych cen (40,80 EUR / 52,19 EUR / 269 PLN) oraz pełna, realna lista >20 partnerów z nazwanymi atrakcjami i cenami biletów indywidualnych (nie spam) - rezerwacja przez GetYourGuide, nie bezpośrednio.",
+          "url": "https://warsaw-pass.com/en/"
+        }
+      ],
+      "variants": [
+        {
+          "id": "warsaw_pass_24h",
+          "name": "Warsaw Pass 24h",
+          "duration_hours": 24,
+          "price": 179.00,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "24h darmowego wstępu bez kolejki do >20 muzeów i atrakcji + koncert chopinowski. Bez transportu publicznego.",
+          "price_verified": true
+        },
+        {
+          "id": "warsaw_pass_48h",
+          "name": "Warsaw Pass 48h",
+          "duration_hours": 48,
+          "price": 229.00,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "48h darmowego wstępu bez kolejki do >20 muzeów i atrakcji + koncert chopinowski. Bez transportu publicznego.",
+          "price_verified": true
+        },
+        {
+          "id": "warsaw_pass_72h",
+          "name": "Warsaw Pass 72h",
+          "duration_hours": 72,
+          "price": 269.00,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "72h darmowego wstępu bez kolejki do >20 muzeów i atrakcji + koncert chopinowski. Bez transportu publicznego.",
+          "price_verified": true
         }
       ]
     }

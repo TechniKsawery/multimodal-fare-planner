@@ -340,7 +340,7 @@ with st.form("search"):
         "Przejazdy bezpłatne (100%, inna kategoria niż ulgowy — ma priorytet nad checkboxem "
         "ulgowy tego miasta wyżej, jeśli zaznaczone)"
     )
-    b1, b2, b3, b4, b5 = st.columns(5)
+    b1, b2, b3, b4, b5, b6 = st.columns(6)
     ztm_warszawa_bezplatny = b1.checkbox(
         "Warszawa: uczeń/senior 70+/niepełnosprawność znaczna",
         value=wiek >= 70,
@@ -376,6 +376,13 @@ with st.form("search"):
         " osób 70+ (bez wymogu zamieszkania) i niepełnosprawności znacznej/I grupy — bez dolnej"
         " granicy wieku 26 lat, inaczej niż w Warszawie/Krakowie.",
     )
+    bvg_berlin_schwerbehindert = b6.checkbox(
+        "Berlin: Schwerbehindertenausweis + Wertmarke",
+        help="Bezpłatne w Berlinie TYLKO z legitymacją niepełnosprawności (Merkzeichen G/aG/H/Bl)"
+        " ORAZ osobno wykupioną Wertmarke (ok. 104 EUR/rok) — samo orzeczenie (nawet GdB 50) nie"
+        " wystarcza. Nie zaznaczaj bez obu dokumentów naraz. Brak w Berlinie ulgi wiekowej dla"
+        " seniorów (65+ to płatny abonament VBB-Abo 65plus, nie modelowany tutaj).",
+    )
     submitted = st.form_submit_button("Szukaj")
 
 if submitted:
@@ -396,6 +403,7 @@ if submitted:
         mpk_wroclaw_ulgowy=mpk_wroclaw_ulgowy,
         mpk_wroclaw_bezplatny=mpk_wroclaw_bezplatny,
         bvg_berlin_ulgowy=bvg_berlin_ulgowy,
+        bvg_berlin_schwerbehindert=bvg_berlin_schwerbehindert,
         vrr_dziecko=vrr_dziecko,
         age=wiek,
     )

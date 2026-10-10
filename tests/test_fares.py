@@ -383,6 +383,15 @@ def test_ztm_warszawa_bilet_20_minutowy_ulgowy():
     assert result.amount == 1.70
 
 
+def test_ztm_warszawa_bilet_bezplatny_uczen_podstawowki():
+    seg = Segment(
+        Carrier.ZTM_WARSZAWA, "Centrum", "Plac Zamkowy", ride_duration_min=10,
+        discounts=DiscountProfile(ztm_warszawa_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
 def test_ztm_warszawa_bilet_90_minutowy():
     seg = Segment(Carrier.ZTM_WARSZAWA, "A", "B", ride_duration_min=80)
     result = estimate_price(seg)
@@ -409,6 +418,15 @@ def test_mpk_krakow_bilet_60_minutowy_ulgowy():
     )
     result = estimate_price(seg)
     assert result.amount == 4.00  # bilet 60-minutowy ulgowy (8 PLN / 2), cennik od 2.03.2026
+
+
+def test_mpk_krakow_bilet_bezplatny_uczen_podstawowki():
+    seg = Segment(
+        Carrier.MPK_KRAKOW, "Rynek", "Nowa Huta", ride_duration_min=45,
+        discounts=DiscountProfile(mpk_krakow_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
 
 
 def test_mpk_krakow_przekroczenie_najdluzszego_biletu_to_szacunek():

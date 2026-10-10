@@ -336,12 +336,26 @@ with st.form("search"):
     ztm_poznan_ulgowy = u3.checkbox("Poznań", value=wiek < 18)
     mpk_wroclaw_ulgowy = u4.checkbox("Wrocław", value=wiek < 18)
     bvg_berlin_ulgowy = u5.checkbox("Berlin", value=wiek < 18)
-    mpk_wroclaw_bezplatny = st.checkbox(
-        "Wrocław: przejazd bezpłatny (uczeń szkoły podst./ponadpodst. do 21 lat, dziecko do 7"
-        " lat, senior 65+ itd.)",
+    st.caption(
+        "Przejazdy bezpłatne (100%, inna kategoria niż ulgowy — ma priorytet nad checkboxem "
+        "ulgowy tego miasta wyżej, jeśli zaznaczone)"
+    )
+    b1, b2, b3 = st.columns(3)
+    ztm_warszawa_bezplatny = b1.checkbox(
+        "Warszawa: uczeń podstawówki",
+        help="Karta Ucznia/e-legitymacja — tylko szkoła podstawowa, NIE potwierdzone dla"
+        " ponadpodstawowych (licea).",
+    )
+    mpk_krakow_bezplatny = b2.checkbox(
+        "Kraków: uczeń podstawówki",
+        help="Uczniowie szkół podstawowych z Krakowa/Metropolii Krakowskiej — NIE potwierdzone"
+        " dla ponadpodstawowych (licea).",
+    )
+    mpk_wroclaw_bezplatny = b3.checkbox(
+        "Wrocław: uczeń do 21 lat",
         value=wiek <= 21,
-        help="We Wrocławiu to inna kategoria niż 'bilet ulgowy' — część grup jeździ za darmo,"
-        " nie za pół ceny. Jeśli zaznaczone, ma priorytet nad checkboxem 'Wrocław' wyżej.",
+        help="Uczniowie szkół podstawowych/ponadpodstawowych do 21 lat, bez wymogu zamieszkania"
+        " we Wrocławiu.",
     )
     submitted = st.form_submit_button("Szukaj")
 
@@ -354,7 +368,9 @@ if submitted:
         bahncard=None if bc == "brak" else bc,
         ztm_lublin_ulgowy=ztm_ulgowy,
         ztm_warszawa_ulgowy=ztm_warszawa_ulgowy,
+        ztm_warszawa_bezplatny=ztm_warszawa_bezplatny,
         mpk_krakow_ulgowy=mpk_krakow_ulgowy,
+        mpk_krakow_bezplatny=mpk_krakow_bezplatny,
         ztm_poznan_ulgowy=ztm_poznan_ulgowy,
         mpk_wroclaw_ulgowy=mpk_wroclaw_ulgowy,
         mpk_wroclaw_bezplatny=mpk_wroclaw_bezplatny,

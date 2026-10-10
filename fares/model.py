@@ -35,7 +35,13 @@ class DiscountProfile:
     bahncard: str | None = None  # None, "25", "50" lub "100" (DB, oficjalne rabaty Flexpreis)
     ztm_lublin_ulgowy: bool = False  # ZTM Lublin: bilet ulgowy zamiast normalnego
     ztm_warszawa_ulgowy: bool = False  # ZTM/WTP Warszawa: bilet ulgowy (50%)
+    ztm_warszawa_bezplatny: bool = False  # ZTM/WTP Warszawa: przejazd bezpłatny (100%) -
+    # "Karta Ucznia", uczniowie szkół PODSTAWOWYCH w Warszawie (potwierdzone warszawa19115.pl
+    # 2026-10-10; NIE potwierdzone dla szkół ponadpodstawowych/liceów - tam zostaje ulgowy).
     mpk_krakow_ulgowy: bool = False  # MPK Kraków (ZTP): bilet ulgowy (50%)
+    mpk_krakow_bezplatny: bool = False  # MPK Kraków: przejazd bezpłatny (100%) - uczniowie
+    # szkół PODSTAWOWYCH z Krakowa i gmin Metropolii Krakowskiej, cały rok (potwierdzone
+    # krakow.pl 2026-10-10; NIE potwierdzone dla szkół ponadpodstawowych - tam zostaje ulgowy).
     ztm_poznan_ulgowy: bool = False  # ZTM Poznań: bilet ulgowy (50%)
     mpk_wroclaw_ulgowy: bool = False  # MPK Wrocław: bilet ulgowy (50%) - studenci/doktoranci,
     # emeryci/renciści, uczniowie szkół policealnych/zagranicznych do 24 lat

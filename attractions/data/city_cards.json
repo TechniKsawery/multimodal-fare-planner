@@ -147,6 +147,17 @@
           "transit_zones": "Kraków — cała sieć komunikacji miejskiej (bez ograniczeń strefowych)",
           "description": "3 dni nielimitowanego transportu publicznego + bezpłatny wstęp do 20+ muzeów i atrakcji.",
           "price_verified": true
+        },
+        {
+          "id": "krakow_museum_pass_student_3d",
+          "name": "Krakow Museum Pass for Students (3 Days)",
+          "duration_hours": 72,
+          "price": 28.57,
+          "currency": "EUR",
+          "includes_public_transit": false,
+          "transit_zones": null,
+          "description": "UWAGA: to NIE jest Kraków Card/City Pass — to osobny produkt (\"an Original Product of Discover Cracow\", discovercracow.com/node/36288), tylko wstęp do 20+ muzeów/atrakcji, bez transportu. Cena 'from €28.57' jest orientacyjna/zależna od wybranej daty (strona nie podaje stałej ceny, booking flow wymaga wyboru terminu) — NIE jest to urzędowa, stała cena jak w pozostałych wariantach Kraków Card. Strona nie podaje żadnych wymogów (ISIC/legitymacja) na potwierdzenie statusu studenta. Sprawdzone 2026-10-10.",
+          "price_verified": false
         }
       ]
     }

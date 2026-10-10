@@ -18,7 +18,7 @@ from attractions import (
     normalize_city,
     suggest_best_city_card,
 )
-from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
+from demo import DEFAULT_FROM, DEFAULT_TO
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
 from routing import motis_client
@@ -327,7 +327,12 @@ with c_dest:
     dest_resolved = address_picker("Dokąd (adres)", DEFAULT_TO, "dest")
 
 with st.form("search"):
-    date = st.date_input("Data", dt.date.fromisoformat(DEMO_DATE))
+    date = st.date_input(
+        "Data",
+        dt.date.today() + dt.timedelta(days=5),
+        help="Domyślnie dziś+5 dni, żeby zawsze trafiać w okno rozkładu MOTIS - zmień ręcznie,"
+        " jeśli szukasz innego dnia.",
+    )
     c1, c2 = st.columns(2)
     pkp = c1.selectbox("Ulga PKP", PKP_ULGI)
     bc = c2.selectbox("BahnCard", ["brak", "25", "50", "100"])

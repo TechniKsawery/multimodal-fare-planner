@@ -6,7 +6,7 @@
       "id": "berlin_welcomecard",
       "city": "berlin",
       "name": "Berlin WelcomeCard",
-      "description": "Najpopularniejsza karta turystyczna Berlina: nielimitowany transport publiczny (S-Bahn, U-Bahn, tramwaje, autobusy) oraz zniżki od 25% do 50% na ponad 180 atrakcji, muzeów i teatrów.",
+      "description": "Najpopularniejsza karta turystyczna Berlina: nielimitowany transport publiczny (S-Bahn, U-Bahn, tramwaje, autobusy) oraz zniżki od 25% do 50% na ponad 180 atrakcji, muzeów i teatrów. Istnienie i ogólna oferta potwierdzone (realny konfigurator biletów z kalendarzem/płatnością na oficjalnej stronie) - patrz verification_notes co do dokładnych cen poszczególnych wariantów.",
       "official_url": "https://www.berlin-welcomecard.de",
       "default_discount_percent": 25.0,
       "custom_discounts": {
@@ -14,6 +14,15 @@
         "berlin_fernsehturm": 25.0,
         "berlin_olympiastadion": 25.0
       },
+      "price_verified": false,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Strona porównania produktów (nie checkout) podaje ceny jako \"od X\": Classic od 28,50 EUR, +Museum Island od 62,00 EUR, all inclusive od 99,00 EUR - lekko wyższe niż nasz zapisany bwc_48h_ab=27,00 EUR. Przeszedłem część konfiguratora biletów (produkt Classic, 48h, strefa AB) bez finalizacji zakupu, ale konkretna cena ujawnia się dopiero po wybraniu daty/godziny startu, czego nie dokończono w tej turze - ceny poniżej NIE są ponownie potwierdzone, zostawione bez zmian do czasu pełnej weryfikacji.",
+          "url": "https://www.berlin-welcomecard.de/en/ticket-configurator"
+        }
+      ],
       "variants": [
         {
           "id": "bwc_48h_ab",
@@ -23,7 +32,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "48 godzin nielimitowanego transportu w strefie AB (obszar miejski Berlina) + min. 25% zniżki na atrakcje."
+          "description": "48 godzin nielimitowanego transportu w strefie AB (obszar miejski Berlina) + min. 25% zniżki na atrakcje.",
+          "price_verified": false
         },
         {
           "id": "bwc_72h_ab",
@@ -33,7 +43,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "72 godziny transportu w strefie AB + min. 25% zniżki na atrakcje."
+          "description": "72 godziny transportu w strefie AB + min. 25% zniżki na atrakcje.",
+          "price_verified": false
         },
         {
           "id": "bwc_72h_museumsinsel",
@@ -43,7 +54,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "72 godziny transportu AB + darmowy wstęp (100% zniżki) do muzeów na Wyspie Muzeów (Museumsinsel) + rabaty na pozostałe atrakcje."
+          "description": "72 godziny transportu AB + darmowy wstęp (100% zniżki) do muzeów na Wyspie Muzeów (Museumsinsel) + rabaty na pozostałe atrakcje.",
+          "price_verified": false
         },
         {
           "id": "bwc_48h_abc",
@@ -53,7 +65,8 @@
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa ABC (w tym lotnisko BER i Poczdam)",
-          "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje."
+          "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje.",
+          "price_verified": false
         }
       ]
     },

@@ -352,10 +352,13 @@ with st.form("search"):
         " dla ponadpodstawowych (licea).",
     )
     mpk_wroclaw_bezplatny = b3.checkbox(
-        "Wrocław: uczeń do 21 lat",
-        value=wiek <= 21,
-        help="Uczniowie szkół podstawowych/ponadpodstawowych do 21 lat, bez wymogu zamieszkania"
-        " we Wrocławiu.",
+        "Wrocław: uczeń/dziecko/senior",
+        value=wiek <= 7 or wiek <= 21 or wiek >= 65,
+        help="Jedna kategoria 100% w naszych danych obejmuje kilka tytułów potwierdzonych na"
+        " wroclaw.pl: uczniowie szkół podstawowych/ponadpodstawowych do 21 lat, dzieci do 7 lat"
+        " i seniorzy 65+ (bez wymogu zamieszkania we Wrocławiu). Inne potwierdzone tytuły z tej"
+        " samej kategorii (niepełnosprawność, rodziny wielodzietne itd.) zaznacz też tutaj,"
+        " niezależnie od wieku.",
     )
     ztm_lublin_bezplatny = b4.checkbox(
         "Lublin: uczeń podstawówki",

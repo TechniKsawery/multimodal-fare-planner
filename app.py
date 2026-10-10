@@ -340,16 +340,20 @@ with st.form("search"):
         "Przejazdy bezpłatne (100%, inna kategoria niż ulgowy — ma priorytet nad checkboxem "
         "ulgowy tego miasta wyżej, jeśli zaznaczone)"
     )
-    b1, b2, b3, b4 = st.columns(4)
+    b1, b2, b3, b4, b5 = st.columns(5)
     ztm_warszawa_bezplatny = b1.checkbox(
-        "Warszawa: uczeń podstawówki",
-        help="Karta Ucznia/e-legitymacja — tylko szkoła podstawowa, NIE potwierdzone dla"
-        " ponadpodstawowych (licea).",
+        "Warszawa: uczeń/senior 70+/niepełnosprawność znaczna",
+        value=wiek >= 70,
+        help="Karta Ucznia (tylko szkoła podstawowa, NIE ponadpodstawowa); osoby 70+ (bez wymogu"
+        " zamieszkania); niepełnosprawność ZNACZNA 26+ (UWAGA: 'umiarkowana' to tylko ulgowy"
+        " 50%, nie ta kategoria).",
     )
     mpk_krakow_bezplatny = b2.checkbox(
-        "Kraków: uczeń podstawówki",
-        help="Uczniowie szkół podstawowych z Krakowa/Metropolii Krakowskiej — NIE potwierdzone"
-        " dla ponadpodstawowych (licea).",
+        "Kraków: uczeń/senior 70+/niepełnosprawność znaczna",
+        value=wiek >= 70,
+        help="Uczniowie podstawówek z Krakowa/Metropolii (NIE ponadpodstawowe); osoby 70+ (bez"
+        " wymogu zamieszkania); niepełnosprawność ZNACZNA, lub UMIARKOWANA tylko przy symbolach"
+        " 04-O/05-R/10-N/01-U (inaczej to tylko ulgowy 50%).",
     )
     mpk_wroclaw_bezplatny = b3.checkbox(
         "Wrocław: uczeń/dziecko/senior",
@@ -364,6 +368,13 @@ with st.form("search"):
         "Lublin: uczeń podstawówki",
         help="Uczniowie szkół podstawowych (gmina Lublin) — NIE potwierdzone dla"
         " ponadpodstawowych (licea), tam zostaje ulgowy 50%.",
+    )
+    ztm_poznan_bezplatny = b5.checkbox(
+        "Poznań: senior 70+/niepełnosprawność znaczna",
+        value=wiek >= 70,
+        help="W Poznaniu NIE ma bezpłatnego dla zwykłych uczniów (tylko ulgowy 50%), ale JEST dla"
+        " osób 70+ (bez wymogu zamieszkania) i niepełnosprawności znacznej/I grupy — bez dolnej"
+        " granicy wieku 26 lat, inaczej niż w Warszawie/Krakowie.",
     )
     submitted = st.form_submit_button("Szukaj")
 
@@ -381,6 +392,7 @@ if submitted:
         mpk_krakow_ulgowy=mpk_krakow_ulgowy,
         mpk_krakow_bezplatny=mpk_krakow_bezplatny,
         ztm_poznan_ulgowy=ztm_poznan_ulgowy,
+        ztm_poznan_bezplatny=ztm_poznan_bezplatny,
         mpk_wroclaw_ulgowy=mpk_wroclaw_ulgowy,
         mpk_wroclaw_bezplatny=mpk_wroclaw_bezplatny,
         bvg_berlin_ulgowy=bvg_berlin_ulgowy,

@@ -40,10 +40,18 @@ class DiscountProfile:
     # Miasta Lublin, obecna podstawa prawna: uchwała nr 206/VII/2024 z 19.12.2024). NIE potwierdzone
     # dla szkół ponadpodstawowych (licea itd.) - tam zostaje ulgowy. Potwierdzone na żywej stronie
     # zdtm.lublin.eu 2026-10-10 (patrz fares/data/ztm_lublin.json::_zrodlo_bezplatny).
-    ztm_warszawa_ulgowy: bool = False  # ZTM/WTP Warszawa: bilet ulgowy (50%)
+    ztm_warszawa_ulgowy: bool = False  # ZTM/WTP Warszawa: bilet ulgowy (50%) - m.in. uczniowie
+    # szkół ponadpodstawowych, studenci, emeryci/renciści DO 70 roku życia (polski organ
+    # emerytalno-rentowy), osoby z UMIARKOWANYM stopniem niepełnosprawności 26+, uczniowie/
+    # studenci szkół zagranicznych do 26 lat (wtp.waw.pl/ulgi-znizki, zweryfikowano 2026-10-10).
     ztm_warszawa_bezplatny: bool = False  # ZTM/WTP Warszawa: przejazd bezpłatny (100%) -
     # "Karta Ucznia", uczniowie szkół PODSTAWOWYCH w Warszawie (potwierdzone warszawa19115.pl
     # 2026-10-10; NIE potwierdzone dla szkół ponadpodstawowych/liceów - tam zostaje ulgowy).
+    # Ta sama flaga obejmuje też: osoby 70+ (bez wymogu zamieszkania w Warszawie), osoby ze
+    # ZNACZNYM stopniem niepełnosprawności 26+, osoby całkowicie niezdolne do pracy I do
+    # samodzielnej egzystencji 26+, dzieci/młodzież z niepełnosprawnością do 26 lat (wszystko
+    # potwierdzone wtp.waw.pl/ulgi-znizki + warszawa19115.pl, zweryfikowano 2026-10-10 - patrz
+    # fares/data/ztm_warszawa.json::_zrodlo_senior_niepelnosprawnosc).
     mpk_krakow_ulgowy: bool = False  # MPK Kraków (ZTP): bilet ulgowy (50%)
     mpk_krakow_bezplatny: bool = False  # MPK Kraków: przejazd bezpłatny (100%) - uczniowie
     # szkół PODSTAWOWYCH z Krakowa i gmin Metropolii Krakowskiej, cały rok (potwierdzone

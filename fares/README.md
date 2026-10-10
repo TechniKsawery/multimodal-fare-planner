@@ -30,16 +30,26 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
   (nieoficjalnego) API FlixBusa dla konkretnej daty przejazdu, z fallbackiem do zgrubnego
   szacunku PLN/km gdy API jest niedostępne/bez wyniku — patrz sekcja niżej.
 - **HVV** (`fares/hvv.py`, Hamburg), **MVV** (`fares/mvv.py`, Monachium), **VRS/Köln**
-  (`fares/kvb.py`) — dodane 2026-10-09, żeby domknąć "pełny pakiet" (transport+atrakcje) dla
-  miast, którym dociągnęliśmy atrakcje ([[attractions/]]), ale które nie miały jeszcze
-  kalkulatora transportu miejskiego. Każdy zawsze liczy najniższą/bazową strefę cenową
-  (brak mapowania przystanek->strefa) — patrz ograniczenia niżej. **NIEUŻYWANE jeszcze przez
+  (`fares/kvb.py`) — dodane 2026-10-09, uzupełnione 2026-10-10 (pełne tabele stref/Preisstufen
+  do odczytu informacyjnego + zniżka dla osób z ciężką niepełnosprawnością), żeby domknąć "pełny
+  pakiet" (transport+atrakcje) dla miast, którym dociągnęliśmy atrakcje ([[attractions/]]).
+  Każdy kalkulator wciąż zawsze LICZY (jako cenę segmentu) najniższą/bazową strefę cenową (brak
+  mapowania przystanek->strefa) — patrz ograniczenia niżej. **NIEUŻYWANE jeszcze przez
   `routing/pricing.py` w praktyce**: nasze GTFS dla Niemiec obejmuje tylko feed krajowy (FV) i
   regionalny NRW/VRR, więc żaden przystanek w tych trzech miastach nie trafi tu dziś — słowa
   kluczowe w `routing/pricing.py::HVV_KEYWORDS`/`MVV_KEYWORDS`/`VRS_KOLN_KEYWORDS` są na zapas,
   na wypadek dociągnięcia regionalnego GTFS dla tych miast w przyszłości.
+  - **Zniżki/grupy osób zamodelowane (2026-10-10)**: Kindertarif 6-14 lat (`hvv_dziecko`/
+    `mvv_dziecko`/`vrs_koln_dziecko`, dzieci do 6 lat jeżdżą bezpłatnie — poza zakresem pola, bo
+    nie wymaga biletu) ORAZ bezpłatny przejazd dla osób z ciężką niepełnosprawnością
+    (`schwerbehinderte_wertmarke_de` — § 228 SGB IX, Merkzeichen G/aG/H/Bl/Gl + ważna Wertmarke).
+    Ta druga zniżka jest **ogólnoniemiecka** (nie taryfa konkretnego związku), więc jedno pole w
+    `DiscountProfile` obsługuje identycznie wszystkie trzy miasta — zob. komentarz w
+    `fares/model.py`. Zniżki specyficznie SENIORSKIE/STUDENCKIE na bilet JEDNORAZOWY nie istnieją
+    w żadnym z trzech związków (sprawdzone: "Monatskarte 65"/"AKTIV60"/Semesterticket to produkty
+    abonamentowe, nie rabat na Einzelkarte) — stąd brak odpowiednich pól, nie przeoczenie.
 
-## Stan danych po researchu (2026-09-26)
+## Stan danych po researchu (2026-09-26, sekcja HVV/MVV/VRS zaktualizowana 2026-10-10)
 
 | Przewoźnik | Status | Źródło |
 |---|---|---|
@@ -52,9 +62,10 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 | ZTM Lublin — bilety czasowe (15/40/90 min, strefa 1+2) | **oficjalne** | [Cennik LUBIKA](https://lubika.zdtm.lublin.eu/cennik/) (system biletu elektronicznego ZDiTM Lublin), ważny od 16.02.2026 |
 | Międzynarodowy PL↔DE — 3 kategorie cenowe (krótka/średnia/długa) | **oficjalne ceny "od", progi km SZACUNEK** | [Super Sparpreis Europa Polska](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-polen), [zasada BahnCard tylko na niemiecki odcinek](https://int.bahn.de/en/offers/saver-fare-flexible-fare/super-saver-fare-europe-poland) — sprawdzone 2026-09-29 |
 | Międzynarodowy PL↔DE — taryfa Young (15-26 lat) | **oficjalna cena "od" (MINIMUM, nie realna cena — bahn.de explicite nie podaje górnej granicy, "je nach Verfügbarkeit"), flat (bez progów km — tak reklamuje to bahn.de)** | [Super Sparpreis Europa Young Polen](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-young-polen), [FAQ cena](https://www.bahn.de/bahnbusiness/faq/preis-super-sparpreis-europa-polen), [FAQ Young](https://www.bahn.de/faq/pk/angebot/sparpreis/young/super-sparpreis-young) — sprawdzone 2026-10-07 (2x, niezależnie) |
-| HVV (Hamburg) — Einzelkarte/Tageskarte najniższa strefa | **oficjalne** | [hvv.de](https://www.hvv.de/), Tarifstand 01.01.2026 — zweryfikowane w przeglądarce 2026-10-09 |
-| MVV (Monachium) — Einzelkarte Zone M | **oficjalne** | cennik MVV (ceny od 01.01.2026) — zweryfikowane w przeglądarce 2026-10-09 |
-| VRS/Rheinlandtarif (Kolonia) — najniższy poziom cenowy | **ceny oficjalne, ale przypisanie nazwy poziomu do kwoty NIEPOTWIERDZONE** | strona VRS (nowy "Rheinlandtarif" 2026) — zweryfikowane w przeglądarce 2026-10-09 |
+| HVV (Hamburg) — Einzelkarte/Tageskarte najniższa strefa + Kindertarif 6-14 | **oficjalne** | [hvv.de](https://www.hvv.de/), Tarifstand 01.01.2026 (zweryfikowane w przeglądarce 2026-10-09) + niezależnie potwierdzone komunikatem prasowym HVV `PM251028_Tarifanpassung.pdf` i wandernundmehr.at (wiek dziecka) 2026-10-10 |
+| MVV (Monachium) — Einzelkarte Zone M + Kindertarif 6-14 | **oficjalne** | cennik MVV (ceny od 01.01.2026, zweryfikowane w przeglądarce 2026-10-09) + niezależnie potwierdzone muenchen.de i komunikatem prasowym MVV "Neue Fahrpreise...01.01.2027" 2026-10-10 |
+| VRS/Rheinlandtarif (Kolonia) — Preisstufe 1b (miasto) + Kindertarif 6-14 | **oficjalne** (poprzednio ESTIMATE — mapowanie nazwa poziomu→kwota było niejednoznaczne) | [dialogforum.vrs.de](https://dialogforum.vrs.de/en/tickets/ticket-assortment/ticket/einzeltickets) — tabela z jednoznacznie nazwanymi poziomami (1a/1b/2a/2b/3/4/5), zweryfikowane 2026-10-10 |
+| HVV/MVV/VRS — bezpłatny przejazd, ciężka niepełnosprawność (Wertmarke) | **oficjalne, podstawa ustawowa** | § 228 SGB IX ([gesetze-im-internet.de](https://www.gesetze-im-internet.de/sgb_9_2018/__228.html)); szczegóły Wertmarke (104/53 EUR, zwolnienia dla H/Bl i świadczeń socjalnych) wg [gegen-hartz.de](https://www.gegen-hartz.de/news/mit-dem-schwerbehindertenausweis-kostenlos-pnv-fahren-diese-regeln-sind-fix) — zweryfikowane 2026-10-10. Zasada ogólnoniemiecka, NIE taryfa związku — identyczna dla HVV/MVV/VRS (i, poza zakresem tej zmiany, docelowo też dla VRR/BVG). |
 
 Każdy wynik niesie `price_type`: `PriceType.OFFICIAL` ("oficjalna_taryfa") tam, gdzie dane są
 oficjalne, `PriceType.ESTIMATE` ("szacunek") tam, gdzie nadal szacujemy (obecnie: cały wynik DB,
@@ -94,12 +105,21 @@ bo tabela pasm jest interpolacją).
   nie od całej ceny. Bez współrzędnych stacji (fallback) nadal liczymy 25% od całości — zawyża
   rabat, ale to jedyna opcja bez geografii.
 - **HVV/MVV/VRS Köln**: każdy kalkulator zawsze liczy najniższą/bazową strefę cenową (Hamburg:
-  Einzelkarte najniższa strefa; Monachium: Zone M; Kolonia: najniższy potwierdzony poziom) —
-  brak mapowania przystanek→strefa, więc relacje wychodzące poza tę najniższą strefę są w
-  rzeczywistości droższe niż wynik kalkulatora. Dla Kolonii nawet przypisanie nazwy poziomu
-  cenowego do konkretnej kwoty nie jest w 100% potwierdzone u źródła, stąd `price_type=ESTIMATE`
-  (nie `OFFICIAL`) dla VRS/Köln, w odróżnieniu od HVV/MVV. Żaden z trzech kalkulatorów nie jest
-  jeszcze używany przez `routing/pricing.py` w praktyce — patrz uwaga przy opisie modułów wyżej.
+  Einzelkarte 1-2 Ringe; Monachium: Zone M; Kolonia: Preisstufe 1b) — brak mapowania
+  przystanek→strefa, więc relacje wychodzące poza tę najniższą strefę są w rzeczywistości droższe
+  niż wynik kalkulatora (pełne tabele stref są w `fares/data/*.json`, do odczytu informacyjnego).
+  Od 2026-10-10 mapowanie nazwy poziomu→kwota dla VRS/Köln jest jednoznacznie potwierdzone
+  (dialogforum.vrs.de), więc wszystkie trzy kalkulatory zwracają `price_type=OFFICIAL`. Żaden z
+  trzech kalkulatorów nie jest jeszcze używany przez `routing/pricing.py` w praktyce — patrz
+  uwaga przy opisie modułów wyżej.
+- **Bezpłatny przejazd dla ciężkiej niepełnosprawności**: `DiscountProfile.schwerbehinderte_wertmarke_de`
+  zeruje cenę biletu, ale NIE modeluje kosztu samej Wertmarke (legitymacji) — ona bywa płatna
+  (104 EUR/12 mies. lub 53 EUR/6 mies.) poza przypadkami zwolnienia (Merkzeichen H/Bl, określone
+  świadczenia socjalne). To koszt roczny/półroczny niezależny od pojedynczej trasy, więc nie
+  pasuje do modelu jednorazowego porównania segmentów (analogicznie do Deutschlandticket/BahnCard
+  — zob. niżej). Pole dotyczy TYLKO HVV/MVV/VRS_KOLN — VRR i BVG_BERLIN nie mają jeszcze tej
+  kategorii zamodelowanej (ta sama zasada ustawowa by tam zadziałała identycznie, ale to poza
+  zakresem tej zmiany).
 
 ### Czego by trzeba, żeby domknąć resztę
 

@@ -48,6 +48,15 @@ class DiscountProfile:
     hvv_dziecko: bool = False  # HVV (Hamburg): cena dziecka (6-14 lat) z oficjalnego cennika
     mvv_dziecko: bool = False  # MVV (Monachium): cena dziecka (6-14 lat) z oficjalnego cennika
     vrs_koln_dziecko: bool = False  # VRS/Rheinlandtarif (Kolonia): cena dziecka (6-14 lat)
+    schwerbehinderte_wertmarke_de: bool = False
+    """Bezpłatny przejazd w niemieckim transporcie lokalnym dla osób z ciężką niepełnosprawnością
+    (Merkzeichen G/aG/H/Bl/Gl + ważna Wertmarke w legitymacji) — § 228 SGB IX. To zasada
+    OGÓLNONIEMIECKA (nie taryfa poszczególnego związku), więc jedno pole obsługuje identycznie
+    HVV, MVV i VRS/Köln (fares/hvv.py, mvv.py, kvb.py) — nie dotyczy VRR/BVG, które nie mają
+    jeszcze tej kategorii zamodelowanej (możliwe do dociągnięcia później, poza zakresem tej
+    zmiany). Sama Wertmarke bywa płatna (104 EUR/12 mies. lub 53 EUR/6 mies.) lub bezpłatna
+    (Merkzeichen H/Bl, określone świadczenia socjalne) — to nie wpływa na cenę PRZEJAZDU, którą
+    liczy ten kalkulator, tylko na koszt samej legitymacji, który tu nie jest modelowany."""
     age: int | None = None
     """Wiek pasażera w dniu podróży. Używany WYŁĄCZNIE przez fares/international.py do wyboru
     taryfy "Super Sparpreis Europa Young" (15-26 lat, bahn.de) na bilecie międzynarodowym PL-DE

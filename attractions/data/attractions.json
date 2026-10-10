@@ -1,7 +1,7 @@
 {
   "_zrodlo": "Katalog atrakcji i rekomendowanych miejsc (PL + DE)",
   "_data_aktualizacji": "2026-10-09",
-  "_UWAGA_ceny_grupowe": "AKTUALIZACJA 2026-10-10: dodano pola child_price/student_price/senior_price/family_price (GroupPrice w model.py) — kalkulator (best_price_for_attraction w service.py) bierze teraz najtańszą cenę z DOWOLNEGO potwierdzonego tytułu (wiek/uczeń-student/senior), nie tylko cenę dorosłego. Wypełnione na razie tylko tam, gdzie kwota jest potwierdzona wprost w cenniku operatora (patrz pola źródło/data przy każdym polu): ZOOM Erlebniswelt (dziecko 4-12 lat 15,50€, uczeń/student 17,50€ — UWAGA: <4 lata gratis NIE jest jeszcze modelowane, bo schemat ma tylko jedno pole child_price na atrakcję), Veltins-Arena (młodzież do 21 lat 5€), Signal Iduna Park (dziecko do 6 lat 1€; ulga 'Jugendliche/Schüler/Studenten/Arbeitslose/Rentner' istnieje, ale dokładna kwota NIE jest potwierdzona — celowo pominięta, nie zgadywana), Deutsches Fußballmuseum (dziecko do 6 lat gratis, uczeń/student <26 lat 15€). Zeche Zollverein ma 6 wariantów zwiedzania z osobnymi cennikami — nie pasuje czysto do schematu jedna-cena-na-tytuł, celowo pominięte (do decyzji, czy/jak modelować). Bilety rodzinne (family_price) i zniżki grupowe (grupy 20+) jeszcze niewypełnione. UPROSZCZENIE do rozważenia: w evaluate_city_card_variant zniżka kartowa liczy się DODATKOWO na cenie z tytułu statusu — część operatorów może tego nie łączyć (nie zweryfikowane per atrakcja).",
+  "_UWAGA_ceny_grupowe": "AKTUALIZACJA 2026-10-10: dodano pola child_price/student_price/senior_price/family_price (GroupPrice w model.py) — kalkulator (best_price_for_attraction w service.py) bierze teraz najtańszą cenę z DOWOLNEGO potwierdzonego tytułu (wiek/uczeń-student/senior), nie tylko cenę dorosłego. Wypełnione na razie tylko tam, gdzie kwota jest potwierdzona wprost w cenniku operatora (patrz pola źródło/data przy każdym polu): ZOOM Erlebniswelt (dziecko 4-12 lat 15,50€, uczeń/student 17,50€ — UWAGA: <4 lata gratis NIE jest jeszcze modelowane, bo schemat ma tylko jedno pole child_price na atrakcję), Veltins-Arena (młodzież do 21 lat 5€), Signal Iduna Park (dziecko do 6 lat 1€, ermäßigt 12€ — zweryfikowane 2026-10-10 bezpośrednio w sklepie biletowym dla tego samego produktu 18€), Deutsches Fußballmuseum (dziecko do 6 lat gratis, uczeń/student <26 lat 15€), Alte Försterei (dziecko do 6 lat gratis, ermäßigt 10€, karta rodzinna 34€ — zweryfikowane 2026-10-10), Zamek Lubelski (dziecko do 7 lat gratis, ulgowy 30€, rodzic+dziecko do 16 lat 30€ — zweryfikowane 2026-10-10), Katedra Wawelska (ulgowy 18 PLN, PRZY OKAZJI poprawiono normal_price 22->26 PLN po weryfikacji na żywo), Zeche Zollverein (ermäßigt 'od' 9,50€ — wartość minimalna z cennika, patrz _UWAGA_warianty_zwiedzania przy tej atrakcji: pierwotny plan '6 wariantów' nie odpowiada rzeczywistości, operator ma 20+ nazwanych tras). Museumsinsel: dzieci/młodzież do 18 lat gratis potwierdzone, ale ogólna 50% zniżka SMB NIE jest explicite powiązana z tym konkretnym biletem zbiorczym — celowo niewypełniona, nie zgadywana. Olympiastadion Berlin: WERYFIKACJA 2026-10-10 wykazała, że istniejąca cena normal_price=15€ nie odpowiada żadnemu realnemu produktowi operatora (self-guided 11€, Führungen 17-25€) — price_verified przestawione na false, wymaga wyjaśnienia przed dodaniem zniżek. Bilety rodzinne (family_price) i zniżki grupowe (grupy 20+) poza wymienionymi wyżej jeszcze niewypełnione. UPROSZCZENIE do rozważenia: w evaluate_city_card_variant zniżka kartowa liczy się DODATKOWO na cenie z tytułu statusu — część operatorów może tego nie łączyć (nie zweryfikowane per atrakcja).",
   "atrakcje": [
     {
       "id": "gelsenkirchen_veltins_arena",
@@ -105,7 +105,16 @@
         "muzeum",
         "kopalnia",
         "architektura"
-      ]
+      ],
+      "student_price": {
+        "price": 9.5,
+        "label": "Ermäßigt (od — cena bazowa dla 1-godzinnych wariantów zwiedzania)",
+        "requires_status": "dokładna kwota zależy od konkretnej nazwanej trasy (operator ma 20+ nazwanych Führungen w 2 kategoriach czasowych: 1h i 2h) — 9,50 EUR to zweryfikowana wartość MINIMALNA ('ab') z oficjalnej tabeli cen, nie uśredniona ani zgadnięta",
+        "source_url": "https://www.zollverein.de/besuch-planen/eintrittspreise/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "_UWAGA_warianty_zwiedzania": "2026-10-10: poprzednia notatka w tym pliku mówiła o '6 wariantach zwiedzania' Zeche Zollverein — PO WERYFIKACJI NA ŻYWO (zollverein.de/besuch-planen/eintrittspreise/ + zollverein.ticketfritz.de) to się NIE POTWIERDZA: oficjalny katalog ma 20+ osobno nazwanych Führungen pogrupowanych w 2 kategorie czasowe (1-godzinne od 12,50 EUR/ermäßigt od 9,50 EUR, 2-godzinne od 16,50 EUR/ermäßigt od 13,50 EUR), plus osobne produkty (Zollverein-Rundfahrten 17 EUR, linia turystyczna 7-8 EUR). Rozbicie na 6 osobnych wpisów Attraction, jak proponowano, nie odpowiada rzeczywistej strukturze cennika — wymaga decyzji produktowej (które konkretne trasy modelować osobno), a nie tylko weryfikacji. Jeden przykładowo sprawdzony konkretny produkt, 'Von Kohle, Koks und harter Arbeit' (1,5h): 14,50 EUR dorosły / 11,50 EUR ermäßigt i dzieci 5-17 lat / Familienticket I 22,50 EUR / Familienticket II 33,50 EUR — ale TO NIE jest ten sam produkt co obecny wpis 12,50 EUR w tym pliku (inny czas trwania i cena)."
     },
     {
       "id": "dortmund_signal_iduna_park",
@@ -132,6 +141,14 @@
         "max_age": 6,
         "source_url": "https://ticket-onlineshop.com/ols/bvbstadion",
         "verified_date": "2026-10-09",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 12.0,
+        "label": "Ermäßigt (standardowa ulga BVB: uczniowie/studenci/bezrobotni/renciści)",
+        "requires_status": "zgodnie ze standardową definicją 'ermäßigt' BVB (ta sama etykieta używana też dla biletów meczowych i audioguide'u Borusseum) — ważny dokument",
+        "source_url": "https://www.ticket-onlineshop.com/ols/bvbstadion/de/adrenalin/channel/shop/areaplan/pricelistforbestseatbypricecategory/event/685440",
+        "verified_date": "2026-10-10",
         "price_verified": true
       }
     },
@@ -182,13 +199,15 @@
       "default_card_discount_percent": 25.0,
       "address": "Olympischer Platz 3, 14053 Berlin",
       "official_url": "https://olympiastadion.berlin",
+      "price_verified": false,
       "highlight": true,
       "tags": [
         "stadion",
         "sport",
         "historia",
         "olimpiada"
-      ]
+      ],
+      "_UWAGA_rozbieznosc": "2026-10-10: zweryfikowano NA ŻYWO na olympiastadion.berlin — żadna oficjalna oferta nie wymienia kwoty 15,00 EUR. Samodzielne zwiedzanie (Besichtigung) kosztuje 11,00 € (ermäżigt 8,00 €, dzieci 6-14 lat 6,00 €, Familienkarte 27,00 €); płatne Führungen (Highlight-Tour 60 min, Premium-Tour 120 min, Hertha BSC-Tour itd.) kosztują od 17,00 do 25,00 € (ermäßigt od 14,00 do 35,00 €, patrz dokładna tabela). Cena 15,00 EUR wpisana wcześniej do tego pliku NIE odpowiada żadnemu znalezionemu wariantowi — price_verified przestawione na false do wyjaśnienia, który konkretny produkt (self-guided czy któraś Führung) miał być tu modelowany, zanim dodamy child/student_price."
     },
     {
       "id": "berlin_alte_foersterei",
@@ -208,7 +227,30 @@
         "piłka nożna",
         "union berlin",
         "klimat"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci do 6 lat (bezpłatnie)",
+        "max_age": 6,
+        "source_url": "https://www.altefoersterei.berlin/de/stadion/stadionfuehrung-xcFo",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 10.0,
+        "label": "Ermäßigt (uczniowie/studenci/bezrobotni/renciści/członkowie klubu)",
+        "requires_status": "Schüler, Auszubildende, Studenten, Arbeitssuchende, Rentner, osoby z niepełnosprawnością od 50% GdB (opiekun wchodzi bezpłatnie), członkowie 1. FC Union Berlin — każdorazowo wymagany dokument",
+        "source_url": "https://www.altefoersterei.berlin/de/stadion/stadionfuehrung-xcFo",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 34.0,
+        "label": "Karta rodzinna (2 dorosłych + 2 dzieci do 14 lat)",
+        "source_url": "https://www.altefoersterei.berlin/de/stadion/stadionfuehrung-xcFo",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
     },
     {
       "id": "berlin_museumsinsel",
@@ -228,7 +270,16 @@
         "unesco",
         "sztuka",
         "starożytność"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci i młodzież do 18 lat (bezpłatnie)",
+        "max_age": 18,
+        "source_url": "https://www.smb.museum/besuch-planen/preise-tickets/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "_UWAGA_ermazigt": "2026-10-10: SMB (zarządca Museumsinsel) ogłasza ogólną 'allgemeine Ermäßigung' 50% dla uczniów/studentów/wolontariuszy/bezrobotnych (ALG I)/osób z niepełnosprawnością od 50% — ale ani strona ogólna (/besuch-planen/preise-tickets/), ani strona samego Museumsinsel-Ticket (/tickets-einlass/) nie podają wprost, że ta ogólna zniżka obejmuje TEN konkretny bilet zbiorczy (24 EUR) — nie wpisano student_price, żeby nie zgadywać (50% z 24 EUR to policzona, nie podana wprost kwota)."
     },
     {
       "id": "berlin_fernsehturm",
@@ -315,19 +366,27 @@
       "city": "krakow",
       "category": "turystyka_kultura",
       "description": "Katedra na Wawelu z Dzwonem Zygmunta, krypty i groby królewskie oraz Muzeum Katedralne.",
-      "normal_price": 22.0,
+      "normal_price": 26.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Wawel 3, 31-001 Kraków",
-      "official_url": "https://katedra-wawelska.pl",
-      "price_verified": false,
+      "official_url": "https://bilety-wawel.pl",
+      "price_verified": true,
       "highlight": false,
       "tags": [
         "katedra",
         "historia",
         "dzwon zygmunta",
         "unesco"
-      ]
+      ],
+      "student_price": {
+        "price": 18.0,
+        "label": "Bilet ulgowy",
+        "requires_status": "zgodnie z regulaminem operatora — dokładne kryteria uprawniające (wiek/status) nie są podane wprost na stronie sprzedaży",
+        "source_url": "https://bilety-wawel.pl",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
     },
     {
       "id": "krakow_schindler_factory",
@@ -425,7 +484,31 @@
         "zabytki",
         "freski",
         "sztuka"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci do 7 lat (bezpłatnie)",
+        "max_age": 7,
+        "source_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 30.0,
+        "label": "Bilet ulgowy (bilet zbiorczy: ekspozycje stałe + Kaplica + wieża)",
+        "requires_status": "uczniowie, studenci i doktoranci (z ważnym dokumentem), osoby powyżej 65 lat, emeryci i renciści, nauczyciele, posiadacze Europejskiej Karty Młodzieżowej, kombatanci",
+        "source_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 30.0,
+        "label": "Rodzic z dzieckiem do 16 lat lub posiadacz Karty Dużej Rodziny (cena biletu ulgowego za osobę, bilet zbiorczy)",
+        "requires_status": "rodzic w towarzystwie dziecka do 16 lat, lub Karta Dużej Rodziny",
+        "source_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
     },
     {
       "id": "lublin_majdanek",
@@ -437,7 +520,8 @@
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Droga Męczenników Majdanka 67, 20-325 Lublin",
-      "official_url": "https://www.majdanek.eu",
+      "official_url": "https://www.majdanek.eu/zaplanuj-wizyte",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "historia",

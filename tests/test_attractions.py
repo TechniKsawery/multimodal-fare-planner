@@ -274,10 +274,10 @@ def test_best_price_for_attraction_dorosly_bez_zniżek_dostaje_cene_normalna():
 
 
 def test_best_price_for_attraction_bez_pol_grupowych_nie_wybucha():
-    # Atrakcja bez skonfigurowanych cen grupowych (np. Zeche Zollverein) ma zawsze zwrócić cenę normalną.
-    zollverein = next(a for a in get_all_attractions() if a.id == "essen_zeche_zollverein")
-    price, _label, source = best_price_for_attraction(zollverein, DiscountProfile(age=10, is_student=True))
-    assert price == zollverein.normal_price
+    # Atrakcja bez skonfigurowanych cen grupowych (np. Curry 36) ma zawsze zwrócić cenę normalną.
+    curry36 = next(a for a in get_all_attractions() if a.id == "berlin_curry36")
+    price, _label, source = best_price_for_attraction(curry36, DiscountProfile(age=10, is_student=True))
+    assert price == curry36.normal_price
     assert source is None
 
 

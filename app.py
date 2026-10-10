@@ -19,6 +19,7 @@ from attractions import (
     suggest_best_city_card,
 )
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
+from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
 from routing import motis_client
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
@@ -304,6 +305,19 @@ wiek = st.number_input(
     "uczeń/student ma bilet ulgowy niezależnie od wieku, a wiek sam z siebie nie daje "
     "pełnego obrazu uprawnień.",
 )
+obywatelstwo = st.selectbox(
+    "Obywatelstwo",
+    [None, "PL", "UE", "poza_UE"],
+    format_func=lambda o: {
+        None: "nie podano",
+        "PL": "Polska",
+        "UE": "inny kraj UE/EOG",
+        "poza_UE": "poza UE/EOG",
+    }[o],
+    help="Nie zmienia ceny — po wyszukaniu pokażemy ostrzeżenia, czy zaznaczone ulgi realnie"
+    " przysługują cudzoziemcowi wg zweryfikowanych źródeł (np. PKP ulga ustawowa, uznawanie"
+    " zagranicznych legitymacji w MPK/ZTM).",
+)
 
 st.subheader("Skąd i dokąd")
 c_origin, c_dest = st.columns(2)
@@ -406,7 +420,10 @@ if submitted:
         bvg_berlin_schwerbehindert=bvg_berlin_schwerbehindert,
         vrr_dziecko=vrr_dziecko,
         age=wiek,
+        obywatelstwo=obywatelstwo,
     )
+    for ostrzezenie in foreigner_warnings_for(profile):
+        st.warning(ostrzezenie)
     try:
         with st.spinner("Szukam połączeń..."):
             request = RouteRequest(

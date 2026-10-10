@@ -114,6 +114,17 @@ class DiscountProfile:
     tylko do routing/card_suggestions.py (sugestia zakupu BahnCard), nigdy do ceny biletu —
     zob. audyt zniżek w projekcie (2026-10-07)."""
 
+    obywatelstwo: str | None = None
+    """Jedna z: None (nie podano), "PL", "UE" (kraj UE/EOG inny niż Polska), "poza_UE".
+    NIE zmienia samej kalkulacji ceny (użytkownik i tak sam zaznacza checkboxy ulg) — używane
+    WYŁĄCZNIE przez fares/foreigner_eligibility.py do wygenerowania ostrzeżeń informacyjnych,
+    czy zaznaczona ulga realnie przysługuje cudzoziemcowi wg zweryfikowanych źródeł (2026-10-10,
+    zob. pamięć projektu [[zagraniczne-legitymacje-transport-status]]). Np. PKP ulga ustawowa
+    studencka wymaga karty pobytu dla obywateli UE i jest całkowicie niedostępna spoza UE
+    (rozporządzenie MI z 20.04.2017); Poznań/Lublin nie uznają zagranicznych legitymacji
+    studenckich wcale; Kraków wymaga konkretnie ISIC; Wrocław wymaga tłumaczenia przysięgłego
+    zagranicznej legitymacji (chyba że ISIC/Euro26)."""
+
 
 @dataclass
 class Segment:

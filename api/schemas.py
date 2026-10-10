@@ -22,6 +22,7 @@ class DiscountProfileIn(BaseModel):
     bvg_berlin_schwerbehindert: bool = False
     vrr_dziecko: bool = False
     age: int | None = None
+    obywatelstwo: str | None = None
 
 
 class RouteSearchRequest(BaseModel):

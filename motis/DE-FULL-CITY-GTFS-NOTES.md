@@ -102,16 +102,24 @@ kluczowe), trzeba poszerzyć `HVV_KEYWORDS`/`MVV_KEYWORDS`/`VRS_KOLN_KEYWORDS` w
 `routing/pricing.py` o rzeczywiste nazwy z danych — da się to ustalić tylko patrząc na prawdziwą
 odpowiedź MOTIS, stąd ten krok musi zrobić sesja z żywym dostępem do Twojego Dockera.
 
-## 4. Przełączenie na produkcyjny port 8080 (TYLKO po potwierdzeniu testu wyżej)
+## 4. Przełączenie na produkcyjny port 8080 — WYKONANE (2026-10-10)
+
+Status: **ZROBIONE przez Ksaviego przez RC, zweryfikowane** — `motis-main` na porcie 8080 serwuje
+dane z wolumenu `multimodalnawyszukiwarka_motis-data-de-full-city-gtfs` (nazwa wolumenu z prefiksem
+projektu `docker compose`, nie `motis-data-de-full-city-gtfs` jak w gołym `docker run` poniżej —
+jeśli odtwarzasz ten krok ręcznie bez przechodzenia przez compose, sprawdź `docker volume ls` i
+użyj dokładnej nazwy, którą tam widzisz). Geocoding Hamburga na `http://localhost:8080` potwierdzony
+(pierwszy curl po starcie dał "Empty reply from server" — serwer jeszcze się rozgrzewał/ładował
+indeksy, drugi curl kilka sekund później zadziałał normalnie — to nie błąd, tylko czas startu).
 
 Analogicznie do przełączenia PL+NRW -> PL+DE w PR #46:
 
 ```powershell
-docker stop motis-city-gtfs
+docker stop motis-city-gtfs   # albo nazwa z `docker compose ps`, np. multimodalnawyszukiwarka-motis-city-gtfs-1
 docker rm motis-city-gtfs
 docker stop motis-main
 docker run -d --name motis-main -p 8080:8080 `
-  -v motis-data-de-full-city-gtfs:/data `
+  -v multimodalnawyszukiwarka_motis-data-de-full-city-gtfs:/data `
   -v "<katalog-projektu>\motis\config.de-full-city-gtfs.yml:/data/config.yml:ro" `
   ghcr.io/motis-project/motis:latest
 docker update --restart unless-stopped motis-main
@@ -135,10 +143,10 @@ docker update --restart unless-stopped motis-main
 
 ## Co NIE jest zrobione przez tę zmianę (zostaje do zweryfikowania przez RC)
 
-- Pobranie plików, import, test routingu i przełączenie — wszystko **do wykonania ręcznie**,
-  jak wyżej. Ten PR dodaje tylko config/compose/instrukcje, nie wykonuje żadnej z tych komend.
+- Pobranie plików, import, test routingu i przełączenie — **WYKONANE** przez Ksaviego przez RC
+  (2026-10-10), kroki 1-4 zaliczone, produkcja na 8080 działa na nowych danych z HVV/MVV/VRS.
 - Ceny MVV strefy M-6/M-12 (zob. PR #49, `verification/hvv-mvv-vrs-ulgi-transport-2026-10-10.md`)
   — niezależne od tego zadania, zostają do potwierdzenia w przeglądarce.
-- Jeśli dopasowanie słów kluczowych w `routing/pricing.py` nie zadziała na rzeczywistych danych
-  (punkt 3 wyżej) — to by wymagało małej poprawki kodu, ale tego nie można było przewidzieć bez
-  żywych danych.
+- Dopasowanie słów kluczowych w `routing/pricing.py` ZADZIAŁAŁO na rzeczywistych danych (test
+  `scripts/test_local_transit_hvv_mvv_vrs.py` na porcie 8082, wszystkie 3 miasta `oficjalna_taryfa`)
+  — nic do poprawki w kodzie.

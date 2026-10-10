@@ -148,6 +148,8 @@
       "default_discount_percent": 0.0,
       "custom_discounts": {},
       "price_verified": false,
+      "existence_verified": false,
+      "existence_verified_date": "2026-10-10",
       "verification_notes": [
         {
           "checked_on": "2026-10-10",

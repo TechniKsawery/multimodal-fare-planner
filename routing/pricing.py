@@ -338,6 +338,15 @@ def price_flixbus_leg(leg: Leg) -> PricedLeg:
 
 
 def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedLeg:
+    """UWAGA (sprawdzone 2026-10-10, test realnym GTFS HVV/MVV/VRS w PR #49): ten kalkulator
+    bywa wołany też dla legów, które MOTIS sklasyfikował jako "BUS" mimo że faktycznie są
+    S-Bahn/U-Bahn obsługiwanym przez DB Regio (routing/motis_client.py::itinerary_to_legs
+    mapuje każdy tryb MOTIS inny niż RAIL/TRAIN na LegMode.BUS, patrz komentarz tam). To NIE
+    jest błąd do naprawy: HVV/MVV/Rheinlandtarif (VRS) to Verbundtarif obejmujący WSZYSTKIE
+    lokalne środki transportu (S-Bahn, U-Bahn, tramwaj, autobus) w obrębie związku jedną,
+    wspólną ceną zależną od strefy/relacji, niezależnie od operatora czy trybu — więc
+    dopasowanie po nazwie przystanku/miasta (city_carriers poniżej) i wycena z taryfy
+    związkowej jest poprawna, nawet gdy przewoźnik widoczny w danych to "DB Regio ..."."""
     discounts = discounts or DiscountProfile()
 
     is_coach = leg.extra.get("motis_mode") == "COACH" or any(

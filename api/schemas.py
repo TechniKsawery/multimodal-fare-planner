@@ -19,6 +19,7 @@ class DiscountProfileIn(BaseModel):
     mpk_wroclaw_ulgowy: bool = False
     mpk_wroclaw_bezplatny: bool = False
     bvg_berlin_ulgowy: bool = False
+    bvg_berlin_schwerbehindert: bool = False
     vrr_dziecko: bool = False
     age: int | None = None
 

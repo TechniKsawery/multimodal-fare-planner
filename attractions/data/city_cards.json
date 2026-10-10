@@ -138,6 +138,45 @@
           "description": "3 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
         }
       ]
+    },
+    {
+      "id": "wroclaw_tourist_card",
+      "city": "wroclaw",
+      "name": "Wrocław Tourist Card (Wrocławska Karta Turystyczna)",
+      "description": "UWAGA: produkt prawdopodobnie wycofany ze sprzedaży. Historycznie (2017-2019) karta działała w systemie punktowym — zakupione punkty wymieniało się na zniżkowe/darmowe wejścia do ok. 100 partnerów (muzea, restauracje, hotele) oraz opcjonalny nielimitowany transport MPK. Stan na 2026-10-10: strona visitwroclaw.eu nie zawiera żadnej podstrony o karcie (404 na /en/wroclaw-tourist-card-about-the-card i /en/wroclaw-tourist-card-faq, wyszukiwarka na stronie dla zapytań \"tourist card\" i \"karta turystyczna\" nie zwraca wyników, w menu \"Tourist information\" brak wzmianki o karcie), nie znaleziono żadnego \"WTC Store\" ani aktualnego cennika. Operatorem był Dolnośląska Organizacja Turystyczna. Brak zweryfikowanych, aktualnych cen — nie zgadujemy liczb, dlatego lista wariantów jest pusta.",
+      "official_url": "https://visitwroclaw.eu/en/",
+      "default_discount_percent": 0.0,
+      "custom_discounts": {},
+      "price_verified": false,
+      "existence_verified": false,
+      "existence_verified_date": "2026-10-10",
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka (nie automatyczny fetch, strona renderuje treść przez JS)",
+          "finding": "404 Not Found",
+          "url": "https://visitwroclaw.eu/en/wroclaw-tourist-card-about-the-card"
+        },
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "404 Not Found",
+          "url": "https://visitwroclaw.eu/en/wroclaw-tourist-card-faq"
+        },
+        {
+          "checked_on": "2026-10-10",
+          "method": "wyszukiwarka wewnętrzna visitwroclaw.eu",
+          "finding": "0 wyników dla \"tourist card\" i \"karta turystyczna\"",
+          "url": "https://visitwroclaw.eu/en/?s=tourist+card"
+        },
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka, strona trzecia nadal linkująca do karty",
+          "finding": "Muzeum Pana Tadeusza nadal opisuje korzyści karty, ale odsyła do visitwroclaw.eu, gdzie podstrona już nie istnieje — strona nieaktualna, brak cen",
+          "url": "https://muzeumpanatadeusza.ossolineum.pl/zwiedzaj-muzeum-z-wroclawska-karta-turystyczna/"
+        }
+      ],
+      "variants": []
     }
   ]
 }

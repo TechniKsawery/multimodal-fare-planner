@@ -8,6 +8,7 @@ from .model import (
     CityCardEvaluation,
     CityCardVariant,
     GroupPrice,
+    HeldDocument,
 )
 from .service import (
     DiscountProfile,
@@ -29,6 +30,7 @@ __all__ = [
     "CityCardEvaluation",
     "CityCardVariant",
     "GroupPrice",
+    "HeldDocument",
     "DiscountProfile",
     "best_price_for_attraction",
     "evaluate_city_cards",

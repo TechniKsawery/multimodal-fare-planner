@@ -30,6 +30,15 @@ _CITY_ALIASES = {
     "warsaw": "warszawa",
     "poznan": "poznan",
     "poznań": "poznan",
+    "hamburg": "hamburg",
+    "munchen": "munchen",
+    "münchen": "munchen",
+    "munich": "munchen",
+    "monachium": "munchen",
+    "koln": "koln",
+    "köln": "koln",
+    "cologne": "koln",
+    "kolonia": "koln",
 }
 
 

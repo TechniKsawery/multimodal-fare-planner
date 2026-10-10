@@ -1,7 +1,7 @@
 {
   "_zrodlo": "Oficjalna baza wiedzy Warszawa 19115 / WTP Warszawa (ZTM) — https://warszawa19115.pl/-/bilety-kr%C3%B3tkookresowe-w-komunikacji-miejskiej , cytuje wtp.waw.pl. Zweryfikowano 2026-10-06.",
   "_uwaga": "Bilet 20-minutowy (strefa 1+2), 75-minutowy (tylko strefa 1) oraz 90-minutowy (strefa 1+2). Ulga 50% przysługuje uprawnionym pasażerom (studenci, seniorzy) - UWAGA, uczniowie szkół podstawowych są WYŁĄCZENI z tej grupy, patrz _zrodlo_bezplatny.",
-  "_zrodlo_bezplatny": "Przejazd bezpłatny (kategoria 'bezplatny' w kodzie, amount=0): uczniowie szkół PODSTAWOWYCH w Warszawie - 'Karta Ucznia'/e-legitymacja (potwierdzone warszawa19115.pl: https://warszawa19115.pl/-/karta-ucznia ). NIE potwierdzone dla szkół ponadpodstawowych (licea itd.) - tam w kodzie zostaje `ztm_warszawa_ulgowy` (50%). Zweryfikowano 2026-10-10.",
+  "_zrodlo_bezplatny": "Przejazd bezpłatny (kategoria 'bezplatny' w kodzie, amount=0): uczniowie szkół PODSTAWOWYCH w Warszawie - 'Karta Ucznia'/e-legitymacja (potwierdzone warszawa19115.pl: https://warszawa19115.pl/-/karta-ucznia ). POTWIERDZONE WYKLUCZENIE szkół ponadpodstawowych: ta sama strona określa uprawnienie jako obowiązujące 'w okresie nauki w szkole podstawowej' i wymienia tylko 'szkoły podstawowe działające na terenie m.st. Warszawy' / 'zamieszkujące na terenie m.st. Warszawy' — liceów i techników strona nie wymienia wcale. W kodzie dla ponadpodstawowych zostaje `ztm_warszawa_ulgowy` (50%). Zweryfikowano 2026-10-10.",
   "waluta": "PLN",
   "nazwa_przewoznika": "ZTM Warszawa (WTP)",
   "as_of": "2026-10-06",

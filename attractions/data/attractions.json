@@ -145,9 +145,9 @@
       },
       "student_price": {
         "price": 12.0,
-        "label": "Ermäßigt (standardowa ulga BVB: uczniowie/studenci/bezrobotni/renciści)",
-        "requires_status": "zgodnie ze standardową definicją 'ermäßigt' BVB (ta sama etykieta używana też dla biletów meczowych i audioguide'u Borusseum) — ważny dokument",
-        "source_url": "https://www.ticket-onlineshop.com/ols/bvbstadion/de/adrenalin/channel/shop/areaplan/pricelistforbestseatbypricecategory/event/685440",
+        "label": "Ermäßigt (Jugendliche unter 18, Schüler, Studenten, Arbeitslose, Schwerbehinderte, Rentner)",
+        "requires_status": "Jugendliche unter 18, Schüler, Studenten, Arbeitslose, Schwerbehinderte, Rentner — wszystkie tylko z ważnym dokumentem (dokładny cytat operatora, potwierdzony po wybraniu konkretnego terminu zwiedzania 11.10.2026 w sklepie biletowym)",
+        "source_url": "https://www.ticket-onlineshop.com/ols/bvbstadion/de/adrenalin/channel/shop/areaplan/venue/event/693365",
         "verified_date": "2026-10-10",
         "price_verified": true
       }
@@ -299,7 +299,18 @@
         "widok",
         "alexanderplatz",
         "wieża"
-      ]
+      ],
+      "child_price": {
+        "price": 14.0,
+        "label": "Dziecko 4-14 lat (przykładowa stawka — ceny DYNAMICZNE per godzina/dzień, tak jak bilet dorosły)",
+        "min_age": 4,
+        "max_age": 14,
+        "requires_status": "cena zmienia się z godziną/dniem rezerwacji identycznie jak u dorosłych (np. 24 EUR dorosły / 14 EUR dziecko dla terminu 11.10.2026 9:00) — nie jest to kwota stała",
+        "source_url": "https://tv-turm.de/en/tickets-and-bundles/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "_UWAGA_dynamiczne_ceny": "2026-10-11: zweryfikowano NA ŻYWO w widżecie rezerwacji (tv-turm.de/en/tickets-and-bundles/) po wybraniu konkretnego terminu — ceny 'Standard Ticket' są DYNAMICZNE (zależą od godziny i dnia, np. 24-29,50 EUR dla dorosłego w ciągu jednego dnia), nie jedną stałą kwotą jak normal_price=20 sugeruje (to prawdopodobnie najniższa możliwa cena 'ab'/'from'). Kategoria 'Child' (4-14 lat) istnieje i ma analogicznie dynamiczną cenę, potwierdzoną przykładowo na 14 EUR. Jest też osobna kategoria 'Infant' (prawdopodobnie 0-3 lata) — jej konkretną cenę/wiek nie sprawdzono dalej (czas sesji)."
     },
     {
       "id": "berlin_brandenburger_tor",

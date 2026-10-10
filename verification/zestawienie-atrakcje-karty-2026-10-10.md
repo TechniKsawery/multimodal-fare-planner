@@ -7,6 +7,13 @@
 > podany `source_url`. Zero zgadywania: gdzie operator nie podaje kwoty wprost, pole zostaje
 > puste z notatką `_UWAGA_*`.
 
+## Aktualizacja 2026-10-11 (kontynuacja na prośbę "próbuj dalej")
+
+- **Signal Iduna Park — ulga doprecyzowana**: po wybraniu KONKRETNEGO terminu zwiedzania (niedziela 11.10.2026, 15:00) w sklepie biletowym (ticket-onlineshop.com) strona pokazała pełny, dokładny cytat operatora: *"Ermäßigter Eintritt für Jugendliche unter 18, Schüler, Studenten, Arbeitslose, Schwerbehinderte, Rentner (alle nur mit gültigem Nachweis)"* za 12,00 EUR. Wcześniej mieliśmy tylko kwotę bez pełnej definicji uprawnionych — teraz w pełni potwierdzone.
+- **Fernsehturm Berlin — ceny DYNAMICZNE, nie stałe**: zweryfikowano NA ŻYWO w widżecie rezerwacji (tv-turm.de) po wybraniu terminu — ceny "Standard Ticket" zmieniają się godzinowo/dziennie (np. dorosły 24,00–29,50 EUR w ciągu jednego dnia). Istnieje osobna kategoria "Child" (4-14 lat), potwierdzona przykładowo na 14,00 EUR dla tego samego terminu co dorosły 24,00 EUR, oraz kategoria "Infant" (nie doprecyzowana dalej). To wyjaśnia, czemu strona ogólna podawała tylko "ab 20 EUR" — to literalnie najniższa cena z dynamicznego cennika, nie stała stawka.
+- Arena Lublin: ponowna próba (mosir.lublin.pl) — strona nadal nie publikuje żadnej tabeli zniżek, podstrona "zwiedzanie" nie ma odrębnego linku w menu. Pozostaje NIEPOTWIERDZONE.
+- Zeche Zollverein — "6 wariantów": premisa briefu POTWIERDZONA jako błędna (patrz sekcja wyżej) — nie podjęto rozbicia na 6 `Attraction`, bo wymagałoby to wymyślenia struktury nieopartej na rzeczywistym cenniku operatora (zgadywanie), a nie weryfikacji.
+
 ## Zakres
 
 Branch roboczy: `claude/verify-attractions-cards-2026-10-10`, oparty na `claude/attraction-group-pricing` (PR #45, 4 miasta: Gelsenkirchen/Ruhr, Berlin, Kraków, Lublin). **Dane dla 6 dodatkowych miast (Warszawa, Hamburg, Monachium, Kolonia, Wrocław, Poznań) żyją w innych, niezmergowanych branchach (PR #42 `claude/project-thread-kvfft9`, PR #43 `claude/project-thread-gpd2se`) — NIE edytowano tych plików w tym branchu** (zgodnie z instrukcją koordynatora: scalanie konfliktów robi osobna sesja). Dla Kolonii i Hamburga poniżej są tylko ustalenia faktograficzne do przeniesienia przez tę sesję koordynującą do PR #42.

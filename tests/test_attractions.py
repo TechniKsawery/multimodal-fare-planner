@@ -1,6 +1,5 @@
 """Testy modułu atrakcji i kart miejskich (attractions/)."""
 
-
 from attractions import (
     Attraction,
     AttractionCategory,
@@ -107,7 +106,8 @@ def test_evaluate_city_cards_profitable_with_many_attractions_and_transit():
     berlin_attrs = get_attractions(city="Berlin")
     # Wybieramy wieżę telewizyjną (24.50 EUR), stadion (15 EUR), wyspę muzeów (14 EUR) -> 53.50 EUR
     selected = [
-        a for a in berlin_attrs
+        a
+        for a in berlin_attrs
         if a.id in ("berlin_fernsehturm", "berlin_olympiastadion", "berlin_museumsinsel")
     ]
     assert len(selected) == 3
@@ -134,9 +134,7 @@ def test_special_variant_discount_museumsinsel():
     assert len(museumsinsel) == 1
 
     evals = evaluate_city_cards("Berlin", museumsinsel, estimated_transit_cost=20.0)
-    museum_variant_eval = next(
-        e for e in evals if e.variant.id == "bwc_72h_museumsinsel"
-    )
+    museum_variant_eval = next(e for e in evals if e.variant.id == "bwc_72h_museumsinsel")
     # Zniżka na bilet wynosi pełne 100% (bilet 14 EUR staje się darmowy 0 EUR)
     assert museum_variant_eval.attractions_price_with_card == 0.0
 
@@ -158,8 +156,15 @@ def test_niepotwierdzone_ceny_sa_oznaczone():
     by_id = {a.id: a for a in get_all_attractions()}
     assert by_id["gelsenkirchen_zoom_erlebniswelt"].price_verified is True
     assert by_id["gelsenkirchen_veltins_arena"].price_verified is False
+
+
+def test_welcomecard_ruhr_niekupowalna_ma_pusta_liste_wariantow():
+    """WelcomeCard Ruhr (zweryfikowana w przeglądarce 2026-10-10): panel rezerwacji na
+    welcomecard.ruhr nie ma dostępnych terminów dla żadnego wariantu, strona jest porzucona
+    (stopka z 2022, sekcja partnerów to spam kasyn) -> karta nie jest dziś kupowalna, więc nie
+    ma potwierdzonych wariantów i nie powinna trafiać do rekomendacji dla użytkownika."""
     ruhr = next(c for c in get_all_city_cards() if c.id == "welcomecard_ruhr")
-    assert ruhr.variants and all(v.price_verified is False for v in ruhr.variants)
+    assert ruhr.variants == []
 
 
 def test_demo_format_city_section_dla_gelsenkirchen():
@@ -168,9 +173,12 @@ def test_demo_format_city_section_dla_gelsenkirchen():
     text = demo.format_city_section("Buerer Straße 8, Gelsenkirchen")
     assert "Veltins-Arena" in text
     assert "ZOOM Erlebniswelt" in text
-    assert "WelcomeCard Ruhr 24h" in text
+    # WelcomeCard Ruhr nie ma dziś potwierdzonych wariantów (niekupowalna, patrz
+    # test_welcomecard_ruhr_niekupowalna_ma_pusta_liste_wariantow), więc nie pojawia się
+    # w sekcji kart ani w rekomendacji.
+    assert "WelcomeCard Ruhr 24h" not in text
     assert "cena niepotwierdzona" in text
-    assert "Rekomendacja" in text
+    assert "Rekomendacja: żadna karta miejska nie zwraca kosztu" in text
 
 
 def test_demo_format_city_section_nieznane_miasto():

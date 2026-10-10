@@ -61,48 +61,32 @@
       "id": "welcomecard_ruhr",
       "city": "gelsenkirchen",
       "name": "WelcomeCard Ruhr",
-      "description": "Oficjalna karta turystyczna Metropolii Ruhry (obejmuje m.in. Gelsenkirchen, Essen, Dortmund, Bochum, Duisburg, Oberhausen). Obejmuje nielimitowany transport VRR oraz darmowe wstępy lub 50% zniżki na ponad 100 atrakcji przemysłowych, kulturalnych i sportowych.",
+      "description": "UWAGA: produkt prawdopodobnie niekupowalny / porzucony. VRR i Ruhr Tourismus GmbH nadal OPISUJĄ kartę na swoich stronach (vrr.de, fahrtenplaner.vrr.de) jako koncepcję (nielimitowany transport VRR strefa D + darmowe/50% wejścia do >40 atrakcji), ale oficjalny serwis sprzedażowy welcomecard.ruhr ma w stopce rok 2022 i jest podpisany jako \"destination.pages | A product of hubermedia GmbH\" (dostawca białej etykiety), a panel rezerwacji dla WSZYSTKICH trzech wariantów (24h/48h/72h) pokazuje \"Momentan sind leider keine Termine verfügbar\" (obecnie brak dostępnych terminów) — czyli nie da się dziś kupić karty. Sekcja opisana jako lista partnerów zawiera wyłącznie linki spamowe do kasyn online, nie prawdziwych atrakcji. Jedyne znalezione ceny (39,90/69,90/89,90 EUR za 24h/48h/72h) pochodzą z archiwalnego komunikatu prasowego VRR z 29.07.2021 i są już nieaktualne względem poprzednio wpisanych tu liczb (29,90/49,90/69,90 EUR), których źródła nie udało się odtworzyć — dlatego ich też nie zachowano. Stan na 2026-10-10: karta NIE jest polecana (brak potwierdzenia, że da się ją dziś kupić), lista wariantów jest pusta, żeby nic nie trafiało do rekomendacji dla użytkownika.",
       "official_url": "https://www.welcomecard.ruhr",
-      "default_discount_percent": 50.0,
-      "custom_discounts": {
-        "gelsenkirchen_veltins_arena": 50.0,
-        "essen_zeche_zollverein": 50.0,
-        "gelsenkirchen_zoom_erlebniswelt": 25.0,
-        "dortmund_signal_iduna_park": 25.0,
-        "dortmund_fussballmuseum": 25.0
-      },
-      "variants": [
+      "default_discount_percent": 0.0,
+      "custom_discounts": {},
+      "price_verified": false,
+      "verification_notes": [
         {
-          "id": "wcr_24h_vrr",
-          "name": "WelcomeCard Ruhr 24h (z transportem VRR)",
-          "duration_hours": 24,
-          "price": 29.90,
-          "currency": "EUR",
-          "includes_public_transit": true,
-          "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
-          "description": "24h nielimitowanego transportu w całym VRR + zniżki/darmowe wejścia do atrakcji Ruhrgebiet."
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Archiwalny komunikat prasowy z 29.07.2021: zapowiedź cen 39,90/69,90/89,90 EUR za 24h/48h/72h, projekt finansowany wspólnie z RTG \"zunächst bis Ende 2023\" — nie jest to aktualny cennik.",
+          "url": "https://www.vrr.de/aktuelles/newsroom/welcomecard-ruhr/"
         },
         {
-          "id": "wcr_48h_vrr",
-          "name": "WelcomeCard Ruhr 48h (z transportem VRR)",
-          "duration_hours": 48,
-          "price": 49.90,
-          "currency": "EUR",
-          "includes_public_transit": true,
-          "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
-          "description": "48h nielimitowanego transportu w całym VRR + zniżki do atrakcji."
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Strona VRR Fahrtenplaner nadal opisowo wspomina kartę (>40 atrakcji, darmowy/50% wstęp) i odsyła do www.welcomecard.ruhr, ale nie podaje żadnej ceny ani statusu dostępności.",
+          "url": "https://fahrtenplaner.vrr.de/welcomecard"
         },
         {
-          "id": "wcr_72h_vrr",
-          "name": "WelcomeCard Ruhr 72h (z transportem VRR)",
-          "duration_hours": 72,
-          "price": 69.90,
-          "currency": "EUR",
-          "includes_public_transit": true,
-          "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
-          "description": "72h nielimitowanego transportu w całym VRR + zniżki do atrakcji."
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka, realny proces rezerwacji (bez płatności)",
+          "finding": "Dla wszystkich 3 wariantów (24h/48h/72h) panel rezerwacji pokazuje \"Momentan sind leider keine Termine verfügbar\" — karta obecnie niekupowalna. Stopka: \"© 2022 destination.pages | A product of hubermedia GmbH\" (biała etykieta, nie RTG/VRR). Sekcja z linkiem do \"partnerów\" zawiera wyłącznie spam do kasyn online (np. \"online casino ausland schweiz\", \"casino ohne limit OASIS\") — nie prawdziwą listę atrakcji.",
+          "url": "https://www.welcomecard.ruhr/"
         }
-      ]
+      ],
+      "variants": []
     },
     {
       "id": "krakow_card",

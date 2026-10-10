@@ -6,6 +6,8 @@ from attractions import (
     AttractionCategory,
     CityCard,
     DiscountProfile,
+    GroupPrice,
+    HeldDocument,
     best_price_for_attraction,
     evaluate_city_cards,
     get_all_attractions,
@@ -296,3 +298,53 @@ def test_evaluate_city_card_variant_z_profilem_uwzglednia_zniżke_tytulowa():
     assert base_bez.attractions_price_without_card == zoom[0].normal_price
     assert base_z.attractions_price_without_card == 17.50
     assert base_z.attractions_price_without_card < base_bez.attractions_price_without_card
+
+
+def test_best_price_dla_dokumentu_bez_ograniczenia_krajowego():
+    # Osoba NIE ma is_student=True, ale ma polską legitymację szkolną — GroupPrice bez
+    # recognized_countries (nieznane/nieograniczone) ma mimo to zadziałać (bez zgadywania
+    # ograniczeń, których źródło nie podaje).
+    zoom = next(a for a in get_all_attractions() if a.id == "gelsenkirchen_zoom_erlebniswelt")
+    profile = DiscountProfile(documents=[HeldDocument(doc_type="legitymacja_szkolna", issuing_country="PL")])
+    price, _label, source = best_price_for_attraction(zoom, profile)
+    assert price == 17.50
+    assert source is zoom.student_price
+
+
+def test_best_price_respektuje_jawne_ograniczenie_kraju_dokumentu():
+    # Atrakcja testowa, której zniżka studencka jest JAWNIE ograniczona do dokumentów
+    # wydanych w Niemczech (recognized_countries=["DE"]) — osoba z WYŁĄCZNIE polską
+    # legitymacją nie powinna jej dostać, ale z niemiecką już tak.
+    student_price = GroupPrice(
+        price=10.0,
+        label="Uczeń/student (tylko DE)",
+        requires_status="legitymacja niemiecka",
+        recognized_countries=["DE"],
+    )
+    attr = Attraction(
+        id="test_restricted_student",
+        name="Testowa atrakcja",
+        city="gelsenkirchen",
+        category=AttractionCategory.CULTURE,
+        description="",
+        normal_price=20.0,
+        currency="EUR",
+        student_price=student_price,
+    )
+
+    only_polish = DiscountProfile(
+        documents=[HeldDocument(doc_type="legitymacja_studencka", issuing_country="PL")]
+    )
+    price, _label, source = best_price_for_attraction(attr, only_polish)
+    assert price == attr.normal_price
+    assert source is None
+
+    with_german = DiscountProfile(
+        documents=[
+            HeldDocument(doc_type="legitymacja_studencka", issuing_country="PL"),
+            HeldDocument(doc_type="legitymacja_studencka", issuing_country="DE"),
+        ]
+    )
+    price, _label, source = best_price_for_attraction(attr, with_german)
+    assert price == 10.0
+    assert source is student_price

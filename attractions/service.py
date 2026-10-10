@@ -3,7 +3,7 @@
 import re
 import unicodedata
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ._data_loading import load
 from .model import (
@@ -13,16 +13,43 @@ from .model import (
     CityCardEvaluation,
     CityCardVariant,
     GroupPrice,
+    HeldDocument,
 )
+
+# Typy dokumentów traktowane jako "status ucznia/studenta" / "status seniora" przy
+# dopasowywaniu HeldDocument do GroupPrice.student_price / .senior_price.
+_STUDENT_DOC_TYPES = {"legitymacja_szkolna", "legitymacja_studencka", "ISIC"}
+_SENIOR_DOC_TYPES = {"karta_seniora"}
 
 
 @dataclass
 class DiscountProfile:
-    """Tytuły do zniżki, jakie posiada dana osoba — niezależne od karty miejskiej."""
+    """Tytuły do zniżki, jakie posiada dana osoba — niezależne od karty miejskiej.
+
+    `is_student`/`is_senior` to proste flagi (bez info o kraju) — zachowane dla
+    wstecznej zgodności i prostych wywołań. `documents` pozwala opisać dokładniej
+    PRZYPADEK WIELU DOKUMENTÓW naraz z różnych krajów (np. osoba chodząca do szkoły
+    niemieckiej I dodatkowej szkoły polskiej w Niemczech, z legitymacją niemiecką
+    i polską) — wtedy różne atrakcje/przewoźnicy mogą uznawać różne z nich.
+    """
 
     age: int | None = None
     is_student: bool = False
     is_senior: bool = False
+    documents: list[HeldDocument] = field(default_factory=list)
+
+    def has_recognized_document(
+        self, doc_types: set[str], recognized_countries: list[str] | None
+    ) -> bool:
+        """Czy profil ma dokument pasującego typu, którego kraj wydania jest
+        uznawany przez daną zniżkę (recognized_countries=None = źródło nie
+        ogranicza wg kraju, więc każdy pasujący typ dokumentu się liczy)."""
+        for doc in self.documents:
+            if doc.doc_type not in doc_types:
+                continue
+            if recognized_countries is None or doc.issuing_country in recognized_countries:
+                return True
+        return False
 
 _CITY_ALIASES = {
     "gelsenkirchen": "gelsenkirchen",
@@ -90,6 +117,7 @@ def _load_group_price(item: dict | None) -> GroupPrice | None:
         source_url=item.get("source_url", ""),
         verified_date=item.get("verified_date", ""),
         price_verified=bool(item.get("price_verified", False)),
+        recognized_countries=item.get("recognized_countries"),
     )
 
 
@@ -202,6 +230,11 @@ def best_price_for_attraction(
     Zwraca (cena, etykieta, źródło-GroupPrice-albo-None-dla-ceny-standardowej).
     Nigdy nie zgaduje: tytuł jest brany pod uwagę tylko jeśli atrakcja ma dla
     niego wypełnione, potwierdzone-lub-nie pole GroupPrice w danych.
+
+    Osoba może posiadać KILKA dokumentów naraz z różnych krajów (np. legitymacja
+    niemiecka i polska) — `profile.documents` + `GroupPrice.recognized_countries`
+    pozwalają dopasować właściwy dokument, gdy źródło jawnie ogranicza zniżkę do
+    dokumentów z konkretnych krajów (patrz docstring `GroupPrice`).
     """
     candidates: list[tuple[float, str, GroupPrice | None]] = [
         (attraction.normal_price, "Cena standardowa (dorosły)", None)
@@ -215,12 +248,16 @@ def best_price_for_attraction(
                 candidates.append((gp.price, gp.label, gp))
 
         gp = attraction.student_price
-        if gp is not None and profile.is_student:
+        if gp is not None and (
+            profile.is_student
+            or profile.has_recognized_document(_STUDENT_DOC_TYPES, gp.recognized_countries)
+        ):
             candidates.append((gp.price, gp.label, gp))
 
         gp = attraction.senior_price
         if gp is not None and (
             profile.is_senior
+            or profile.has_recognized_document(_SENIOR_DOC_TYPES, gp.recognized_countries)
             or (
                 profile.age is not None
                 and gp.min_age is not None

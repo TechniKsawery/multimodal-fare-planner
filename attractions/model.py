@@ -22,6 +22,19 @@ CATEGORY_LABELS = {
 
 
 @dataclass
+class HeldDocument:
+    """Jeden dokument/status uprawniający do zniżki, który dana osoba FAKTYCZNIE posiada.
+
+    Osoba może mieć kilka naraz (np. uczeń chodzący do szkoły niemieckiej I dodatkowej
+    szkoły polskiej w Niemczech, z legitymacją niemiecką i polską) — stąd lista na
+    DiscountProfile, a nie pojedyncza flaga.
+    """
+
+    doc_type: str  # np. "legitymacja_szkolna", "legitymacja_studencka", "ISIC", "karta_seniora", "karta_rodzinna"
+    issuing_country: str  # kod ISO 3166-1 alpha-2 kraju, który wydał dokument, np. "PL", "DE"
+
+
+@dataclass
 class GroupPrice:
     """Konkretna, potwierdzona (lub nie) cena dla jednego tytułu do zniżki.
 
@@ -39,6 +52,12 @@ class GroupPrice:
     verified_date: str = ""
     # False = cena nie została potwierdzona w oficjalnym źródle
     price_verified: bool = False
+    # Czy operator jawnie OGRANICZA tę zniżkę do dokumentów z konkretnych krajów wydania
+    # (lista kodów ISO, np. ["DE"]). None = źródło nie wspomina o żadnym ograniczeniu
+    # narodowościowym — NIE zgadujemy, że zagraniczny dokument jest akceptowany, ale też
+    # nie zgadujemy, że nie jest: traktujemy jak dotychczas (dopasowanie po samym typie
+    # dokumentu/statusie), dopóki ktoś nie znajdzie u źródła wprost, że krąg jest węższy.
+    recognized_countries: list[str] | None = None
 
 
 @dataclass

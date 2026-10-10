@@ -83,6 +83,37 @@ def test_get_city_cards():
     assert len(berlin_cards[0].variants) >= 4
 
 
+def test_poznan_city_card_zweryfikowana_z_pelnym_cennikiem():
+    """Poznańska Karta Turystyczna (zweryfikowana w przeglądarce 2026-10-10 na
+    visitpoznan.pl/karta, strona datowana "Ostatnia aktualizacja: 2026-09-14")."""
+    poznan_cards = get_city_cards("Poznań")
+    assert len(poznan_cards) == 1
+    card = poznan_cards[0]
+    assert card.id == "poznan_city_card"
+    assert len(card.variants) == 6
+    by_id = {v.id for v in card.variants}
+    assert "poznan_24h_transport" in by_id
+    assert all(v.price_verified for v in card.variants)
+
+
+def test_warsaw_pass_zweryfikowany_komercyjna_karta():
+    """Warsaw Pass (zweryfikowany w przeglądarce 2026-10-10 na shop.warsawpass.com i
+    warsaw-pass.com): komercyjna karta, nie obejmuje transportu publicznego."""
+    cards = get_city_cards("Warszawa")
+    assert len(cards) == 1
+    card = cards[0]
+    assert card.id == "warsaw_pass"
+    assert len(card.variants) == 3
+    assert all(v.price_verified and not v.includes_public_transit for v in card.variants)
+
+
+def test_krakow_card_oznaczona_jako_niepotwierdzona():
+    """official_url krakowcard.com przekierowuje dziś na komercyjny reseller z cenami w EUR,
+    więc nasze ceny w PLN są oznaczone jako niepotwierdzone (zweryfikowano 2026-10-10)."""
+    card = next(c for c in get_all_city_cards() if c.id == "krakow_card")
+    assert all(v.price_verified is False for v in card.variants)
+
+
 def test_evaluate_city_cards_not_profitable_when_few_attractions():
     # Przy tylko jednej darmowej atrakcji karta nie ma prawa się opłacać
     free_attr = Attraction(

@@ -28,6 +28,8 @@ _CITY_ALIASES = {
     "lublin": "lublin",
     "warszawa": "warszawa",
     "warsaw": "warszawa",
+    "poznan": "poznan",
+    "poznań": "poznan",
 }
 
 

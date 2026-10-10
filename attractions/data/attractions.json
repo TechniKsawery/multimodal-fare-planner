@@ -1,7 +1,7 @@
 {
   "_zrodlo": "Katalog atrakcji i rekomendowanych miejsc (PL + DE)",
   "_data_aktualizacji": "2026-10-09",
-  "_UWAGA_ceny_grupowe": "Ten plik (i pole 'normal_price' w service.py) przechowuje WYŁĄCZNIE jedną cenę — bilet normalny/dorosły. Nie ma pola na ceny ulgowe (dziecko/młodzież/student/senior/rodzina/grupa), więc kalkulator City Cards w attractions/service.py liczy opłacalność karty tylko dla dorosłego. Zweryfikowano na żywo 2026-10-09 (przeglądarka), że większość płatnych atrakcji FAKTYCZNIE ma rozbudowane cenniki grupowe, np.: ZOOM Erlebniswelt — dorosły 23,50€ (zgodne z normal_price), dziecko 4-12 lat 15,50€, <4 lata gratis, uczeń/student 17,50€, bilet rodzinny 48-55€, grupy 20+ od 21,50€/13,50€ (zoom-erlebniswelt.de/preise/); Deutsches Fußballmuseum — dorosły 19€ (zgodne), uczeń/student <26 lat 15€, dziecko <6 lat gratis, bilet rodzinny od 16,50€/os. (fussballmuseum.de/museum/eintrittspreise); Veltins-Arena Arena-Tour — dorosły 10€ (zgodne), młodzież do 21 lat 5€ (veltins-arena.de/veltins-arena/stadionfuehrungen/); Signal Iduna Park Stadiontour — dorosły 18€ (zgodne, potwierdzone w sklepie ticket-onlineshop.com/ols/bvbstadion), istnieje ulga dla 'Jugendliche unter 18, Schüler, Studenten, Arbeitslose, Schwerbehinderte, Rentner' (dokładna kwota niewidoczna bez wyboru konkretnego terminu w sklepie — wymaga doprecyzowania), dzieci do 6 lat 1€. Rekomendacja: jeśli Ksavi chce kalkulator z profilami ulg (dziecko/student/senior), to wymaga osobnej zmiany schematu danych i attractions/service.py — NIE zrobiono tego w tej rundzie (celowo, do skoordynowania z osobnym wątkiem o tej funkcji), żeby nie mieszać weryfikacji cen ze zmianą architektury.",
+  "_UWAGA_ceny_grupowe": "AKTUALIZACJA 2026-10-10: dodano pola child_price/student_price/senior_price/family_price (GroupPrice w model.py) — kalkulator (best_price_for_attraction w service.py) bierze teraz najtańszą cenę z DOWOLNEGO potwierdzonego tytułu (wiek/uczeń-student/senior), nie tylko cenę dorosłego. Wypełnione na razie tylko tam, gdzie kwota jest potwierdzona wprost w cenniku operatora (patrz pola źródło/data przy każdym polu): ZOOM Erlebniswelt (dziecko 4-12 lat 15,50€, uczeń/student 17,50€ — UWAGA: <4 lata gratis NIE jest jeszcze modelowane, bo schemat ma tylko jedno pole child_price na atrakcję), Veltins-Arena (młodzież do 21 lat 5€), Signal Iduna Park (dziecko do 6 lat 1€; ulga 'Jugendliche/Schüler/Studenten/Arbeitslose/Rentner' istnieje, ale dokładna kwota NIE jest potwierdzona — celowo pominięta, nie zgadywana), Deutsches Fußballmuseum (dziecko do 6 lat gratis, uczeń/student <26 lat 15€). Zeche Zollverein ma 6 wariantów zwiedzania z osobnymi cennikami — nie pasuje czysto do schematu jedna-cena-na-tytuł, celowo pominięte (do decyzji, czy/jak modelować). Bilety rodzinne (family_price) i zniżki grupowe (grupy 20+) jeszcze niewypełnione. UPROSZCZENIE do rozważenia: w evaluate_city_card_variant zniżka kartowa liczy się DODATKOWO na cenie z tytułu statusu — część operatorów może tego nie łączyć (nie zweryfikowane per atrakcja).",
   "atrakcje": [
     {
       "id": "gelsenkirchen_veltins_arena",
@@ -21,7 +21,15 @@
         "stadion",
         "schalke",
         "bundesliga"
-      ]
+      ],
+      "child_price": {
+        "price": 5.0,
+        "label": "Młodzież do 21 lat",
+        "max_age": 21,
+        "source_url": "https://veltins-arena.de/veltins-arena/stadionfuehrungen/",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "gelsenkirchen_zoom_erlebniswelt",
@@ -41,7 +49,24 @@
         "zwierzęta",
         "rodzina",
         "przygoda"
-      ]
+      ],
+      "child_price": {
+        "price": 15.5,
+        "label": "Dziecko 4-12 lat",
+        "min_age": 4,
+        "max_age": 12,
+        "source_url": "https://www.zoom-erlebniswelt.de/preise/",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 17.5,
+        "label": "Uczeń/student (z legitymacją)",
+        "requires_status": "ważna legitymacja ucznia/studenta",
+        "source_url": "https://www.zoom-erlebniswelt.de/preise/",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "gelsenkirchen_nordsternpark",
@@ -100,7 +125,15 @@
         "stadion",
         "bvb",
         "dortmund"
-      ]
+      ],
+      "child_price": {
+        "price": 1.0,
+        "label": "Dziecko do 6 lat",
+        "max_age": 6,
+        "source_url": "https://ticket-onlineshop.com/ols/bvbstadion",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "dortmund_fussballmuseum",
@@ -120,7 +153,23 @@
         "muzeum",
         "dfb",
         "sport"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dziecko do 6 lat (gratis)",
+        "max_age": 6,
+        "source_url": "https://www.fussballmuseum.de/museum/eintrittspreise",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 15.0,
+        "label": "Uczeń/student <26 lat (z legitymacją)",
+        "requires_status": "wiek <26 lat i ważna legitymacja ucznia/studenta",
+        "source_url": "https://www.fussballmuseum.de/museum/eintrittspreise",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "berlin_olympiastadion",

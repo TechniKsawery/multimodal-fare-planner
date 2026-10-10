@@ -4,6 +4,8 @@
 from attractions import (
     Attraction,
     AttractionCategory,
+    DiscountProfile,
+    best_price_for_attraction,
     evaluate_city_cards,
     get_all_attractions,
     get_all_city_cards,
@@ -178,3 +180,70 @@ def test_demo_format_city_section_nieznane_miasto():
     import demo
 
     assert "nie rozpoznano" in demo.format_city_section("Nieznane miasto, Atlantyda")
+
+
+def test_best_price_for_attraction_bez_profilu_to_cena_normalna():
+    zoom = next(a for a in get_all_attractions() if a.id == "gelsenkirchen_zoom_erlebniswelt")
+    price, label, source = best_price_for_attraction(zoom)
+    assert price == zoom.normal_price
+    assert label == "Cena standardowa (dorosły)"
+    assert source is None
+
+
+def test_best_price_for_attraction_dziecko_dostaje_cene_dziecieca():
+    zoom = next(a for a in get_all_attractions() if a.id == "gelsenkirchen_zoom_erlebniswelt")
+    price, label, source = best_price_for_attraction(zoom, DiscountProfile(age=8))
+    assert price == 15.50
+    assert "Dziecko" in label
+    assert source is zoom.child_price
+
+
+def test_best_price_for_attraction_uczen_dostaje_cene_studencka_nawet_bez_wieku():
+    zoom = next(a for a in get_all_attractions() if a.id == "gelsenkirchen_zoom_erlebniswelt")
+    price, label, source = best_price_for_attraction(zoom, DiscountProfile(is_student=True))
+    assert price == 17.50
+    assert source is zoom.student_price
+
+
+def test_best_price_for_attraction_bierze_najtansza_z_kilku_tytulow():
+    # Fußballmuseum: dziecko do 6 lat 0 EUR, uczeń/student <26 15 EUR — 5-latek-uczeń (niemożliwe
+    # w praktyce, ale testuje logikę "bierz minimum") powinien dostać cenę dziecięcą (tańszą).
+    museum = next(a for a in get_all_attractions() if a.id == "dortmund_fussballmuseum")
+    price, _label, source = best_price_for_attraction(
+        museum, DiscountProfile(age=5, is_student=True)
+    )
+    assert price == 0.0
+    assert source is museum.child_price
+
+
+def test_best_price_for_attraction_dorosly_bez_zniżek_dostaje_cene_normalna():
+    museum = next(a for a in get_all_attractions() if a.id == "dortmund_fussballmuseum")
+    price, label, source = best_price_for_attraction(museum, DiscountProfile(age=40))
+    assert price == museum.normal_price
+    assert source is None
+    assert label == "Cena standardowa (dorosły)"
+
+
+def test_best_price_for_attraction_bez_pol_grupowych_nie_wybucha():
+    # Atrakcja bez skonfigurowanych cen grupowych (np. Zeche Zollverein) ma zawsze zwrócić cenę normalną.
+    zollverein = next(a for a in get_all_attractions() if a.id == "essen_zeche_zollverein")
+    price, _label, source = best_price_for_attraction(zollverein, DiscountProfile(age=10, is_student=True))
+    assert price == zollverein.normal_price
+    assert source is None
+
+
+def test_evaluate_city_card_variant_z_profilem_uwzglednia_zniżke_tytulowa():
+    attrs = get_attractions(city="Gelsenkirchen")
+    zoom = [a for a in attrs if a.id == "gelsenkirchen_zoom_erlebniswelt"]
+    assert len(zoom) == 1
+
+    bez_profilu = evaluate_city_cards("Gelsenkirchen", zoom, estimated_transit_cost=0.0)
+    z_profilem = evaluate_city_cards(
+        "Gelsenkirchen", zoom, estimated_transit_cost=0.0, profile=DiscountProfile(is_student=True)
+    )
+    base_bez = next(e for e in bez_profilu if e.variant.id == "ruhrtopcard_2026_adult")
+    base_z = next(e for e in z_profilem if e.variant.id == "ruhrtopcard_2026_adult")
+
+    assert base_bez.attractions_price_without_card == zoom[0].normal_price
+    assert base_z.attractions_price_without_card == 17.50
+    assert base_z.attractions_price_without_card < base_bez.attractions_price_without_card

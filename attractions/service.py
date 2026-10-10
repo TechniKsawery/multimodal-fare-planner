@@ -3,6 +3,8 @@
 import re
 import unicodedata
 
+from dataclasses import dataclass
+
 from ._data_loading import load
 from .model import (
     Attraction,
@@ -10,7 +12,17 @@ from .model import (
     CityCard,
     CityCardEvaluation,
     CityCardVariant,
+    GroupPrice,
 )
+
+
+@dataclass
+class DiscountProfile:
+    """Tytuły do zniżki, jakie posiada dana osoba — niezależne od karty miejskiej."""
+
+    age: int | None = None
+    is_student: bool = False
+    is_senior: bool = False
 
 _CITY_ALIASES = {
     "gelsenkirchen": "gelsenkirchen",
@@ -66,6 +78,21 @@ def normalize_city(query: str | None) -> str | None:
 
 
 
+def _load_group_price(item: dict | None) -> GroupPrice | None:
+    if not item:
+        return None
+    return GroupPrice(
+        price=float(item["price"]),
+        label=item["label"],
+        min_age=item.get("min_age"),
+        max_age=item.get("max_age"),
+        requires_status=item.get("requires_status", ""),
+        source_url=item.get("source_url", ""),
+        verified_date=item.get("verified_date", ""),
+        price_verified=bool(item.get("price_verified", False)),
+    )
+
+
 def get_all_attractions() -> list[Attraction]:
     """Wczytuje wszystkie atrakcje z bazy danych JSON."""
     raw = load("attractions.json")["atrakcje"]
@@ -86,6 +113,10 @@ def get_all_attractions() -> list[Attraction]:
                 highlight=bool(item.get("highlight", False)),
                 tags=list(item.get("tags", [])),
                 price_verified=bool(item.get("price_verified", False)),
+                child_price=_load_group_price(item.get("child_price")),
+                student_price=_load_group_price(item.get("student_price")),
+                senior_price=_load_group_price(item.get("senior_price")),
+                family_price=_load_group_price(item.get("family_price")),
             )
         )
     return res
@@ -152,6 +183,45 @@ def get_city_cards(city: str | None = None) -> list[CityCard]:
     return [c for c in cards if c.city == city_key]
 
 
+def best_price_for_attraction(
+    attraction: Attraction, profile: "DiscountProfile | None" = None
+) -> tuple[float, str, GroupPrice | None]:
+    """Najtańsza cena wstępu, do której dana osoba ma prawo z DOWOLNEGO tytułu
+    (wiek, status ucznia/studenta, senior) — niezależnie od posiadania karty miejskiej.
+
+    Zwraca (cena, etykieta, źródło-GroupPrice-albo-None-dla-ceny-standardowej).
+    Nigdy nie zgaduje: tytuł jest brany pod uwagę tylko jeśli atrakcja ma dla
+    niego wypełnione, potwierdzone-lub-nie pole GroupPrice w danych.
+    """
+    candidates: list[tuple[float, str, GroupPrice | None]] = [
+        (attraction.normal_price, "Cena standardowa (dorosły)", None)
+    ]
+    if profile is not None:
+        gp = attraction.child_price
+        if gp is not None and profile.age is not None:
+            if (gp.min_age is None or profile.age >= gp.min_age) and (
+                gp.max_age is None or profile.age <= gp.max_age
+            ):
+                candidates.append((gp.price, gp.label, gp))
+
+        gp = attraction.student_price
+        if gp is not None and profile.is_student:
+            candidates.append((gp.price, gp.label, gp))
+
+        gp = attraction.senior_price
+        if gp is not None and (
+            profile.is_senior
+            or (
+                profile.age is not None
+                and gp.min_age is not None
+                and profile.age >= gp.min_age
+            )
+        ):
+            candidates.append((gp.price, gp.label, gp))
+
+    return min(candidates, key=lambda c: c[0])
+
+
 def _calculate_attraction_discount_percent(
     card: CityCard, variant: CityCardVariant, attraction: Attraction
 ) -> float:
@@ -176,15 +246,25 @@ def evaluate_city_card_variant(
     variant: CityCardVariant,
     attractions: list[Attraction],
     estimated_transit_cost: float = 0.0,
+    profile: "DiscountProfile | None" = None,
 ) -> CityCardEvaluation:
-    """Wylicza opłacalność pojedynczego wariantu karty miejskiej dla podanej listy atrakcji."""
+    """Wylicza opłacalność pojedynczego wariantu karty miejskiej dla podanej listy atrakcji.
+
+    `profile`, jeśli podany, każdej atrakcji przypisuje najpierw jej własną
+    najtańszą aplikowalną cenę (wiek/uczeń/senior — patrz `best_price_for_attraction`),
+    a zniżka karty miejskiej liczy się DODATKOWO na tej cenie. To uproszczenie:
+    w rzeczywistości część operatorów nie pozwala łączyć zniżki statusowej ze
+    zniżką kartową — nie modelujemy tego wyjątku, dopóki nie znajdziemy go
+    wprost u źródła dla konkretnej atrakcji.
+    """
     price_without = 0.0
     price_with = 0.0
 
     for a in attractions:
-        price_without += a.normal_price
+        base_price, _label, _source = best_price_for_attraction(a, profile)
+        price_without += base_price
         disc_pct = _calculate_attraction_discount_percent(card, variant, a)
-        discounted = a.normal_price * (1.0 - (disc_pct / 100.0))
+        discounted = base_price * (1.0 - (disc_pct / 100.0))
         price_with += max(0.0, discounted)
 
     transit_savings = estimated_transit_cost if variant.includes_public_transit else 0.0
@@ -234,6 +314,7 @@ def evaluate_city_cards(
     city: str,
     attractions: list[Attraction],
     estimated_transit_cost: float = 0.0,
+    profile: "DiscountProfile | None" = None,
 ) -> list[CityCardEvaluation]:
     """Wylicza opłacalność wszystkich kart i ich wariantów dostępnych w danym mieście."""
     cards = get_city_cards(city)
@@ -242,7 +323,7 @@ def evaluate_city_cards(
         for variant in card.variants:
             evaluations.append(
                 evaluate_city_card_variant(
-                    card, variant, attractions, estimated_transit_cost
+                    card, variant, attractions, estimated_transit_cost, profile
                 )
             )
     return evaluations
@@ -252,9 +333,10 @@ def suggest_best_city_card(
     city: str,
     attractions: list[Attraction],
     estimated_transit_cost: float = 0.0,
+    profile: "DiscountProfile | None" = None,
 ) -> CityCardEvaluation | None:
     """Zwraca najbardziej opłacalny wariant karty miejskiej dla podanych atrakcji (jeśli istnieje)."""
-    evaluations = evaluate_city_cards(city, attractions, estimated_transit_cost)
+    evaluations = evaluate_city_cards(city, attractions, estimated_transit_cost, profile)
     profitable = [e for e in evaluations if e.is_recommended]
     if not profitable:
         return None

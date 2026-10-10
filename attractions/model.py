@@ -22,6 +22,26 @@ CATEGORY_LABELS = {
 
 
 @dataclass
+class GroupPrice:
+    """Konkretna, potwierdzona (lub nie) cena dla jednego tytułu do zniżki.
+
+    Nigdy procent — zawsze kwota wprost z cennika operatora, bo zniżki
+    różnią się mocno per atrakcja i nie da się ich zgadnąć uniwersalnym %.
+    """
+
+    price: float
+    label: str
+    min_age: int | None = None
+    max_age: int | None = None
+    # Opis dodatkowego wymogu poza wiekiem, np. "ważna legitymacja ucznia/studenta"
+    requires_status: str = ""
+    source_url: str = ""
+    verified_date: str = ""
+    # False = cena nie została potwierdzona w oficjalnym źródle
+    price_verified: bool = False
+
+
+@dataclass
 class Attraction:
     """Pojedyncza atrakcja / miejsce warte odwiedzenia."""
 
@@ -39,6 +59,12 @@ class Attraction:
     tags: list[str] = field(default_factory=list)
     # False = cena nie została potwierdzona w oficjalnym źródle (oznaczana w UI jako niepotwierdzona)
     price_verified: bool = False
+    # Zniżki z tytułu wieku/statusu, niezależne od posiadania jakiejkolwiek karty miejskiej.
+    # None = nie znaleziono/nie dotyczy tej atrakcji (nigdy zgadywane).
+    child_price: "GroupPrice | None" = None
+    student_price: "GroupPrice | None" = None
+    senior_price: "GroupPrice | None" = None
+    family_price: "GroupPrice | None" = None
 
 
 @dataclass

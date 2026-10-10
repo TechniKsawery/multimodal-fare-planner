@@ -1,4 +1,4 @@
-"""Regresja na ŻYWYCH danych MOTIS dla trasy demo (Sesja 2026-10-09, pitch na żywo):
+"""Regresja na ŻYWYCH danych MOTIS dla trasy demo:
 Skubiszewskiego 22, Lublin -> Buerer Straße 8, Gelsenkirchen.
 
 W przeciwieństwie do tests/test_routing.py / tests/test_demo_route.py (unit testy z mockami),
@@ -6,10 +6,12 @@ te testy wymagają uruchomionego lokalnie MOTIS (patrz README.md) i naprawdę go
 tego cały moduł jest pomijany (patrz `_motis_reachable`), żeby reszta `pytest tests/` nie
 wymagała Dockera.
 
-Znane, zaakceptowane ograniczenie: defekt danych GTFS Berlin->Gelsenkirchen w oknie robót do
-2026-10-09 (patrz pamięć projektu) może odrzucać/pomijać konkretne warianty wokół tej daty —
-to jest oczekiwane i NIE jest tu łapane jako regresja, dopóki silnik nadal zwraca przynajmniej
-jeden wykonalny wariant."""
+Daty są WZGLĘDNE (dziś + N dni), nie wpisane na stałe — pierwsza wersja tego testu (do
+2026-10-10) celowała w konkretną datę pitchu na żywo (2026-10-09) i co kilka tygodni failowała,
+gdy MOTIS przesuwał okno rozkładu GTFS dalej od tamtej daty, mimo że logika działała poprawnie
+(zob. raport sesji z 2026-10-10). Test sprawdza samą logikę silnika, nie konkretny dzień."""
+
+import datetime as dt
 
 import pytest
 import requests
@@ -22,9 +24,10 @@ from routing.variants import generate_variants, request_from_addresses
 DEMO_FROM = "Skubiszewskiego 22, Lublin"
 DEMO_TO = "Buerer Straße 8, Gelsenkirchen"
 
-# Pitch na żywo 2026-10-09 (patrz demo.py) — sprawdzamy kilka dni wokół, żeby złapać
-# niespodzianki typu defekt danych GTFS tylko na konkretny dzień.
-DEMO_DATES = ["2026-10-07", "2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11"]
+# Kilka dni wokół "dziś + 5 dni" (bezpiecznie w oknie rozkładu MOTIS, zob. app.py), żeby
+# złapać niespodzianki typu defekt danych GTFS tylko na konkretny dzień - nie na stałe.
+_BASE_DATE = dt.date.today() + dt.timedelta(days=5)
+DEMO_DATES = [(_BASE_DATE + dt.timedelta(days=offset)).isoformat() for offset in (-2, -1, 0, 1, 2)]
 
 
 def _motis_reachable() -> bool:
@@ -66,18 +69,19 @@ def test_demo_route_buduje_przynajmniej_jeden_wariant(date):
 
 @pytest.fixture(scope="module")
 def demo_date_itineraries():
-    """Jedno żywe zapytanie do MOTIS (data pitchu) — odcinki (Leg) ponownie wyceniane dla
-    różnych DiscountProfile w testach poniżej, bez wielokrotnego odpytywania MOTIS."""
+    """Jedno żywe zapytanie do MOTIS (data względna: dziś+5 dni) — odcinki (Leg) ponownie
+    wyceniane dla różnych DiscountProfile w testach poniżej, bez wielokrotnego odpytywania
+    MOTIS."""
     from routing.demo_route import FLIGHT_REGIONAL_HUBS, RAIL_FLIGHT_RAIL_HUBS, VIA_HUB_STOPS
 
-    request = request_from_addresses(DEMO_FROM, DEMO_TO, "2026-10-09")
+    request = request_from_addresses(DEMO_FROM, DEMO_TO, _BASE_DATE.isoformat())
     built, _skipped = generate_variants(
         request,
         rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,
         flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
         via_hub_stops=VIA_HUB_STOPS,
     )
-    assert built, "Brak wariantów dla daty pitchu 2026-10-09 — fixture wymaga przynajmniej jednego"
+    assert built, f"Brak wariantów dla {_BASE_DATE} — fixture wymaga przynajmniej jednego"
     return built
 
 

@@ -130,6 +130,10 @@ def format_itinerary(itinerary, age=None) -> str:
             zrodlo_bagazu = priced.breakdown.get("bagaz_zrodlo")
             if zrodlo_bagazu:
                 line += f"\n      bagaż wg cennika: {zrodlo_bagazu}"
+        alt = priced.breakdown.get("alternatywna_oferta")
+        if alt:
+            zrodlo = "DB Super Sparpreis Europa" if alt["zrodlo"] == "db" else "PKP Oferta Polska-Niemcy"
+            line += f"\n      alternatywa: {alt['cena']:.2f} {alt['waluta']} ({zrodlo})"
         lines.append(line)
     if itinerary.is_risky:
         lines.append("  RYZYKOWNY:")
@@ -157,7 +161,16 @@ def main() -> None:
         type=int,
         default=None,
         help="wiek pasażera — wpływa na podpowiedź BahnCard (My/Jugend BahnCard 6-26 lat) ORAZ "
-        "na cenę biletu międzynarodowego PL-DE (taryfa 'Super Sparpreis Europa Young' 15-26 lat)",
+        "na cenę biletu międzynarodowego PL-DE (dziecko do 5 lat gratis, 6-14 lat zależnie od "
+        "--child-with-guardian, taryfa 'Super Sparpreis Europa Young' 15-26 lat)",
+    )
+    parser.add_argument(
+        "--child-with-guardian",
+        action="store_true",
+        help="dziecko 6-14 lat (--age) podróżuje w towarzystwie osoby od 15 lat — na bilecie DB "
+        "PL-DE jedzie wtedy bezpłatnie (bahn.de); bez tej flagi liczone jako samodzielne (-50% "
+        "tylko na niemiecki odcinek). Nie dotyczy oferty PKP (jej ulga dziecięca jest taka sama "
+        "niezależnie od opiekuna).",
     )
     args = parser.parse_args()
 
@@ -166,7 +179,7 @@ def main() -> None:
             args.origin,
             args.destination,
             args.date,
-            discounts=DiscountProfile(age=args.age),
+            discounts=DiscountProfile(age=args.age, child_with_guardian=args.child_with_guardian),
         )
     except MotisError as exc:
         print(f"Nie udało się zgeokodować adresów: {exc}")

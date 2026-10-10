@@ -1,7 +1,8 @@
 """Wycena pojedynczego odcinka: dispatch do fares/ (kolej) albo flights/ (lot)."""
 
 from fares import estimate_price as fares_estimate_price
-from fares.model import Carrier, DiscountProfile, Segment
+from fares.international_pkp import estimate_pkp_offer
+from fares.model import Carrier, DiscountProfile, PriceEstimate, Segment
 from flights import ExtrasProfile, FlightSegment
 from flights import estimate_price as flights_estimate_price
 from flights.extras import get_baggage_by_airline
@@ -213,6 +214,35 @@ def _fallback_priced_leg(leg: Leg, reason: str) -> PricedLeg:
     )
 
 
+def _with_pkp_alternative(segment: Segment, db_result: PriceEstimate) -> PriceEstimate:
+    """Dla biletu PL-DE dolicza WŁASNĄ ofertę PKP Intercity na tej samej relacji (zob.
+    fares/international_pkp.py) i zwraca TAŃSZĄ z dwóch ofert jako wynik główny, z drugą
+    (droższą) dołączoną w breakdown["alternatywna_oferta"] — pasażer może kupić bilet w
+    KTÓRYMKOLWIEK z dwóch kanałów sprzedaży (PKP albo DB) na ten sam pociąg, więc pomijanie
+    tańszej z dwóch ofert zawyżałoby "ile faktycznie zapłacisz". Gdy relacja nie jest rozpoznana
+    w tabeli PKP (fares/data/international_pl_de_pkp.json), zwraca db_result bez zmian."""
+    pkp_result = estimate_pkp_offer(segment)
+    if pkp_result is None:
+        return db_result
+
+    if pkp_result.amount <= db_result.amount:
+        main, alt, alt_label = pkp_result, db_result, "db"
+    else:
+        main, alt, alt_label = db_result, pkp_result, "pkp_oferta_polska_niemcy"
+
+    main.breakdown["alternatywna_oferta"] = {
+        "zrodlo": alt_label,
+        "cena": alt.amount,
+        "waluta": alt.currency,
+    }
+    main.notes = (
+        f"{main.notes} Tańsza z dwóch dostępnych ofert na tę relację (PKP Intercity vs DB) — "
+        f"alternatywa: {alt.amount:.2f} {alt.currency} ({'DB Super Sparpreis Europa' if alt_label == 'db' else 'PKP Oferta Polska-Niemcy'}). "
+        f"{pkp_result.notes if main is db_result else db_result.notes}"
+    )
+    return main
+
+
 def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
     if leg.mode is not LegMode.RAIL:
         raise ValueError(f"price_rail_leg wymaga LegMode.RAIL, dostał {leg.mode}")
@@ -241,6 +271,8 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
             ),
         )
         result = fares_estimate_price(segment)
+        if carrier is Carrier.INTERNATIONAL_PL_DE:
+            result = _with_pkp_alternative(segment, result)
     except ValueError as exc:
         return _fallback_priced_leg(leg, f"Kalkulator {carrier.value} zwrócił błąd ({exc}).")
 
@@ -250,6 +282,7 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
         currency=result.currency,
         price_type=result.price_type.value,
         notes=result.notes,
+        breakdown=result.breakdown,
     )
 
 

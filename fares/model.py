@@ -66,7 +66,18 @@ class DiscountProfile:
     # 05-R/10-N, intelekt 01-U) - w przeciwieństwie do Warszawy, gdzie "umiarkowany" to zawsze
     # tylko 50%. Potwierdzone ztp.krakow.pl/kmk/przewodnik-po-biletach-kmk, zweryfikowano
     # 2026-10-10 - patrz fares/data/mpk_krakow.json::_zrodlo_senior_niepelnosprawnosc.
-    ztm_poznan_ulgowy: bool = False  # ZTM Poznań: bilet ulgowy (50%)
+    ztm_poznan_ulgowy: bool = False  # ZTM Poznań: bilet ulgowy (50%) - m.in. uczniowie,
+    # emeryci/renciści (dowolny wiek, status emeryta wystarczy), UMIARKOWANY stopień
+    # niepełnosprawności / II grupa inwalidzka (ztm.poznan.pl, zweryfikowano 2026-10-10)
+    ztm_poznan_bezplatny: bool = False  # ZTM Poznań: przejazd bezpłatny (100%) - osoby 70+
+    # (BEZ wymogu zamieszkania w Poznaniu, tylko dokument tożsamości) oraz osoby z orzeczeniem:
+    # znaczny stopień niepełnosprawności / całkowita niezdolność do pracy i do samodzielnej
+    # egzystencji / I grupa inwalidztwa - w Poznaniu BEZ dolnej granicy wieku 26 lat (w
+    # odróżnieniu od Warszawy/Krakowa, gdzie ta kategoria dotyczy dopiero od 26 roku życia -
+    # osoby młodsze mają odrębną kategorię "dzieci i młodzież z niepełnosprawnością").
+    # Potwierdzone ztm.poznan.pl/wszystko-o-biletach/ulgi-i-zwolnienia, niezależnie przez
+    # centrumis.pl i PDF CUPT (Centrum Unijnych Projektów Transportowych), zweryfikowano
+    # 2026-10-10 - patrz fares/data/ztm_poznan.json::_zrodlo_senior_niepelnosprawnosc.
     mpk_wroclaw_ulgowy: bool = False  # MPK Wrocław: bilet ulgowy (50%) - studenci/doktoranci,
     # emeryci/renciści, uczniowie szkół policealnych/zagranicznych do 24 lat
     mpk_wroclaw_bezplatny: bool = False  # MPK Wrocław: przejazd bezpłatny (100%) - m.in.

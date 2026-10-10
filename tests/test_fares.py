@@ -479,6 +479,30 @@ def test_ztm_poznan_bilet_15_minutowy_normalny():
     assert result.amount == 5.00  # cennik od 1.09.2025
 
 
+def test_ztm_poznan_bilet_bezplatny_senior_70_plus():
+    seg = Segment(
+        Carrier.ZTM_POZNAN,
+        "A",
+        "B",
+        ride_duration_min=10,
+        discounts=DiscountProfile(ztm_poznan_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
+def test_ztm_poznan_bezplatny_ma_priorytet_nad_ulgowym():
+    seg = Segment(
+        Carrier.ZTM_POZNAN,
+        "A",
+        "B",
+        ride_duration_min=10,
+        discounts=DiscountProfile(ztm_poznan_bezplatny=True, ztm_poznan_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
 def test_ztm_poznan_bilet_90_minutowy_ulgowy():
     seg = Segment(
         Carrier.ZTM_POZNAN,

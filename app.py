@@ -340,7 +340,7 @@ with st.form("search"):
         "Przejazdy bezpłatne (100%, inna kategoria niż ulgowy — ma priorytet nad checkboxem "
         "ulgowy tego miasta wyżej, jeśli zaznaczone)"
     )
-    b1, b2, b3 = st.columns(3)
+    b1, b2, b3, b4 = st.columns(4)
     ztm_warszawa_bezplatny = b1.checkbox(
         "Warszawa: uczeń podstawówki",
         help="Karta Ucznia/e-legitymacja — tylko szkoła podstawowa, NIE potwierdzone dla"
@@ -352,10 +352,18 @@ with st.form("search"):
         " dla ponadpodstawowych (licea).",
     )
     mpk_wroclaw_bezplatny = b3.checkbox(
-        "Wrocław: uczeń do 21 lat",
-        value=wiek <= 21,
-        help="Uczniowie szkół podstawowych/ponadpodstawowych do 21 lat, bez wymogu zamieszkania"
-        " we Wrocławiu.",
+        "Wrocław: uczeń/dziecko/senior",
+        value=wiek <= 7 or wiek <= 21 or wiek >= 65,
+        help="Jedna kategoria 100% w naszych danych obejmuje kilka tytułów potwierdzonych na"
+        " wroclaw.pl: uczniowie szkół podstawowych/ponadpodstawowych do 21 lat, dzieci do 7 lat"
+        " i seniorzy 65+ (bez wymogu zamieszkania we Wrocławiu). Inne potwierdzone tytuły z tej"
+        " samej kategorii (niepełnosprawność, rodziny wielodzietne itd.) zaznacz też tutaj,"
+        " niezależnie od wieku.",
+    )
+    ztm_lublin_bezplatny = b4.checkbox(
+        "Lublin: uczeń podstawówki",
+        help="Uczniowie szkół podstawowych (gmina Lublin) — NIE potwierdzone dla"
+        " ponadpodstawowych (licea), tam zostaje ulgowy 50%.",
     )
     submitted = st.form_submit_button("Szukaj")
 
@@ -367,6 +375,7 @@ if submitted:
         pkp_ulga_kod=pkp,
         bahncard=None if bc == "brak" else bc,
         ztm_lublin_ulgowy=ztm_ulgowy,
+        ztm_lublin_bezplatny=ztm_lublin_bezplatny,
         ztm_warszawa_ulgowy=ztm_warszawa_ulgowy,
         ztm_warszawa_bezplatny=ztm_warszawa_bezplatny,
         mpk_krakow_ulgowy=mpk_krakow_ulgowy,

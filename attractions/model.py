@@ -95,6 +95,14 @@ class CityCard:
     variants: list[CityCardVariant]
     default_discount_percent: float = 25.0
     custom_discounts: dict[str, float] = field(default_factory=dict)
+    # Czy POTWIERDZONO (u źródła, z datą), że karta w ogóle istnieje i działa DZIŚ —
+    # niezależnie od tego, czy jej cena jest potwierdzona (price_verified na wariancie).
+    # False domyślnie: karta nie pojawia się w get_city_cards()/kalkulatorze/rekomendacji,
+    # dopóki ktoś nie potwierdzi jej istnienia na żywo (np. martwe produkty jak dawna
+    # WelcomeCard Ruhr nie mają prawa trafić do użytkownika jako opcja).
+    existence_verified: bool = False
+    existence_source_url: str = ""
+    existence_verified_date: str = ""
 
 
 @dataclass

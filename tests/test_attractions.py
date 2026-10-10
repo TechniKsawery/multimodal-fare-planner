@@ -4,6 +4,7 @@
 from attractions import (
     Attraction,
     AttractionCategory,
+    CityCard,
     DiscountProfile,
     best_price_for_attraction,
     evaluate_city_cards,
@@ -155,6 +156,44 @@ def test_gelsenkirchen_destination_ma_atrakcje_i_karte_ruhr():
     assert "ruhrtopcard" in card_ids
 
 
+def test_get_city_cards_pomija_karty_bez_potwierdzonego_istnienia():
+    # Wszystkie karty w danych mają dziś existence_verified=True (potwierdzone na żywo).
+    all_cards = get_all_city_cards()
+    assert all(c.existence_verified for c in all_cards)
+    assert all(c.existence_source_url and c.existence_verified_date for c in all_cards)
+
+
+def test_get_city_cards_filtruje_po_existence_verified(monkeypatch):
+    # Symulujemy martwy produkt (jak dawna WelcomeCard Ruhr) obok prawdziwej karty: filtr
+    # get_city_cards ma pokazać tylko tę z potwierdzonym istnieniem.
+    confirmed = CityCard(
+        id="real_card",
+        city="krakow",
+        name="Prawdziwa karta",
+        description="",
+        official_url="https://example.test/real",
+        variants=[],
+        existence_verified=True,
+        existence_source_url="https://example.test/real",
+        existence_verified_date="2026-10-10",
+    )
+    dead = CityCard(
+        id="fake_dead_card",
+        city="krakow",
+        name="Martwa karta testowa",
+        description="",
+        official_url="",
+        variants=[],
+        existence_verified=False,
+    )
+    import attractions.service as service_module
+
+    monkeypatch.setattr(service_module, "get_all_city_cards", lambda: [confirmed, dead])
+    result_ids = [c.id for c in service_module.get_city_cards("Kraków")]
+    assert "real_card" in result_ids
+    assert "fake_dead_card" not in result_ids
+
+
 def test_niepotwierdzone_ceny_sa_oznaczone():
     """Ceny bez potwierdzenia w źródle muszą mieć price_verified=False (flaga w UI)."""
     by_id = {a.id: a for a in get_all_attractions()}
@@ -180,6 +219,16 @@ def test_demo_format_city_section_nieznane_miasto():
     import demo
 
     assert "nie rozpoznano" in demo.format_city_section("Nieznane miasto, Atlantyda")
+
+
+def test_demo_format_city_section_pokazuje_tytul_znizki_z_profilem():
+    import demo
+
+    text = demo.format_city_section(
+        "Buerer Straße 8, Gelsenkirchen", demo.AttractionDiscountProfile(is_student=True)
+    )
+    assert "Uczeń/student" in text
+    assert "17.50" in text or "17,50" in text
 
 
 def test_best_price_for_attraction_bez_profilu_to_cena_normalna():

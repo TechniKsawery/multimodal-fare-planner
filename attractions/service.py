@@ -169,14 +169,24 @@ def get_all_city_cards() -> list[CityCard]:
                 variants=variants,
                 default_discount_percent=float(item.get("default_discount_percent", 25.0)),
                 custom_discounts=dict(item.get("custom_discounts", {})),
+                existence_verified=bool(item.get("existence_verified", False)),
+                existence_source_url=item.get("existence_source_url", ""),
+                existence_verified_date=item.get("existence_verified_date", ""),
             )
         )
     return res
 
 
 def get_city_cards(city: str | None = None) -> list[CityCard]:
-    """Zwraca karty miejskie dla wskazanego miasta."""
-    cards = get_all_city_cards()
+    """Zwraca karty miejskie dla wskazanego miasta, TYLKO te z potwierdzonym istnieniem.
+
+    Niepotwierdzona może być co najwyżej cena istniejącej karty (price_verified na
+    wariancie, z adnotacją w UI) — samo istnienie i działanie karty dziś musi być
+    potwierdzone (existence_verified), inaczej karta w ogóle nie trafia do
+    użytkownika jako opcja. Użyj `get_all_city_cards()`, żeby zobaczyć też karty
+    niepotwierdzone (np. do celów administracyjnych/audytu danych).
+    """
+    cards = [c for c in get_all_city_cards() if c.existence_verified]
     city_key = normalize_city(city) if city else None
     if not city_key:
         return cards

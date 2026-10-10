@@ -14,12 +14,14 @@ import streamlit as st
 from attractions import (
     CATEGORY_LABELS,
     AttractionCategory,
+    best_price_for_attraction,
     evaluate_city_cards,
     get_attractions,
     get_city_cards,
     normalize_city,
     suggest_best_city_card,
 )
+from attractions import DiscountProfile as AttractionDiscountProfile
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from fares.model import DiscountProfile
 from routing import motis_client
@@ -165,7 +167,11 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             )
 
 
-def render_attractions_and_city_cards(destination_label: str, fallback_text: str = "") -> None:
+def render_attractions_and_city_cards(
+    destination_label: str,
+    fallback_text: str = "",
+    attraction_profile: "AttractionDiscountProfile | None" = None,
+) -> None:
     # destination_label pochodzi z podpowiedzi geocodingu MOTIS i dla konkretnego adresu
     # (np. "Buerer Straße 8") często NIE zawiera nazwy miasta, więc normalize_city się nie
     # trafia — spada wtedy na fallback_text, czyli surowy tekst wpisany w pole "Dokąd (adres)"
@@ -279,7 +285,10 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
         )
 
         best_eval = suggest_best_city_card(
-            norm_city, chosen_objects, estimated_transit_cost=transit_cost
+            norm_city,
+            chosen_objects,
+            estimated_transit_cost=transit_cost,
+            profile=attraction_profile,
         )
         if best_eval and best_eval.is_recommended:
             st.success(f"🎉 **Rekomendacja:** {best_eval.summary}")
@@ -289,7 +298,12 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
                 "Poniżej znajdziesz porównanie wszystkich dostępnych wariantów."
             )
 
-        evals = evaluate_city_cards(norm_city, chosen_objects, estimated_transit_cost=transit_cost)
+        evals = evaluate_city_cards(
+            norm_city,
+            chosen_objects,
+            estimated_transit_cost=transit_cost,
+            profile=attraction_profile,
+        )
         if evals:
             card_rows = []
             for ev in evals:
@@ -318,12 +332,17 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
     for idx, attr in enumerate(filtered_attrs):
         col = cols[idx % 2]
         with col:
-            price_text = (
-                f"{attr.normal_price:.2f} {attr.currency}"
-                if attr.normal_price > 0
-                else "Wstęp bezpłatny"
+            price_val, price_label, price_source = best_price_for_attraction(
+                attr, attraction_profile
             )
-            if not attr.price_verified:
+            price_text = (
+                f"{price_val:.2f} {attr.currency}" if price_val > 0 else "Wstęp bezpłatny"
+            )
+            if price_source is not None:
+                price_text += f" ({price_label})"
+                if not price_source.price_verified:
+                    price_text += " (cena niepotwierdzona)"
+            elif not attr.price_verified:
                 price_text += " (cena niepotwierdzona)"
             discount_note = (
                 f" • zniżka z kartą: do {attr.default_card_discount_percent:.0f}%"
@@ -376,6 +395,18 @@ wiek = st.number_input(
     "ZTM Lublin ulgowy). Checkboxy niżej możesz zawsze nadpisać ręcznie — np. dorosły "
     "uczeń/student ma bilet ulgowy niezależnie od wieku, a wiek sam z siebie nie daje "
     "pełnego obrazu uprawnień.",
+)
+c_attr_profile1, c_attr_profile2 = st.columns(2)
+uczen_student = c_attr_profile1.checkbox(
+    "Uczeń/student (legitymacja)",
+    help="Wpływa na cenę ATRAKCJI (nie biletów transportu) tam, gdzie operator ma potwierdzoną zniżkę uczniowską/studencką, np. ZOOM Erlebniswelt czy Deutsches Fußballmuseum.",
+)
+senior_attrakcje = c_attr_profile2.checkbox(
+    "Senior",
+    help="Wpływa na cenę ATRAKCJI tam, gdzie operator ma potwierdzoną zniżkę senioralną.",
+)
+attraction_profile = AttractionDiscountProfile(
+    age=wiek, is_student=uczen_student, is_senior=senior_attrakcje
 )
 
 st.subheader("Skąd i dokąd")
@@ -541,6 +572,8 @@ if result is not None:
             render_itinerary(it, wiek, bc if bc != "brak" else None)
 
     render_attractions_and_city_cards(
-        request.destination_label, fallback_text=st.session_state.get("dest_query", "")
+        request.destination_label,
+        fallback_text=st.session_state.get("dest_query", ""),
+        attraction_profile=attraction_profile,
     )
 

@@ -58,10 +58,12 @@ class DiscountProfile:
     # zweryfikowano 2026-10-10).
     mpk_krakow_bezplatny: bool = False  # MPK Kraków: przejazd bezpłatny (100%) - uczniowie
     # szkół PODSTAWOWYCH z Krakowa i gmin Metropolii Krakowskiej, cały rok (potwierdzone
-    # krakow.pl 2026-10-10). POTWIERDZONE WYKLUCZENIE ponadpodstawowych dwoma źródłami: brak
-    # wzmianki w każdej edycji komunikatu od 2016 do 2024 + petycja uczniów z 2026-03-22 o
-    # "wprowadzenie TEŻ dla ponadpodstawowych" (czyli na dzień petycji jeszcze nie objęci) -
-    # tam zostaje ulgowy. Zob. fares/data/mpk_krakow.json::_zrodlo_bezplatny.
+    # krakow.pl 2026-10-10). POTWIERDZONE WYKLUCZENIE ponadpodstawowych dwoma OFICJALNYMI
+    # źródłami z bip.krakow.pl: tekst Załącznika nr 2 do uchwały (bazowa: Uchwała Nr XXI/231/11
+    # RMK z 6.07.2011) ogranicza ogólne uprawnienie uczniów do szkół PODSTAWOWYCH - liceiści/
+    # technicy są objęci TYLKO wąską pozycją dla uczniów ze specjalnymi potrzebami edukacyjnymi,
+    # nie ogółem - potwierdzone też projektem uchwały zmieniającej ten załącznik. Tam (poza tą
+    # wąską kategorią) zostaje ulgowy. Zob. fares/data/mpk_krakow.json::_zrodlo_bezplatny.
     # Ta sama flaga obejmuje też: osoby 70+ (bez wymogu zamieszkania w Krakowie, tylko dokument
     # z datą urodzenia), ZNACZNY stopień niepełnosprawności / całkowita niezdolność do pracy I
     # do samodzielnej egzystencji / I grupa inwalidztwa, oraz kilka WĄSKICH wyjątków gdzie nawet

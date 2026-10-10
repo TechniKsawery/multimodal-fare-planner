@@ -7,6 +7,10 @@
 > podany `source_url`. Zero zgadywania: gdzie operator nie podaje kwoty wprost, pole zostaje
 > puste z notatką `_UWAGA_*`.
 
+## Aktualizacja 2026-10-11 (runda 2: dokończenie otwartych pozycji)
+
+- **Olympiastadion Berlin — NAPRAWIONE**: zweryfikowano NA ŻYWO (olympiastadion.berlin/de/besichtigung/) i poprawiono `normal_price` z błędnych 15,00 EUR na **11,00 EUR** (samodzielne zwiedzanie/Besichtigung — to jedyny produkt odpowiadający modelowi "jeden bilet wstępu" używanemu przez resztę katalogu). Dodano potwierdzone zniżki: dziecko 6-14 lat **6,00 EUR**, ermäßigt (uczeń/student/Azubi/niepełnosprawny/bezrobotny/ALG II/grupy 10+) **8,00 EUR**, Family Card (2 dorośli+3 dzieci) **27,00 EUR**. `price_verified` ustawione na `true`. Płatne Führungen z przewodnikiem (17-25 EUR) pozostają osobnym, niemodelowanym produktem — udokumentowane w `_UWAGA_produkt`.
+
 ## Aktualizacja 2026-10-11 (kontynuacja na prośbę "próbuj dalej")
 
 - **Signal Iduna Park — ulga doprecyzowana**: po wybraniu KONKRETNEGO terminu zwiedzania (niedziela 11.10.2026, 15:00) w sklepie biletowym (ticket-onlineshop.com) strona pokazała pełny, dokładny cytat operatora: *"Ermäßigter Eintritt für Jugendliche unter 18, Schüler, Studenten, Arbeitslose, Schwerbehinderte, Rentner (alle nur mit gültigem Nachweis)"* za 12,00 EUR. Wcześniej mieliśmy tylko kwotę bez pełnej definicji uprawnionych — teraz w pełni potwierdzone.

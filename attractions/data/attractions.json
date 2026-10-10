@@ -194,12 +194,12 @@
       "city": "berlin",
       "category": "sport",
       "description": "Legendarny stadion olimpijski z 1936 roku, dom Herthy BSC i arena finałów DFB-Pokal oraz Mistrzostw Europy.",
-      "normal_price": 15.0,
+      "normal_price": 11.0,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Olympischer Platz 3, 14053 Berlin",
-      "official_url": "https://olympiastadion.berlin",
-      "price_verified": false,
+      "official_url": "https://olympiastadion.berlin/de/besichtigung/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "stadion",
@@ -207,7 +207,31 @@
         "historia",
         "olimpiada"
       ],
-      "_UWAGA_rozbieznosc": "2026-10-10: zweryfikowano NA ŻYWO na olympiastadion.berlin — żadna oficjalna oferta nie wymienia kwoty 15,00 EUR. Samodzielne zwiedzanie (Besichtigung) kosztuje 11,00 € (ermäżigt 8,00 €, dzieci 6-14 lat 6,00 €, Familienkarte 27,00 €); płatne Führungen (Highlight-Tour 60 min, Premium-Tour 120 min, Hertha BSC-Tour itd.) kosztują od 17,00 do 25,00 € (ermäßigt od 14,00 do 35,00 €, patrz dokładna tabela). Cena 15,00 EUR wpisana wcześniej do tego pliku NIE odpowiada żadnemu znalezionemu wariantowi — price_verified przestawione na false do wyjaśnienia, który konkretny produkt (self-guided czy któraś Führung) miał być tu modelowany, zanim dodamy child/student_price."
+      "child_price": {
+        "price": 6.0,
+        "label": "Dzieci 6-14 lat",
+        "min_age": 6,
+        "max_age": 14,
+        "source_url": "https://olympiastadion.berlin/de/besichtigung/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 8.0,
+        "label": "Ermäßigt (Schüler, Studenten, Auszubildende, Schwerbehinderte, BFD-Leistende, Arbeitslose, ALG II)",
+        "requires_status": "Schüler, Studenten, Auszubildende, Schwerbehinderte, BFD-Leistende, Arbeitslose, Empfänger von ALG II (jeweils mit gültigem Ausweis) oraz grupy od 10 osób",
+        "source_url": "https://olympiastadion.berlin/de/besichtigung/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 27.0,
+        "label": "Family Card (2 dorosłych + 3 dzieci, dzieci do 6 lat gratis w towarzystwie dorosłego)",
+        "source_url": "https://olympiastadion.berlin/de/besichtigung/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "_UWAGA_produkt": "normal_price modeluje samodzielne zwiedzanie (Besichtigung), nie płatne Führungen z przewodnikiem (Highlight-Tour/Premium-Tour/Hertha BSC-Tour itd., 17-25€ dorosły) — to osobny produkt turystyczny, niemodelowany w tym katalogu. Zweryfikowane NA ŻYWO 2026-10-11 na olympiastadion.berlin/de/besichtigung/."
     },
     {
       "id": "berlin_alte_foersterei",

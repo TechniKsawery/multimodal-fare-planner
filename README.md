@@ -171,6 +171,12 @@ Potem sprawdza sumy MD5 plików OSM i waliduje feedy GTFS (`scripts/check_gtfs.p
 kompletność archiwum, wymagane pliki, liczby przystanków i kursów, zakres dat,
 spójność kluczy. Raport ląduje w `data/gtfs/REPORT.txt`.
 
+**Lokalny transport miejski Hamburga (HVV), Monachium (MVV) i Kolonii (VRS)** — dociągnięcie
+tych feedów do MOTIS NIE jest (jeszcze) częścią `scripts/fetch_data.py`, bo wymaga pełnego OSM
+Niemiec (PR #46) i osobnego importu. Komendy do pobrania/importu/przełączenia (z licencjami:
+HVV = DL-DE-BY-2.0, MVV i VRS = CC BY 4.0) są w
+[`motis/DE-FULL-CITY-GTFS-NOTES.md`](motis/DE-FULL-CITY-GTFS-NOTES.md).
+
 ## Sesja 2: routing (MOTIS)
 
 Silnik routingu [MOTIS](https://github.com/motis-project/motis) uruchamiany w Dockerze,

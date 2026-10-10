@@ -6,7 +6,7 @@
       "id": "berlin_welcomecard",
       "city": "berlin",
       "name": "Berlin WelcomeCard",
-      "description": "Najpopularniejsza karta turystyczna Berlina: nielimitowany transport publiczny (S-Bahn, U-Bahn, tramwaje, autobusy) oraz zniżki od 25% do 50% na ponad 180 atrakcji, muzeów i teatrów.",
+      "description": "Najpopularniejsza karta turystyczna Berlina: nielimitowany transport publiczny (S-Bahn, U-Bahn, tramwaje, autobusy) oraz zniżki od 25% do 50% na ponad 180 atrakcji, muzeów i teatrów. Istnienie i ogólna oferta potwierdzone (realny konfigurator biletów z kalendarzem/płatnością na oficjalnej stronie) - patrz verification_notes co do dokładnych cen poszczególnych wariantów.",
       "official_url": "https://www.berlin-welcomecard.de",
       "default_discount_percent": 25.0,
       "custom_discounts": {
@@ -14,46 +14,59 @@
         "berlin_fernsehturm": 25.0,
         "berlin_olympiastadion": 25.0
       },
+      "price_verified": false,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Strona porównania produktów (nie checkout) podaje ceny jako \"od X\": Classic od 28,50 EUR, +Museum Island od 62,00 EUR, all inclusive od 99,00 EUR - lekko wyższe niż nasz zapisany bwc_48h_ab=27,00 EUR. Przeszedłem część konfiguratora biletów (produkt Classic, 48h, strefa AB) bez finalizacji zakupu, ale konkretna cena ujawnia się dopiero po wybraniu daty/godziny startu, czego nie dokończono w tej turze - ceny poniżej NIE są ponownie potwierdzone, zostawione bez zmian do czasu pełnej weryfikacji.",
+          "url": "https://www.berlin-welcomecard.de/en/ticket-configurator"
+        }
+      ],
       "variants": [
         {
           "id": "bwc_48h_ab",
           "name": "Berlin WelcomeCard 48h (Strefa AB)",
           "duration_hours": 48,
-          "price": 27.00,
+          "price": 27.0,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "48 godzin nielimitowanego transportu w strefie AB (obszar miejski Berlina) + min. 25% zniżki na atrakcje."
+          "description": "48 godzin nielimitowanego transportu w strefie AB (obszar miejski Berlina) + min. 25% zniżki na atrakcje.",
+          "price_verified": false
         },
         {
           "id": "bwc_72h_ab",
           "name": "Berlin WelcomeCard 72h (Strefa AB)",
           "duration_hours": 72,
-          "price": 37.00,
+          "price": 37.0,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "72 godziny transportu w strefie AB + min. 25% zniżki na atrakcje."
+          "description": "72 godziny transportu w strefie AB + min. 25% zniżki na atrakcje.",
+          "price_verified": false
         },
         {
           "id": "bwc_72h_museumsinsel",
           "name": "Berlin WelcomeCard 72h + Wyspa Muzeów",
           "duration_hours": 72,
-          "price": 54.00,
+          "price": 54.0,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa AB",
-          "description": "72 godziny transportu AB + darmowy wstęp (100% zniżki) do muzeów na Wyspie Muzeów (Museumsinsel) + rabaty na pozostałe atrakcje."
+          "description": "72 godziny transportu AB + darmowy wstęp (100% zniżki) do muzeów na Wyspie Muzeów (Museumsinsel) + rabaty na pozostałe atrakcje.",
+          "price_verified": false
         },
         {
           "id": "bwc_48h_abc",
           "name": "Berlin WelcomeCard 48h (Strefa ABC)",
           "duration_hours": 48,
-          "price": 32.00,
+          "price": 32.0,
           "currency": "EUR",
           "includes_public_transit": true,
           "transit_zones": "Berlin Strefa ABC (w tym lotnisko BER i Poczdam)",
-          "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje."
+          "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje.",
+          "price_verified": false
         }
       ]
     },
@@ -61,46 +74,122 @@
       "id": "welcomecard_ruhr",
       "city": "gelsenkirchen",
       "name": "WelcomeCard Ruhr",
-      "description": "Oficjalna karta turystyczna Metropolii Ruhry (obejmuje m.in. Gelsenkirchen, Essen, Dortmund, Bochum, Duisburg, Oberhausen). Obejmuje nielimitowany transport VRR oraz darmowe wstępy lub 50% zniżki na ponad 100 atrakcji przemysłowych, kulturalnych i sportowych.",
+      "description": "UWAGA: produkt prawdopodobnie niekupowalny / porzucony. VRR i Ruhr Tourismus GmbH nadal OPISUJĄ kartę na swoich stronach (vrr.de, fahrtenplaner.vrr.de) jako koncepcję (nielimitowany transport VRR strefa D + darmowe/50% wejścia do >40 atrakcji), ale oficjalny serwis sprzedażowy welcomecard.ruhr ma w stopce rok 2022 i jest podpisany jako \"destination.pages | A product of hubermedia GmbH\" (dostawca białej etykiety), a panel rezerwacji dla WSZYSTKICH trzech wariantów (24h/48h/72h) pokazuje \"Momentan sind leider keine Termine verfügbar\" (obecnie brak dostępnych terminów) — czyli nie da się dziś kupić karty. Sekcja opisana jako lista partnerów zawiera wyłącznie linki spamowe do kasyn online, nie prawdziwych atrakcji. Jedyne znalezione ceny (39,90/69,90/89,90 EUR za 24h/48h/72h) pochodzą z archiwalnego komunikatu prasowego VRR z 29.07.2021 i są już nieaktualne względem poprzednio wpisanych tu liczb (29,90/49,90/69,90 EUR), których źródła nie udało się odtworzyć — dlatego ich też nie zachowano. Stan na 2026-10-10: karta NIE jest polecana (brak potwierdzenia, że da się ją dziś kupić), lista wariantów jest pusta, żeby nic nie trafiało do rekomendacji dla użytkownika.",
       "official_url": "https://www.welcomecard.ruhr",
-      "default_discount_percent": 50.0,
-      "custom_discounts": {
-        "gelsenkirchen_veltins_arena": 50.0,
-        "essen_zeche_zollverein": 50.0,
-        "gelsenkirchen_zoom_erlebniswelt": 25.0,
-        "dortmund_signal_iduna_park": 25.0,
-        "dortmund_fussballmuseum": 25.0
-      },
+      "default_discount_percent": 0.0,
+      "custom_discounts": {},
+      "price_verified": false,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Archiwalny komunikat prasowy z 29.07.2021: zapowiedź cen 39,90/69,90/89,90 EUR za 24h/48h/72h, projekt finansowany wspólnie z RTG \"zunächst bis Ende 2023\" — nie jest to aktualny cennik.",
+          "url": "https://www.vrr.de/aktuelles/newsroom/welcomecard-ruhr/"
+        },
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Strona VRR Fahrtenplaner nadal opisowo wspomina kartę (>40 atrakcji, darmowy/50% wstęp) i odsyła do www.welcomecard.ruhr, ale nie podaje żadnej ceny ani statusu dostępności.",
+          "url": "https://fahrtenplaner.vrr.de/welcomecard"
+        },
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka, realny proces rezerwacji (bez płatności)",
+          "finding": "Dla wszystkich 3 wariantów (24h/48h/72h) panel rezerwacji pokazuje \"Momentan sind leider keine Termine verfügbar\" — karta obecnie niekupowalna. Stopka: \"© 2022 destination.pages | A product of hubermedia GmbH\" (biała etykieta, nie RTG/VRR). Sekcja z linkiem do \"partnerów\" zawiera wyłącznie spam do kasyn online (np. \"online casino ausland schweiz\", \"casino ohne limit OASIS\") — nie prawdziwą listę atrakcji.",
+          "url": "https://www.welcomecard.ruhr/"
+        }
+      ],
+      "variants": []
+    },
+    {
+      "id": "poznan_city_card",
+      "city": "poznan",
+      "name": "Poznańska Karta Turystyczna (Poznań City Card)",
+      "description": "Oficjalna karta turystyczna Poznania: bezpłatna komunikacja miejska i podmiejska (opcjonalnie) oraz darmowy wstęp lub zniżki w ponad 90 obiektach (muzea, restauracje, obiekty sportowo-rekreacyjne, w tym Zoo i Palmiarnia). Dostępna w wariancie normalnym i ulgowym (dzieci/młodzież ucząca się 7-23 lata, studenci, seniorzy, osoby niepełnosprawne), każdy z opcją z transportem lub bez. Cennik poniżej to wariant NORMALNY (model karty obsługuje jeden poziom cen na wariant czasowy — ulgowe ceny są niższe, patrz źródło).",
+      "official_url": "https://visitpoznan.pl/karta",
+      "default_discount_percent": 100.0,
+      "custom_discounts": {},
+      "price_verified": true,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Pełny, aktualny cennik (6 wariantów: 24/48/72h × z transportem/bez, normalny/ulgowy) na oficjalnym portalu turystycznym miasta, strona datowana \"Ostatnia aktualizacja: 2026-09-14\". Lista partnerów (>90 obiektów) potwierdzona jako realna na karta.visitpoznan.pl/pl/szczegoly-pakietu (dziesiątki konkretnych, nazwanych obiektów z Poznania, nie spam).",
+          "url": "https://visitpoznan.pl/karta"
+        },
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Zakup wymaga założenia konta w serwisie karta.visitpoznan.pl (nie zakładano konta, zgodnie z zasadami bezpieczeństwa) - ceny potwierdzone z oficjalnego cennika na visitpoznan.pl/karta, nie z panelu zakupowego.",
+          "url": "https://karta.visitpoznan.pl/pl/pakiety"
+        }
+      ],
       "variants": [
         {
-          "id": "wcr_24h_vrr",
-          "name": "WelcomeCard Ruhr 24h (z transportem VRR)",
+          "id": "poznan_24h_transport",
+          "name": "Pakiet Poznań 24h (z transportem)",
           "duration_hours": 24,
-          "price": 29.90,
-          "currency": "EUR",
+          "price": 65.0,
+          "currency": "PLN",
           "includes_public_transit": true,
-          "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
-          "description": "24h nielimitowanego transportu w całym VRR + zniżki/darmowe wejścia do atrakcji Ruhrgebiet."
+          "transit_zones": "Poznań + gminy objęte porozumieniem (strefa A+B+C+D)",
+          "description": "24h bezpłatnej komunikacji miejskiej i podmiejskiej + wstęp wolny/zniżki do >90 obiektów.",
+          "price_verified": true
         },
         {
-          "id": "wcr_48h_vrr",
-          "name": "WelcomeCard Ruhr 48h (z transportem VRR)",
+          "id": "poznan_48h_transport",
+          "name": "Pakiet Poznań 48h (z transportem)",
           "duration_hours": 48,
-          "price": 49.90,
-          "currency": "EUR",
+          "price": 83.0,
+          "currency": "PLN",
           "includes_public_transit": true,
-          "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
-          "description": "48h nielimitowanego transportu w całym VRR + zniżki do atrakcji."
+          "transit_zones": "Poznań + gminy objęte porozumieniem (strefa A+B+C+D)",
+          "description": "48h bezpłatnej komunikacji miejskiej i podmiejskiej + wstęp wolny/zniżki do >90 obiektów.",
+          "price_verified": true
         },
         {
-          "id": "wcr_72h_vrr",
-          "name": "WelcomeCard Ruhr 72h (z transportem VRR)",
+          "id": "poznan_72h_transport",
+          "name": "Pakiet Poznań 72h (z transportem)",
           "duration_hours": 72,
-          "price": 69.90,
-          "currency": "EUR",
+          "price": 98.0,
+          "currency": "PLN",
           "includes_public_transit": true,
-          "transit_zones": "VRR (cała sieć komunikacji Zagłębia Ruhry)",
-          "description": "72h nielimitowanego transportu w całym VRR + zniżki do atrakcji."
+          "transit_zones": "Poznań + gminy objęte porozumieniem (strefa A+B+C+D)",
+          "description": "72h bezpłatnej komunikacji miejskiej i podmiejskiej + wstęp wolny/zniżki do >90 obiektów.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_24h_bez_transportu",
+          "name": "Pakiet Poznań 24h (bez transportu)",
+          "duration_hours": 24,
+          "price": 59.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "Wstęp wolny/zniżki do >90 obiektów przez 24h, bez komunikacji miejskiej.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_48h_bez_transportu",
+          "name": "Pakiet Poznań 48h (bez transportu)",
+          "duration_hours": 48,
+          "price": 72.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "Wstęp wolny/zniżki do >90 obiektów przez 48h, bez komunikacji miejskiej.",
+          "price_verified": true
+        },
+        {
+          "id": "poznan_72h_bez_transportu",
+          "name": "Pakiet Poznań 72h (bez transportu)",
+          "duration_hours": 72,
+          "price": 83.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "Wstęp wolny/zniżki do >90 obiektów przez 72h, bez komunikacji miejskiej.",
+          "price_verified": true
         }
       ]
     },
@@ -108,7 +197,7 @@
       "id": "krakow_card",
       "city": "krakow",
       "name": "Kraków Card (Karta Turystyczna)",
-      "description": "Oficjalna karta miejska Krakowa: nielimitowana komunikacja miejska w strefach I i II oraz bezpłatny wstęp do blisko 40 najpopularniejszych krakowskich muzeów i obiektów turystycznych.",
+      "description": "UWAGA: official_url (krakowcard.com) obecnie PRZEKIEROWUJE na discovercracow.com - komercyjny serwis odsprzedażowy biletów (tickets/tours), nie wygląda na oficjalną stronę miejskiej karty. Tam ceny są w EUR i mają inną strukturę (np. \"Krakow City Pass - Museums and Attractions + Transport (3 Days)\" za 50 EUR, \"Krakow Museum Pass for Students (3 Days)\" za 28,57 EUR) niż poniższe warianty w PLN (140/160 zł), których pierwotnego źródła nie udało się odtworzyć. Możliwe, że karta zmieniła operatora/markę od czasu ostatniej weryfikacji. Ceny poniżej oznaczone jako NIEPOTWIERDZONE do czasu znalezienia aktualnego oficjalnego źródła w PLN.",
       "official_url": "https://krakowcard.com",
       "default_discount_percent": 100.0,
       "custom_discounts": {
@@ -116,26 +205,695 @@
         "krakow_wawel": 20.0,
         "krakow_stadion_wisly": 0.0
       },
+      "price_verified": false,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "krakowcard.com przekierowuje na discovercracow.com (komercyjny sklep z biletami), z cenami w EUR na innych produktach (\"Krakow City Pass\", \"Krakow Museum Pass for Students\") niż nasze dane w PLN. Nie znaleziono aktualnego oficjalnego cennika w PLN odpowiadającego wariantom 140/160 zł zapisanym poniżej.",
+          "url": "http://krakowcard.com"
+        }
+      ],
       "variants": [
         {
           "id": "krakow_card_2_dni",
           "name": "Kraków Card 2 dni (Transport + Muzea)",
           "duration_hours": 48,
-          "price": 140.00,
+          "price": 140.0,
           "currency": "PLN",
           "includes_public_transit": true,
           "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
-          "description": "2 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
+          "description": "2 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów.",
+          "price_verified": false
         },
         {
           "id": "krakow_card_3_dni",
           "name": "Kraków Card 3 dni (Transport + Muzea)",
           "duration_hours": 72,
-          "price": 160.00,
+          "price": 160.0,
           "currency": "PLN",
           "includes_public_transit": true,
           "transit_zones": "Kraków Strefa I+II (autobusy i tramwaje)",
-          "description": "3 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów."
+          "description": "3 dni nielimitowanych przejazdów komunikacją miejską + bezpłatny wstęp do ~40 muzeów.",
+          "price_verified": false
+        }
+      ]
+    },
+    {
+      "id": "warsaw_pass",
+      "city": "warszawa",
+      "name": "Warsaw Pass",
+      "description": "Komercyjna karta turystyczna Warszawy (nie miejska/samorządowa) - darmowy wstęp bez kolejki do ponad 20 muzeów i atrakcji (m.in. POLIN, Centrum Nauki Kopernik, Muzeum Narodowe, taras widokowy PKiN) + codzienny koncert chopinowski w Starym Mieście + zniżki do 15% na tury/restauracje/hotele. NIE obejmuje transportu publicznego. Wymieniona jako projekt partnerski przez Warszawską Organizację Turystyczną (wot.waw.pl).",
+      "official_url": "https://shop.warsawpass.com",
+      "default_discount_percent": 100.0,
+      "custom_discounts": {},
+      "price_verified": true,
+      "verification_notes": [
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Oficjalny sklep z konkretnymi, aktualnymi cenami PLN bez logowania: 179/229/269 PLN za 24h/48h/72h.",
+          "url": "https://shop.warsawpass.com"
+        },
+        {
+          "checked_on": "2026-10-10",
+          "method": "przeglądarka",
+          "finding": "Niezależne potwierdzenie tych samych cen (40,80 EUR / 52,19 EUR / 269 PLN) oraz pełna, realna lista >20 partnerów z nazwanymi atrakcjami i cenami biletów indywidualnych (nie spam) - rezerwacja przez GetYourGuide, nie bezpośrednio.",
+          "url": "https://warsaw-pass.com/en/"
+        },
+        {
+          "checked_on": "2026-10-09",
+          "method": "przeglądarka (Remote Control + Claude in Chrome, inna sesja, PR #42)",
+          "finding": "OSTRZEŻENIE z niezależnej weryfikacji: lista partnerów podawana przez sprzedawcę (ok. 24 muzeów/atrakcji) zawierała co najmniej 2-3 nieaktualne pozycje (np. Muzeum Chopina zamknięte na remont w momencie sprawdzania) - żadnych konkretnych % zniżek per atrakcja nie potwierdzono tam, to nie są darmowe wstępy z gwarancją. Ceny OTA bywają też dynamiczne. Zachowano mimo to price_verified:true bo CENY (nie lista partnerów) są potwierdzone z dwóch niezależnych, aktualnych źródeł z 2026-10-10 - ale lista partnerów może być nieaktualna, traktować orientacyjnie.",
+          "url": "https://www.getyourguide.com/warsaw-l910/warsaw-pass-t390318/"
+        }
+      ],
+      "variants": [
+        {
+          "id": "warsaw_pass_24h",
+          "name": "Warsaw Pass 24h",
+          "duration_hours": 24,
+          "price": 179.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "24h darmowego wstępu bez kolejki do >20 muzeów i atrakcji + koncert chopinowski. Bez transportu publicznego.",
+          "price_verified": true
+        },
+        {
+          "id": "warsaw_pass_48h",
+          "name": "Warsaw Pass 48h",
+          "duration_hours": 48,
+          "price": 229.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "48h darmowego wstępu bez kolejki do >20 muzeów i atrakcji + koncert chopinowski. Bez transportu publicznego.",
+          "price_verified": true
+        },
+        {
+          "id": "warsaw_pass_72h",
+          "name": "Warsaw Pass 72h",
+          "duration_hours": 72,
+          "price": 269.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "—",
+          "description": "72h darmowego wstępu bez kolejki do >20 muzeów i atrakcji + koncert chopinowski. Bez transportu publicznego.",
+          "price_verified": true
+        }
+      ]
+    },
+    {
+      "id": "hamburg_card",
+      "city": "hamburg",
+      "name": "Hamburg CARD",
+      "description": "Karta turystyczna Hamburga, wariant 'Mit Nahverkehr' (z biletem HVV: bus, kolej, promy portowe) — ceny 1-5 dni zweryfikowane w przeglądarce 2026-10-09 (poprzednia wersja tego wpisu z produktami 'Green'/'Green Plus' była nieaktualna/niepotwierdzona u źródła i została zastąpiona). Wariant 'Ohne Nahverkehr' (bez transportu) NIE jest tu wpisany — strona podaje tylko cenę startową 'ab 4,50 €', pełna tabela nie udało się odczytać (przełącznik JS na stronie nie reagował).",
+      "official_url": "https://www.hamburg-tourism.de/buchen/hamburg-card/",
+      "default_discount_percent": 0.0,
+      "custom_discounts": {
+        "hamburg_speicherstadtmuseum": 25.0,
+        "hamburg_imm": 22.0
+      },
+      "variants": [
+        {
+          "id": "hamburg_card_einzelkarte_1d",
+          "name": "Hamburg CARD Einzelkarte 1 dzień (z transportem HVV)",
+          "duration_hours": 24,
+          "price": 12.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Einzelkarte (1 os. + do 3 dzieci 6-14 lat), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_einzelkarte_2d",
+          "name": "Hamburg CARD Einzelkarte 2 dni (z transportem HVV)",
+          "duration_hours": 48,
+          "price": 24.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Einzelkarte (1 os. + do 3 dzieci 6-14 lat), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_einzelkarte_3d",
+          "name": "Hamburg CARD Einzelkarte 3 dni (z transportem HVV)",
+          "duration_hours": 72,
+          "price": 35.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Einzelkarte (1 os. + do 3 dzieci 6-14 lat), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_einzelkarte_4d",
+          "name": "Hamburg CARD Einzelkarte 4 dni (z transportem HVV)",
+          "duration_hours": 96,
+          "price": 46.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Einzelkarte (1 os. + do 3 dzieci 6-14 lat), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_einzelkarte_5d",
+          "name": "Hamburg CARD Einzelkarte 5 dni (z transportem HVV)",
+          "duration_hours": 120,
+          "price": 54.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Einzelkarte (1 os. + do 3 dzieci 6-14 lat), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_gruppenkarte_1d",
+          "name": "Hamburg CARD Gruppenkarte 1 dzień (do 5 os., z transportem HVV)",
+          "duration_hours": 24,
+          "price": 24.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Gruppenkarte (do 5 osób), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_gruppenkarte_2d",
+          "name": "Hamburg CARD Gruppenkarte 2 dni (do 5 os., z transportem HVV)",
+          "duration_hours": 48,
+          "price": 43.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Gruppenkarte (do 5 osób), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_gruppenkarte_3d",
+          "name": "Hamburg CARD Gruppenkarte 3 dni (do 5 os., z transportem HVV)",
+          "duration_hours": 72,
+          "price": 60.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Gruppenkarte (do 5 osób), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_gruppenkarte_4d",
+          "name": "Hamburg CARD Gruppenkarte 4 dni (do 5 os., z transportem HVV)",
+          "duration_hours": 96,
+          "price": 77.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Gruppenkarte (do 5 osób), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "hamburg_card_gruppenkarte_5d",
+          "name": "Hamburg CARD Gruppenkarte 5 dni (do 5 os., z transportem HVV)",
+          "duration_hours": 120,
+          "price": 94.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "HVV (bus, kolej, promy portowe)",
+          "description": "Gruppenkarte (do 5 osób), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        }
+      ]
+    },
+    {
+      "id": "munchen_citytourcard",
+      "city": "munchen",
+      "name": "München CityTourCard",
+      "description": "Oficjalna karta turystyczna Monachium (nie mylić z osobnym produktem 'München Card', niesprawdzonym w tym researchu): nielimitowany transport MVV w wybranej strefie (M / M-6 / M-12) + zniżki u 113 partnerów. Ceny i lista partnerów zweryfikowane w przeglądarce 2026-10-09 (automatyczny fetch pokazywał 0,00 € — strona doładowuje ceny przez JS). BMW Museum, Deutsches Museum, Tierpark Hellabrunn i Skylift Olympiapark (pod tą nazwą) NIE są partnerami — potwierdzone brakiem wpisu na oficjalnej liście partnerów, nie dopisywać im zniżek.",
+      "official_url": "https://www.mvv-muenchen.de/tickets-abos-preise/citytourcard",
+      "default_discount_percent": 0.0,
+      "custom_discounts": {
+        "munchen_fcbayern_erlebniswelt": 8.0,
+        "munchen_residenz": 13.3,
+        "munchen_schloss_nymphenburg": 10.0,
+        "munchen_frauenkirche": 33.3,
+        "munchen_sealife": 20.0,
+        "munchen_bavaria_filmstadt": 10.0
+      },
+      "variants": [
+        {
+          "id": "munchen_ctc_single_m_24h",
+          "name": "CityTourCard Single Zone M 24h",
+          "duration_hours": 24,
+          "price": 18.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m_48h",
+          "name": "CityTourCard Single Zone M 48h",
+          "duration_hours": 48,
+          "price": 26.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m_3d",
+          "name": "CityTourCard Single Zone M 3 dni",
+          "duration_hours": 72,
+          "price": 30.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m_4d",
+          "name": "CityTourCard Single Zone M 4 dni",
+          "duration_hours": 96,
+          "price": 35.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m_5d",
+          "name": "CityTourCard Single Zone M 5 dni",
+          "duration_hours": 120,
+          "price": 42.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m_6d",
+          "name": "CityTourCard Single Zone M 6 dni",
+          "duration_hours": 144,
+          "price": 48.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m6_24h",
+          "name": "CityTourCard Single Zone M-6 24h",
+          "duration_hours": 24,
+          "price": 29.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m6_48h",
+          "name": "CityTourCard Single Zone M-6 48h",
+          "duration_hours": 48,
+          "price": 43.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m6_3d",
+          "name": "CityTourCard Single Zone M-6 3 dni",
+          "duration_hours": 72,
+          "price": 51.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m6_4d",
+          "name": "CityTourCard Single Zone M-6 4 dni",
+          "duration_hours": 96,
+          "price": 62.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m6_5d",
+          "name": "CityTourCard Single Zone M-6 5 dni",
+          "duration_hours": 120,
+          "price": 75.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m6_6d",
+          "name": "CityTourCard Single Zone M-6 6 dni",
+          "duration_hours": 144,
+          "price": 85.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m12_24h",
+          "name": "CityTourCard Single Zone M-12 24h",
+          "duration_hours": 24,
+          "price": 41.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m12_48h",
+          "name": "CityTourCard Single Zone M-12 48h",
+          "duration_hours": 48,
+          "price": 67.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m12_3d",
+          "name": "CityTourCard Single Zone M-12 3 dni",
+          "duration_hours": 72,
+          "price": 87.0,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m12_4d",
+          "name": "CityTourCard Single Zone M-12 4 dni",
+          "duration_hours": 96,
+          "price": 103.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m12_5d",
+          "name": "CityTourCard Single Zone M-12 5 dni",
+          "duration_hours": 120,
+          "price": 122.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_single_m12_6d",
+          "name": "CityTourCard Single Zone M-12 6 dni",
+          "duration_hours": 144,
+          "price": 136.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m_24h",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M 24h",
+          "duration_hours": 24,
+          "price": 29.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m_48h",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M 48h",
+          "duration_hours": 48,
+          "price": 44.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m_3d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M 3 dni",
+          "duration_hours": 72,
+          "price": 49.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m_4d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M 4 dni",
+          "duration_hours": 96,
+          "price": 63.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m_5d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M 5 dni",
+          "duration_hours": 120,
+          "price": 74.5,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m_6d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M 6 dni",
+          "duration_hours": 144,
+          "price": 84.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M (centrum Monachium)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m6_24h",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-6 24h",
+          "duration_hours": 24,
+          "price": 45.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m6_48h",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-6 48h",
+          "duration_hours": 48,
+          "price": 71.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m6_3d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-6 3 dni",
+          "duration_hours": 72,
+          "price": 79.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m6_4d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-6 4 dni",
+          "duration_hours": 96,
+          "price": 99.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m6_5d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-6 5 dni",
+          "duration_hours": 120,
+          "price": 119.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m6_6d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-6 6 dni",
+          "duration_hours": 144,
+          "price": 139.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-6 (rozszerzona strefa)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m12_24h",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-12 24h",
+          "duration_hours": 24,
+          "price": 55.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m12_48h",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-12 48h",
+          "duration_hours": 48,
+          "price": 88.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m12_3d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-12 3 dni",
+          "duration_hours": 72,
+          "price": 98.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m12_4d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-12 4 dni",
+          "duration_hours": 96,
+          "price": 121.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m12_5d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-12 5 dni",
+          "duration_hours": 120,
+          "price": 144.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "munchen_ctc_gruppe_m12_6d",
+          "name": "CityTourCard Gruppe (2-5 os.) Zone M-12 6 dni",
+          "duration_hours": 144,
+          "price": 165.9,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "MVV Zone M-12 (cała sieć MVV)",
+          "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        }
+      ]
+    },
+    {
+      "id": "koln_card",
+      "city": "koln",
+      "name": "KölnCard",
+      "description": "Oficjalna karta turystyczna Kolonii (Köln Tourismus): bezpłatny transport publiczny KVB/VRS + zniżki do 50% u 'licznych partnerów'. Zweryfikowane w przeglądarce 2026-10-09: flyer PDF 'KölnCard 2026' (koelntourismus.de) vs VRS-Ticketshop (vrs-ticketshop.de) podają ROZBIEŻNE ceny dla Einzelkarte 48h i Gruppenkarte 24h (wartości 18€/19€ są zamienione miejscami między źródłami) — oba warianty oznaczone price_verified=false, dopóki nie zostanie to rozstrzygnięte bezpośrednio przy zakupie lub przez Köln Tourismus. Lista partnerów z nazwanymi atrakcjami i % zniżki NIE została znaleziona (ogólne 'Rabatt bis zu 50%' odsyła do papierowej mapy miasta, niedostępnej w tej sesji) — żadnych zniżek na konkretne atrakcje (Kölner Dom, Museum Ludwig, Wallraf-Richartz-Museum, Kölner Zoo, KölnTriangle, Schokoladenmuseum) nie potwierdzono.",
+      "official_url": "https://www.koelntourismus.de/buchen/koelncard",
+      "default_discount_percent": 0.0,
+      "custom_discounts": {},
+      "variants": [
+        {
+          "id": "koln_card_einzelkarte_24h",
+          "name": "KölnCard Einzelkarte 24h",
+          "duration_hours": 24,
+          "price": 9.0,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "KVB/VRS (autobusy, Stadtbahn, S-Bahn i pociągi regionalne 2. klasy)",
+          "description": "Oba źródła (flyer koelntourismus.de i vrs-ticketshop.de) zgodne: 9,00 €. Zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
+        },
+        {
+          "id": "koln_card_einzelkarte_48h",
+          "name": "KölnCard Einzelkarte 48h",
+          "duration_hours": 48,
+          "price": 18.0,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "KVB/VRS (autobusy, Stadtbahn, S-Bahn i pociągi regionalne 2. klasy)",
+          "description": "ROZBIEŻNOŚĆ: flyer koelntourismus.de podaje 18,00 €, ale VRS-Ticketshop podaje 19,00 € dla tego samego wariantu. Użyto wartości z oficjalnego flyera, ale NIE jest to rozstrzygnięte — zweryfikować przy zakupie przed użyciem w produkcji.",
+          "price_verified": false
+        },
+        {
+          "id": "koln_card_gruppenkarte_24h",
+          "name": "KölnCard Gruppenkarte (do 5 os.) 24h",
+          "duration_hours": 24,
+          "price": 19.0,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "KVB/VRS (autobusy, Stadtbahn, S-Bahn i pociągi regionalne 2. klasy)",
+          "description": "ROZBIEŻNOŚĆ: flyer koelntourismus.de podaje 19,00 €, ale VRS-Ticketshop podaje 18,00 € dla tego samego wariantu. Użyto wartości z oficjalnego flyera, ale NIE jest to rozstrzygnięte — zweryfikować przy zakupie przed użyciem w produkcji.",
+          "price_verified": false
+        },
+        {
+          "id": "koln_card_gruppenkarte_48h",
+          "name": "KölnCard Gruppenkarte (do 5 os.) 48h",
+          "duration_hours": 48,
+          "price": 38.0,
+          "currency": "EUR",
+          "includes_public_transit": true,
+          "transit_zones": "KVB/VRS (autobusy, Stadtbahn, S-Bahn i pociągi regionalne 2. klasy)",
+          "description": "Oba źródła (flyer koelntourismus.de i vrs-ticketshop.de) zgodne: 38,00 €. Zweryfikowane w przeglądarce 2026-10-09.",
+          "price_verified": true
         }
       ]
     },

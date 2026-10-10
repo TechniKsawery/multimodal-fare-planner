@@ -18,7 +18,8 @@ from attractions import (
     normalize_city,
     suggest_best_city_card,
 )
-from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
+from demo import DEFAULT_FROM, DEFAULT_TO
+from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
 from routing import motis_client
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
@@ -310,6 +311,19 @@ wiek = st.number_input(
     "uczeń/student ma bilet ulgowy niezależnie od wieku, a wiek sam z siebie nie daje "
     "pełnego obrazu uprawnień.",
 )
+obywatelstwo = st.selectbox(
+    "Obywatelstwo",
+    [None, "PL", "UE", "poza_UE"],
+    format_func=lambda o: {
+        None: "nie podano",
+        "PL": "Polska",
+        "UE": "inny kraj UE/EOG",
+        "poza_UE": "poza UE/EOG",
+    }[o],
+    help="Nie zmienia ceny — po wyszukaniu pokażemy ostrzeżenia, czy zaznaczone ulgi realnie"
+    " przysługują cudzoziemcowi wg zweryfikowanych źródeł (np. PKP ulga ustawowa, uznawanie"
+    " zagranicznych legitymacji w MPK/ZTM).",
+)
 
 st.subheader("Skąd i dokąd")
 c_origin, c_dest = st.columns(2)
@@ -319,7 +333,12 @@ with c_dest:
     dest_resolved = address_picker("Dokąd (adres)", DEFAULT_TO, "dest")
 
 with st.form("search"):
-    date = st.date_input("Data", dt.date.fromisoformat(DEMO_DATE))
+    date = st.date_input(
+        "Data",
+        dt.date.today() + dt.timedelta(days=5),
+        help="Domyślnie dziś+5 dni, żeby zawsze trafiać w okno rozkładu MOTIS - zmień ręcznie,"
+        " jeśli szukasz innego dnia.",
+    )
     c1, c2 = st.columns(2)
     pkp = c1.selectbox("Ulga PKP", PKP_ULGI)
     bc = c2.selectbox("BahnCard", ["brak", "25", "50", "100"])
@@ -351,6 +370,53 @@ with st.form("search"):
     ztm_poznan_ulgowy = u3.checkbox("Poznań", value=wiek < 18)
     mpk_wroclaw_ulgowy = u4.checkbox("Wrocław", value=wiek < 18)
     bvg_berlin_ulgowy = u5.checkbox("Berlin", value=wiek < 18)
+    st.caption(
+        "Przejazdy bezpłatne (100%, inna kategoria niż ulgowy — ma priorytet nad checkboxem "
+        "ulgowy tego miasta wyżej, jeśli zaznaczone)"
+    )
+    b1, b2, b3, b4, b5, b6 = st.columns(6)
+    ztm_warszawa_bezplatny = b1.checkbox(
+        "Warszawa: uczeń/senior 70+/niepełnosprawność znaczna",
+        value=wiek >= 70,
+        help="Karta Ucznia (tylko szkoła podstawowa, NIE ponadpodstawowa); osoby 70+ (bez wymogu"
+        " zamieszkania); niepełnosprawność ZNACZNA 26+ (UWAGA: 'umiarkowana' to tylko ulgowy"
+        " 50%, nie ta kategoria).",
+    )
+    mpk_krakow_bezplatny = b2.checkbox(
+        "Kraków: uczeń/senior 70+/niepełnosprawność znaczna",
+        value=wiek >= 70,
+        help="Uczniowie podstawówek z Krakowa/Metropolii (NIE ponadpodstawowe); osoby 70+ (bez"
+        " wymogu zamieszkania); niepełnosprawność ZNACZNA, lub UMIARKOWANA tylko przy symbolach"
+        " 04-O/05-R/10-N/01-U (inaczej to tylko ulgowy 50%).",
+    )
+    mpk_wroclaw_bezplatny = b3.checkbox(
+        "Wrocław: uczeń/dziecko/senior",
+        value=wiek <= 7 or wiek <= 21 or wiek >= 65,
+        help="Jedna kategoria 100% w naszych danych obejmuje kilka tytułów potwierdzonych na"
+        " wroclaw.pl: uczniowie szkół podstawowych/ponadpodstawowych do 21 lat, dzieci do 7 lat"
+        " i seniorzy 65+ (bez wymogu zamieszkania we Wrocławiu). Inne potwierdzone tytuły z tej"
+        " samej kategorii (niepełnosprawność, rodziny wielodzietne itd.) zaznacz też tutaj,"
+        " niezależnie od wieku.",
+    )
+    ztm_lublin_bezplatny = b4.checkbox(
+        "Lublin: uczeń podstawówki",
+        help="Uczniowie szkół podstawowych (gmina Lublin) — NIE potwierdzone dla"
+        " ponadpodstawowych (licea), tam zostaje ulgowy 50%.",
+    )
+    ztm_poznan_bezplatny = b5.checkbox(
+        "Poznań: senior 70+/niepełnosprawność znaczna",
+        value=wiek >= 70,
+        help="W Poznaniu NIE ma bezpłatnego dla zwykłych uczniów (tylko ulgowy 50%), ale JEST dla"
+        " osób 70+ (bez wymogu zamieszkania) i niepełnosprawności znacznej/I grupy — bez dolnej"
+        " granicy wieku 26 lat, inaczej niż w Warszawie/Krakowie.",
+    )
+    bvg_berlin_schwerbehindert = b6.checkbox(
+        "Berlin: Schwerbehindertenausweis + Wertmarke",
+        help="Bezpłatne w Berlinie TYLKO z legitymacją niepełnosprawności (Merkzeichen G/aG/H/Bl)"
+        " ORAZ osobno wykupioną Wertmarke (ok. 104 EUR/rok) — samo orzeczenie (nawet GdB 50) nie"
+        " wystarcza. Nie zaznaczaj bez obu dokumentów naraz. Brak w Berlinie ulgi wiekowej dla"
+        " seniorów (65+ to płatny abonament VBB-Abo 65plus, nie modelowany tutaj).",
+    )
     submitted = st.form_submit_button("Szukaj")
 
 if submitted:
@@ -361,15 +427,24 @@ if submitted:
         pkp_ulga_kod=pkp,
         bahncard=None if bc == "brak" else bc,
         ztm_lublin_ulgowy=ztm_ulgowy,
+        ztm_lublin_bezplatny=ztm_lublin_bezplatny,
         ztm_warszawa_ulgowy=ztm_warszawa_ulgowy,
+        ztm_warszawa_bezplatny=ztm_warszawa_bezplatny,
         mpk_krakow_ulgowy=mpk_krakow_ulgowy,
+        mpk_krakow_bezplatny=mpk_krakow_bezplatny,
         ztm_poznan_ulgowy=ztm_poznan_ulgowy,
+        ztm_poznan_bezplatny=ztm_poznan_bezplatny,
         mpk_wroclaw_ulgowy=mpk_wroclaw_ulgowy,
+        mpk_wroclaw_bezplatny=mpk_wroclaw_bezplatny,
         bvg_berlin_ulgowy=bvg_berlin_ulgowy,
+        bvg_berlin_schwerbehindert=bvg_berlin_schwerbehindert,
         vrr_dziecko=vrr_dziecko,
         age=wiek,
         child_with_guardian=child_with_guardian,
+        obywatelstwo=obywatelstwo,
     )
+    for ostrzezenie in foreigner_warnings_for(profile):
+        st.warning(ostrzezenie)
     try:
         with st.spinner("Szukam połączeń..."):
             request = RouteRequest(
@@ -486,4 +561,3 @@ if result is not None:
     render_attractions_and_city_cards(
         request.destination_label, fallback_text=st.session_state.get("dest_query", "")
     )
-

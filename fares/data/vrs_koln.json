@@ -1,0 +1,15 @@
+{
+  "_zrodlo": "https://www.vrs.de/tickets/ticketsortiment/einzelticket — nowy 'Rheinlandtarif' (VRS, obszar Kolonii/Bonn/Leverkusen), wprowadzony 2026. Zweryfikowano w przeglądarce 2026-10-09.",
+  "_uwaga": "Dokładne mapowanie nazw poziomów cenowych (Kurzstrecke/Preisstufe 1a/1b/2/3/Gesamtnetz) do konkretnych kwot w tabeli NIE jest jednoznacznie potwierdzone (tooltips na stronie ucinały się przy odczycie). Kalkulator używa najniższego potwierdzonego poziomu cenowego (2,90 EUR dorosły / 1,30 EUR dziecko) jako przybliżenia przejazdu w obrębie samego miasta Kolonii — to był najbardziej prawdopodobny odpowiednik krótkiej relacji miejskiej wg researchu, zgodny też z ceną KölnCard 24h (9,00 EUR, patrz attractions/data/city_cards.json), ale NIE jest to w 100% potwierdzone przypisanie nazwy do kwoty.",
+  "waluta": "EUR",
+  "nazwa_przewoznika": "VRS (Verkehrsverbund Rhein-Sieg) — Rheinlandtarif, obszar Kolonii",
+  "as_of": "2026-10-09",
+  "poziom_uzywany_domyslnie": 1,
+  "poziomy_cenowe": [
+    {"poziom": 1, "normalny": 2.90, "dziecko": 1.30, "dopłata_1_klasa": null},
+    {"poziom": 2, "normalny": 3.50, "dziecko": 1.60, "dopłata_1_klasa": 2.00},
+    {"poziom": 3, "normalny": 4.00, "dziecko": 1.80, "dopłata_1_klasa": 2.00},
+    {"poziom": 4, "normalny": 5.50, "dziecko": 2.50, "dopłata_1_klasa": 3.00},
+    {"poziom": 5, "normalny": 13.90, "dziecko": 6.30, "dopłata_1_klasa": 7.00}
+  ]
+}

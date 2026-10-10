@@ -471,3 +471,52 @@ def test_bvg_berlin_bez_czasu_jazdy_podnosi_blad():
     seg = Segment(Carrier.BVG_BERLIN, "A", "B")
     with pytest.raises(ValueError):
         estimate_price(seg)
+
+
+def test_hvv_einzelkarte_normalny():
+    seg = Segment(Carrier.HVV, "Hauptbahnhof", "Landungsbrücken")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == 4.10  # Tarifstand 01.01.2026, najniższa strefa
+
+
+def test_hvv_einzelkarte_dziecko():
+    seg = Segment(
+        Carrier.HVV, "A", "B", discounts=DiscountProfile(hvv_dziecko=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 1.50
+
+
+def test_mvv_einzelfahrkarte_zone_m_normalny():
+    seg = Segment(Carrier.MVV, "Marienplatz", "Hauptbahnhof")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == 4.20  # ceny od 01.01.2026, Zone M
+
+
+def test_mvv_einzelfahrkarte_zone_m_dziecko():
+    seg = Segment(
+        Carrier.MVV, "A", "B", discounts=DiscountProfile(mvv_dziecko=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 2.00
+
+
+def test_vrs_koln_estimate_nie_official():
+    """VRS/Köln: nawet przypisanie nazwy poziomu cenowego do kwoty nie jest w 100% potwierdzone
+    u źródła, więc wynik musi być ESTIMATE, nie OFFICIAL (w odróżnieniu od HVV/MVV)."""
+    seg = Segment(Carrier.VRS_KOLN, "Dom/Hauptbahnhof", "Neumarkt")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.ESTIMATE
+    assert result.currency == "EUR"
+
+
+def test_vrs_koln_dziecko_tansze_niz_normalny():
+    seg_normalny = Segment(Carrier.VRS_KOLN, "A", "B")
+    seg_dziecko = Segment(
+        Carrier.VRS_KOLN, "A", "B", discounts=DiscountProfile(vrs_koln_dziecko=True),
+    )
+    assert estimate_price(seg_dziecko).amount < estimate_price(seg_normalny).amount

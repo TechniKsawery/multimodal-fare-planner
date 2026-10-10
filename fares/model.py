@@ -22,6 +22,9 @@ class Carrier(str, Enum):
     ZTM_POZNAN = "ztm_poznan"
     MPK_WROCLAW = "mpk_wroclaw"
     BVG_BERLIN = "bvg_berlin"
+    HVV = "hvv"  # Hamburger Verkehrsverbund (Hamburg)
+    MVV = "mvv"  # Münchner Verkehrsverbund (Monachium)
+    VRS_KOLN = "vrs_koln"  # Verkehrsverbund Rhein-Sieg, obszar Kolonii (Rheinlandtarif)
     INTERNATIONAL_PL_DE = "international_pl_de"  # bilet PL<->DE przekraczający granicę jednym
     # ciągłym odcinkiem kolejowym (np. Berlin-Warszawa-Express) — SZTYWNE kategorie cenowe
     # (Super Sparpreis Europa), nie tabela pasm jak krajowe kalkulatory PKP/DB. Zob. fares/international.py.
@@ -42,6 +45,9 @@ class DiscountProfile:
     vrr_dziecko: bool = (
         False  # VRR/eezy.nrw: Kindertarif (6-14 lat), 50% rabatu wliczając sufity cenowe
     )
+    hvv_dziecko: bool = False  # HVV (Hamburg): cena dziecka (6-14 lat) z oficjalnego cennika
+    mvv_dziecko: bool = False  # MVV (Monachium): cena dziecka (6-14 lat) z oficjalnego cennika
+    vrs_koln_dziecko: bool = False  # VRS/Rheinlandtarif (Kolonia): cena dziecka (6-14 lat)
     age: int | None = None
     """Wiek pasażera w dniu podróży. Używany WYŁĄCZNIE przez fares/international.py do wyboru
     taryfy "Super Sparpreis Europa Young" (15-26 lat, bahn.de) na bilecie międzynarodowym PL-DE

@@ -1,0 +1,18 @@
+{
+  "_zrodlo": "https://www.hvv.de/de/tickets/einzel-tagestickets — Tarifstand 01.01.2026. Zweryfikowano w przeglądarce (nie samym automatycznym fetchem) 2026-10-09.",
+  "_uwaga": "Taryfa HVV jest strefowa (Ringe A-F liczone od centrum Hamburga). Nie mamy mapowania przystanek->Ring, więc kalkulator zawsze używa najniższej strefy (1-2 Ringe / Hamburg AB) jako przybliżenia pojedynczego przejazdu miejskiego. Dla relacji obejmujących więcej Ringów rzeczywista cena będzie wyższa — patrz pełna tabela stref w README.md.",
+  "waluta": "EUR",
+  "nazwa_przewoznika": "HVV (Hamburger Verkehrsverbund)",
+  "as_of": "2026-01-01",
+  "einzelkarte_najnizsza_strefa": {"normalny": 4.10, "dziecko": 1.50},
+  "tageskarte_najnizsza_strefa": {"normalny": 8.20, "dziecko": 3.00},
+  "kurzstrecke": 2.10,
+  "nahbereich": 3.50,
+  "pelna_tabela_stref_informacyjnie": [
+    {"strefa": "1-2 Ringe / Hamburg AB", "einzelkarte_normalny": 4.10, "einzelkarte_dziecko": 1.50},
+    {"strefa": "3 Ringe", "einzelkarte_normalny": 7.00, "einzelkarte_dziecko": null},
+    {"strefa": "4 Ringe", "einzelkarte_normalny": 8.90, "einzelkarte_dziecko": null},
+    {"strefa": "5 Ringe", "einzelkarte_normalny": 10.80, "einzelkarte_dziecko": 3.00},
+    {"strefa": "6 Ringe (A-F)", "einzelkarte_normalny": 12.60, "einzelkarte_dziecko": 4.50}
+  ]
+}

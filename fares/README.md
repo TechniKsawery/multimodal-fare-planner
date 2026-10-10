@@ -29,6 +29,15 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 - **FlixBus** (`fares/flixbus.py` + `fares/_flixbus_api.py`) — REALNA cena z publicznego
   (nieoficjalnego) API FlixBusa dla konkretnej daty przejazdu, z fallbackiem do zgrubnego
   szacunku PLN/km gdy API jest niedostępne/bez wyniku — patrz sekcja niżej.
+- **HVV** (`fares/hvv.py`, Hamburg), **MVV** (`fares/mvv.py`, Monachium), **VRS/Köln**
+  (`fares/kvb.py`) — dodane 2026-10-09, żeby domknąć "pełny pakiet" (transport+atrakcje) dla
+  miast, którym dociągnęliśmy atrakcje ([[attractions/]]), ale które nie miały jeszcze
+  kalkulatora transportu miejskiego. Każdy zawsze liczy najniższą/bazową strefę cenową
+  (brak mapowania przystanek->strefa) — patrz ograniczenia niżej. **NIEUŻYWANE jeszcze przez
+  `routing/pricing.py` w praktyce**: nasze GTFS dla Niemiec obejmuje tylko feed krajowy (FV) i
+  regionalny NRW/VRR, więc żaden przystanek w tych trzech miastach nie trafi tu dziś — słowa
+  kluczowe w `routing/pricing.py::HVV_KEYWORDS`/`MVV_KEYWORDS`/`VRS_KOLN_KEYWORDS` są na zapas,
+  na wypadek dociągnięcia regionalnego GTFS dla tych miast w przyszłości.
 
 ## Stan danych po researchu (2026-09-26)
 
@@ -43,6 +52,9 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 | ZTM Lublin — bilety czasowe (15/40/90 min, strefa 1+2) | **oficjalne** | [Cennik LUBIKA](https://lubika.zdtm.lublin.eu/cennik/) (system biletu elektronicznego ZDiTM Lublin), ważny od 16.02.2026 |
 | Międzynarodowy PL↔DE — 3 kategorie cenowe (krótka/średnia/długa) | **oficjalne ceny "od", progi km SZACUNEK** | [Super Sparpreis Europa Polska](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-polen), [zasada BahnCard tylko na niemiecki odcinek](https://int.bahn.de/en/offers/saver-fare-flexible-fare/super-saver-fare-europe-poland) — sprawdzone 2026-09-29 |
 | Międzynarodowy PL↔DE — taryfa Young (15-26 lat) | **oficjalna cena "od" (MINIMUM, nie realna cena — bahn.de explicite nie podaje górnej granicy, "je nach Verfügbarkeit"), flat (bez progów km — tak reklamuje to bahn.de)** | [Super Sparpreis Europa Young Polen](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-young-polen), [FAQ cena](https://www.bahn.de/bahnbusiness/faq/preis-super-sparpreis-europa-polen), [FAQ Young](https://www.bahn.de/faq/pk/angebot/sparpreis/young/super-sparpreis-young) — sprawdzone 2026-10-07 (2x, niezależnie) |
+| HVV (Hamburg) — Einzelkarte/Tageskarte najniższa strefa | **oficjalne** | [hvv.de](https://www.hvv.de/), Tarifstand 01.01.2026 — zweryfikowane w przeglądarce 2026-10-09 |
+| MVV (Monachium) — Einzelkarte Zone M | **oficjalne** | cennik MVV (ceny od 01.01.2026) — zweryfikowane w przeglądarce 2026-10-09 |
+| VRS/Rheinlandtarif (Kolonia) — najniższy poziom cenowy | **ceny oficjalne, ale przypisanie nazwy poziomu do kwoty NIEPOTWIERDZONE** | strona VRS (nowy "Rheinlandtarif" 2026) — zweryfikowane w przeglądarce 2026-10-09 |
 
 Każdy wynik niesie `price_type`: `PriceType.OFFICIAL` ("oficjalna_taryfa") tam, gdzie dane są
 oficjalne, `PriceType.ESTIMATE` ("szacunek") tam, gdzie nadal szacujemy (obecnie: cały wynik DB,
@@ -81,6 +93,13 @@ bo tabela pasm jest interpolacją).
   Rzepin/Frankfurt(Oder)→destination) i rabat jest naliczany proporcjonalnie do tego udziału,
   nie od całej ceny. Bez współrzędnych stacji (fallback) nadal liczymy 25% od całości — zawyża
   rabat, ale to jedyna opcja bez geografii.
+- **HVV/MVV/VRS Köln**: każdy kalkulator zawsze liczy najniższą/bazową strefę cenową (Hamburg:
+  Einzelkarte najniższa strefa; Monachium: Zone M; Kolonia: najniższy potwierdzony poziom) —
+  brak mapowania przystanek→strefa, więc relacje wychodzące poza tę najniższą strefę są w
+  rzeczywistości droższe niż wynik kalkulatora. Dla Kolonii nawet przypisanie nazwy poziomu
+  cenowego do konkretnej kwoty nie jest w 100% potwierdzone u źródła, stąd `price_type=ESTIMATE`
+  (nie `OFFICIAL`) dla VRS/Köln, w odróżnieniu od HVV/MVV. Żaden z trzech kalkulatorów nie jest
+  jeszcze używany przez `routing/pricing.py` w praktyce — patrz uwaga przy opisie modułów wyżej.
 
 ### Czego by trzeba, żeby domknąć resztę
 

@@ -217,15 +217,39 @@ def test_poznan_ma_fares_i_atrakcje_pelny_pakiet():
 
 
 def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
-    """Hamburg CARD/KölnCard/Warsaw Pass: tam gdzie cena nie jest potwierdzona u operatora, price_verified musi być False."""
-    cards_by_id = {c.id: c for c in get_all_city_cards() if c.id in ("hamburg_card", "koln_card", "warsaw_pass")}
-    assert set(cards_by_id) == {"hamburg_card", "koln_card", "warsaw_pass"}
+    """Hamburg CARD/KölnCard/München CityTourCard/Warsaw Pass: tam gdzie cena nie jest
+    potwierdzona u operatora (lub dwa źródła podają rozbieżne ceny), price_verified musi być
+    False. Dane zweryfikowane w przeglądarce 2026-10-09 (Remote Control + Claude in Chrome)."""
+    cards_by_id = {
+        c.id: c
+        for c in get_all_city_cards()
+        if c.id in ("hamburg_card", "koln_card", "munchen_citytourcard", "warsaw_pass")
+    }
+    assert set(cards_by_id) == {"hamburg_card", "koln_card", "munchen_citytourcard", "warsaw_pass"}
 
     hamburg_card = cards_by_id["hamburg_card"]
     assert all(v.price_verified for v in hamburg_card.variants)
-    assert not hamburg_card.custom_discounts  # żadnej zniżki na konkretną atrakcję nie potwierdzono
+    assert hamburg_card.custom_discounts == {
+        "hamburg_speicherstadtmuseum": 25.0,
+        "hamburg_imm": 22.0,
+    }
 
-    for card_id in ("koln_card", "warsaw_pass"):
-        card = cards_by_id[card_id]
-        assert all(not v.price_verified for v in card.variants)
-        assert not card.custom_discounts
+    munchen_card = cards_by_id["munchen_citytourcard"]
+    assert all(v.price_verified for v in munchen_card.variants)
+    for not_a_partner in ("munchen_bmw_museum", "munchen_deutsches_museum", "munchen_hellabrunn", "munchen_skylift_olympiapark"):
+        assert not_a_partner not in munchen_card.custom_discounts
+
+    # KölnCard: flyer oficjalny i VRS-Ticketshop podają rozbieżne ceny dla 48h-single/24h-group —
+    # te dwa warianty muszą być oznaczone jako niepewne, podczas gdy 24h-single/48h-group (oba
+    # źródła zgodne) są potwierdzone.
+    koln_card = cards_by_id["koln_card"]
+    verified_by_id = {v.id: v.price_verified for v in koln_card.variants}
+    assert verified_by_id["koln_card_einzelkarte_24h"] is True
+    assert verified_by_id["koln_card_gruppenkarte_48h"] is True
+    assert verified_by_id["koln_card_einzelkarte_48h"] is False
+    assert verified_by_id["koln_card_gruppenkarte_24h"] is False
+    assert not koln_card.custom_discounts
+
+    warsaw_card = cards_by_id["warsaw_pass"]
+    assert all(not v.price_verified for v in warsaw_card.variants)
+    assert not warsaw_card.custom_discounts

@@ -52,10 +52,20 @@ class DiscountProfile:
     # samodzielnej egzystencji 26+, dzieci/młodzież z niepełnosprawnością do 26 lat (wszystko
     # potwierdzone wtp.waw.pl/ulgi-znizki + warszawa19115.pl, zweryfikowano 2026-10-10 - patrz
     # fares/data/ztm_warszawa.json::_zrodlo_senior_niepelnosprawnosc).
-    mpk_krakow_ulgowy: bool = False  # MPK Kraków (ZTP): bilet ulgowy (50%)
+    mpk_krakow_ulgowy: bool = False  # MPK Kraków (ZTP): bilet ulgowy (50%) - m.in. emeryci DO
+    # 70 roku życia, UMIARKOWANY stopień niepełnosprawności (poza wąskimi wyjątkami niżej),
+    # uczniowie/studenci szkół zagranicznych do 26 lat z ważną kartą ISIC (ztp.krakow.pl,
+    # zweryfikowano 2026-10-10).
     mpk_krakow_bezplatny: bool = False  # MPK Kraków: przejazd bezpłatny (100%) - uczniowie
     # szkół PODSTAWOWYCH z Krakowa i gmin Metropolii Krakowskiej, cały rok (potwierdzone
     # krakow.pl 2026-10-10; NIE potwierdzone dla szkół ponadpodstawowych - tam zostaje ulgowy).
+    # Ta sama flaga obejmuje też: osoby 70+ (bez wymogu zamieszkania w Krakowie, tylko dokument
+    # z datą urodzenia), ZNACZNY stopień niepełnosprawności / całkowita niezdolność do pracy I
+    # do samodzielnej egzystencji / I grupa inwalidztwa, oraz kilka WĄSKICH wyjątków gdzie nawet
+    # "umiarkowany" stopień jest bezpłatny (konkretne symbole przyczyny: wzrok 04-O, ruch
+    # 05-R/10-N, intelekt 01-U) - w przeciwieństwie do Warszawy, gdzie "umiarkowany" to zawsze
+    # tylko 50%. Potwierdzone ztp.krakow.pl/kmk/przewodnik-po-biletach-kmk, zweryfikowano
+    # 2026-10-10 - patrz fares/data/mpk_krakow.json::_zrodlo_senior_niepelnosprawnosc.
     ztm_poznan_ulgowy: bool = False  # ZTM Poznań: bilet ulgowy (50%)
     mpk_wroclaw_ulgowy: bool = False  # MPK Wrocław: bilet ulgowy (50%) - studenci/doktoranci,
     # emeryci/renciści, uczniowie szkół policealnych/zagranicznych do 24 lat

@@ -86,7 +86,23 @@ class DiscountProfile:
     # Potwierdzone DWOMA niezależnymi źródłami wroclaw.pl 2026-10-10, zob. [[wroclaw-pelna-
     # tabela-ulg-mpk-2026-10-10]] w pamięci projektu. Ma priorytet nad mpk_wroclaw_ulgowy
     # jeśli oba byłyby ustawione (bezpłatny < ulgowy cenowo, więc zawsze wygrywa).
-    bvg_berlin_ulgowy: bool = False  # BVG/VBB Berlin: taryfa ulgowa (Ermäßigungstarif)
+    bvg_berlin_ulgowy: bool = False  # BVG/VBB Berlin: taryfa ulgowa (Ermäßigungstarif) - dzieci
+    # 6-14 lat. BRAK ulgi wiekowej/bezpłatnej dla seniorów w BVG/VBB - 65+ to osobny, PŁATNY
+    # produkt abonamentowy "VBB-Abo 65plus" (miesięczny/roczny bilet okresowy w obniżonej
+    # cenie), nie ulga per-przejazd, więc nie modelujemy go tu (jak Bilet dla uczniów podstawówek
+    # w Poznaniu). Samo orzeczenie o niepełnosprawności (np. niemiecki GdB 50) też NIE daje
+    # żadnej ulgi ani bezpłatnego przejazdu bez spełnienia warunków `bvg_berlin_schwerbehindert`
+    # poniżej - zweryfikowano bvg.de + vbb.de, 2026-10-10.
+    bvg_berlin_schwerbehindert: bool = False  # BVG/VBB Berlin: przejazd bezpłatny (100%) -
+    # TYLKO dla osób posiadających Schwerbehindertenausweis z odpowiednim Merkzeichen (np. G,
+    # aG, H, Bl) ORAZ ważną, OSOBNO WYKUPIONĄ Wertmarke (104 EUR/12 mies. lub 53 EUR/6 mies.,
+    # stan na 2025) doklejoną/wpisaną do Beiblatt. Bez Wertmarke sam dokument niepełnosprawności
+    # nie uprawnia do niczego - to NIE jest automatyczna ulga/zwolnienie jak w polskich miastach,
+    # tylko opcjonalny płatny "abonament" doczepiony do legitymacji. Potwierdzone niezależnie:
+    # bvg.de/mitnahmebestimmungen ("Schwerbehinderte Menschen können öffentliche Verkehrsmittel
+    # kostenfrei nutzen" + wymóg Wertmarke) i vbb.de/barrierefrei ("Wer etwa einen
+    # Schwerbehindertenausweis mit gültiger Wertmarke besitzt, fährt kostenfrei"). Zweryfikowano
+    # 2026-10-10 - patrz fares/data/bvg_berlin.json::_zrodlo_schwerbehindert.
     vrr_dziecko: bool = (
         False  # VRR/eezy.nrw: Kindertarif (6-14 lat), 50% rabatu wliczając sufity cenowe
     )

@@ -22,8 +22,17 @@ def estimate(segment: Segment) -> PriceEstimate:
         raise ValueError("BVG Berlin (taryfa czasowa): ride_duration_min jest wymagane")
 
     bilet = _wybierz_bilet(segment.ride_duration_min)
+    schwerbehindert = segment.discounts.bvg_berlin_schwerbehindert
     ulgowy = segment.discounts.bvg_berlin_ulgowy
-    amount = bilet["ulgowy"] if ulgowy else bilet["normalny"]
+    if schwerbehindert:
+        amount = 0.0
+        typ_biletu = "bezpłatny (Schwerbehindertenausweis + Wertmarke)"
+    elif ulgowy:
+        amount = bilet["ulgowy"]
+        typ_biletu = "ulgowy (Ermäßigungstarif)"
+    else:
+        amount = bilet["normalny"]
+        typ_biletu = "normalny"
     przekroczono = segment.ride_duration_min > _NAJDLUZSZY["wazny_min"]
 
     return PriceEstimate(
@@ -35,7 +44,7 @@ def estimate(segment: Segment) -> PriceEstimate:
             "relacja": f"{segment.origin} <-> {segment.destination}",
             "czas_jazdy_min": segment.ride_duration_min,
             "bilet_wazny_min": bilet["wazny_min"],
-            "typ_biletu": "ulgowy (Ermäßigungstarif)" if ulgowy else "normalny",
+            "typ_biletu": typ_biletu,
             "strefa": bilet.get("strefa", "AB"),
         },
         notes=(

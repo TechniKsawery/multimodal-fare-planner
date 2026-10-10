@@ -578,6 +578,30 @@ def test_bvg_berlin_strefa_ab_ulgowy():
     assert result.amount == 2.50
 
 
+def test_bvg_berlin_schwerbehindert_bezplatny():
+    seg = Segment(
+        Carrier.BVG_BERLIN,
+        "Alexanderplatz",
+        "Potsdam Hbf",
+        ride_duration_min=60,
+        discounts=DiscountProfile(bvg_berlin_schwerbehindert=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
+def test_bvg_berlin_schwerbehindert_ma_priorytet_nad_ulgowym():
+    seg = Segment(
+        Carrier.BVG_BERLIN,
+        "Alexanderplatz",
+        "Potsdam Hbf",
+        ride_duration_min=60,
+        discounts=DiscountProfile(bvg_berlin_schwerbehindert=True, bvg_berlin_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
 def test_bvg_berlin_bez_czasu_jazdy_podnosi_blad():
     seg = Segment(Carrier.BVG_BERLIN, "A", "B")
     with pytest.raises(ValueError):

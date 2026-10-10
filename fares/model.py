@@ -37,7 +37,14 @@ class DiscountProfile:
     ztm_warszawa_ulgowy: bool = False  # ZTM/WTP Warszawa: bilet ulgowy (50%)
     mpk_krakow_ulgowy: bool = False  # MPK Kraków (ZTP): bilet ulgowy (50%)
     ztm_poznan_ulgowy: bool = False  # ZTM Poznań: bilet ulgowy (50%)
-    mpk_wroclaw_ulgowy: bool = False  # MPK Wrocław: bilet ulgowy (50%)
+    mpk_wroclaw_ulgowy: bool = False  # MPK Wrocław: bilet ulgowy (50%) - studenci/doktoranci,
+    # emeryci/renciści, uczniowie szkół policealnych/zagranicznych do 24 lat
+    mpk_wroclaw_bezplatny: bool = False  # MPK Wrocław: przejazd bezpłatny (100%) - m.in.
+    # uczniowie szkół podstawowych/ponadpodstawowych do 21 lat (legitymacja, bez wymogu
+    # zamieszkania we Wrocławiu, obowiązuje od 1.09.2018), dzieci do 7 lat, seniorzy 65+.
+    # Potwierdzone DWOMA niezależnymi źródłami wroclaw.pl 2026-10-10, zob. [[wroclaw-pelna-
+    # tabela-ulg-mpk-2026-10-10]] w pamięci projektu. Ma priorytet nad mpk_wroclaw_ulgowy
+    # jeśli oba byłyby ustawione (bezpłatny < ulgowy cenowo, więc zawsze wygrywa).
     bvg_berlin_ulgowy: bool = False  # BVG/VBB Berlin: taryfa ulgowa (Ermäßigungstarif)
     vrr_dziecko: bool = (
         False  # VRR/eezy.nrw: Kindertarif (6-14 lat), 50% rabatu wliczając sufity cenowe

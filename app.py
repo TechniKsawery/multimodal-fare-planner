@@ -336,6 +336,13 @@ with st.form("search"):
     ztm_poznan_ulgowy = u3.checkbox("Poznań", value=wiek < 18)
     mpk_wroclaw_ulgowy = u4.checkbox("Wrocław", value=wiek < 18)
     bvg_berlin_ulgowy = u5.checkbox("Berlin", value=wiek < 18)
+    mpk_wroclaw_bezplatny = st.checkbox(
+        "Wrocław: przejazd bezpłatny (uczeń szkoły podst./ponadpodst. do 21 lat, dziecko do 7"
+        " lat, senior 65+ itd.)",
+        value=wiek <= 21,
+        help="We Wrocławiu to inna kategoria niż 'bilet ulgowy' — część grup jeździ za darmo,"
+        " nie za pół ceny. Jeśli zaznaczone, ma priorytet nad checkboxem 'Wrocław' wyżej.",
+    )
     submitted = st.form_submit_button("Szukaj")
 
 if submitted:
@@ -350,6 +357,7 @@ if submitted:
         mpk_krakow_ulgowy=mpk_krakow_ulgowy,
         ztm_poznan_ulgowy=ztm_poznan_ulgowy,
         mpk_wroclaw_ulgowy=mpk_wroclaw_ulgowy,
+        mpk_wroclaw_bezplatny=mpk_wroclaw_bezplatny,
         bvg_berlin_ulgowy=bvg_berlin_ulgowy,
         vrr_dziecko=vrr_dziecko,
         age=wiek,
@@ -470,4 +478,3 @@ if result is not None:
     render_attractions_and_city_cards(
         request.destination_label, fallback_text=st.session_state.get("dest_query", "")
     )
-

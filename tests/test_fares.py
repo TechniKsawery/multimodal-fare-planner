@@ -450,6 +450,24 @@ def test_mpk_wroclaw_bilet_60_minutowy_ulgowy():
     assert result.amount == 2.60
 
 
+def test_mpk_wroclaw_bilet_bezplatny_uczen():
+    seg = Segment(
+        Carrier.MPK_WROCLAW, "A", "B", ride_duration_min=50,
+        discounts=DiscountProfile(mpk_wroclaw_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
+def test_mpk_wroclaw_bezplatny_ma_priorytet_nad_ulgowym():
+    seg = Segment(
+        Carrier.MPK_WROCLAW, "A", "B", ride_duration_min=50,
+        discounts=DiscountProfile(mpk_wroclaw_bezplatny=True, mpk_wroclaw_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
 def test_bvg_berlin_kurzstrecke_normalny():
     seg = Segment(Carrier.BVG_BERLIN, "Alexanderplatz", "Hackescher Markt", ride_duration_min=10)
     result = estimate_price(seg)

@@ -13,6 +13,7 @@ class DiscountProfileIn(BaseModel):
     mpk_krakow_ulgowy: bool = False
     ztm_poznan_ulgowy: bool = False
     mpk_wroclaw_ulgowy: bool = False
+    mpk_wroclaw_bezplatny: bool = False
     bvg_berlin_ulgowy: bool = False
     vrr_dziecko: bool = False
     age: int | None = None

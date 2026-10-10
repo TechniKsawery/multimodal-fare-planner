@@ -198,6 +198,30 @@ def test_ztm_lublin_ulgowy():
     assert result.amount == 1.70
 
 
+def test_ztm_lublin_bilet_bezplatny_uczen_podstawowki():
+    seg = Segment(
+        Carrier.ZTM_LUBLIN,
+        "Ogród Saski",
+        "Dworzec Lublin",
+        ride_duration_min=8,
+        discounts=DiscountProfile(ztm_lublin_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
+def test_ztm_lublin_bezplatny_ma_priorytet_nad_ulgowym():
+    seg = Segment(
+        Carrier.ZTM_LUBLIN,
+        "Ogród Saski",
+        "Dworzec Lublin",
+        ride_duration_min=8,
+        discounts=DiscountProfile(ztm_lublin_bezplatny=True, ztm_lublin_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
 def test_ztm_lublin_dobiera_dluzszy_bilet():
     seg = Segment(Carrier.ZTM_LUBLIN, "A", "B", ride_duration_min=35)
     result = estimate_price(seg)
@@ -376,7 +400,10 @@ def test_ztm_warszawa_bilet_20_minutowy_normalny():
 
 def test_ztm_warszawa_bilet_20_minutowy_ulgowy():
     seg = Segment(
-        Carrier.ZTM_WARSZAWA, "Centrum", "Plac Zamkowy", ride_duration_min=10,
+        Carrier.ZTM_WARSZAWA,
+        "Centrum",
+        "Plac Zamkowy",
+        ride_duration_min=10,
         discounts=DiscountProfile(ztm_warszawa_ulgowy=True),
     )
     result = estimate_price(seg)
@@ -385,7 +412,10 @@ def test_ztm_warszawa_bilet_20_minutowy_ulgowy():
 
 def test_ztm_warszawa_bilet_bezplatny_uczen_podstawowki():
     seg = Segment(
-        Carrier.ZTM_WARSZAWA, "Centrum", "Plac Zamkowy", ride_duration_min=10,
+        Carrier.ZTM_WARSZAWA,
+        "Centrum",
+        "Plac Zamkowy",
+        ride_duration_min=10,
         discounts=DiscountProfile(ztm_warszawa_bezplatny=True),
     )
     result = estimate_price(seg)
@@ -413,7 +443,10 @@ def test_mpk_krakow_bilet_15_minutowy_normalny():
 
 def test_mpk_krakow_bilet_60_minutowy_ulgowy():
     seg = Segment(
-        Carrier.MPK_KRAKOW, "Rynek", "Nowa Huta", ride_duration_min=45,
+        Carrier.MPK_KRAKOW,
+        "Rynek",
+        "Nowa Huta",
+        ride_duration_min=45,
         discounts=DiscountProfile(mpk_krakow_ulgowy=True),
     )
     result = estimate_price(seg)
@@ -422,7 +455,10 @@ def test_mpk_krakow_bilet_60_minutowy_ulgowy():
 
 def test_mpk_krakow_bilet_bezplatny_uczen_podstawowki():
     seg = Segment(
-        Carrier.MPK_KRAKOW, "Rynek", "Nowa Huta", ride_duration_min=45,
+        Carrier.MPK_KRAKOW,
+        "Rynek",
+        "Nowa Huta",
+        ride_duration_min=45,
         discounts=DiscountProfile(mpk_krakow_bezplatny=True),
     )
     result = estimate_price(seg)
@@ -445,7 +481,10 @@ def test_ztm_poznan_bilet_15_minutowy_normalny():
 
 def test_ztm_poznan_bilet_90_minutowy_ulgowy():
     seg = Segment(
-        Carrier.ZTM_POZNAN, "A", "B", ride_duration_min=90,
+        Carrier.ZTM_POZNAN,
+        "A",
+        "B",
+        ride_duration_min=90,
         discounts=DiscountProfile(ztm_poznan_ulgowy=True),
     )
     result = estimate_price(seg)
@@ -461,7 +500,10 @@ def test_mpk_wroclaw_bilet_30_minutowy_normalny():
 
 def test_mpk_wroclaw_bilet_60_minutowy_ulgowy():
     seg = Segment(
-        Carrier.MPK_WROCLAW, "A", "B", ride_duration_min=50,
+        Carrier.MPK_WROCLAW,
+        "A",
+        "B",
+        ride_duration_min=50,
         discounts=DiscountProfile(mpk_wroclaw_ulgowy=True),
     )
     result = estimate_price(seg)
@@ -470,7 +512,10 @@ def test_mpk_wroclaw_bilet_60_minutowy_ulgowy():
 
 def test_mpk_wroclaw_bilet_bezplatny_uczen():
     seg = Segment(
-        Carrier.MPK_WROCLAW, "A", "B", ride_duration_min=50,
+        Carrier.MPK_WROCLAW,
+        "A",
+        "B",
+        ride_duration_min=50,
         discounts=DiscountProfile(mpk_wroclaw_bezplatny=True),
     )
     result = estimate_price(seg)
@@ -479,7 +524,10 @@ def test_mpk_wroclaw_bilet_bezplatny_uczen():
 
 def test_mpk_wroclaw_bezplatny_ma_priorytet_nad_ulgowym():
     seg = Segment(
-        Carrier.MPK_WROCLAW, "A", "B", ride_duration_min=50,
+        Carrier.MPK_WROCLAW,
+        "A",
+        "B",
+        ride_duration_min=50,
         discounts=DiscountProfile(mpk_wroclaw_bezplatny=True, mpk_wroclaw_ulgowy=True),
     )
     result = estimate_price(seg)
@@ -496,7 +544,10 @@ def test_bvg_berlin_kurzstrecke_normalny():
 
 def test_bvg_berlin_strefa_ab_ulgowy():
     seg = Segment(
-        Carrier.BVG_BERLIN, "Alexanderplatz", "Potsdam Hbf", ride_duration_min=60,
+        Carrier.BVG_BERLIN,
+        "Alexanderplatz",
+        "Potsdam Hbf",
+        ride_duration_min=60,
         discounts=DiscountProfile(bvg_berlin_ulgowy=True),
     )
     result = estimate_price(seg)

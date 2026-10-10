@@ -34,6 +34,12 @@ class DiscountProfile:
     pkp_ulga_kod: str = "brak"  # klucz z fares/data/pkp_intercity.json -> ulgi_procent
     bahncard: str | None = None  # None, "25", "50" lub "100" (DB, oficjalne rabaty Flexpreis)
     ztm_lublin_ulgowy: bool = False  # ZTM Lublin: bilet ulgowy zamiast normalnego
+    ztm_lublin_bezplatny: bool = False  # ZTM/ZDiTM Lublin: przejazd bezpłatny (100%) -
+    # uczniowie publicznych i niepublicznych szkół PODSTAWOWYCH (oraz artystycznych) prowadzonych
+    # przez Gminę Lublin lub działających na jej terenie, z ważną legitymacją szkolną (uchwała Rady
+    # Miasta Lublin, obecna podstawa prawna: uchwała nr 206/VII/2024 z 19.12.2024). NIE potwierdzone
+    # dla szkół ponadpodstawowych (licea itd.) - tam zostaje ulgowy. Potwierdzone na żywej stronie
+    # zdtm.lublin.eu 2026-10-10 (patrz fares/data/ztm_lublin.json::_zrodlo_bezplatny).
     ztm_warszawa_ulgowy: bool = False  # ZTM/WTP Warszawa: bilet ulgowy (50%)
     ztm_warszawa_bezplatny: bool = False  # ZTM/WTP Warszawa: przejazd bezpłatny (100%) -
     # "Karta Ucznia", uczniowie szkół PODSTAWOWYCH w Warszawie (potwierdzone warszawa19115.pl

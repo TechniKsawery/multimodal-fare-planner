@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 
 from attractions import (
+    AttractionCategory,
     evaluate_city_cards,
     get_attractions,
     get_city_cards,
@@ -76,9 +77,27 @@ def find_route(payload: RouteSearchRequest) -> dict:
     )
 
 
+def _require_known_city(city: str | None) -> None:
+    """Podane, ale nierozpoznane miasto = 400 (zamiast cichego zwrócenia WSZYSTKICH rekordów)."""
+    if city and not normalize_city(city):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Nie rozpoznano obsługiwanego miasta dla zapytania: {city!r}",
+        )
+
+
 @app.get("/attractions")
 def list_attractions(city: str | None = None, category: str | None = None) -> list[dict]:
     """Zwraca katalog atrakcji i rekomendowanych miejsc, z opcjonalnym filtrowaniem po mieście i kategorii."""
+    _require_known_city(city)
+    if category is not None and category not in {c.value for c in AttractionCategory}:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Nieznana kategoria: {category!r}. Dozwolone: "
+                + ", ".join(c.value for c in AttractionCategory)
+            ),
+        )
     items = get_attractions(city=city, category=category)
     return jsonable_encoder(items)
 
@@ -86,6 +105,7 @@ def list_attractions(city: str | None = None, category: str | None = None) -> li
 @app.get("/city-cards")
 def list_city_cards(city: str | None = None) -> list[dict]:
     """Zwraca karty miejskie (City Cards) dla wskazanego miasta."""
+    _require_known_city(city)
     cards = get_city_cards(city=city)
     return jsonable_encoder(cards)
 

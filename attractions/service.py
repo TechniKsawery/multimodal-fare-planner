@@ -5,6 +5,8 @@ import unicodedata
 
 from dataclasses import dataclass, field
 
+from routing.currency import convert
+
 from ._data_loading import load
 from .model import (
     Attraction,
@@ -234,6 +236,31 @@ def get_city_cards(city: str | None = None) -> list[CityCard]:
     return [c for c in cards if c.city == city_key]
 
 
+def _age_in_range(gp: GroupPrice, age: int | None) -> bool:
+    """Czy wiek mieści się w granicach min_age/max_age ceny. Gdy cena ma granicę wieku,
+    a wiek jest nieznany, nie przyznajemy zniżki (nie zgadujemy)."""
+    if gp.min_age is None and gp.max_age is None:
+        return True
+    if age is None:
+        return False
+    return (gp.min_age is None or age >= gp.min_age) and (
+        gp.max_age is None or age <= gp.max_age
+    )
+
+
+def _status_title_applies(
+    gp: GroupPrice, profile: "DiscountProfile", flag: bool, doc_types: set[str]
+) -> bool:
+    """Czy tytuł statusowy (uczeń/student, senior) przysługuje: wiek w granicach ceny ORAZ
+    status. Gdy źródło ogranicza zniżkę do dokumentów z konkretnych krajów
+    (recognized_countries), sama flaga nie wystarcza - trzeba dokumentu z takiego kraju."""
+    if not _age_in_range(gp, profile.age):
+        return False
+    if gp.recognized_countries is not None:
+        return profile.has_recognized_document(doc_types, gp.recognized_countries)
+    return flag or profile.has_recognized_document(doc_types, None)
+
+
 def best_price_for_attraction(
     attraction: Attraction, profile: "DiscountProfile | None" = None
 ) -> tuple[float, str, GroupPrice | None]:
@@ -255,26 +282,25 @@ def best_price_for_attraction(
     if profile is not None:
         gp = attraction.child_price
         if gp is not None and profile.age is not None:
-            if (gp.min_age is None or profile.age >= gp.min_age) and (
-                gp.max_age is None or profile.age <= gp.max_age
-            ):
+            # Cena dziecięca bez ŻADNEJ granicy wieku nie może przysługiwać dorosłemu:
+            # wymagamy górnej granicy (dane bez max_age są traktowane jak niekompletne).
+            if gp.max_age is not None and _age_in_range(gp, profile.age):
                 candidates.append((gp.price, gp.label, gp))
 
         gp = attraction.student_price
-        if gp is not None and (
-            profile.is_student
-            or profile.has_recognized_document(_STUDENT_DOC_TYPES, gp.recognized_countries)
+        if gp is not None and _status_title_applies(
+            gp, profile, profile.is_student, _STUDENT_DOC_TYPES
         ):
             candidates.append((gp.price, gp.label, gp))
 
         gp = attraction.senior_price
         if gp is not None and (
-            profile.is_senior
-            or profile.has_recognized_document(_SENIOR_DOC_TYPES, gp.recognized_countries)
+            _status_title_applies(gp, profile, profile.is_senior, _SENIOR_DOC_TYPES)
             or (
                 profile.age is not None
                 and gp.min_age is not None
                 and profile.age >= gp.min_age
+                and (gp.max_age is None or profile.age <= gp.max_age)
             )
         ):
             candidates.append((gp.price, gp.label, gp))
@@ -320,8 +346,16 @@ def evaluate_city_card_variant(
     price_without = 0.0
     price_with = 0.0
 
+    # Waluta rozliczenia = waluta wybranych atrakcji (gdy jednolita), inaczej waluta wariantu
+    # karty. Ceny kart i atrakcji w innej walucie są przeliczane (routing.currency), a
+    # estimated_transit_cost jest podawany już w walucie rozliczenia.
+    currencies = {a.currency for a in attractions}
+    currency = currencies.pop() if len(currencies) == 1 else variant.currency
+    card_price = convert(variant.price, variant.currency, currency)
+
     for a in attractions:
         base_price, _label, _source = best_price_for_attraction(a, profile)
+        base_price = convert(base_price, a.currency, currency)
         price_without += base_price
         disc_pct = _calculate_attraction_discount_percent(card, variant, a)
         discounted = base_price * (1.0 - (disc_pct / 100.0))
@@ -329,15 +363,19 @@ def evaluate_city_card_variant(
 
     transit_savings = estimated_transit_cost if variant.includes_public_transit else 0.0
     total_without = price_without + estimated_transit_cost
-    total_with = variant.price + price_with
+    # Wariant BEZ transportu w cenie nie zwalnia z kosztu komunikacji: płacimy go tak samo
+    # z kartą jak bez niej, więc nie może wchodzić do "oszczędności".
+    total_with = card_price + price_with + (
+        0.0 if variant.includes_public_transit else estimated_transit_cost
+    )
 
     net_savings = round(total_without - total_with, 2)
     is_recommended = net_savings > 0.0
 
     if is_recommended:
         summary = (
-            f"Kupno {variant.name} opłaca się! Zaoszczędzisz łącznie {net_savings:.2f} {variant.currency} "
-            f"(wstępy: {price_without - price_with:.2f} {variant.currency} zniżki"
+            f"Kupno {variant.name} opłaca się! Zaoszczędzisz łącznie {net_savings:.2f} {currency} "
+            f"(wstępy: {price_without - price_with:.2f} {currency} zniżki"
             + (
                 ", transport: darmowy w cenie karty"
                 if variant.includes_public_transit and transit_savings > 0
@@ -348,8 +386,8 @@ def evaluate_city_card_variant(
     else:
         diff = abs(net_savings)
         summary = (
-            f"{variant.name} kosztuje {variant.price:.2f} {variant.currency}. "
-            f"Przy obecnym zestawie atrakcji zabraknie około {diff:.2f} {variant.currency} "
+            f"{variant.name} kosztuje {card_price:.2f} {currency}. "
+            f"Przy obecnym zestawie atrakcji zabraknie około {diff:.2f} {currency} "
             f"do zwrotu kosztu karty."
         )
 
@@ -359,12 +397,12 @@ def evaluate_city_card_variant(
         attractions_count=len(attractions),
         attractions_price_without_card=round(price_without, 2),
         attractions_price_with_card=round(price_with, 2),
-        card_price=variant.price,
+        card_price=round(card_price, 2),
         estimated_transit_savings=round(transit_savings, 2),
         total_cost_without_card=round(total_without, 2),
         total_cost_with_card=round(total_with, 2),
         net_savings=net_savings,
-        currency=variant.currency,
+        currency=currency,
         is_recommended=is_recommended,
         summary=summary,
     )

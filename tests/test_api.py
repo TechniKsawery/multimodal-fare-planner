@@ -180,3 +180,17 @@ def test_city_cards_evaluate_unknown_city_returns_400():
     assert res.status_code == 400
     assert "Nie rozpoznano obsługiwanego miasta" in res.json()["detail"]
 
+
+
+def test_attractions_unknown_category_is_400():
+    assert client.get("/attractions", params={"category": "zla"}).status_code == 400
+
+
+def test_attractions_and_cards_unknown_city_is_400():
+    assert client.get("/attractions", params={"city": "nieistnieje"}).status_code == 400
+    assert client.get("/city-cards", params={"city": "nieistnieje"}).status_code == 400
+
+
+def test_attractions_known_city_and_category_ok():
+    r = client.get("/attractions", params={"city": "Berlin", "category": "turystyka_kultura"})
+    assert r.status_code == 200 and r.json()

@@ -458,3 +458,76 @@ def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
     warsaw_card = cards_by_id["warsaw_pass"]
     assert all(not v.price_verified for v in warsaw_card.variants)
     assert not warsaw_card.custom_discounts
+
+
+# --- Regresje po audycie PR #52 (2026-10-11) ---
+
+
+def _attr(**kw):
+    base = dict(
+        id="x", name="X", city="berlin", category=AttractionCategory.CULTURE,
+        description="d", normal_price=10.0, currency="EUR",
+    )
+    base.update(kw)
+    return Attraction(**base)
+
+
+def test_child_price_without_max_age_never_applies_to_adults():
+    a = _attr(child_price=GroupPrice(price=5.0, label="Kinder"))
+    assert best_price_for_attraction(a, DiscountProfile(age=35))[0] == 10.0
+    assert best_price_for_attraction(a, DiscountProfile(age=8))[0] == 10.0
+
+
+def test_all_child_prices_have_max_age():
+    for a in get_all_attractions():
+        if a.child_price is not None:
+            assert a.child_price.max_age is not None, a.id
+
+
+def test_student_price_respects_age_bounds_and_countries():
+    gp = GroupPrice(price=1.0, label="uczący się", min_age=7, max_age=26, recognized_countries=["PL"])
+    a = _attr(student_price=gp)
+    assert best_price_for_attraction(a, DiscountProfile(age=30, is_student=True))[0] == 10.0
+    # sama flaga bez dokumentu z PL nie wystarcza przy ograniczeniu krajowym
+    assert best_price_for_attraction(a, DiscountProfile(age=20, is_student=True))[0] == 10.0
+    de = DiscountProfile(age=20, documents=[HeldDocument("legitymacja_studencka", "DE")])
+    assert best_price_for_attraction(a, de)[0] == 10.0
+    pl = DiscountProfile(age=20, documents=[HeldDocument("legitymacja_studencka", "PL")])
+    assert best_price_for_attraction(a, pl)[0] == 1.0
+    pl30 = DiscountProfile(age=30, documents=[HeldDocument("legitymacja_studencka", "PL")])
+    assert best_price_for_attraction(a, pl30)[0] == 10.0
+
+
+def test_student_flag_still_works_without_restrictions():
+    a = _attr(student_price=GroupPrice(price=6.0, label="Student"))
+    assert best_price_for_attraction(a, DiscountProfile(age=30, is_student=True))[0] == 6.0
+
+
+def test_card_without_transit_does_not_count_transit_as_savings():
+    from attractions import CityCardVariant
+    from attractions.service import evaluate_city_card_variant
+
+    card = get_all_city_cards()[0]
+    v = CityCardVariant("v", "V", 24, 10.0, "EUR", False, "-", "d")
+    atts = [_attr(normal_price=20.0)]
+    n0 = evaluate_city_card_variant(card, v, atts, 0.0).net_savings
+    n30 = evaluate_city_card_variant(card, v, atts, 30.0).net_savings
+    assert n0 == n30
+    vt = CityCardVariant("v", "V", 24, 10.0, "EUR", True, "AB", "d")
+    assert evaluate_city_card_variant(card, vt, atts, 30.0).net_savings == (
+        evaluate_city_card_variant(card, vt, atts, 0.0).net_savings + 30.0
+    )
+
+
+def test_card_in_eur_is_converted_for_pln_attractions():
+    from attractions import CityCardVariant
+    from attractions.service import evaluate_city_card_variant
+    from routing.currency import convert
+
+    card = get_all_city_cards()[0]
+    v = CityCardVariant("v", "V", 24, 10.0, "EUR", False, "-", "d")
+    a = _attr(normal_price=100.0, currency="PLN", default_card_discount_percent=0.0)
+    ev = evaluate_city_card_variant(card, v, [a], 0.0)
+    assert ev.currency == "PLN"
+    assert ev.card_price == round(convert(10.0, "EUR", "PLN"), 2)
+    assert ev.total_cost_with_card == round(convert(10.0, "EUR", "PLN") + ev.attractions_price_with_card, 2)

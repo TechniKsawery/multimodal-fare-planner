@@ -85,7 +85,8 @@
         "industrial",
         "spacer",
         "widok"
-      ]
+      ],
+      "price_verified": false
     },
     {
       "id": "essen_zeche_zollverein",
@@ -469,7 +470,8 @@
         "piłka nożna",
         "wisła kraków",
         "stadion"
-      ]
+      ],
+      "price_verified": false
     },
     {
       "id": "krakow_kazimierz_zapiekanki",
@@ -488,7 +490,8 @@
         "kazimierz",
         "zapiekanki",
         "klimat"
-      ]
+      ],
+      "price_verified": false
     },
     {
       "id": "lublin_arena_lublin",

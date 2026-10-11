@@ -24,3 +24,11 @@ wystarczają do merge dużej zmiany.
 
 Nigdy nie zgaduj ceny, zniżki ani partnera: podaj URL źródła i datę weryfikacji albo ustaw
 `price_verified: false`.
+
+## Dane z zewnętrznych AI i wklejek
+
+Dane i liczby pochodzące od zewnętrznych AI lub z wklejek z innych czatów (ceny, zniżki, zasady,
+nazwy partnerów) wolno wpisać do repo dopiero po weryfikacji w źródle pierwotnym (oficjalny cennik,
+regulamin, strona operatora). Zewnętrzne AI w tym projekcie wielokrotnie myliły liczby i mieszały
+dokumenty. Każda cena ma `source_url` i datę weryfikacji; jeśli źródła nie da się sprawdzić, pole
+zostaje puste lub `price_verified: false`.

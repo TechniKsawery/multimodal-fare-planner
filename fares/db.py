@@ -6,6 +6,7 @@ Mnożniki BahnCard 25/50 są potwierdzone oficjalnie (bahn.de/faq) — patrz "_z
 w danych. Patrz też README.md w tym katalogu.
 """
 
+from . import _db_vendo_api, _unofficial
 from ._data_loading import load
 from .model import Carrier, PriceEstimate, PriceType, Segment
 
@@ -25,6 +26,38 @@ def flexpreis_upper_bound(distance_km: float) -> float:
     return _flexpreis_upper_bound(distance_km)
 
 
+def _unofficial_estimate(segment, bahncard, upper_bound, table_amount) -> PriceEstimate | None:
+    """OPCJONALNA cena z nieoficjalnego API DB (db-vendo-client). None = użyj tabeli pasm."""
+    if not segment.travel_date or not _unofficial.enabled("db"):
+        return None
+    try:
+        hit = _db_vendo_api.fetch_cheapest(
+            segment.origin, segment.destination, segment.travel_date, segment.discounts.bahncard
+        )
+    except _db_vendo_api.DbVendoError:
+        return None
+    return PriceEstimate(
+        carrier=Carrier.DB,
+        amount=round(float(hit["amount"]), 2),
+        currency=hit.get("currency", "EUR"),
+        price_type=PriceType.ESTIMATE,
+        breakdown={
+            "zrodlo": "nieoficjalne_db_vendo",
+            "data": segment.travel_date,
+            "bahncard": bahncard,
+            "z_cache": hit.get("z_cache"),
+            "nasz_szacunek_z_tabeli": table_amount,
+            "flexpreis_gorna_granica": upper_bound,
+        },
+        notes=(
+            "Najniższa cena z NIEOFICJALNEGO API DB (db-vendo-client) dla podanej daty — "
+            "szacunek, nie oficjalna taryfa: DB nie udostępnia oficjalnego API cen, ceny są "
+            "dynamiczne, a źródło może zostać zablokowane. Po wyłączeniu UNOFFICIAL_PRICES "
+            "wracamy do tabeli pasm (górna granica Flexpreis)."
+        ),
+    )
+
+
 def estimate(segment: Segment) -> PriceEstimate:
     if segment.carrier is not Carrier.DB:
         raise ValueError(f"nieprawidłowy przewoźnik dla kalkulatora DB: {segment.carrier}")
@@ -39,6 +72,10 @@ def estimate(segment: Segment) -> PriceEstimate:
     upper_bound = _flexpreis_upper_bound(segment.distance_km)
     mnoznik = mnozniki[bahncard]
     amount = round(upper_bound * mnoznik, 2)
+
+    unofficial = _unofficial_estimate(segment, bahncard, upper_bound, amount)
+    if unofficial:
+        return unofficial
 
     return PriceEstimate(
         carrier=Carrier.DB,

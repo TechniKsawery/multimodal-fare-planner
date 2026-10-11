@@ -8,3 +8,5 @@ motis/data/
 
 # Sekrety lokalne
 .env
+node_modules/
+.cache/

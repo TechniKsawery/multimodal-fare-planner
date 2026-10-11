@@ -1975,7 +1975,25 @@
         "ogród botaniczny"
       ],
       "price_verified": true,
-      "_weryfikacja_2026-10-11": "Zweryfikowane 2026-10-11 na stronie operatora ogrodbotaniczny.wroclaw.pl/cennik.html: bilet jednorazowy normalny 30 zł, ulgowy 20 zł (ulgowy: dzieci od 3 lat i uczniowie, studenci do 26 lat i doktoranci, osoby z umiarkowaną/lekką niepełnosprawnością, seniorzy od 60 lat, pracownicy UWr). Nasz Wrocław MAX 24/16 zł. Karta Rodzina Plus / Karta Dużej Rodziny: 60 zł od 3 osób. Cennik bez zaznaczonego sezonu; ulgi NIE są jeszcze modelowane jako student_price/senior_price."
+      "_weryfikacja_2026-10-11": "Zweryfikowane 2026-10-11 na stronie operatora ogrodbotaniczny.wroclaw.pl/cennik.html: bilet jednorazowy normalny 30 zł, ulgowy 20 zł (ulgowy: dzieci od 3 lat i uczniowie, studenci do 26 lat i doktoranci, osoby z umiarkowaną/lekką niepełnosprawnością, seniorzy od 60 lat, pracownicy UWr). Nasz Wrocław MAX 24/16 zł. Karta Rodzina Plus / Karta Dużej Rodziny: 60 zł od 3 osób. Cennik bez zaznaczonego sezonu; ulgi NIE są jeszcze modelowane jako student_price/senior_price.",
+      "student_price": {
+        "price": 20.0,
+        "label": "Bilet ulgowy (studenci do 26 lat, doktoranci)",
+        "source_url": "https://ogrodbotaniczny.wroclaw.pl/cennik.html",
+        "verified_date": "2026-10-12",
+        "price_verified": true,
+        "max_age": 26,
+        "requires_status": "legitymacja studencka/doktorancka"
+      },
+      "senior_price": {
+        "price": 20.0,
+        "label": "Bilet ulgowy (seniorzy, emeryci, renciści od 60 lat; honorowana karta ZUS)",
+        "source_url": "https://ogrodbotaniczny.wroclaw.pl/cennik.html",
+        "verified_date": "2026-10-12",
+        "price_verified": true,
+        "min_age": 60
+      },
+      "_weryfikacja_2026-10-12": "Ponownie sprawdzone w Chrome 2026-10-12: normalny 30, ulgowy 20 zł; ulgowy: dzieci >3 lat i uczniowie, studenci do 26 lat, doktoranci, niepełnosprawni (umiarkowany/lekki), seniorzy 60+. Dzieci/uczniowie nie modelowane (granica wieku 'powyżej 3 roku życia' niejednoznaczna)."
     },
     {
       "id": "wroclaw_park_szczytnicki",

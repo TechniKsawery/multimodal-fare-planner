@@ -101,7 +101,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
         c2.metric(
             "Cena łączna",
             f"od {it.total_price_pln:.2f} PLN",
-            help=f"Górna granica wg cennika PKP SPI: {it.total_price_pln_high:.2f} PLN",
+            help=f"Górna granica (PKP SPI poziom V albo cennik regularny): {it.total_price_pln_high:.2f} PLN",
         )
     else:
         c2.metric("Cena łączna", f"{it.total_price_pln:.2f} PLN")
@@ -125,8 +125,8 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
         zakres = p.breakdown.get("zakres_cen")
         if zakres:
             price += (
-                f" | szacunek (przedział wg cennika SPI): od {zakres['od']:.2f} "
-                f"do {zakres['do']:.2f} {zakres['waluta']}"
+                f" | szacunek: od {zakres['od']:.2f} ({zakres['od_zrodlo']}) "
+                f"do {zakres['do']:.2f} ({zakres['do_zrodlo']}) {zakres['waluta']}"
             )
         alt = p.breakdown.get("alternatywna_oferta")
         alternatywa = ""

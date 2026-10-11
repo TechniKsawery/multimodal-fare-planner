@@ -133,7 +133,7 @@ def format_itinerary(itinerary, age=None) -> str:
         "  Cena łączna: "
         + (
             f"od {itinerary.total_price_pln:.2f} do {itinerary.total_price_pln_high:.2f} PLN "
-            "(szacunek, przedział wg cennika SPI) "
+            "(szacunek, górna granica wg cennika PKP) "
             if itinerary.total_price_pln_high is not None
             else f"{itinerary.total_price_pln:.2f} PLN "
         )
@@ -165,8 +165,9 @@ def format_itinerary(itinerary, age=None) -> str:
         zakres = priced.breakdown.get("zakres_cen")
         if zakres:
             line += (
-                f"\n      szacunek (przedział wg cennika SPI): od {zakres['od']:.2f} "
-                f"do {zakres['do']:.2f} {zakres['waluta']} (cennik PKP od {zakres['data_cennika']})"
+                f"\n      szacunek: od {zakres['od']:.2f} ({zakres['od_zrodlo']}) "
+                f"do {zakres['do']:.2f} ({zakres['do_zrodlo']}) {zakres['waluta']}; "
+                f"przedział SPI {zakres['spi_od']:.2f}-{zakres['spi_do']:.2f} (cennik PKP od {zakres['data_cennika']})"
             )
         alt = priced.breakdown.get("alternatywna_oferta")
         if alt:

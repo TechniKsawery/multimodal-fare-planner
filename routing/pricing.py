@@ -265,10 +265,23 @@ def _with_spi_range(segment: Segment, result: PriceEstimate) -> PriceEstimate:
     gorna = spi["do"] if pkp is None else min(spi["do"], pkp.breakdown["cena_regularna"])
     od = min(spi["od"], result.amount)
     do = max(gorna, od)
+    if spi["od"] <= result.amount:
+        od_zrodlo = "SPI poziom I"
+    elif result.breakdown.get("oferta") == "pkp_oferta_polska_niemcy":
+        od_zrodlo = "PKP cennik regularny"
+    else:
+        od_zrodlo = "DB (cena od, bez górnej granicy w źródle)"
+    do_zrodlo = (
+        "SPI poziom V"
+        if pkp is None or spi["do"] <= pkp.breakdown["cena_regularna"]
+        else "PKP cennik regularny"
+    )
     result.breakdown["zakres_cen"] = {
         "od": od,
         "do": do,
         "waluta": spi["waluta"],
+        "od_zrodlo": od_zrodlo,
+        "do_zrodlo": do_zrodlo,
         "spi_od": spi["od"],
         "spi_do": spi["do"],
         "pkp_cena_regularna": None if pkp is None else pkp.breakdown["cena_regularna"],
@@ -279,9 +292,10 @@ def _with_spi_range(segment: Segment, result: PriceEstimate) -> PriceEstimate:
         "data_cennika": spi["data_cennika"],
     }
     result.notes = (
-        f"{result.notes} Szacunek (przedział wg cennika SPI): od {od:.2f} do {do:.2f} {spi['waluta']} "
-        f"(PKP Super Promo International, poziomy cenowe I-V, 2. klasa, dorosły; cennik od "
-        f"{spi['data_cennika']}). Który poziom obowiązuje danego dnia, cennik nie podaje."
+        f"{result.notes} Szacunek: od {od:.2f} ({od_zrodlo}) do {do:.2f} ({do_zrodlo}) {spi['waluta']}. "
+        f"Przedział PKP Super Promo International: {spi['od']:.2f}-{spi['do']:.2f} {spi['waluta']} "
+        f"(poziomy cenowe I-V, 2. klasa, dorosły; cennik od {spi['data_cennika']}). "
+        f"Który poziom obowiązuje danego dnia, cennik nie podaje."
     )
     return result
 

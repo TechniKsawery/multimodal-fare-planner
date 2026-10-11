@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from fares.international import estimate as international_estimate
+from fares.international_pkp import estimate_pkp_offer
 from fares.model import Carrier, DiscountProfile, Segment
 from routing.model import Leg, LegMode
 from routing.pricing import is_cross_border_pl_de, price_rail_leg
@@ -226,8 +227,10 @@ def test_wiek_w_przedziale_young_dostaje_cene_young_niezaleznie_od_dystansu(age)
         assert result.breakdown["kategoria_relacji"] == "young"
 
 
-@pytest.mark.parametrize("age", [0, 14, 27, 60])
-def test_wiek_poza_przedzialem_young_dostaje_normalna_taryfe_wg_progu_km(age):
+@pytest.mark.parametrize("age", [27, 60])
+def test_wiek_poza_przedzialem_dziecko_young_dostaje_normalna_taryfe_wg_progu_km(age):
+    # 60 lat: brak osobnej taryfy seniora na TEJ ofercie (zweryfikowane 2026-10-09 — "Super
+    # Sparpreis Senioren" 65+ to inny, wyłącznie krajowy produkt DB) — normalna taryfa jak każdy dorosły.
     seg = Segment(
         Carrier.INTERNATIONAL_PL_DE,
         "Berlin",
@@ -244,6 +247,85 @@ def test_brak_wieku_dostaje_normalna_taryfe():
     seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Berlin", "Warszawa", distance_km=519)
     result = international_estimate(seg)
     assert result.amount == 29.99
+
+
+# --- rabat dziecięcy DB (bahn.de, zweryfikowane NA ŻYWO 2026-10-09) -----------------------
+#
+# ROZSTRZYGNIĘCIE 2026-10-09: ta sama strona co źródło BahnCard/Young (super-sparpreis-europa-
+# polen) ma TEŻ zasady dla dzieci, których wcześniej nie modelowaliśmy: do 5 lat zawsze gratis,
+# 6-14 lat gratis Z opiekunem (zgłoszonym przy rezerwacji), 6-14 lat SAMODZIELNIE -50% ale TYLKO
+# na niemiecki odcinek trasy (jak BahnCard).
+
+
+@pytest.mark.parametrize("age", [0, 3, 5])
+def test_dziecko_do_5_lat_zawsze_gratis(age):
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=age),
+    )
+    result = international_estimate(seg)
+    assert result.amount == 0.0
+    assert result.breakdown["kategoria_relacji"] == "niemowle"
+
+
+@pytest.mark.parametrize("age", [6, 10, 14])
+def test_dziecko_6_14_lat_z_opiekunem_gratis(age):
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=age, child_with_guardian=True),
+    )
+    result = international_estimate(seg)
+    assert result.amount == 0.0
+    assert result.breakdown["kategoria_relacji"] == "dziecko_z_opiekunem"
+
+
+def test_dziecko_6_14_lat_samodzielnie_bez_wspolrzednych_50_procent_fallback():
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=10),
+    )
+    result = international_estimate(seg)
+    assert result.amount == pytest.approx(29.99 * 0.5, abs=0.01)
+    assert result.breakdown["kategoria_relacji"] == "dziecko_samodzielnie"
+
+
+def test_dziecko_6_14_lat_samodzielnie_domyslnie_bez_opiekuna():
+    # child_with_guardian domyślnie False — dziecko bez jawnie zgłoszonego opiekuna liczone jako
+    # podróżujące samodzielnie (bezpieczniejszy domyślny wybór, nie zakłada opiekuna na wyrost).
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=10),
+    )
+    assert DiscountProfile().child_with_guardian is False
+    result = international_estimate(seg)
+    assert result.breakdown["kategoria_relacji"] == "dziecko_samodzielnie"
+
+
+def test_dziecko_6_14_lat_samodzielnie_z_wspolrzednymi_liczy_proporcjonalnie():
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Berlin",
+        "Warszawa",
+        distance_km=519,
+        discounts=DiscountProfile(age=10),
+        german_portion_fraction=0.2,
+    )
+    result = international_estimate(seg)
+    # 50% nominalnego rabatu * 20% udziału niemieckiego odcinka = 10% efektywnego rabatu na całość
+    assert result.amount == pytest.approx(29.99 * 0.9, abs=0.01)
+    assert result.breakdown["rabat_procent_efektywny"] == pytest.approx(10.0, abs=0.1)
 
 
 def test_young_z_bahncard_25_bez_wspolrzednych_daje_25_procent_od_calej_ceny_fallback():
@@ -336,3 +418,151 @@ def test_price_rail_leg_krajowy_pkp_dziala_jak_wczesniej():
     priced = price_rail_leg(leg, DiscountProfile())
     assert priced.currency == "PLN"
     assert priced.amount == 50  # krajowa tabela pasm PKP, jak w tests/test_fares.py
+
+
+# --- fares/international_pkp.py: własna oferta PKP Intercity "Polska-Niemcy" -------------------
+#
+# ROZSTRZYGNIĘCIE 2026-10-09 (user, po pytaniu koordynatora): silnik ma liczyć OBIE oferty na
+# bilet PL-DE — pulę DB (Super Sparpreis Europa, powyżej) i własną ofertę PKP Intercity (cennik
+# regularny "Oferta Polska-Niemcy", od 19.08.2026) — i pokazywać TAŃSZĄ jako cenę główną, drugą
+# jako alternatywę. Patrz fares/data/international_pl_de_pkp.json dla źródeł.
+
+
+def test_relacja_warszawa_berlin_rozpoznana_cena_69():
+    seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Warszawa Centralna", "Berlin Hauptbahnhof")
+    result = estimate_pkp_offer(seg)
+    assert result is not None
+    assert result.amount == 69
+    assert result.currency == "EUR"
+
+
+def test_relacja_dziala_w_obie_strony():
+    seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Berlin Hauptbahnhof", "Warszawa Centralna")
+    result = estimate_pkp_offer(seg)
+    assert result is not None
+    assert result.amount == 69
+
+
+@pytest.mark.parametrize(
+    "polskie_miasto,oczekiwana_cena",
+    [
+        ("Kraków Główny", 69),
+        ("Gdynia Główna", 69),
+        ("Gdańsk Główny", 69),
+        ("Lublin", 79),
+        ("Przemyśl Główny", 79),
+        ("Poznań Główny", 47),
+    ],
+)
+def test_wszystkie_relacje_z_cennika_rozpoznane(polskie_miasto, oczekiwana_cena):
+    seg = Segment(Carrier.INTERNATIONAL_PL_DE, polskie_miasto, "Berlin Hauptbahnhof")
+    result = estimate_pkp_offer(seg)
+    assert result is not None
+    assert result.amount == oczekiwana_cena
+
+
+def test_relacja_spoza_tabeli_zwraca_none():
+    # Szczecin nie jest w tabeli "Oferta Polska-Niemcy" -> brak oferty PKP dla tej relacji.
+    seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Szczecin Główny", "Berlin Hauptbahnhof")
+    assert estimate_pkp_offer(seg) is None
+
+
+def test_oba_konce_berlin_zwraca_none():
+    seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Berlin Hauptbahnhof", "Berlin Ostbahnhof")
+    assert estimate_pkp_offer(seg) is None
+
+
+def test_oba_konce_nie_berlin_zwraca_none():
+    seg = Segment(Carrier.INTERNATIONAL_PL_DE, "Warszawa Centralna", "Kraków Główny")
+    assert estimate_pkp_offer(seg) is None
+
+
+def test_dziecko_6_14_lat_dostaje_50_procent_rabatu():
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Warszawa Centralna",
+        "Berlin Hauptbahnhof",
+        discounts=DiscountProfile(age=10),
+    )
+    result = estimate_pkp_offer(seg)
+    assert result.amount == pytest.approx(69 * 0.5)
+    assert result.breakdown["kategoria_wieku"] == "dziecko"
+
+
+def test_ponizej_6_lat_przejazd_bezplatny():
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Warszawa Centralna",
+        "Berlin Hauptbahnhof",
+        discounts=DiscountProfile(age=3),
+    )
+    result = estimate_pkp_offer(seg)
+    assert result.amount == 0
+
+
+def test_dorosly_bez_ulgi_pelna_cena():
+    seg = Segment(
+        Carrier.INTERNATIONAL_PL_DE,
+        "Warszawa Centralna",
+        "Berlin Hauptbahnhof",
+        discounts=DiscountProfile(age=40),
+    )
+    result = estimate_pkp_offer(seg)
+    assert result.amount == 69
+    assert result.breakdown["kategoria_wieku"] == "normalny"
+
+
+def test_bledny_przewoznik_w_estimate_pkp_offer_podnosi_blad():
+    with pytest.raises(ValueError):
+        estimate_pkp_offer(Segment(Carrier.DB, "Warszawa Centralna", "Berlin Hauptbahnhof"))
+
+
+# --- routing/pricing.py::price_rail_leg łączy obie oferty (DB + PKP) i pokazuje tańszą ---------
+
+
+def _international_leg(origin_name: str, destination_name: str, distance_km: float) -> Leg:
+    depart = datetime(2026, 10, 1, 8, 0)
+    return Leg(
+        mode=LegMode.RAIL,
+        origin_name=origin_name,
+        destination_name=destination_name,
+        depart=depart,
+        arrive=depart + timedelta(hours=5),
+        carrier_name="PKP Intercity",
+        distance_km=distance_km,
+        extra={"origin_stop_id": "pl_1", "destination_stop_id": "defv_1"},
+    )
+
+
+def test_price_rail_leg_dziecko_ponizej_6_lat_oba_kanaly_gratis_remis_na_rzecz_pkp():
+    # Dziecko poniżej 6 lat jedzie za darmo w OBU kanałach (DB: bahn.de "Kinder bis 5 Jahre fahren
+    # immer kostenfrei"; PKP: cennik "Polska-Niemcy" -100%) — remis 0 EUR vs 0 EUR, kod rozstrzyga
+    # remisy na rzecz PKP (`<=` w _with_pkp_alternative), ale obie ceny są identyczne.
+    leg = _international_leg("Warszawa Centralna", "Berlin Hauptbahnhof", distance_km=519)
+    priced = price_rail_leg(leg, DiscountProfile(age=3))
+    assert priced.currency == "EUR"
+    assert priced.amount == 0
+    alt = priced.breakdown.get("alternatywna_oferta")
+    assert alt is not None
+    assert alt["zrodlo"] == "db"
+    assert alt["cena"] == 0
+
+
+def test_price_rail_leg_pokazuje_tansza_oferte_db_gdy_pkp_drozsza():
+    # Warszawa-Berlin, dorosły bez ulg: PKP 69 EUR (cennik regularny) vs DB "średnia" 29.99 EUR
+    # -> DB jest wyraźnie tańszy, ma zostać ceną główną, z PKP jako alternatywa w breakdown.
+    leg = _international_leg("Warszawa Centralna", "Berlin Hauptbahnhof", distance_km=519)
+    priced = price_rail_leg(leg, DiscountProfile())
+    assert priced.currency == "EUR"
+    assert priced.amount == 29.99
+    alt = priced.breakdown.get("alternatywna_oferta")
+    assert alt is not None
+    assert alt["zrodlo"] == "pkp_oferta_polska_niemcy"
+    assert alt["cena"] == 69
+
+
+def test_price_rail_leg_relacja_spoza_tabeli_pkp_pokazuje_tylko_db():
+    leg = _international_leg("Szczecin Główny", "Berlin Hauptbahnhof", distance_km=150)
+    priced = price_rail_leg(leg, DiscountProfile())
+    assert priced.currency == "EUR"
+    assert "alternatywna_oferta" not in priced.breakdown

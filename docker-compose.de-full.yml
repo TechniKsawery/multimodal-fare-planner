@@ -1,0 +1,38 @@
+# Eksperymentalny, OSOBNY setup z OSM całych Niemiec (nie NRW) do testu
+# wyszukiwania adresowego w całym DE. Osobny wolumen, osobny port (8081),
+# nie dotyka kontenera/wolumenu z docker-compose.yml.
+#
+# Pliki wejściowe OSM leżą w data/osm głównego checkoutu (duże, nie do gita):
+#   - data/osm/poland-germany-latest.osm.pbf  (poland-latest + germany-latest, scalone osmium merge)
+# GTFS jest wspólny z główną konfiguracją (ten sam katalog data/gtfs).
+#
+# UWAGA: Docker Desktop (WSL2) na tej maszynie montuje tylko dysk C: do swojej
+# maszyny wirtualnej (/mnt/host/c) — dysk D: NIE jest widoczny dla kontenerów,
+# bind mount z D: tworzy pustą atrapę katalogu bez błędu. Dlatego oba pliki OSM
+# (pobrany i scalony) muszą leżeć na C:, tu w data/osm głównego checkoutu.
+#
+# Użycie (z katalogu repo głównego checkoutu, NIE worktree):
+#   docker compose -f docker-compose.de-full.yml --profile import-de-full run --rm motis-import-de-full
+#   docker compose -f docker-compose.de-full.yml up motis-de-full
+volumes:
+  motis-data-de-full:
+
+services:
+  motis-import-de-full:
+    image: ghcr.io/motis-project/motis:latest
+    entrypoint: /motis
+    command: ["import", "-d", "/data", "-c", "/data/config.yml"]
+    volumes:
+      - "./data/osm:/input/osm:ro"
+      - "./data/gtfs:/input/gtfs:ro"
+      - motis-data-de-full:/data
+      - ./motis/config.de-full.yml:/data/config.yml:ro
+    profiles: ["import-de-full"]
+
+  motis-de-full:
+    image: ghcr.io/motis-project/motis:latest
+    ports:
+      - "8081:8080"
+    volumes:
+      - motis-data-de-full:/data
+      - ./motis/config.de-full.yml:/data/config.yml:ro

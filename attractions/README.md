@@ -10,9 +10,11 @@ Moduł odpowiada za:
    - **Natura** (parki poprzemysłowe, ogrody)
 3. Sugestie i kalkulator opłacalności kart miejskich (**City Cards**):
    - **Berlin WelcomeCard** (strefy AB, ABC, wariant 72h + Museumsinsel)
-   - **WelcomeCard Ruhr** (całe Zagłębie Ruhry z Gelsenkirchen, Essen, Bochum, Dortmund z transportem VRR)
+   - **RUHR.TOPCARD** (roczna karta regionu Ruhry — Gelsenkirchen, Essen, Bochum, Dortmund; BEZ transportu publicznego w cenie, zastąpiła tu dawną WelcomeCard Ruhr, która okazała się martwym produktem)
    - **Kraków Card** (Krakowska Karta Turystyczna)
    - Wyliczanie oszczędności netto: czy koszt karty zwraca się przy wybranych atrakcjach i darmowym transporcie miejskim.
+   - Karta pojawia się w kalkulatorze i rekomendacji TYLKO gdy jej istnienie i działanie DZIŚ jest potwierdzone u źródła (`existence_verified` + URL + data w `city_cards.json`) — niepotwierdzona może być co najwyżej jej cena, nigdy sam fakt, że produkt nadal istnieje. `get_all_city_cards()` pokazuje też karty niepotwierdzone (do audytu danych); `get_city_cards()` i kalkulator — nie.
+4. Zniżki z dowolnego tytułu (wiek/uczeń-student/senior), niezależnie od posiadania karty miejskiej: `best_price_for_attraction(attraction, DiscountProfile(...))` wybiera najtańszą potwierdzoną cenę spośród ceny standardowej i pól `child_price`/`student_price`/`senior_price`/`family_price` (typu `GroupPrice`: konkretna kwota + źródło + data, nigdy procent). Zniżki się nie sumują — bierzemy minimum.
 
 ## Użycie
 

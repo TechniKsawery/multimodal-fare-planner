@@ -1,0 +1,93 @@
+name: Obserwacja atrakcji, kart miejskich i feedów GTFS/OSM
+
+# Działa na GitHub Actions (nie w kontenerze Claude Code), tak jak watch_fare_sources.yml --
+# ten workflow pokrywa zakres, którego TEN nie sprawdza: atrakcje, karty miejskie i feedy
+# GTFS/OSM (scripts/watch_other_sources.py).
+on:
+  schedule:
+    - cron: "0 7 * * 1"  # co poniedziałek 07:00 UTC (godzinę po watch_fare_sources.yml)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Zainstaluj zależności
+        run: pip install requests
+
+      - name: Sprawdź atrakcje, karty miejskie i feedy GTFS/OSM
+        id: check
+        continue-on-error: true
+        run: python scripts/watch_other_sources.py --summary /tmp/report.md
+
+      - name: Commit zaktualizowanych snapshotów
+        if: always()
+        run: |
+          git config user.name "sources-watcher[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add attractions/data/.snapshots scripts/.gtfs_snapshots
+          git diff --cached --quiet || git commit -m "Zaktualizuj snapshoty atrakcji/kart/feedów"
+          git push
+
+      - name: Zgłoś zmianę jako issue
+        if: steps.check.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('/tmp/report.md', 'utf8');
+            const body = report
+              + '\n\n---\n_Wygenerowane automatycznie przez workflow `watch_other_sources.yml`._';
+            // Jak w watch_fare_sources.yml: krok "check" kończy się niepowodzeniem zarówno przy
+            // realnej zmianie treści (exit 1), jak i przy samym błędzie pobierania (exit 2) —
+            // tytuł/etykieta muszą to rozróżniać.
+            const hasChange = report.includes('## ⚠️ Wykryto zmianę');
+            const title = hasChange
+              ? 'Wykryto zmianę w atrakcji/karcie/feedzie'
+              : 'Błąd pobierania źródła (atrakcje/karty/feedy)';
+            const label = hasChange ? 'source-change' : 'source-fetch-error';
+
+            try {
+              await github.rest.issues.getLabel({ owner: context.repo.owner, repo: context.repo.repo, name: label });
+            } catch {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner, repo: context.repo.repo, name: label,
+                color: 'd93f0b', description: title + ' (watch_other_sources.py)',
+              });
+            }
+
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: label,
+            });
+
+            if (existing.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing[0].number,
+                body: (hasChange
+                  ? 'Nowe uruchomienie wykryło kolejną (albo wciąż tę samą, niesprawdzoną) zmianę:\n\n'
+                  : 'Nowe uruchomienie wciąż zgłasza błąd pobierania:\n\n') + body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: [label],
+              });
+            }

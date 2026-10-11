@@ -1,6 +1,6 @@
 """Dispatch do kalkulatora właściwego dla przewoźnika w segmencie."""
 
-from . import bvg_berlin, db, flixbus, international, mpk_krakow, mpk_wroclaw, pkp, vrr, ztm_lublin, ztm_poznan, ztm_warszawa
+from . import bvg_berlin, db, flixbus, hvv, international, kvb, mpk_krakow, mpk_wroclaw, mvv, pkp, vrr, ztm_lublin, ztm_poznan, ztm_warszawa
 from .model import Carrier, PriceEstimate, Segment
 
 _CALCULATORS = {
@@ -14,6 +14,9 @@ _CALCULATORS = {
     Carrier.ZTM_POZNAN: ztm_poznan.estimate,
     Carrier.MPK_WROCLAW: mpk_wroclaw.estimate,
     Carrier.BVG_BERLIN: bvg_berlin.estimate,
+    Carrier.HVV: hvv.estimate,
+    Carrier.MVV: mvv.estimate,
+    Carrier.VRS_KOLN: kvb.estimate,
     Carrier.INTERNATIONAL_PL_DE: international.estimate,
 }
 

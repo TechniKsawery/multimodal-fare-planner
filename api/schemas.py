@@ -9,13 +9,24 @@ class DiscountProfileIn(BaseModel):
     pkp_ulga_kod: str = "brak"
     bahncard: str | None = None
     ztm_lublin_ulgowy: bool = False
+    ztm_lublin_bezplatny: bool = False
     ztm_warszawa_ulgowy: bool = False
+    ztm_warszawa_bezplatny: bool = False
     mpk_krakow_ulgowy: bool = False
+    mpk_krakow_bezplatny: bool = False
     ztm_poznan_ulgowy: bool = False
+    ztm_poznan_bezplatny: bool = False
     mpk_wroclaw_ulgowy: bool = False
+    mpk_wroclaw_bezplatny: bool = False
     bvg_berlin_ulgowy: bool = False
+    bvg_berlin_schwerbehindert: bool = False
     vrr_dziecko: bool = False
+    hvv_dziecko: bool = False
+    mvv_dziecko: bool = False
+    vrs_koln_dziecko: bool = False
+    schwerbehinderte_wertmarke_de: bool = False
     age: int | None = None
+    obywatelstwo: str | None = None
 
 
 class RouteSearchRequest(BaseModel):

@@ -1,0 +1,34 @@
+# Dociąga lokalny transport miejski HVV (Hamburg), MVV (Monachium), VRS (Kolonia/Bonn) do
+# istniejącego setupu PL+DE (motis-main, patrz motis/DE-FULL-NOTES.md z PR #46). Osobny wolumen,
+# osobny port (8082) do testu równoległego — motis-main na 8080 NIETKNIĘTY, aż do świadomej
+# decyzji o przełączeniu (ten sam wzorzec jak przy przechodzeniu PL+NRW -> PL+DE w PR #46).
+#
+# OSM jest WSPÓLNE z config.de-full.yml (ten sam poland-germany-latest.osm.pbf, już scalony,
+# nic nowego do pobrania/scalania) — tylko GTFS ma 3 nowe pliki, patrz
+# motis/DE-FULL-CITY-GTFS-NOTES.md po dokładne komendy pobrania.
+#
+# Użycie (z katalogu repo głównego checkoutu, NIE worktree):
+#   docker compose -f docker-compose.de-full-city-gtfs.yml --profile import-city-gtfs run --rm motis-import-city-gtfs
+#   docker compose -f docker-compose.de-full-city-gtfs.yml up motis-city-gtfs
+volumes:
+  motis-data-de-full-city-gtfs:
+
+services:
+  motis-import-city-gtfs:
+    image: ghcr.io/motis-project/motis:latest
+    entrypoint: /motis
+    command: ["import", "-d", "/data", "-c", "/data/config.yml"]
+    volumes:
+      - "./data/osm:/input/osm:ro"
+      - "./data/gtfs:/input/gtfs:ro"
+      - motis-data-de-full-city-gtfs:/data
+      - ./motis/config.de-full-city-gtfs.yml:/data/config.yml:ro
+    profiles: ["import-city-gtfs"]
+
+  motis-city-gtfs:
+    image: ghcr.io/motis-project/motis:latest
+    ports:
+      - "8082:8080"
+    volumes:
+      - motis-data-de-full-city-gtfs:/data
+      - ./motis/config.de-full-city-gtfs.yml:/data/config.yml:ro

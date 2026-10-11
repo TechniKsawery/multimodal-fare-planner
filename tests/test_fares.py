@@ -198,6 +198,30 @@ def test_ztm_lublin_ulgowy():
     assert result.amount == 1.70
 
 
+def test_ztm_lublin_bilet_bezplatny_uczen_podstawowki():
+    seg = Segment(
+        Carrier.ZTM_LUBLIN,
+        "Ogród Saski",
+        "Dworzec Lublin",
+        ride_duration_min=8,
+        discounts=DiscountProfile(ztm_lublin_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
+def test_ztm_lublin_bezplatny_ma_priorytet_nad_ulgowym():
+    seg = Segment(
+        Carrier.ZTM_LUBLIN,
+        "Ogród Saski",
+        "Dworzec Lublin",
+        ride_duration_min=8,
+        discounts=DiscountProfile(ztm_lublin_bezplatny=True, ztm_lublin_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
 def test_ztm_lublin_dobiera_dluzszy_bilet():
     seg = Segment(Carrier.ZTM_LUBLIN, "A", "B", ride_duration_min=35)
     result = estimate_price(seg)
@@ -376,11 +400,26 @@ def test_ztm_warszawa_bilet_20_minutowy_normalny():
 
 def test_ztm_warszawa_bilet_20_minutowy_ulgowy():
     seg = Segment(
-        Carrier.ZTM_WARSZAWA, "Centrum", "Plac Zamkowy", ride_duration_min=10,
+        Carrier.ZTM_WARSZAWA,
+        "Centrum",
+        "Plac Zamkowy",
+        ride_duration_min=10,
         discounts=DiscountProfile(ztm_warszawa_ulgowy=True),
     )
     result = estimate_price(seg)
     assert result.amount == 1.70
+
+
+def test_ztm_warszawa_bilet_bezplatny_uczen_podstawowki():
+    seg = Segment(
+        Carrier.ZTM_WARSZAWA,
+        "Centrum",
+        "Plac Zamkowy",
+        ride_duration_min=10,
+        discounts=DiscountProfile(ztm_warszawa_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
 
 
 def test_ztm_warszawa_bilet_90_minutowy():
@@ -404,11 +443,26 @@ def test_mpk_krakow_bilet_15_minutowy_normalny():
 
 def test_mpk_krakow_bilet_60_minutowy_ulgowy():
     seg = Segment(
-        Carrier.MPK_KRAKOW, "Rynek", "Nowa Huta", ride_duration_min=45,
+        Carrier.MPK_KRAKOW,
+        "Rynek",
+        "Nowa Huta",
+        ride_duration_min=45,
         discounts=DiscountProfile(mpk_krakow_ulgowy=True),
     )
     result = estimate_price(seg)
     assert result.amount == 4.00  # bilet 60-minutowy ulgowy (8 PLN / 2), cennik od 2.03.2026
+
+
+def test_mpk_krakow_bilet_bezplatny_uczen_podstawowki():
+    seg = Segment(
+        Carrier.MPK_KRAKOW,
+        "Rynek",
+        "Nowa Huta",
+        ride_duration_min=45,
+        discounts=DiscountProfile(mpk_krakow_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
 
 
 def test_mpk_krakow_przekroczenie_najdluzszego_biletu_to_szacunek():
@@ -425,9 +479,36 @@ def test_ztm_poznan_bilet_15_minutowy_normalny():
     assert result.amount == 5.00  # cennik od 1.09.2025
 
 
+def test_ztm_poznan_bilet_bezplatny_senior_70_plus():
+    seg = Segment(
+        Carrier.ZTM_POZNAN,
+        "A",
+        "B",
+        ride_duration_min=10,
+        discounts=DiscountProfile(ztm_poznan_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
+def test_ztm_poznan_bezplatny_ma_priorytet_nad_ulgowym():
+    seg = Segment(
+        Carrier.ZTM_POZNAN,
+        "A",
+        "B",
+        ride_duration_min=10,
+        discounts=DiscountProfile(ztm_poznan_bezplatny=True, ztm_poznan_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
 def test_ztm_poznan_bilet_90_minutowy_ulgowy():
     seg = Segment(
-        Carrier.ZTM_POZNAN, "A", "B", ride_duration_min=90,
+        Carrier.ZTM_POZNAN,
+        "A",
+        "B",
+        ride_duration_min=90,
         discounts=DiscountProfile(ztm_poznan_ulgowy=True),
     )
     result = estimate_price(seg)
@@ -443,11 +524,38 @@ def test_mpk_wroclaw_bilet_30_minutowy_normalny():
 
 def test_mpk_wroclaw_bilet_60_minutowy_ulgowy():
     seg = Segment(
-        Carrier.MPK_WROCLAW, "A", "B", ride_duration_min=50,
+        Carrier.MPK_WROCLAW,
+        "A",
+        "B",
+        ride_duration_min=50,
         discounts=DiscountProfile(mpk_wroclaw_ulgowy=True),
     )
     result = estimate_price(seg)
     assert result.amount == 2.60
+
+
+def test_mpk_wroclaw_bilet_bezplatny_uczen():
+    seg = Segment(
+        Carrier.MPK_WROCLAW,
+        "A",
+        "B",
+        ride_duration_min=50,
+        discounts=DiscountProfile(mpk_wroclaw_bezplatny=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
+def test_mpk_wroclaw_bezplatny_ma_priorytet_nad_ulgowym():
+    seg = Segment(
+        Carrier.MPK_WROCLAW,
+        "A",
+        "B",
+        ride_duration_min=50,
+        discounts=DiscountProfile(mpk_wroclaw_bezplatny=True, mpk_wroclaw_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
 
 
 def test_bvg_berlin_kurzstrecke_normalny():
@@ -460,14 +568,119 @@ def test_bvg_berlin_kurzstrecke_normalny():
 
 def test_bvg_berlin_strefa_ab_ulgowy():
     seg = Segment(
-        Carrier.BVG_BERLIN, "Alexanderplatz", "Potsdam Hbf", ride_duration_min=60,
+        Carrier.BVG_BERLIN,
+        "Alexanderplatz",
+        "Potsdam Hbf",
+        ride_duration_min=60,
         discounts=DiscountProfile(bvg_berlin_ulgowy=True),
     )
     result = estimate_price(seg)
     assert result.amount == 2.50
 
 
+def test_bvg_berlin_schwerbehindert_bezplatny():
+    seg = Segment(
+        Carrier.BVG_BERLIN,
+        "Alexanderplatz",
+        "Potsdam Hbf",
+        ride_duration_min=60,
+        discounts=DiscountProfile(bvg_berlin_schwerbehindert=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
+def test_bvg_berlin_schwerbehindert_ma_priorytet_nad_ulgowym():
+    seg = Segment(
+        Carrier.BVG_BERLIN,
+        "Alexanderplatz",
+        "Potsdam Hbf",
+        ride_duration_min=60,
+        discounts=DiscountProfile(bvg_berlin_schwerbehindert=True, bvg_berlin_ulgowy=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+
+
 def test_bvg_berlin_bez_czasu_jazdy_podnosi_blad():
     seg = Segment(Carrier.BVG_BERLIN, "A", "B")
     with pytest.raises(ValueError):
         estimate_price(seg)
+
+
+def test_hvv_einzelkarte_normalny():
+    seg = Segment(Carrier.HVV, "Hauptbahnhof", "Landungsbrücken")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == 4.10  # Tarifstand 01.01.2026, najniższa strefa
+
+
+def test_hvv_einzelkarte_dziecko():
+    seg = Segment(
+        Carrier.HVV, "A", "B", discounts=DiscountProfile(hvv_dziecko=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 1.50
+
+
+def test_mvv_einzelfahrkarte_zone_m_normalny():
+    seg = Segment(Carrier.MVV, "Marienplatz", "Hauptbahnhof")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == 4.20  # ceny od 01.01.2026, Zone M
+
+
+def test_mvv_einzelfahrkarte_zone_m_dziecko():
+    seg = Segment(
+        Carrier.MVV, "A", "B", discounts=DiscountProfile(mvv_dziecko=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 2.00
+
+
+def test_vrs_koln_estimate_official_preisstufe_1b():
+    """VRS/Köln: dialogforum.vrs.de nazywa jednoznacznie każdy poziom cenowy (1b = przejazd
+    w obrębie Kolonii/Bonn), więc mapowanie nazwa->kwota jest teraz potwierdzone i wynik jest
+    OFFICIAL (w poprzedniej wersji było ESTIMATE z powodu niejednoznacznego źródła)."""
+    seg = Segment(Carrier.VRS_KOLN, "Dom/Hauptbahnhof", "Neumarkt")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == 3.50  # Preisstufe 1b, dialogforum.vrs.de
+
+
+def test_vrs_koln_dziecko_tansze_niz_normalny():
+    seg_normalny = Segment(Carrier.VRS_KOLN, "A", "B")
+    seg_dziecko = Segment(
+        Carrier.VRS_KOLN, "A", "B", discounts=DiscountProfile(vrs_koln_dziecko=True),
+    )
+    assert estimate_price(seg_dziecko).amount < estimate_price(seg_normalny).amount
+
+
+def test_hvv_schwerbehinderte_bezplatnie():
+    seg = Segment(
+        Carrier.HVV, "A", "B", discounts=DiscountProfile(schwerbehinderte_wertmarke_de=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+    assert result.price_type is PriceType.OFFICIAL
+
+
+def test_mvv_schwerbehinderte_bezplatnie():
+    seg = Segment(
+        Carrier.MVV, "A", "B", discounts=DiscountProfile(schwerbehinderte_wertmarke_de=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+    assert result.price_type is PriceType.OFFICIAL
+
+
+def test_vrs_koln_schwerbehinderte_bezplatnie():
+    seg = Segment(
+        Carrier.VRS_KOLN, "A", "B", discounts=DiscountProfile(schwerbehinderte_wertmarke_de=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+    assert result.price_type is PriceType.OFFICIAL

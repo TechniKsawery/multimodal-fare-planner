@@ -1,0 +1,21 @@
+{
+  "_zrodlo": "https://dialogforum.vrs.de/en/tickets/ticket-assortment/ticket/einzeltickets — oficjalna angielska strona VRS 'Dialogforum', tabela Einzelticket per Preisstufe z WYRAŹNYM opisem każdego poziomu (1a = gmina w której się jest, poza Kolonią/Bonn; 1b = przejazd w obrębie Kolonii lub Bonn; 2a = do sąsiedniej gminy; 2b = relacja z Kolonią/Bonn jako jednym z punktów; 3-5 = coraz dalsze relacje, max. poziom 5 w obszarze VRS). Zweryfikowano 2026-10-10.",
+  "_zrodlo_poprzednia_wersja": "Poprzednia wersja tego pliku (zweryfikowana w przeglądarce 2026-10-09 na vrs.de/tickets/ticketsortiment/einzelticket) miała NIEPOTWIERDZONE mapowanie nazwa-poziomu->kwota (tooltips ucinały się przy odczycie) i dlatego kalkulator miał price_type=ESTIMATE. Nowe źródło (dialogforum.vrs.de) nazywa każdy poziom jednoznacznie, więc mapowanie jest teraz rozwiązane i kalkulator używa price_type=OFFICIAL. Kwoty też się zmieniły (np. poziom najniższy: 2,90->3,00 EUR) — prawdopodobnie inna data odczytu/korekta taryfy w trakcie 2026, nowe źródło jest bardziej wiarygodne (jednoznaczne nazwy) i nowsze.",
+  "_zrodlo_niepelnosprawnosc": "Bezpłatny przejazd dla osób z ciężką niepełnosprawnością (Merkzeichen G/aG/H/Bl/Gl + ważna Wertmarke) na podstawie § 228 SGB IX — zasada ogólnoniemiecka, dotyczy identycznie VRS/KVB, nie jest to taryfa specyficzna dla Kolonii. Zweryfikowano 2026-10-10.",
+  "_zrodlo_dzieci": "Dzieci poniżej 6 lat jeżdżą bezpłatnie (VRS_Gemeinschaftstarif_01072025.pdf, vrs.de, cytat: 'Kinder unter sechs Jahren werden unentgeltlich befördert'), Kindertarif 6-14 lat zgodnie z cenami 'dziecko' w tabeli poniżej (dialogforum.vrs.de). Zweryfikowano 2026-10-10.",
+  "_uwaga": "Preisstufe 1a i 1b to OSOBNE strefy o tej samej 'odległości' (jedna gmina) — różnica jest administracyjna: 1a dotyczy przejazdu w obrębie innej gminy VRS, 1b dotyczy przejazdu w obrębie samej Kolonii lub Bonn (czyli to, czego potrzebuje nasz kalkulator miejski). Kalkulator (fares/kvb.py) domyślnie liczy Preisstufe 1b. Dla relacji wychodzących poza miasto rzeczywista cena jest wyższa — patrz pełna tabela poniżej.",
+  "waluta": "EUR",
+  "nazwa_przewoznika": "VRS (Verkehrsverbund Rhein-Sieg) — Rheinlandtarif, obszar Kolonii/Bonn",
+  "as_of": "2026-10-10",
+  "wiek_dziecko_lata": "6-14 (dzieci do 6 lat jeżdżą bezpłatnie)",
+  "poziom_uzywany_domyslnie": "1b",
+  "poziomy_cenowe": [
+    {"poziom": "1a", "opis": "gmina w której się jest, poza Kolonią/Bonn", "normalny": 3.00, "dziecko": 1.50},
+    {"poziom": "1b", "opis": "przejazd w obrębie Kolonii lub Bonn", "normalny": 3.50, "dziecko": 1.80},
+    {"poziom": "2a", "opis": "przejazd do sąsiedniej gminy", "normalny": 3.50, "dziecko": 1.80},
+    {"poziom": "2b", "opis": "relacja z Kolonią lub Bonn jako jednym z punktów", "normalny": 4.70, "dziecko": 2.40},
+    {"poziom": "3", "opis": "przejazd przez 3+ gminy", "normalny": 6.30, "dziecko": 3.10},
+    {"poziom": "4", "opis": "dalsza relacja", "normalny": 9.70, "dziecko": 4.60},
+    {"poziom": "5", "opis": "najdalsza relacja w obszarze VRS", "normalny": 14.10, "dziecko": 6.40}
+  ]
+}

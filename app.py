@@ -6,19 +6,24 @@ Wymaga działającego MOTIS (localhost:8080), patrz README.md.
 
 import datetime as dt
 import json
+import re
+from pathlib import Path
 
 import streamlit as st
 
 from attractions import (
     CATEGORY_LABELS,
     AttractionCategory,
+    best_price_for_attraction,
     evaluate_city_cards,
     get_attractions,
     get_city_cards,
     normalize_city,
     suggest_best_city_card,
 )
+from attractions import DiscountProfile as AttractionDiscountProfile
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
+from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
 from routing import motis_client
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
@@ -38,6 +43,39 @@ st.title("Multimodalna wyszukiwarka tras")
 # tylko odrobinę, dostaje łagodniejszą adnotację "prawie bezpieczna" zamiast zwykłego
 # ostrzeżenia o ryzykownej przesiadce.
 NEAR_MISS_MARGIN_MINUTES = 10
+
+# Lokalne profile użytkowników (zaznaczone atrakcje per miasto), żeby kilka osób mogło
+# współdzielić to samo demo i każda wracała do swoich wyborów pod własną nazwą profilu.
+# Katalog data/ jest w .gitignore — to dane runtime, nie repo.
+PROFILES_DIR = Path("data/profiles")
+
+
+def _profile_slug(name: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", name.strip().lower()).strip("-")
+    return slug or "profil"
+
+
+def _profile_path(name: str) -> Path:
+    return PROFILES_DIR / f"{_profile_slug(name)}.json"
+
+
+def _load_profile(name: str) -> dict:
+    path = _profile_path(name)
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_profile_selection(name: str, city: str, attraction_names: list[str]) -> None:
+    PROFILES_DIR.mkdir(parents=True, exist_ok=True)
+    data = _load_profile(name)
+    data[city] = attraction_names
+    _profile_path(name).write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def _is_near_miss(warning) -> bool:
@@ -75,6 +113,11 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 f"+ bagaż {p.breakdown.get('bagaz', 0):.2f} {p.currency}"
             )
             zrodlo_bagazu = p.breakdown.get("bagaz_zrodlo", "")
+        alt = p.breakdown.get("alternatywna_oferta")
+        alternatywa = ""
+        if alt:
+            zrodlo_oferty = "DB Super Sparpreis Europa" if alt["zrodlo"] == "db" else "PKP Oferta Polska-Niemcy"
+            alternatywa = f"{alt['cena']:.2f} {alt['waluta']} ({zrodlo_oferty})"
         rows.append(
             {
                 "Środek": leg.mode.value,
@@ -89,6 +132,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 "Cena / dystans": price,
                 "Rozbicie ceny lotu": rozbicie,
                 "Cennik bagażu": zrodlo_bagazu,
+                "Alternatywna oferta (PL-DE)": alternatywa,
             }
         )
     st.dataframe(rows, width="stretch", hide_index=True)
@@ -130,7 +174,11 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             )
 
 
-def render_attractions_and_city_cards(destination_label: str, fallback_text: str = "") -> None:
+def render_attractions_and_city_cards(
+    destination_label: str,
+    fallback_text: str = "",
+    attraction_profile: "AttractionDiscountProfile | None" = None,
+) -> None:
     # destination_label pochodzi z podpowiedzi geocodingu MOTIS i dla konkretnego adresu
     # (np. "Buerer Straße 8") często NIE zawiera nazwy miasta, więc normalize_city się nie
     # trafia — spada wtedy na fallback_text, czyli surowy tekst wpisany w pole "Dokąd (adres)"
@@ -183,6 +231,44 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
     default_selected = [a.name for a in all_city_attrs if a.highlight]
 
     st.subheader("Zaplanuj wizytę")
+    st.caption(
+        "Kilka osób korzysta z tego samego demo? Podaj swoją nazwę profilu, by zapisać "
+        "zaznaczenia pod sobą i wrócić do nich później, bez nadpisywania cudzych wyborów."
+    )
+    profile_col, save_col, load_col = st.columns([3, 1, 1])
+    with profile_col:
+        profile_name = st.text_input(
+            "Twój profil",
+            key="profile_name",
+            placeholder="np. Kasia",
+        )
+    with save_col:
+        st.markdown("<div style='height: 1.6em'></div>", unsafe_allow_html=True)
+        if st.button(
+            "💾 Zapisz",
+            key="save_profile_btn",
+            disabled=not profile_name.strip(),
+            help="Zapisuje bieżące zaznaczenia dla tego miasta pod podaną nazwą profilu.",
+        ):
+            _save_profile_selection(
+                profile_name, norm_city, st.session_state.get("chosen_attractions", default_selected)
+            )
+            st.success(f"Zapisano zaznaczenia dla {display_city} w profilu „{profile_name.strip()}”.")
+    with load_col:
+        st.markdown("<div style='height: 1.6em'></div>", unsafe_allow_html=True)
+        if st.button(
+            "📂 Wczytaj",
+            key="load_profile_btn",
+            disabled=not profile_name.strip(),
+            help="Wczytuje wcześniej zapisane zaznaczenia dla tego miasta z tego profilu.",
+        ):
+            saved = _load_profile(profile_name).get(norm_city, [])
+            st.session_state["chosen_attractions"] = [n for n in saved if n in attr_names]
+            if saved:
+                st.success(f"Wczytano zaznaczenia dla {display_city} z profilu „{profile_name.strip()}”.")
+            else:
+                st.info(f"Profil „{profile_name.strip()}” nie ma jeszcze zapisanych zaznaczeń dla {display_city}.")
+
     chosen_names = st.multiselect(
         "Zaznacz miejsca, które planujesz odwiedzić (posłużą do kalkulacji opłacalności karty):",
         options=attr_names,
@@ -206,7 +292,10 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
         )
 
         best_eval = suggest_best_city_card(
-            norm_city, chosen_objects, estimated_transit_cost=transit_cost
+            norm_city,
+            chosen_objects,
+            estimated_transit_cost=transit_cost,
+            profile=attraction_profile,
         )
         if best_eval and best_eval.is_recommended:
             st.success(f"🎉 **Rekomendacja:** {best_eval.summary}")
@@ -216,7 +305,12 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
                 "Poniżej znajdziesz porównanie wszystkich dostępnych wariantów."
             )
 
-        evals = evaluate_city_cards(norm_city, chosen_objects, estimated_transit_cost=transit_cost)
+        evals = evaluate_city_cards(
+            norm_city,
+            chosen_objects,
+            estimated_transit_cost=transit_cost,
+            profile=attraction_profile,
+        )
         if evals:
             card_rows = []
             for ev in evals:
@@ -245,12 +339,17 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
     for idx, attr in enumerate(filtered_attrs):
         col = cols[idx % 2]
         with col:
-            price_text = (
-                f"{attr.normal_price:.2f} {attr.currency}"
-                if attr.normal_price > 0
-                else "Wstęp bezpłatny"
+            price_val, price_label, price_source = best_price_for_attraction(
+                attr, attraction_profile
             )
-            if not attr.price_verified:
+            price_text = (
+                f"{price_val:.2f} {attr.currency}" if price_val > 0 else "Wstęp bezpłatny"
+            )
+            if price_source is not None:
+                price_text += f" ({price_label})"
+                if not price_source.price_verified:
+                    price_text += " (cena niepotwierdzona)"
+            elif not attr.price_verified:
                 price_text += " (cena niepotwierdzona)"
             discount_note = (
                 f" • zniżka z kartą: do {attr.default_card_discount_percent:.0f}%"
@@ -304,6 +403,31 @@ wiek = st.number_input(
     "uczeń/student ma bilet ulgowy niezależnie od wieku, a wiek sam z siebie nie daje "
     "pełnego obrazu uprawnień.",
 )
+obywatelstwo = st.selectbox(
+    "Obywatelstwo",
+    [None, "PL", "UE", "poza_UE"],
+    format_func=lambda o: {
+        None: "nie podano",
+        "PL": "Polska",
+        "UE": "inny kraj UE/EOG",
+        "poza_UE": "poza UE/EOG",
+    }[o],
+    help="Nie zmienia ceny — po wyszukaniu pokażemy ostrzeżenia, czy zaznaczone ulgi realnie"
+    " przysługują cudzoziemcowi wg zweryfikowanych źródeł (np. PKP ulga ustawowa, uznawanie"
+    " zagranicznych legitymacji w MPK/ZTM).",
+)
+c_attr_profile1, c_attr_profile2 = st.columns(2)
+uczen_student = c_attr_profile1.checkbox(
+    "Uczeń/student (legitymacja)",
+    help="Wpływa na cenę ATRAKCJI (nie biletów transportu) tam, gdzie operator ma potwierdzoną zniżkę uczniowską/studencką, np. ZOOM Erlebniswelt czy Deutsches Fußballmuseum.",
+)
+senior_attrakcje = c_attr_profile2.checkbox(
+    "Senior",
+    help="Wpływa na cenę ATRAKCJI tam, gdzie operator ma potwierdzoną zniżkę senioralną.",
+)
+attraction_profile = AttractionDiscountProfile(
+    age=wiek, is_student=uczen_student, is_senior=senior_attrakcje
+)
 
 st.subheader("Skąd i dokąd")
 c_origin, c_dest = st.columns(2)
@@ -313,7 +437,12 @@ with c_dest:
     dest_resolved = address_picker("Dokąd (adres)", DEFAULT_TO, "dest")
 
 with st.form("search"):
-    date = st.date_input("Data", dt.date.fromisoformat(DEMO_DATE))
+    date = st.date_input(
+        "Data",
+        dt.date.today() + dt.timedelta(days=5),
+        help="Domyślnie dziś+5 dni, żeby zawsze trafiać w okno rozkładu MOTIS - zmień ręcznie,"
+        " jeśli szukasz innego dnia.",
+    )
     c1, c2 = st.columns(2)
     pkp = c1.selectbox("Ulga PKP", PKP_ULGI)
     bc = c2.selectbox("BahnCard", ["brak", "25", "50", "100"])
@@ -329,6 +458,20 @@ with st.form("search"):
         value=6 <= wiek <= 14,
         help="Oficjalna zniżka VRR: 50% dla dzieci 6-14 lat, ściśle wg wieku.",
     )
+    child_with_guardian = False
+    if 6 <= wiek <= 14:
+        child_with_guardian = st.checkbox(
+            "Dziecko (6-14 lat) podróżuje z opiekunem (15+)",
+            value=False,
+            help="Dotyczy TYLKO biletu DB na odcinku PL-DE: dziecko z opiekunem jedzie "
+            "bezpłatnie (bahn.de); bez zaznaczenia liczone jako podróżujące samodzielnie "
+            "(-50% tylko na niemiecki odcinek trasy). Oferta PKP nie rozróżnia opiekuna.",
+        )
+    st.caption("Taryfa dziecięca (Kindertarif, 6-14 lat) w innych miastach niemieckich")
+    k1, k2, k3 = st.columns(3)
+    hvv_dziecko = k1.checkbox("Hamburg (HVV)", value=6 <= wiek <= 14)
+    mvv_dziecko = k2.checkbox("Monachium (MVV)", value=6 <= wiek <= 14)
+    vrs_koln_dziecko = k3.checkbox("Kolonia (VRS)", value=6 <= wiek <= 14)
     st.caption("Bilety ulgowe w innych miastach (50% — zaznacz, jeśli dotyczy)")
     u1, u2, u3, u4, u5 = st.columns(5)
     ztm_warszawa_ulgowy = u1.checkbox("Warszawa", value=wiek < 18)
@@ -336,6 +479,59 @@ with st.form("search"):
     ztm_poznan_ulgowy = u3.checkbox("Poznań", value=wiek < 18)
     mpk_wroclaw_ulgowy = u4.checkbox("Wrocław", value=wiek < 18)
     bvg_berlin_ulgowy = u5.checkbox("Berlin", value=wiek < 18)
+    st.caption(
+        "Przejazdy bezpłatne (100%, inna kategoria niż ulgowy — ma priorytet nad checkboxem "
+        "ulgowy tego miasta wyżej, jeśli zaznaczone)"
+    )
+    b1, b2, b3, b4, b5, b6 = st.columns(6)
+    ztm_warszawa_bezplatny = b1.checkbox(
+        "Warszawa: uczeń/senior 70+/niepełnosprawność znaczna",
+        value=wiek >= 70,
+        help="Karta Ucznia (tylko szkoła podstawowa, NIE ponadpodstawowa); osoby 70+ (bez wymogu"
+        " zamieszkania); niepełnosprawność ZNACZNA 26+ (UWAGA: 'umiarkowana' to tylko ulgowy"
+        " 50%, nie ta kategoria).",
+    )
+    mpk_krakow_bezplatny = b2.checkbox(
+        "Kraków: uczeń/senior 70+/niepełnosprawność znaczna",
+        value=wiek >= 70,
+        help="Uczniowie podstawówek z Krakowa/Metropolii (NIE ponadpodstawowe); osoby 70+ (bez"
+        " wymogu zamieszkania); niepełnosprawność ZNACZNA, lub UMIARKOWANA tylko przy symbolach"
+        " 04-O/05-R/10-N/01-U (inaczej to tylko ulgowy 50%).",
+    )
+    mpk_wroclaw_bezplatny = b3.checkbox(
+        "Wrocław: uczeń/dziecko/senior",
+        value=wiek <= 7 or wiek <= 21 or wiek >= 65,
+        help="Jedna kategoria 100% w naszych danych obejmuje kilka tytułów potwierdzonych na"
+        " wroclaw.pl: uczniowie szkół podstawowych/ponadpodstawowych do 21 lat, dzieci do 7 lat"
+        " i seniorzy 65+ (bez wymogu zamieszkania we Wrocławiu). Inne potwierdzone tytuły z tej"
+        " samej kategorii (niepełnosprawność, rodziny wielodzietne itd.) zaznacz też tutaj,"
+        " niezależnie od wieku.",
+    )
+    ztm_lublin_bezplatny = b4.checkbox(
+        "Lublin: uczeń podstawówki",
+        help="Uczniowie szkół podstawowych (gmina Lublin) — NIE potwierdzone dla"
+        " ponadpodstawowych (licea), tam zostaje ulgowy 50%.",
+    )
+    ztm_poznan_bezplatny = b5.checkbox(
+        "Poznań: senior 70+/niepełnosprawność znaczna",
+        value=wiek >= 70,
+        help="W Poznaniu NIE ma bezpłatnego dla zwykłych uczniów (tylko ulgowy 50%), ale JEST dla"
+        " osób 70+ (bez wymogu zamieszkania) i niepełnosprawności znacznej/I grupy — bez dolnej"
+        " granicy wieku 26 lat, inaczej niż w Warszawie/Krakowie.",
+    )
+    bvg_berlin_schwerbehindert = b6.checkbox(
+        "Berlin: Schwerbehindertenausweis + Wertmarke",
+        help="Bezpłatne w Berlinie TYLKO z legitymacją niepełnosprawności (Merkzeichen G/aG/H/Bl)"
+        " ORAZ osobno wykupioną Wertmarke (ok. 104 EUR/rok) — samo orzeczenie (nawet GdB 50) nie"
+        " wystarcza. Nie zaznaczaj bez obu dokumentów naraz. Brak w Berlinie ulgi wiekowej dla"
+        " seniorów (65+ to płatny abonament VBB-Abo 65plus, nie modelowany tutaj).",
+    )
+    schwerbehinderte_wertmarke_de = st.checkbox(
+        "Bezpłatny przejazd — ciężka niepełnosprawność z Wertmarke (Niemcy)",
+        help="§ 228 SGB IX: osoby z Merkzeichen G/aG/H/Bl/Gl i ważną Wertmarke w legitymacji "
+        "jeżdżą bezpłatnie lokalnym transportem w całych Niemczech. Obsłużone tu dla Hamburga "
+        "(HVV), Monachium (MVV) i Kolonii (VRS) — nie wpływa na inne miasta/przewoźników.",
+    )
     submitted = st.form_submit_button("Szukaj")
 
 if submitted:
@@ -346,14 +542,28 @@ if submitted:
         pkp_ulga_kod=pkp,
         bahncard=None if bc == "brak" else bc,
         ztm_lublin_ulgowy=ztm_ulgowy,
+        ztm_lublin_bezplatny=ztm_lublin_bezplatny,
         ztm_warszawa_ulgowy=ztm_warszawa_ulgowy,
+        ztm_warszawa_bezplatny=ztm_warszawa_bezplatny,
         mpk_krakow_ulgowy=mpk_krakow_ulgowy,
+        mpk_krakow_bezplatny=mpk_krakow_bezplatny,
         ztm_poznan_ulgowy=ztm_poznan_ulgowy,
+        ztm_poznan_bezplatny=ztm_poznan_bezplatny,
         mpk_wroclaw_ulgowy=mpk_wroclaw_ulgowy,
+        mpk_wroclaw_bezplatny=mpk_wroclaw_bezplatny,
         bvg_berlin_ulgowy=bvg_berlin_ulgowy,
+        bvg_berlin_schwerbehindert=bvg_berlin_schwerbehindert,
         vrr_dziecko=vrr_dziecko,
+        hvv_dziecko=hvv_dziecko,
+        mvv_dziecko=mvv_dziecko,
+        vrs_koln_dziecko=vrs_koln_dziecko,
+        schwerbehinderte_wertmarke_de=schwerbehinderte_wertmarke_de,
         age=wiek,
+        child_with_guardian=child_with_guardian,
+        obywatelstwo=obywatelstwo,
     )
+    for ostrzezenie in foreigner_warnings_for(profile):
+        st.warning(ostrzezenie)
     try:
         with st.spinner("Szukam połączeń..."):
             request = RouteRequest(
@@ -468,6 +678,7 @@ if result is not None:
             render_itinerary(it, wiek, bc if bc != "brak" else None)
 
     render_attractions_and_city_cards(
-        request.destination_label, fallback_text=st.session_state.get("dest_query", "")
+        request.destination_label,
+        fallback_text=st.session_state.get("dest_query", ""),
+        attraction_profile=attraction_profile,
     )
-

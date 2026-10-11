@@ -1,6 +1,7 @@
 {
   "_zrodlo": "Katalog atrakcji i rekomendowanych miejsc (PL + DE)",
-  "_data_aktualizacji": "2026-10-06",
+  "_data_aktualizacji": "2026-10-09",
+  "_UWAGA_ceny_grupowe": "AKTUALIZACJA 2026-10-10: dodano pola child_price/student_price/senior_price/family_price (GroupPrice w model.py) — kalkulator (best_price_for_attraction w service.py) bierze teraz najtańszą cenę z DOWOLNEGO potwierdzonego tytułu (wiek/uczeń-student/senior), nie tylko cenę dorosłego. Wypełnione na razie tylko tam, gdzie kwota jest potwierdzona wprost w cenniku operatora (patrz pola źródło/data przy każdym polu): ZOOM Erlebniswelt (dziecko 4-12 lat 15,50€, uczeń/student 17,50€ — UWAGA: <4 lata gratis NIE jest jeszcze modelowane, bo schemat ma tylko jedno pole child_price na atrakcję), Veltins-Arena (młodzież do 21 lat 5€), Signal Iduna Park (dziecko do 6 lat 1€, ermäßigt 12€ — zweryfikowane 2026-10-10 bezpośrednio w sklepie biletowym dla tego samego produktu 18€), Deutsches Fußballmuseum (dziecko do 6 lat gratis, uczeń/student <26 lat 15€), Alte Försterei (dziecko do 6 lat gratis, ermäßigt 10€, karta rodzinna 34€ — zweryfikowane 2026-10-10), Zamek Lubelski (dziecko do 7 lat gratis, ulgowy 30€, rodzic+dziecko do 16 lat 30€ — zweryfikowane 2026-10-10), Katedra Wawelska (ulgowy 18 PLN, PRZY OKAZJI poprawiono normal_price 22->26 PLN po weryfikacji na żywo), Zeche Zollverein (ermäßigt 'od' 9,50€ — wartość minimalna z cennika, patrz _UWAGA_warianty_zwiedzania przy tej atrakcji: pierwotny plan '6 wariantów' nie odpowiada rzeczywistości, operator ma 20+ nazwanych tras). Museumsinsel: dzieci/młodzież do 18 lat gratis potwierdzone, ale ogólna 50% zniżka SMB NIE jest explicite powiązana z tym konkretnym biletem zbiorczym — celowo niewypełniona, nie zgadywana. Olympiastadion Berlin: WERYFIKACJA 2026-10-10 wykazała, że istniejąca cena normal_price=15€ nie odpowiada żadnemu realnemu produktowi operatora (self-guided 11€, Führungen 17-25€) — price_verified przestawione na false, wymaga wyjaśnienia przed dodaniem zniżek. Bilety rodzinne (family_price) i zniżki grupowe (grupy 20+) poza wymienionymi wyżej jeszcze niewypełnione. UPROSZCZENIE do rozważenia: w evaluate_city_card_variant zniżka kartowa liczy się DODATKOWO na cenie z tytułu statusu — część operatorów może tego nie łączyć (nie zweryfikowane per atrakcja).",
   "atrakcje": [
     {
       "id": "gelsenkirchen_veltins_arena",
@@ -8,18 +9,27 @@
       "city": "gelsenkirchen",
       "category": "sport",
       "description": "Dom klubu FC Schalke 04 w Gelsenkirchen.",
-      "normal_price": 11.0,
+      "normal_price": 10.0,
       "currency": "EUR",
       "default_card_discount_percent": 50.0,
       "address": "Arenaring 1, 45891 Gelsenkirchen",
-      "official_url": "https://veltins-arena.de",
+      "official_url": "https://veltins-arena.de/veltins-arena/stadionfuehrungen/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "piłka nożna",
         "stadion",
         "schalke",
         "bundesliga"
-      ]
+      ],
+      "child_price": {
+        "price": 5.0,
+        "label": "Młodzież do 21 lat",
+        "max_age": 21,
+        "source_url": "https://veltins-arena.de/veltins-arena/stadionfuehrungen/",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "gelsenkirchen_zoom_erlebniswelt",
@@ -27,11 +37,11 @@
       "city": "gelsenkirchen",
       "category": "rozrywka",
       "description": "Nagradzany ogród zoologiczny nowej generacji z immersyjnymi światami tematycznymi: Alaska, Afryka i Azja.",
-      "normal_price": 21.5,
+      "normal_price": 23.5,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Bleckstraße 64, 45889 Gelsenkirchen",
-      "official_url": "https://www.zoom-erlebniswelt.de",
+      "official_url": "https://www.zoom-erlebniswelt.de/preise/",
       "price_verified": true,
       "highlight": true,
       "tags": [
@@ -39,7 +49,24 @@
         "zwierzęta",
         "rodzina",
         "przygoda"
-      ]
+      ],
+      "child_price": {
+        "price": 15.5,
+        "label": "Dziecko 4-12 lat",
+        "min_age": 4,
+        "max_age": 12,
+        "source_url": "https://www.zoom-erlebniswelt.de/preise/",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 17.5,
+        "label": "Uczeń/student (z legitymacją)",
+        "requires_status": "ważna legitymacja ucznia/studenta",
+        "source_url": "https://www.zoom-erlebniswelt.de/preise/",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "gelsenkirchen_nordsternpark",
@@ -66,18 +93,28 @@
       "city": "gelsenkirchen",
       "category": "turystyka_kultura",
       "description": "Ikona Szlaku Dziedzictwa Przemysłowego, wpisana na listę UNESCO.",
-      "normal_price": 10.0,
+      "normal_price": 12.5,
       "currency": "EUR",
       "default_card_discount_percent": 50.0,
       "address": "Gelsenkirchener Str. 181, 45309 Essen",
       "official_url": "https://www.zollverein.de",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "unesco",
         "muzeum",
         "kopalnia",
         "architektura"
-      ]
+      ],
+      "student_price": {
+        "price": 9.5,
+        "label": "Ermäßigt (od — cena bazowa dla 1-godzinnych wariantów zwiedzania)",
+        "requires_status": "dokładna kwota zależy od konkretnej nazwanej trasy (operator ma 20+ nazwanych Führungen w 2 kategoriach czasowych: 1h i 2h) — 9,50 EUR to zweryfikowana wartość MINIMALNA ('ab') z oficjalnej tabeli cen, nie uśredniona ani zgadnięta",
+        "source_url": "https://www.zollverein.de/besuch-planen/eintrittspreise/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "_UWAGA_warianty_zwiedzania": "2026-10-10: poprzednia notatka w tym pliku mówiła o '6 wariantach zwiedzania' Zeche Zollverein — PO WERYFIKACJI NA ŻYWO (zollverein.de/besuch-planen/eintrittspreise/ + zollverein.ticketfritz.de) to się NIE POTWIERDZA: oficjalny katalog ma 20+ osobno nazwanych Führungen pogrupowanych w 2 kategorie czasowe (1-godzinne od 12,50 EUR/ermäßigt od 9,50 EUR, 2-godzinne od 16,50 EUR/ermäßigt od 13,50 EUR), plus osobne produkty (Zollverein-Rundfahrten 17 EUR, linia turystyczna 7-8 EUR). Rozbicie na 6 osobnych wpisów Attraction, jak proponowano, nie odpowiada rzeczywistej strukturze cennika — wymaga decyzji produktowej (które konkretne trasy modelować osobno), a nie tylko weryfikacji. Jeden przykładowo sprawdzony konkretny produkt, 'Von Kohle, Koks und harter Arbeit' (1,5h): 14,50 EUR dorosły / 11,50 EUR ermäßigt i dzieci 5-17 lat / Familienticket I 22,50 EUR / Familienticket II 33,50 EUR — ale TO NIE jest ten sam produkt co obecny wpis 12,50 EUR w tym pliku (inny czas trwania i cena)."
     },
     {
       "id": "dortmund_signal_iduna_park",
@@ -85,18 +122,35 @@
       "city": "gelsenkirchen",
       "category": "sport",
       "description": "Największy stadion piłkarski w Niemczech (81 tys.",
-      "normal_price": 15.0,
+      "normal_price": 18.0,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Strobelallee 50, 44139 Dortmund",
       "official_url": "https://www.bvb.de",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "piłka nożna",
         "stadion",
         "bvb",
         "dortmund"
-      ]
+      ],
+      "child_price": {
+        "price": 1.0,
+        "label": "Dziecko do 6 lat",
+        "max_age": 6,
+        "source_url": "https://ticket-onlineshop.com/ols/bvbstadion",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 12.0,
+        "label": "Ermäßigt (Jugendliche unter 18, Schüler, Studenten, Arbeitslose, Schwerbehinderte, Rentner)",
+        "requires_status": "Jugendliche unter 18, Schüler, Studenten, Arbeitslose, Schwerbehinderte, Rentner — wszystkie tylko z ważnym dokumentem (dokładny cytat operatora, potwierdzony po wybraniu konkretnego terminu zwiedzania 11.10.2026 w sklepie biletowym)",
+        "source_url": "https://www.ticket-onlineshop.com/ols/bvbstadion/de/adrenalin/channel/shop/areaplan/venue/event/693365",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
     },
     {
       "id": "dortmund_fussballmuseum",
@@ -108,14 +162,31 @@
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Platz der Deutschen Einheit 1, 44137 Dortmund",
-      "official_url": "https://www.fussballmuseum.de",
+      "official_url": "https://www.fussballmuseum.de/museum/eintrittspreise",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "piłka nożna",
         "muzeum",
         "dfb",
         "sport"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dziecko do 6 lat (gratis)",
+        "max_age": 6,
+        "source_url": "https://www.fussballmuseum.de/museum/eintrittspreise",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 15.0,
+        "label": "Uczeń/student <26 lat (z legitymacją)",
+        "requires_status": "wiek <26 lat i ważna legitymacja ucznia/studenta",
+        "source_url": "https://www.fussballmuseum.de/museum/eintrittspreise",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "berlin_olympiastadion",
@@ -123,18 +194,44 @@
       "city": "berlin",
       "category": "sport",
       "description": "Legendarny stadion olimpijski z 1936 roku, dom Herthy BSC i arena finałów DFB-Pokal oraz Mistrzostw Europy.",
-      "normal_price": 15.0,
+      "normal_price": 11.0,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Olympischer Platz 3, 14053 Berlin",
-      "official_url": "https://olympiastadion.berlin",
+      "official_url": "https://olympiastadion.berlin/de/besichtigung/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "stadion",
         "sport",
         "historia",
         "olimpiada"
-      ]
+      ],
+      "child_price": {
+        "price": 6.0,
+        "label": "Dzieci 6-14 lat",
+        "min_age": 6,
+        "max_age": 14,
+        "source_url": "https://olympiastadion.berlin/de/besichtigung/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 8.0,
+        "label": "Ermäßigt (Schüler, Studenten, Auszubildende, Schwerbehinderte, BFD-Leistende, Arbeitslose, ALG II)",
+        "requires_status": "Schüler, Studenten, Auszubildende, Schwerbehinderte, BFD-Leistende, Arbeitslose, Empfänger von ALG II (jeweils mit gültigem Ausweis) oraz grupy od 10 osób",
+        "source_url": "https://olympiastadion.berlin/de/besichtigung/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 27.0,
+        "label": "Family Card (2 dorosłych + 3 dzieci, dzieci do 6 lat gratis w towarzystwie dorosłego)",
+        "source_url": "https://olympiastadion.berlin/de/besichtigung/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "_UWAGA_produkt": "normal_price modeluje samodzielne zwiedzanie (Besichtigung), nie płatne Führungen z przewodnikiem (Highlight-Tour/Premium-Tour/Hertha BSC-Tour itd., 17-25€ dorosły) — to osobny produkt turystyczny, niemodelowany w tym katalogu. Zweryfikowane NA ŻYWO 2026-10-11 na olympiastadion.berlin/de/besichtigung/."
     },
     {
       "id": "berlin_alte_foersterei",
@@ -147,13 +244,37 @@
       "default_card_discount_percent": 0.0,
       "address": "An der Wuhlheide 263, 12555 Berlin",
       "official_url": "https://www.stadion-an-der-alten-foersterei.de",
+      "price_verified": true,
       "highlight": false,
       "tags": [
         "sport",
         "piłka nożna",
         "union berlin",
         "klimat"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci do 6 lat (bezpłatnie)",
+        "max_age": 6,
+        "source_url": "https://www.altefoersterei.berlin/de/stadion/stadionfuehrung-xcFo",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 10.0,
+        "label": "Ermäßigt (uczniowie/studenci/bezrobotni/renciści/członkowie klubu)",
+        "requires_status": "Schüler, Auszubildende, Studenten, Arbeitssuchende, Rentner, osoby z niepełnosprawnością od 50% GdB (opiekun wchodzi bezpłatnie), członkowie 1. FC Union Berlin — każdorazowo wymagany dokument",
+        "source_url": "https://www.altefoersterei.berlin/de/stadion/stadionfuehrung-xcFo",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 34.0,
+        "label": "Karta rodzinna (2 dorosłych + 2 dzieci do 14 lat)",
+        "source_url": "https://www.altefoersterei.berlin/de/stadion/stadionfuehrung-xcFo",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
     },
     {
       "id": "berlin_museumsinsel",
@@ -161,18 +282,28 @@
       "city": "berlin",
       "category": "turystyka_kultura",
       "description": "Światowej sławy kompleks 5 muzeów UNESCO w sercu Berlina (w tym Neues Museum ze słynnym popiersiem Nefertiti i Altes Museum).",
-      "normal_price": 14.0,
+      "normal_price": 24.0,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Bodestraße 1-3, 10178 Berlin",
-      "official_url": "https://www.smb.museum",
+      "official_url": "https://www.smb.museum/besuch-planen/preise-tickets/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "muzeum",
         "unesco",
         "sztuka",
         "starożytność"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci i młodzież do 18 lat (bezpłatnie)",
+        "max_age": 18,
+        "source_url": "https://www.smb.museum/besuch-planen/preise-tickets/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "_UWAGA_ermazigt": "2026-10-10: SMB (zarządca Museumsinsel) ogłasza ogólną 'allgemeine Ermäßigung' 50% dla uczniów/studentów/wolontariuszy/bezrobotnych (ALG I)/osób z niepełnosprawnością od 50% — ale ani strona ogólna (/besuch-planen/preise-tickets/), ani strona samego Museumsinsel-Ticket (/tickets-einlass/) nie podają wprost, że ta ogólna zniżka obejmuje TEN konkretny bilet zbiorczy (24 EUR) — nie wpisano student_price, żeby nie zgadywać (50% z 24 EUR to policzona, nie podana wprost kwota)."
     },
     {
       "id": "berlin_fernsehturm",
@@ -180,18 +311,30 @@
       "city": "berlin",
       "category": "rozrywka",
       "description": "Najwyższy obiekt w Niemczech (368 m) na Alexanderplatz.",
-      "normal_price": 24.5,
+      "normal_price": 20.0,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Panoramastraße 1A, 10178 Berlin",
-      "official_url": "https://tv-turm.de",
+      "official_url": "https://tv-turm.de/tickets/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "panorama",
         "widok",
         "alexanderplatz",
         "wieża"
-      ]
+      ],
+      "child_price": {
+        "price": 14.0,
+        "label": "Dziecko 4-14 lat (przykładowa stawka — ceny DYNAMICZNE per godzina/dzień, tak jak bilet dorosły)",
+        "min_age": 4,
+        "max_age": 14,
+        "requires_status": "cena zmienia się z godziną/dniem rezerwacji identycznie jak u dorosłych (np. 24 EUR dorosły / 14 EUR dziecko dla terminu 11.10.2026 9:00) — nie jest to kwota stała",
+        "source_url": "https://tv-turm.de/en/tickets-and-bundles/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "_UWAGA_dynamiczne_ceny": "2026-10-11: zweryfikowano NA ŻYWO w widżecie rezerwacji (tv-turm.de/en/tickets-and-bundles/) po wybraniu konkretnego terminu — ceny 'Standard Ticket' są DYNAMICZNE (zależą od godziny i dnia, np. 24-29,50 EUR dla dorosłego w ciągu jednego dnia), nie jedną stałą kwotą jak normal_price=20 sugeruje (to prawdopodobnie najniższa możliwa cena 'ab'/'from'). Kategoria 'Child' (4-14 lat) istnieje i ma analogicznie dynamiczną cenę, potwierdzoną przykładowo na 14 EUR. Jest też osobna kategoria 'Infant' (prawdopodobnie 0-3 lata) — jej konkretną cenę/wiek nie sprawdzono dalej (czas sesji)."
     },
     {
       "id": "berlin_brandenburger_tor",
@@ -204,6 +347,7 @@
       "default_card_discount_percent": 0.0,
       "address": "Pariser Platz, 10117 Berlin",
       "official_url": "https://www.berlin.de/sehenswuerdigkeiten/3560242-3558930-brandenburger-tor.html",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "zabytki",
@@ -233,15 +377,16 @@
     },
     {
       "id": "krakow_wawel",
-      "name": "Zamek Królewski na Wawelu i Katedra",
+      "name": "Zamek Królewski na Wawelu – Komnaty Królewskie",
       "city": "krakow",
       "category": "turystyka_kultura",
-      "description": "Historyczna siedziba królów Polski, Reprezentacyjne Komnaty Królewskie, Skarbiec Koronny oraz Katedra z Dzwonem Zygmunta.",
-      "normal_price": 35.0,
+      "description": "Historyczna siedziba królów Polski.",
+      "normal_price": 57.0,
       "currency": "PLN",
       "default_card_discount_percent": 20.0,
       "address": "Wawel 5, 31-001 Kraków",
       "official_url": "https://wawel.krakow.pl",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "zamek",
@@ -251,16 +396,45 @@
       ]
     },
     {
+      "id": "krakow_katedra_wawelska",
+      "name": "Katedra Wawelska (Dzwon Zygmunta, groby królewskie)",
+      "city": "krakow",
+      "category": "turystyka_kultura",
+      "description": "Katedra na Wawelu z Dzwonem Zygmunta, krypty i groby królewskie oraz Muzeum Katedralne.",
+      "normal_price": 26.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Wawel 3, 31-001 Kraków",
+      "official_url": "https://bilety-wawel.pl",
+      "price_verified": true,
+      "highlight": false,
+      "tags": [
+        "katedra",
+        "historia",
+        "dzwon zygmunta",
+        "unesco"
+      ],
+      "student_price": {
+        "price": 18.0,
+        "label": "Bilet ulgowy",
+        "requires_status": "zgodnie z regulaminem operatora — dokładne kryteria uprawniające (wiek/status) nie są podane wprost na stronie sprzedaży",
+        "source_url": "https://bilety-wawel.pl",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
+    },
+    {
       "id": "krakow_schindler_factory",
       "name": "Fabryka Emalia Oskara Schindlera",
       "city": "krakow",
       "category": "turystyka_kultura",
       "description": "Światowej sławy ekspozycja 'Kraków - czas okupacji 1939-1945' w dawnej fabryce naczyń emaliowanych.",
-      "normal_price": 36.0,
+      "normal_price": 60.0,
       "currency": "PLN",
-      "default_card_discount_percent": 100.0,
+      "default_card_discount_percent": 20.0,
       "address": "Lipowa 4, 30-702 Kraków",
       "official_url": "https://muzeumkrakowa.pl",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "muzeum",
@@ -313,11 +487,12 @@
       "city": "lublin",
       "category": "sport",
       "description": "Nowoczesny stadion piłkarski Motoru Lublin (15,5 tys.",
-      "normal_price": 15.0,
+      "normal_price": 7.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Stadionowa 1, 20-405 Lublin",
       "official_url": "https://mosir.lublin.pl/obiekty/arena-lublin",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "sport",
@@ -332,18 +507,43 @@
       "city": "lublin",
       "category": "turystyka_kultura",
       "description": "Zamek z romańskim donżonem oraz bezcenna Kaplica Trójcy Świętej z XIV-wiecznymi rusko-bizantyjskimi freskami.",
-      "normal_price": 25.0,
+      "normal_price": 40.0,
       "currency": "PLN",
       "default_card_discount_percent": 20.0,
       "address": "Zamkowa 9, 20-117 Lublin",
-      "official_url": "https://zamek-lublin.pl",
+      "official_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "zamek",
         "zabytki",
         "freski",
         "sztuka"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci do 7 lat (bezpłatnie)",
+        "max_age": 7,
+        "source_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 30.0,
+        "label": "Bilet ulgowy (bilet zbiorczy: ekspozycje stałe + Kaplica + wieża)",
+        "requires_status": "uczniowie, studenci i doktoranci (z ważnym dokumentem), osoby powyżej 65 lat, emeryci i renciści, nauczyciele, posiadacze Europejskiej Karty Młodzieżowej, kombatanci",
+        "source_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 30.0,
+        "label": "Rodzic z dzieckiem do 16 lat lub posiadacz Karty Dużej Rodziny (cena biletu ulgowego za osobę, bilet zbiorczy)",
+        "requires_status": "rodzic w towarzystwie dziecka do 16 lat, lub Karta Dużej Rodziny",
+        "source_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
     },
     {
       "id": "lublin_majdanek",
@@ -355,7 +555,8 @@
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Droga Męczenników Majdanka 67, 20-325 Lublin",
-      "official_url": "https://www.majdanek.eu",
+      "official_url": "https://www.majdanek.eu/zaplanuj-wizyte",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "historia",
@@ -369,12 +570,13 @@
       "name": "Regionalne Muzeum Cebularza",
       "city": "lublin",
       "category": "gastronomia",
-      "description": "Interaktywny pokaz tradycyjnego wypieku słynnego lubelskiego cebularza z cebulą i makiem pod ochroną unijną.",
-      "normal_price": 26.0,
+      "description": "Interaktywny pokaz i warsztat wypieku słynnego lubelskiego cebularza z cebulą i makiem pod ochroną unijną (uczestnik samodzielnie wypieka cebularza).",
+      "normal_price": 39.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Szewska 4, 20-086 Lublin",
-      "official_url": "https://muzeumcebularza.com.pl",
+      "official_url": "https://muzeumcebularza.com.pl/index.php/o-muzeum-4/bilety-new",
+      "price_verified": true,
       "highlight": false,
       "tags": [
         "tradycja",
@@ -382,6 +584,1116 @@
         "cebularz",
         "warsztaty"
       ]
+    },
+    {
+      "id": "warszawa_pge_narodowy",
+      "name": "PGE Narodowy – zwiedzanie ze stadionem",
+      "city": "warszawa",
+      "category": "sport",
+      "description": "Wycieczka z przewodnikiem po kuluarach Stadionu Narodowego: szatnie, strefa VIP, murawa.",
+      "normal_price": 39.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "al. Ks. Józefa Poniatowskiego 1, Warszawa",
+      "official_url": "https://wycieczki.pgenarodowy.pl/",
+      "highlight": true,
+      "tags": [
+        "stadion",
+        "sport",
+        "zwiedzanie"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "warszawa_legia_trasa",
+      "name": "Trasa stadionowa Legii Warszawa",
+      "city": "warszawa",
+      "category": "sport",
+      "description": "Zwiedzanie stadionu Legii Warszawa (szatnie, tunel, murawa).",
+      "normal_price": 39.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Łazienkowska 3, Warszawa",
+      "official_url": "https://muzea.waw.pl/en/museums/legia-warsaw-museum/",
+      "highlight": false,
+      "tags": [
+        "stadion",
+        "piłka nożna",
+        "legia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "warszawa_muzeum_powstania",
+      "name": "Muzeum Powstania Warszawskiego",
+      "city": "warszawa",
+      "category": "turystyka_kultura",
+      "description": "Muzeum poświęcone Powstaniu Warszawskiemu 1944 — jedna z najpopularniejszych atrakcji miasta.",
+      "normal_price": 45.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Grzybowska 79, Warszawa",
+      "official_url": "https://www.1944.pl",
+      "highlight": true,
+      "tags": [
+        "muzeum",
+        "historia",
+        "powstanie warszawskie"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "warszawa_polin",
+      "name": "Muzeum POLIN",
+      "city": "warszawa",
+      "category": "turystyka_kultura",
+      "description": "Multimedialne muzeum historii Żydów polskich.",
+      "normal_price": 45.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Mordechaja Anielewicza 6, Warszawa",
+      "official_url": "https://polin.pl/en/planning-your-visit/admission",
+      "highlight": true,
+      "tags": [
+        "muzeum",
+        "historia",
+        "żydzi"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "warszawa_zoo",
+      "name": "Ogród Zoologiczny w Warszawie",
+      "city": "warszawa",
+      "category": "rozrywka",
+      "description": "Jeden z najstarszych ogrodów zoologicznych w Polsce, ponad 5000 zwierząt, na Pradze.",
+      "normal_price": 45.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Ratuszowa 1/3, Warszawa",
+      "official_url": "https://zoo.waw.pl/cennik/",
+      "highlight": true,
+      "tags": [
+        "zoo",
+        "zwierzęta",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "warszawa_kopernik",
+      "name": "Centrum Nauki Kopernik",
+      "city": "warszawa",
+      "category": "rozrywka",
+      "description": "Interaktywne centrum naukowe z wystawami stałymi i planetarium.",
+      "normal_price": 48.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Wybrzeże Kościuszkowskie 20, Warszawa",
+      "official_url": "https://www.kopernik.org.pl/en/visit/ticket-price",
+      "highlight": true,
+      "tags": [
+        "nauka",
+        "rodzina",
+        "planetarium"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "warszawa_hala_koszyki",
+      "name": "Hala Koszyki",
+      "city": "warszawa",
+      "category": "gastronomia",
+      "description": "Odrestaurowana hala targowa z 1908 r., dziś food hall z licznymi restauracjami i barami.",
+      "normal_price": 0.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Koszykowa 63, Warszawa",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "food hall",
+        "gastronomia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "warszawa_bazar_rozyckiego",
+      "name": "Bazar Różyckiego",
+      "city": "warszawa",
+      "category": "gastronomia",
+      "description": "Najstarszy zachowany bazar w Warszawie (od 1901 r.), klimat starej Pragi, lokalne jadło.",
+      "normal_price": 0.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Targowa 54, Warszawa",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "targ",
+        "praga",
+        "gastronomia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "warszawa_lazienki",
+      "name": "Łazienki Królewskie – Park",
+      "city": "warszawa",
+      "category": "natura",
+      "description": "Największy i najpopularniejszy park w Warszawie z pomnikiem Chopina, pawilonami i stawami.",
+      "normal_price": 0.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Agrykola 1, Warszawa",
+      "official_url": "https://lazienki-krolewskie.pl",
+      "highlight": true,
+      "tags": [
+        "park",
+        "chopin",
+        "natura"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "hamburg_st_michaelis",
+      "name": "Hauptkirche St. Michaelis (Michel) – wieża",
+      "city": "hamburg",
+      "category": "turystyka_kultura",
+      "description": "Barokowy kościół, symbol Hamburga; wejście do kościoła bezpłatne, wieża widokowa płatna osobno.",
+      "normal_price": 8.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "",
+      "official_url": "https://www.st-michaelis.de/michel-besuch/oeffnungszeiten-und-preise",
+      "highlight": true,
+      "tags": [
+        "kościół",
+        "punkt widokowy"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "hamburg_speicherstadtmuseum",
+      "name": "Speicherstadtmuseum",
+      "city": "hamburg",
+      "category": "turystyka_kultura",
+      "description": "Muzeum historii dzielnicy spichrzów Speicherstadt — handel kawą, kakao i przyprawami.",
+      "normal_price": 6.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Am Sandtorkai 36, 20457 Hamburg",
+      "official_url": "https://www.speicherstadtmuseum.de/besucherinfos/oeffnungszeiten-preise.html",
+      "highlight": false,
+      "tags": [
+        "muzeum",
+        "speicherstadt"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "hamburg_imm",
+      "name": "Internationales Maritimes Museum Hamburg",
+      "city": "hamburg",
+      "category": "turystyka_kultura",
+      "description": "Jedno z największych muzeów morskich świata, w historycznym spichlerzu Kaispeicher B.",
+      "normal_price": 17.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "",
+      "official_url": "https://www.imm-hamburg.de/international/en",
+      "highlight": false,
+      "tags": [
+        "muzeum",
+        "morze"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "hamburg_elbphilharmonie_plaza",
+      "name": "Elbphilharmonie Plaza – punkt widokowy",
+      "city": "hamburg",
+      "category": "rozrywka",
+      "description": "Punkt widokowy na tarasie Elbphilharmonie z panoramą portu.",
+      "normal_price": 5.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "",
+      "official_url": "https://www.elbphilharmonie.de/en/plaza",
+      "highlight": true,
+      "tags": [
+        "punkt widokowy",
+        "port"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "hamburg_hagenbeck",
+      "name": "Hagenbecks Tierpark",
+      "city": "hamburg",
+      "category": "rozrywka",
+      "description": "Historyczne zoo, jedno z najstarszych na świecie, z wybiegami bez krat.",
+      "normal_price": 29.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "",
+      "official_url": "https://www.hagenbeck.de/de/tierpark/tierpark/besucherinfos.php",
+      "highlight": true,
+      "tags": [
+        "zoo",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "hamburg_miniatur_wunderland",
+      "name": "Miniatur Wunderland",
+      "city": "hamburg",
+      "category": "rozrywka",
+      "description": "Największa na świecie makieta kolejki modelarskiej z miniaturami miast świata.",
+      "normal_price": 22.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "",
+      "official_url": "https://www.miniatur-wunderland.com/visiting/plan-your-visit/admission-fees",
+      "highlight": true,
+      "tags": [
+        "makieta",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_fcbayern_erlebniswelt",
+      "name": "FC Bayern Erlebniswelt + Allianz Arena Tour",
+      "city": "munchen",
+      "category": "sport",
+      "description": "Muzeum klubu FC Bayern połączone ze zwiedzaniem stadionu Allianz Arena (bilet kombi).",
+      "normal_price": 25.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Werner-Heisenberg-Allee 25, 80939 München",
+      "official_url": "https://fcbayern.com/erlebniswelt/de/besucherinformation/preise",
+      "highlight": true,
+      "tags": [
+        "stadion",
+        "piłka nożna",
+        "bayern"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_sayaq_adventure_tower",
+      "name": "SAYAQ Adventure Tower (Olympiapark)",
+      "city": "munchen",
+      "category": "sport",
+      "description": "Park wspinaczkowy na konstrukcji wieżowej w Parku Olimpijskim z platformą widokową.",
+      "normal_price": 29.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Spiridon-Louis-Ring 7, 80809 München",
+      "official_url": "https://www.olympiapark.de/de/sport/sayaq-adventure-tower",
+      "highlight": false,
+      "tags": [
+        "wspinanie",
+        "olympiapark"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_jochen_schweizer_klettergarten",
+      "name": "Jochen Schweizer Arena – Hochseilklettergarten",
+      "city": "munchen",
+      "category": "sport",
+      "description": "Park wysokich lin w hali Jochen Schweizer Arena pod Monachium.",
+      "normal_price": 19.9,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Wittelsbacherstraße 4, 85609 Aschheim",
+      "official_url": "https://www.jochen-schweizer-arena.de/kletterpark/",
+      "highlight": false,
+      "tags": [
+        "wspinanie",
+        "linowy park"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_deutsches_museum",
+      "name": "Deutsches Museum",
+      "city": "munchen",
+      "category": "turystyka_kultura",
+      "description": "Największe muzeum techniki i nauki w Niemczech, na Museumsinsel.",
+      "normal_price": 16.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Museumsinsel 1, 80538 München",
+      "official_url": "https://www.deutsches-museum.de/en/museum/current-news/slight-increase-in-admission-prices",
+      "highlight": true,
+      "tags": [
+        "muzeum",
+        "nauka",
+        "technika"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_residenz",
+      "name": "Residenz München",
+      "city": "munchen",
+      "category": "turystyka_kultura",
+      "description": "Była rezydencja bawarskich władców Wittelsbachów — muzeum i skarbiec (Schatzkammer), bilet łączony.",
+      "normal_price": 15.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Residenzstraße 1, 80333 München",
+      "official_url": "https://www.residenz-muenchen.de/deutsch/tourist/eintritt.htm",
+      "highlight": true,
+      "tags": [
+        "pałac",
+        "muzeum"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_bmw_museum",
+      "name": "BMW Museum",
+      "city": "munchen",
+      "category": "turystyka_kultura",
+      "description": "Muzeum historii marki BMW przy BMW Welt.",
+      "normal_price": 17.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Am Olympiapark 2, 80809 München",
+      "official_url": "https://www.bmw-welt.com/de/index.html",
+      "highlight": false,
+      "tags": [
+        "muzeum",
+        "motoryzacja"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_schloss_nymphenburg",
+      "name": "Schloss Nymphenburg (bilet combo)",
+      "city": "munchen",
+      "category": "turystyka_kultura",
+      "description": "Letni pałac Wittelsbachów — bilet combo obejmujący pałac, Marstallmuseum i Porzellanmuseum (cena letnia).",
+      "normal_price": 20.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Schloß Nymphenburg 1, 80638 München",
+      "official_url": "https://www.schloss.bayern.de/englisch/service/tourism/preise2026_engl.pdf",
+      "highlight": true,
+      "tags": [
+        "pałac",
+        "ogrody"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_frauenkirche",
+      "name": "Frauenkirche (Münchner Dom) – wieża",
+      "city": "munchen",
+      "category": "turystyka_kultura",
+      "description": "Wejście na wieżę południową katedry Naszej Pani, symbolu Monachium.",
+      "normal_price": 7.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Frauenplatz 1, 80331 München",
+      "official_url": "https://www.muenchner-dom.de/",
+      "highlight": false,
+      "tags": [
+        "kościół",
+        "punkt widokowy"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_skylift_olympiapark",
+      "name": "Skylift Olympiapark",
+      "city": "munchen",
+      "category": "rozrywka",
+      "description": "Wyciąg/platforma widokowa na trybunach stadionu olimpijskiego.",
+      "normal_price": 13.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Spiridon-Louis-Ring 7, 80809 München",
+      "official_url": "https://www.olympiapark.de/de/attraktionen-und-gastronomie/sightseeing/skylift-olympiapark",
+      "highlight": true,
+      "tags": [
+        "punkt widokowy",
+        "olympiapark"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_hellabrunn",
+      "name": "Tierpark Hellabrunn (ZOO)",
+      "city": "munchen",
+      "category": "rozrywka",
+      "description": "Pierwsze geo-zoo na świecie, ok.",
+      "normal_price": 24.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Tierparkstraße 30, 81543 München",
+      "official_url": "https://www.hellabrunn.de/parkbesuch/allgemeine-informationen/tickets",
+      "highlight": true,
+      "tags": [
+        "zoo",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_sealife",
+      "name": "SEA LIFE München",
+      "city": "munchen",
+      "category": "rozrywka",
+      "description": "Akwarium w centrum Olympiaparku.",
+      "normal_price": 20.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Willi-Daume-Platz 1, 80809 München",
+      "official_url": "https://www.visitsealife.com/muenchen/tickets/einzeltickets/eintrittstickets/",
+      "highlight": false,
+      "tags": [
+        "akwarium",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_bavaria_filmstadt",
+      "name": "Bavaria Filmstadt",
+      "city": "munchen",
+      "category": "rozrywka",
+      "description": "Wycieczka po planach filmowych studia Bavaria Film w Grünwald, bilet kombi ze kinem 4D.",
+      "normal_price": 24.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Bavariafilmplatz 7, 82031 Grünwald",
+      "official_url": "https://www.filmstadt.de/infos-preise/preise",
+      "highlight": false,
+      "tags": [
+        "film",
+        "studio"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_bier_oktoberfest_museum",
+      "name": "Bier- und Oktoberfestmuseum",
+      "city": "munchen",
+      "category": "gastronomia",
+      "description": "Muzeum historii piwa i Oktoberfestu w najstarszym domu mieszkalnym Monachium.",
+      "normal_price": 4.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Sterneckerstraße 2, 80331 München",
+      "official_url": "https://www.bier-und-oktoberfestmuseum.de/oeffnungszeiten-preise/",
+      "highlight": false,
+      "tags": [
+        "piwo",
+        "oktoberfest",
+        "muzeum"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_viktualienmarkt",
+      "name": "Viktualienmarkt",
+      "city": "munchen",
+      "category": "gastronomia",
+      "description": "Słynny codzienny targ spożywczy w centrum Monachium.",
+      "normal_price": 0.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Viktualienmarkt, 80331 München",
+      "official_url": "",
+      "highlight": true,
+      "tags": [
+        "targ",
+        "gastronomia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_hofbrauhaus",
+      "name": "Hofbräuhaus München",
+      "city": "munchen",
+      "category": "gastronomia",
+      "description": "Najsłynniejsza piwiarnia Monachium, działa od XVI wieku.",
+      "normal_price": 0.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Platzl 9, 80331 München",
+      "official_url": "https://www.hofbraeuhaus.de",
+      "highlight": true,
+      "tags": [
+        "piwiarnia",
+        "gastronomia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_englischer_garten",
+      "name": "Englischer Garten (Ogród Angielski)",
+      "city": "munchen",
+      "category": "natura",
+      "description": "Jeden z największych parków miejskich na świecie, znany z surferów na Eisbachwelle.",
+      "normal_price": 0.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Englischer Garten, 80538 München",
+      "official_url": "",
+      "highlight": true,
+      "tags": [
+        "park",
+        "natura"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_westpark",
+      "name": "Westpark München",
+      "city": "munchen",
+      "category": "natura",
+      "description": "Duży park miejski na zachodzie Monachium, powstały na terenach Międzynarodowej Wystawy Ogrodniczej 1983.",
+      "normal_price": 0.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Westpark, 81377 München",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "park",
+        "natura"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "munchen_botanischer_garten",
+      "name": "Botanischer Garten München (Nymphenburg)",
+      "city": "munchen",
+      "category": "natura",
+      "description": "Ogród botaniczny z ok.",
+      "normal_price": 5.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Menzinger Straße 65, 80638 München",
+      "official_url": "https://botmuc.snsb.de",
+      "highlight": false,
+      "tags": [
+        "ogród botaniczny"
+      ],
+      "price_verified": false
+    },
+    {
+      "id": "koln_rheinenergiestadion",
+      "name": "RheinEnergieStadion – Stadiontour (1. FC Köln)",
+      "city": "koln",
+      "category": "sport",
+      "description": "Zwiedzanie stadionu 1.",
+      "normal_price": 17.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Aachener Str. 999, 50933 Köln",
+      "official_url": "https://willkommen.koelntourismus.de/en/event/stadiumtour",
+      "highlight": true,
+      "tags": [
+        "stadion",
+        "piłka nożna"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_claudius_therme",
+      "name": "Claudius Therme",
+      "city": "koln",
+      "category": "sport",
+      "description": "Basen termalny i sauna nad Rheinparkiem (cena dzień powszedni).",
+      "normal_price": 36.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Sachsenbergstrasse 1, 50679 Köln",
+      "official_url": "https://www.claudius-therme.de",
+      "highlight": false,
+      "tags": [
+        "termy",
+        "basen"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_minigolf_familienpark",
+      "name": "Minigolf im Familienpark",
+      "city": "koln",
+      "category": "sport",
+      "description": "Mini-golf nad Rheinparkiem.",
+      "normal_price": 4.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Auenweg, 50679 Köln",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "minigolf",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_dom",
+      "name": "Kölner Dom (katedra)",
+      "city": "koln",
+      "category": "turystyka_kultura",
+      "description": "Gotycka katedra, symbol Kolonii, wpisana na listę UNESCO.",
+      "normal_price": 12.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Domkloster 4, 50667 Köln",
+      "official_url": "https://www.koelner-dom.de/besuchen/neue-besichtigungsgebuehr-ab-dem-1-juli-2026",
+      "highlight": true,
+      "tags": [
+        "katedra",
+        "unesco"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_museum_ludwig",
+      "name": "Museum Ludwig",
+      "city": "koln",
+      "category": "turystyka_kultura",
+      "description": "Muzeum sztuki modernistycznej i współczesnej (m.in.",
+      "normal_price": 10.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Heinrich-Böll-Platz, 50667 Köln",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "muzeum",
+        "sztuka"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_wallraf_richartz",
+      "name": "Wallraf-Richartz-Museum & Fondation Corboud",
+      "city": "koln",
+      "category": "turystyka_kultura",
+      "description": "Największa kolekcja malarstwa europejskiego (średniowiecze–impresjonizm) w Kolonii.",
+      "normal_price": 8.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Obenmarspforten, 50667 Köln",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "muzeum",
+        "malarstwo"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_romisch_germanisches",
+      "name": "Römisch-Germanisches Museum",
+      "city": "koln",
+      "category": "turystyka_kultura",
+      "description": "Muzeum rzymsko-germańskie.",
+      "normal_price": 6.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Cäcilienstraße 46, 50667 Köln (lokalizacja tymczasowa)",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "muzeum",
+        "archeologia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_ns_dokumentationszentrum",
+      "name": "NS-Dokumentationszentrum (EL-DE-Haus)",
+      "city": "koln",
+      "category": "turystyka_kultura",
+      "description": "Centrum dokumentacji historii nazizmu w Kolonii, w dawnej siedzibie gestapo.",
+      "normal_price": 4.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Appellhofplatz 23-25, 50667 Köln",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "muzeum",
+        "historia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_zoo",
+      "name": "Kölner Zoo",
+      "city": "koln",
+      "category": "rozrywka",
+      "description": "Jeden z największych zoo w Niemczech, z akwarium.",
+      "normal_price": 29.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Riehler Straße 173, 50735 Köln",
+      "official_url": "https://koelnerzoo.de/article/eintrittspreise/",
+      "highlight": true,
+      "tags": [
+        "zoo",
+        "akwarium"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_triangle",
+      "name": "KölnTriangle (platforma widokowa)",
+      "city": "koln",
+      "category": "rozrywka",
+      "description": "Punkt widokowy na 29.",
+      "normal_price": 5.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Ottoplatz 1, 50679 Köln",
+      "official_url": "http://www.koelntrianglepanorama.de/",
+      "highlight": false,
+      "tags": [
+        "punkt widokowy"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_odysseum",
+      "name": "Odysseum",
+      "city": "koln",
+      "category": "rozrywka",
+      "description": "Centrum doświadczeń nauki z rotującymi wystawami czasowymi.",
+      "normal_price": 22.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Corintostraße 1, 51103 Köln",
+      "official_url": "https://www.odysseum.de",
+      "highlight": false,
+      "tags": [
+        "nauka",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_seilbahn",
+      "name": "Kölner Seilbahn",
+      "city": "koln",
+      "category": "rozrywka",
+      "description": "Sezonowa (ok.",
+      "normal_price": 9.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "kolejka linowa",
+        "sezonowa"
+      ],
+      "price_verified": false
+    },
+    {
+      "id": "koln_schokoladenmuseum",
+      "name": "Schokoladenmuseum Köln",
+      "city": "koln",
+      "category": "gastronomia",
+      "description": "Muzeum czekolady nad Rheinem, od fasoli kakaowej do tabliczki, z fontanną czekolady (cena dzień powszedni).",
+      "normal_price": 17.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Am Schokoladenmuseum 1a, 50678 Köln",
+      "official_url": "https://www.schokoladenmuseum.de/besuch-planen/",
+      "highlight": true,
+      "tags": [
+        "czekolada",
+        "muzeum"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_brewery_tour",
+      "name": "Cologne Brewery Tour \"Brauwelt\"",
+      "city": "koln",
+      "category": "gastronomia",
+      "description": "Zwiedzanie browaru z degustacją Kölsch — kultowego piwa Kolonii.",
+      "normal_price": 27.5,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "",
+      "official_url": "https://willkommen.koelntourismus.de/en/event/cologne-brewery-tour",
+      "highlight": false,
+      "tags": [
+        "piwo",
+        "degustacja"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "koln_flora_botanischer_garten",
+      "name": "Flora und Botanischer Garten Köln",
+      "city": "koln",
+      "category": "natura",
+      "description": "Historyczny ogród botaniczny i park krajobrazowy z 1864 r.",
+      "normal_price": 0.0,
+      "currency": "EUR",
+      "default_card_discount_percent": 0.0,
+      "address": "Amsterdamer Straße 34, 50735 Köln",
+      "official_url": "https://www.stadt-koeln.de/leben-in-koeln/freizeit-natur-sport/parks/adresse-oeffnungszeiten-flora-botanischer-garten",
+      "highlight": false,
+      "tags": [
+        "ogród botaniczny",
+        "park"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "wroclaw_panorama_raclawicka",
+      "name": "Panorama Racławicka",
+      "city": "wroclaw",
+      "category": "turystyka_kultura",
+      "description": "Monumentalny obraz panoramiczny (120×15 m) przedstawiający bitwę pod Racławicami z 1794 r.",
+      "normal_price": 50.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Jana Ewangelisty Purkyniego 11, Wrocław",
+      "official_url": "https://mnwr.pl/en/branches/panorama-of-the-battle-of-raclawice/information/",
+      "highlight": true,
+      "tags": [
+        "muzeum",
+        "panorama",
+        "historia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "wroclaw_hydropolis",
+      "name": "Hydropolis",
+      "city": "wroclaw",
+      "category": "rozrywka",
+      "description": "Interaktywne centrum edukacji wodnej w podziemnym kompleksie przy Rynku (cena dzień powszedni).",
+      "normal_price": 45.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Na Grobli 17/1, Wrocław",
+      "official_url": "https://bilety.hydropolis.pl/cennik.html?lang=en",
+      "highlight": true,
+      "tags": [
+        "edukacja",
+        "woda",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "wroclaw_hala_targowa",
+      "name": "Hala Targowa",
+      "city": "wroclaw",
+      "category": "gastronomia",
+      "description": "Zabytkowa hala targowa z 1908 r.",
+      "normal_price": 0.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Piaskowa 17, Wrocław",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "targ",
+        "gastronomia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "wroclaw_ogrod_botaniczny",
+      "name": "Ogród Botaniczny Uniwersytetu Wrocławskiego",
+      "city": "wroclaw",
+      "category": "natura",
+      "description": "Jeden z najstarszych ogrodów botanicznych w Polsce (zał.",
+      "normal_price": 30.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Henryka Sienkiewicza, Wrocław",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "ogród botaniczny"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "wroclaw_park_szczytnicki",
+      "name": "Park Szczytnicki",
+      "city": "wroclaw",
+      "category": "natura",
+      "description": "Największy park Wrocławia, miejsce Hali Stulecia, Ogrodu Japońskiego i ZOO.",
+      "normal_price": 0.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Park Szczytnicki, Wrocław",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "park",
+        "natura"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "wroclaw_wyspa_slodowa",
+      "name": "Wyspa Słodowa",
+      "city": "wroclaw",
+      "category": "natura",
+      "description": "Mała, popularna wyspa na Odrze w centrum Wrocławia, miejsce spotkań i wypoczynku.",
+      "normal_price": 0.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Wyspa Słodowa, Wrocław",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "wyspa",
+        "odra"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_termy_maltanskie",
+      "name": "Termy Maltańskie",
+      "city": "poznan",
+      "category": "sport",
+      "description": "Kompleks basenów termalnych i sportowych nad Jeziorem Maltańskim, ze zjeżdżalniami i strefą saun (cena za 1h w Aquaparku).",
+      "normal_price": 46.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Termalna 1, 61-028 Poznań",
+      "official_url": "https://termymaltanskie.com.pl/cenniki/",
+      "highlight": true,
+      "tags": [
+        "baseny",
+        "termy",
+        "sport"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_brama_poznania",
+      "name": "Brama Poznania ICHOT",
+      "city": "poznan",
+      "category": "turystyka_kultura",
+      "description": "Interaktywne centrum interpretacji dziedzictwa nad Cybiną, wystawa o historii Ostrowa Tumskiego i katedry.",
+      "normal_price": 35.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Gdańska 2, 61-123 Poznań",
+      "official_url": "https://bramapoznania.pl/cennik",
+      "highlight": true,
+      "tags": [
+        "muzeum",
+        "historia"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_nowe_zoo",
+      "name": "Nowe ZOO Poznań",
+      "city": "poznan",
+      "category": "rozrywka",
+      "description": "Drugie co do wielkości zoo w Polsce, ponad 170 gatunków zwierząt.",
+      "normal_price": 45.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Krańcowa 81, 61-021 Poznań",
+      "official_url": "https://zoo.poznan.pl/ceny-biletow-wstepu-do-ogrodu-zoologicznego/",
+      "highlight": true,
+      "tags": [
+        "zoo",
+        "rodzina"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_fotoplastykon",
+      "name": "Fotoplastykon Poznański",
+      "city": "poznan",
+      "category": "rozrywka",
+      "description": "XIX-wieczne urządzenie do oglądania zdjęć stereoskopowych 3D, jedno z niewielu działających w Europie.",
+      "normal_price": 6.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Ratajczaka 44, 61-816 Poznań",
+      "official_url": "https://www.poznan.pl/mim/main/fotoplastykon,p,23153,45268.html",
+      "highlight": false,
+      "tags": [
+        "muzeum",
+        "ciekawostka"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_rogalowe_muzeum",
+      "name": "Rogalowe Muzeum Poznania",
+      "city": "poznan",
+      "category": "gastronomia",
+      "description": "Interaktywny warsztat/spektakl o historii rogala świętomarcińskiego, z degustacją.",
+      "normal_price": 39.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Stary Rynek 41, 61-772 Poznań",
+      "official_url": "https://rogalowemuzeum.pl",
+      "highlight": true,
+      "tags": [
+        "rogal świętomarciński",
+        "warsztat"
+      ],
+      "price_verified": false
+    },
+    {
+      "id": "poznan_palmiarnia",
+      "name": "Palmiarnia Poznańska",
+      "city": "poznan",
+      "category": "natura",
+      "description": "Jedna z największych palmiarni w Europie, w Parku Wilsona, kolekcje roślin tropikalnych i mała zoo (ptaki, ryby).",
+      "normal_price": 19.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Matejki 18, 60-767 Poznań",
+      "official_url": "https://palmiarnia.poznan.pl/wp-content/uploads/2024/12/cennik-od-1.01.2025-roku-Zarzadzenie-Prezydenta-Miasta-Poznania-1.pdf",
+      "highlight": true,
+      "tags": [
+        "palmiarnia",
+        "rośliny"
+      ],
+      "price_verified": true
+    },
+    {
+      "id": "poznan_park_cytadela",
+      "name": "Park Cytadela",
+      "city": "poznan",
+      "category": "natura",
+      "description": "Największy park Poznania, na terenie dawnej pruskiej cytadeli.",
+      "normal_price": 0.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "ul. Niepodległości / Winogrady, Poznań",
+      "official_url": "",
+      "highlight": false,
+      "tags": [
+        "park",
+        "historia"
+      ],
+      "price_verified": true
     }
-  ]
+  ],
+  "_UWAGA_merge_42_49": "Scalono z PR #42/#49 (Hamburg/Monachium/Kolonia/Wrocław/Poznań, nowe miasta) zachowując zweryfikowane na żywo ceny Berlin/Gelsenkirchen/Kraków/Lublin/Dortmund/Essen z PR #48 (świeższa weryfikacja, 2026-10-10) dla wszystkich id obecnych w obu wersjach."
 }

@@ -1,0 +1,19 @@
+{
+  "_zrodlo": "https://www.mvv-muenchen.de/tickets-abos-preise/einzelfahrkarte i /single-tageskarte — ceny obowiązujące od 01.01.2026. Zweryfikowano w przeglądarce (nie samym automatycznym fetchem) 2026-10-09.",
+  "_zrodlo_potwierdzenie_cen_2026": "Niezależnie potwierdzone: Zone M dorosły 4,20 EUR przez www.muenchen.de/mvv-tickets-aktuelle-preise-fuer-fahrkarten-muenchen (portal informacyjny miasta Monachium, stan 'nach dem Fahrplanwechsel seit dem 1.1.2026'); cena dziecka Einzelfahrkarte 2,00 EUR (rosnie do 2,10 EUR od 2027) przez komunikat prasowy MVV 'Neue Fahrpreise im MVV zum 01.01.2027' (mvv-muenchen.de), który podaje ceny 2026 jako punkt odniesienia. Zweryfikowano 2026-10-10.",
+  "_zrodlo_wiek_dziecko": "Kindertarif 6-14 lat potwierdzone na stronie mvv-muenchen.de/tickets-abos-preise/einzelfahrkarte ('Kinder von 6-14 Jahren'), dzieci do 6 lat jeżdżą bezpłatnie. Zweryfikowano 2026-10-10.",
+  "_zrodlo_niepelnosprawnosc": "Bezpłatny przejazd dla osób z ciężką niepełnosprawnością (Merkzeichen G/aG/H/Bl/Gl + ważna Wertmarke) na podstawie § 228 SGB IX — zasada ogólnoniemiecka, dotyczy identycznie MVV, nie jest to taryfa specyficzna dla Monachium. Zweryfikowano 2026-10-10.",
+  "_uwaga": "Taryfa MVV jest strefowa (Zone M + strefy 1-12 wokół miasta). Nie mamy mapowania przystanek->strefa, więc kalkulator zawsze używa Zone M (najniższa, centrum Monachium) jako przybliżenia. Cena dziecka dla Single-Tageskarte Zone M nie jest jednoznacznie potwierdzona (strona podaje tylko ogólny 'Kinder-Tageskarte od 3,80 €' bez rozbicia per strefa) — NIE wpisana, żeby nie zgadywać.",
+  "waluta": "EUR",
+  "nazwa_przewoznika": "MVV (Münchner Verkehrsverbund)",
+  "as_of": "2026-01-01",
+  "wiek_dziecko_lata": "6-14 (dzieci do 6 lat jeżdżą bezpłatnie)",
+  "einzelkarte_zone_m": {"normalny": 4.20, "dziecko": 2.00},
+  "kurzstrecke": 2.10,
+  "single_tageskarte_zone_m": {"normalny": 10.10, "dziecko": null},
+  "zapowiedziana_podwyzka_od_2027": {
+    "data": "2027-01-01",
+    "single_tageskarte_zone_m_normalny": 10.80,
+    "uwaga": "Przyszła cena, NIE używać jako aktualnej — komunikat prasowy MVV 'Neue Fahrpreise im MVV zum 01.01.2027'."
+  }
+}

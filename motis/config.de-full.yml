@@ -1,0 +1,21 @@
+server:
+  port: 8080
+osm: /input/osm/poland-germany-latest.osm.pbf
+timetable:
+  first_day: TODAY
+  num_days: 28
+  datasets:
+    pl:
+      path: /input/gtfs/pl/polish_trains.zip
+    defv:
+      path: /input/gtfs/de/de_fv.zip
+    derv:
+      path: /input/gtfs/de/de_rv.zip
+    denv:
+      path: /input/gtfs/de/de_nv.zip
+    ztml:
+      path: /input/gtfs/pl/lublin.zip
+geocoding: true
+reverse_geocoding: true
+street_routing: true
+osr_footpath: true

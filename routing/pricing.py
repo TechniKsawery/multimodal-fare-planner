@@ -1,7 +1,8 @@
 """Wycena pojedynczego odcinka: dispatch do fares/ (kolej) albo flights/ (lot)."""
 
 from fares import estimate_price as fares_estimate_price
-from fares.model import Carrier, DiscountProfile, Segment
+from fares.international_pkp import estimate_pkp_offer
+from fares.model import Carrier, DiscountProfile, PriceEstimate, Segment
 from flights import ExtrasProfile, FlightSegment
 from flights import estimate_price as flights_estimate_price
 from flights.extras import get_baggage_by_airline
@@ -60,6 +61,16 @@ MPK_KRAKOW_KEYWORDS = ("kraków", "krakow", "mpk kraków", "mpk krakow", "ztp kr
 ZTM_POZNAN_KEYWORDS = ("poznań", "poznan", "ztm poznań", "ztm poznan", "mpk poznań", "mpk poznan")
 MPK_WROCLAW_KEYWORDS = ("wrocław", "wroclaw", "mpk wrocław", "mpk wroclaw")
 BVG_BERLIN_KEYWORDS = ("berlin", "bvg", "vbb")
+HVV_KEYWORDS = ("hamburg", "hvv")
+MVV_KEYWORDS = ("münchen", "muenchen", "munchen", "mvv")
+VRS_KOLN_KEYWORDS = ("köln", "koeln", "koln", "kvb", "vrs")
+"""HVV/MVV/VRS_KOLN: NIEUŻYWANE jeszcze w praktyce — nasze dane GTFS dla Niemiec obejmują
+tylko feed krajowy (FV) i regionalny NRW/VRR (patrz VRR_AREA_KEYWORDS wyżej), więc żaden
+przystanek/agencja w Hamburgu, Monachium czy Kolonii nie pojawi się tu dziś. Dodane na
+zapas (kalkulatory fares/hvv.py, fares/mvv.py, fares/kvb.py już istnieją — patrz
+attractions/ dla tych miast), żeby po ewentualnym dociągnięciu regionalnego GTFS dla tych
+miast kolejna sesja nie musiała na nowo zgadywać, pod jakimi słowami szukać przewoźnika —
+i żeby generyczne VRR_AREA_KEYWORDS ("s-bahn", "regio") nie złapały ich po drodze."""
 
 
 PL_MOTIS_DATASETS = frozenset({"pl", "ztml"})
@@ -213,6 +224,35 @@ def _fallback_priced_leg(leg: Leg, reason: str) -> PricedLeg:
     )
 
 
+def _with_pkp_alternative(segment: Segment, db_result: PriceEstimate) -> PriceEstimate:
+    """Dla biletu PL-DE dolicza WŁASNĄ ofertę PKP Intercity na tej samej relacji (zob.
+    fares/international_pkp.py) i zwraca TAŃSZĄ z dwóch ofert jako wynik główny, z drugą
+    (droższą) dołączoną w breakdown["alternatywna_oferta"] — pasażer może kupić bilet w
+    KTÓRYMKOLWIEK z dwóch kanałów sprzedaży (PKP albo DB) na ten sam pociąg, więc pomijanie
+    tańszej z dwóch ofert zawyżałoby "ile faktycznie zapłacisz". Gdy relacja nie jest rozpoznana
+    w tabeli PKP (fares/data/international_pl_de_pkp.json), zwraca db_result bez zmian."""
+    pkp_result = estimate_pkp_offer(segment)
+    if pkp_result is None:
+        return db_result
+
+    if pkp_result.amount <= db_result.amount:
+        main, alt, alt_label = pkp_result, db_result, "db"
+    else:
+        main, alt, alt_label = db_result, pkp_result, "pkp_oferta_polska_niemcy"
+
+    main.breakdown["alternatywna_oferta"] = {
+        "zrodlo": alt_label,
+        "cena": alt.amount,
+        "waluta": alt.currency,
+    }
+    main.notes = (
+        f"{main.notes} Tańsza z dwóch dostępnych ofert na tę relację (PKP Intercity vs DB) — "
+        f"alternatywa: {alt.amount:.2f} {alt.currency} ({'DB Super Sparpreis Europa' if alt_label == 'db' else 'PKP Oferta Polska-Niemcy'}). "
+        f"{pkp_result.notes if main is db_result else db_result.notes}"
+    )
+    return main
+
+
 def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
     if leg.mode is not LegMode.RAIL:
         raise ValueError(f"price_rail_leg wymaga LegMode.RAIL, dostał {leg.mode}")
@@ -241,6 +281,8 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
             ),
         )
         result = fares_estimate_price(segment)
+        if carrier is Carrier.INTERNATIONAL_PL_DE:
+            result = _with_pkp_alternative(segment, result)
     except ValueError as exc:
         return _fallback_priced_leg(leg, f"Kalkulator {carrier.value} zwrócił błąd ({exc}).")
 
@@ -250,6 +292,7 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
         currency=result.currency,
         price_type=result.price_type.value,
         notes=result.notes,
+        breakdown=result.breakdown,
     )
 
 
@@ -328,6 +371,15 @@ def price_flixbus_leg(leg: Leg) -> PricedLeg:
 
 
 def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedLeg:
+    """UWAGA (sprawdzone 2026-10-10, test realnym GTFS HVV/MVV/VRS w PR #49): ten kalkulator
+    bywa wołany też dla legów, które MOTIS sklasyfikował jako "BUS" mimo że faktycznie są
+    S-Bahn/U-Bahn obsługiwanym przez DB Regio (routing/motis_client.py::itinerary_to_legs
+    mapuje każdy tryb MOTIS inny niż RAIL/TRAIN na LegMode.BUS, patrz komentarz tam). To NIE
+    jest błąd do naprawy: HVV/MVV/Rheinlandtarif (VRS) to Verbundtarif obejmujący WSZYSTKIE
+    lokalne środki transportu (S-Bahn, U-Bahn, tramwaj, autobus) w obrębie związku jedną,
+    wspólną ceną zależną od strefy/relacji, niezależnie od operatora czy trybu — więc
+    dopasowanie po nazwie przystanku/miasta (city_carriers poniżej) i wycena z taryfy
+    związkowej jest poprawna, nawet gdy przewoźnik widoczny w danych to "DB Regio ..."."""
     discounts = discounts or DiscountProfile()
 
     is_coach = leg.extra.get("motis_mode") == "COACH" or any(
@@ -347,6 +399,9 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
         (ZTM_POZNAN_KEYWORDS, Carrier.ZTM_POZNAN),
         (MPK_WROCLAW_KEYWORDS, Carrier.MPK_WROCLAW),
         (BVG_BERLIN_KEYWORDS, Carrier.BVG_BERLIN),
+        (HVV_KEYWORDS, Carrier.HVV),
+        (MVV_KEYWORDS, Carrier.MVV),
+        (VRS_KOLN_KEYWORDS, Carrier.VRS_KOLN),
     ]
     for keywords, carrier in city_carriers:
         if any(k in tekst for k in keywords):

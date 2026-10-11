@@ -4,11 +4,13 @@ Kursy są SZTYWNYM PLACEHOLDEREM (nie z API kursowego) — patrz README.md w tym
 Do rzeczywistej ceny każdego odcinka i tak używamy oryginalnej walutysą (breakdown w PricedLeg),
 PLN-owa suma służy wyłącznie do rankingu "najtańsza" i scoringu "cena/godzina" między wariantami
 mieszającymi PLN i EUR.
+
+Kurs EUR zweryfikowany wobec kursu średniego NBP (tabela A, api.nbp.pl) 2026-10-09: 4,3775.
 """
 
 PLACEHOLDER_RATES_TO_PLN = {
     "PLN": 1.0,
-    "EUR": 4.30,
+    "EUR": 4.3775,
 }
 
 

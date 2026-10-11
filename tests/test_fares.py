@@ -689,3 +689,57 @@ def test_vrs_koln_schwerbehinderte_bezplatnie():
     result = estimate_price(seg)
     assert result.amount == 0.0
     assert result.price_type is PriceType.OFFICIAL
+
+
+# --- DB: opcjonalne nieoficjalne źródło cen (db-vendo-client), domyślnie wyłączone -----------
+
+def _db_seg(**kw):
+    return Segment(Carrier.DB, "Berlin Hbf", "Essen Hbf", distance_km=500, travel_date="2026-11-15", **kw)
+
+
+def test_db_nieoficjalne_domyslnie_wylaczone(monkeypatch):
+    from fares import _db_vendo_api
+
+    monkeypatch.delenv("UNOFFICIAL_PRICES", raising=False)
+    monkeypatch.setattr(_db_vendo_api, "fetch_cheapest", lambda *a, **k: pytest.fail("nie wolno wołać"))
+    assert "zrodlo" not in estimate_price(_db_seg()).breakdown
+
+
+def test_db_nieoficjalne_wlaczone_uzywa_ceny_i_etykietuje(monkeypatch, tmp_path):
+    from fares import _db_vendo_api
+
+    monkeypatch.setenv("UNOFFICIAL_PRICES", "1")
+    monkeypatch.setenv("UNOFFICIAL_PRICES_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        _db_vendo_api, "fetch_cheapest", lambda *a, **k: {"amount": 29.9, "currency": "EUR"}
+    )
+    result = estimate_price(_db_seg())
+    assert result.amount == 29.9
+    assert result.price_type is PriceType.ESTIMATE
+    assert result.breakdown["zrodlo"] == "nieoficjalne_db_vendo"
+    assert "NIEOFICJALNEGO" in result.notes
+
+
+def test_db_nieoficjalne_blad_wraca_do_tabeli(monkeypatch):
+    from fares import _db_vendo_api
+
+    monkeypatch.setenv("UNOFFICIAL_PRICES", "1")
+
+    def boom(*a, **k):
+        raise _db_vendo_api.DbVendoError("zablokowane")
+
+    monkeypatch.setattr(_db_vendo_api, "fetch_cheapest", boom)
+    result = estimate_price(_db_seg())
+    assert "flexpreis_gorna_granica" in result.breakdown and "zrodlo" not in result.breakdown
+
+
+def test_unofficial_limit_zapytan_i_cache(monkeypatch, tmp_path):
+    from fares import _unofficial
+
+    monkeypatch.setenv("UNOFFICIAL_PRICES_PER_MINUTE", "2")
+    monkeypatch.setenv("UNOFFICIAL_PRICES_CACHE_DIR", str(tmp_path))
+    _unofficial._calls.clear()
+    assert _unofficial.allow_request("x") and _unofficial.allow_request("x")
+    assert not _unofficial.allow_request("x")
+    _unofficial.cache_set("x", "k", {"a": 1})
+    assert _unofficial.cache_get("x", "k") == {"a": 1}

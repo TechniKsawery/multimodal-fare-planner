@@ -294,6 +294,7 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
             destination=leg.destination_name,
             distance_km=leg.distance_km,
             discounts=discounts,
+            travel_date=leg.depart.date().isoformat(),
             german_portion_fraction=(
                 german_portion_fraction(leg) if carrier is Carrier.INTERNATIONAL_PL_DE else None
             ),

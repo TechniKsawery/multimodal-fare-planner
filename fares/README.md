@@ -286,3 +286,9 @@ print(estimate_price(vrr_segment))  # Grundpreis + km, oficjalna taryfa eezy.nrw
 ```
 pytest tests/test_fares.py
 ```
+
+### Kalibracja fallbacku FlixBus (2026-10-11)
+
+Fallback `pln_per_km` zmieniono z 0.35 na 0.27 (mediana z 72 prawdziwych cen API, 24 trasy PL-PL/PL-DE,
+3 daty; próbka z datami w `fares/data/flixbus_calibration.json`, zbierana `scripts/calibrate_flixbus.py`).
+Rozrzut jest duży (Q1 0.209, Q3 0.303), krótkie trasy są tańsze za km niż długie — to nadal szacunek.

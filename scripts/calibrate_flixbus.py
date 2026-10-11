@@ -134,7 +134,17 @@ if __name__ == "__main__":
         summarize(args.summarize)
     elif args.out:
         Path(args.out).write_text(
-            json.dumps({"samples": sample()}, ensure_ascii=False, indent=1), encoding="utf-8"
+            json.dumps(
+                {
+                    "_zrodlo": "https://global.api.flixbus.com/search/service/v4/search "
+                    f"(nieoficjalne API), pobrane {date.today().isoformat()}, "
+                    "scripts/calibrate_flixbus.py, najtanszy przejazd na trase/date.",
+                    "waluta": "PLN",
+                    "samples": sample(),
+                },
+                ensure_ascii=False,
+                indent=1,
+            ), encoding="utf-8"
         )
         summarize(args.out)
     else:

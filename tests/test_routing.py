@@ -1278,7 +1278,9 @@ def test_flixbus_idzie_przez_fares_flixbus_i_spada_do_fallbacku_km_gdy_api_niedo
         extra={"motis_mode": "BUS"},
     )
     priced = pricing.price_bus_leg(coach)
-    assert priced.amount == pytest.approx(500 * pricing.GENERIC_FALLBACK_PLN_PER_KM)
+    from fares.flixbus import _FALLBACK
+
+    assert priced.amount == pytest.approx(500 * _FALLBACK["pln_per_km"])
     assert priced.price_type == "szacunek"
 
 

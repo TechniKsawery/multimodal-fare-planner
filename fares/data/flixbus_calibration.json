@@ -1,4 +1,6 @@
 {
+ "_zrodlo": "Ceny z nieoficjalnego publicznego API FlixBusa (https://global.api.flixbus.com/search/service/v4/search), pobrane 2026-10-11 skryptem scripts/calibrate_flixbus.py, waluta PLN, najtanszy przejazd na trase/date. Probka do kalibracji fallbacku flixbus_fallback.json, nie cennik operatora.",
+ "waluta": "PLN",
  "samples": [
   {
    "origin": "Warszawa",

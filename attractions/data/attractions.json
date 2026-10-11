@@ -116,7 +116,8 @@
         "verified_date": "2026-10-10",
         "price_verified": true
       },
-      "_UWAGA_warianty_zwiedzania": "2026-10-10: poprzednia notatka w tym pliku mówiła o '6 wariantach zwiedzania' Zeche Zollverein — PO WERYFIKACJI NA ŻYWO (zollverein.de/besuch-planen/eintrittspreise/ + zollverein.ticketfritz.de) to się NIE POTWIERDZA: oficjalny katalog ma 20+ osobno nazwanych Führungen pogrupowanych w 2 kategorie czasowe (1-godzinne od 12,50 EUR/ermäßigt od 9,50 EUR, 2-godzinne od 16,50 EUR/ermäßigt od 13,50 EUR), plus osobne produkty (Zollverein-Rundfahrten 17 EUR, linia turystyczna 7-8 EUR). Rozbicie na 6 osobnych wpisów Attraction, jak proponowano, nie odpowiada rzeczywistej strukturze cennika — wymaga decyzji produktowej (które konkretne trasy modelować osobno), a nie tylko weryfikacji. Jeden przykładowo sprawdzony konkretny produkt, 'Von Kohle, Koks und harter Arbeit' (1,5h): 14,50 EUR dorosły / 11,50 EUR ermäßigt i dzieci 5-17 lat / Familienticket I 22,50 EUR / Familienticket II 33,50 EUR — ale TO NIE jest ten sam produkt co obecny wpis 12,50 EUR w tym pliku (inny czas trwania i cena)."
+      "_UWAGA_warianty_zwiedzania": "2026-10-10: poprzednia notatka w tym pliku mówiła o '6 wariantach zwiedzania' Zeche Zollverein — PO WERYFIKACJI NA ŻYWO (zollverein.de/besuch-planen/eintrittspreise/ + zollverein.ticketfritz.de) to się NIE POTWIERDZA: oficjalny katalog ma 20+ osobno nazwanych Führungen pogrupowanych w 2 kategorie czasowe (1-godzinne od 12,50 EUR/ermäßigt od 9,50 EUR, 2-godzinne od 16,50 EUR/ermäßigt od 13,50 EUR), plus osobne produkty (Zollverein-Rundfahrten 17 EUR, linia turystyczna 7-8 EUR). Rozbicie na 6 osobnych wpisów Attraction, jak proponowano, nie odpowiada rzeczywistej strukturze cennika — wymaga decyzji produktowej (które konkretne trasy modelować osobno), a nie tylko weryfikacji. Jeden przykładowo sprawdzony konkretny produkt, 'Von Kohle, Koks und harter Arbeit' (1,5h): 14,50 EUR dorosły / 11,50 EUR ermäßigt i dzieci 5-17 lat / Familienticket I 22,50 EUR / Familienticket II 33,50 EUR — ale TO NIE jest ten sam produkt co obecny wpis 12,50 EUR w tym pliku (inny czas trwania i cena).",
+      "_weryfikacja_2026-10-11": "zollverein.de/besuch-planen/eintrittspreise (2026-10-11): Führungen ab 12,50 EUR (1h) / ermäßigt ab 9,50 EUR, 2h ab 16,50/13,50. Strona NIE podaje, kto ma prawo do ulgi przy Führungen; zdanie o uczniach/studentach/Azubi do 26 lat dotyczy tylko linii autobusowej Zollverein. Ruhr Museum: dzieci/młodzież <18 oraz uczniowie i studenci <25 wstęp wolny. Dlatego ulgi 9,50 nie przypisujemy uczniom/studentom."
     },
     {
       "id": "dortmund_signal_iduna_park",
@@ -339,7 +340,8 @@
         "verified_date": "2026-10-11",
         "price_verified": true
       },
-      "_UWAGA_dynamiczne_ceny": "2026-10-11: zweryfikowano NA ŻYWO w widżecie rezerwacji (tv-turm.de/en/tickets-and-bundles/) po wybraniu konkretnego terminu — ceny 'Standard Ticket' są DYNAMICZNE (zależą od godziny i dnia, np. 24-29,50 EUR dla dorosłego w ciągu jednego dnia), nie jedną stałą kwotą jak normal_price=20 sugeruje (to prawdopodobnie najniższa możliwa cena 'ab'/'from'). Kategoria 'Child' (4-14 lat) istnieje i ma analogicznie dynamiczną cenę, potwierdzoną przykładowo na 14 EUR. Jest też osobna kategoria 'Infant' (prawdopodobnie 0-3 lata) — jej konkretną cenę/wiek nie sprawdzono dalej (czas sesji)."
+      "_UWAGA_dynamiczne_ceny": "2026-10-11: zweryfikowano NA ŻYWO w widżecie rezerwacji (tv-turm.de/en/tickets-and-bundles/) po wybraniu konkretnego terminu — ceny 'Standard Ticket' są DYNAMICZNE (zależą od godziny i dnia, np. 24-29,50 EUR dla dorosłego w ciągu jednego dnia), nie jedną stałą kwotą jak normal_price=20 sugeruje (to prawdopodobnie najniższa możliwa cena 'ab'/'from'). Kategoria 'Child' (4-14 lat) istnieje i ma analogicznie dynamiczną cenę, potwierdzoną przykładowo na 14 EUR. Jest też osobna kategoria 'Infant' (prawdopodobnie 0-3 lata) — jej konkretną cenę/wiek nie sprawdzono dalej (czas sesji).",
+      "_weryfikacja_2026-10-11": "tv-turm.de/en/tickets-and-bundles (2026-10-11): Standard Ticket 'from 20.00 EUR', View & Drink od 31 EUR; ceny dynamiczne w widżecie rezerwacji, który nie pokazuje kwot bez wyboru terminu (nie przechodzono do koszyka)."
     },
     {
       "id": "berlin_brandenburger_tor",
@@ -1060,7 +1062,8 @@
         "wspinanie",
         "linowy park"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "jochen-schweizer-arena.de/kletterpark (2026-10-11): hochseilklettergarten 'ab 19,90 EUR'; rozbicia wiekowego cen nie podano, ceny ulgowej nie dodano."
     },
     {
       "id": "munchen_deutsches_museum",
@@ -1317,7 +1320,8 @@
         "akwarium",
         "rodzina"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "visitsealife.com/muenchen/tickets (2026-10-11): online od 20 EUR (Frühbucher), na miejscu 25 EUR za dorosłego 15+; cennik dla dzieci nie jest publikowany, ceny ulgowej nie dodano."
     },
     {
       "id": "munchen_bavaria_filmstadt",
@@ -1843,7 +1847,8 @@
         "piwo",
         "degustacja"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "willkommen.koelntourismus.de (2026-10-11): 'Price adult: 27,50 EUR' (od), zawiera 3 Kölsch lub 2 napoje bezalkoholowe; grupa docelowa dorośli, brak cen ulgowych."
     },
     {
       "id": "koln_flora_botanischer_garten",

@@ -1,16 +1,53 @@
 {
   "_zrodlo": "Cennik PKP Intercity \"Oferta Polska-Niemcy\" obowiązujący od 19.08.2026 (PDF cennika PKP IC, zweryfikowany 2026-10-09) — ceny REGULARNE (nie promocyjne) za bilet w 2 klasie, w jedną stronę, pasażer dorosły.",
+  "_zrodlo_url": "https://www.intercity.pl/pl/dokumenty/Przepisy i taryfy/Cennik_Polska-Niemcy_od_19.08.2026.pdf (PDF, link z wyszukiwarki 2026-10-11; strona intercity.pl: https://www.intercity.pl/pl/site/dla-pasazera/informacje/przepisy-i-taryfy/przepisy-miedzynarodowe/warunki-taryfowe-w-pociagach-warszawa-gdynia-berlin.html). Kwoty relacji zweryfikowane 2026-10-09, w tym przejściu potwierdzono tylko istnienie i adres cennika, nie czytano PDF ponownie.",
   "_uwaga": "To jest WŁASNA, osobna oferta PKP Intercity na TYCH SAMYCH pociągach PL-DE (np. Berlin-Warszawa-Express), NIEZALEŻNA od taryfy DB modelowanej w international_pl_de.json (Super Sparpreis Europa) — pasażer może kupić bilet w KTÓRYMKOLWIEK z dwóch kanałów sprzedaży (PKP albo DB) na ten sam pociąg. Dlatego silnik liczy OBIE oferty i pokazuje tańszą jako cenę główną, drugą jako alternatywę z podpisem źródła (zob. fares/international_pkp.py i routing/pricing.py::price_rail_leg). Relacja spoza wymienionych niżej miast NIE ma oferty PKP w tym pliku -> silnik pokazuje wtedy wyłącznie taryfę DB, tak jak wcześniej.",
   "_uwaga_super_promo": "PKP sprzedaje na tych samych relacjach TAKŻE tańszą, pulowaną ofertę 'Super Promo International' (odpowiednik DB Super Sparpreis — promocyjna, ograniczona dostępność) — zaobserwowaną NA ŻYWO w systemie sprzedaży e-IC 2026-10-09: Warszawa-Berlin 44,90 EUR (198,91 zł) na JEDNĄ konkretną sprawdzoną datę (16.10.2026), wobec 69 EUR w tym regularnym cenniku. To JEDEN pomiar na JEDNĄ datę/trasę, nie opublikowana tabela cen zależna od relacji — świadomie NIE modelujemy jej jako osobnego progu cenowego (ryzyko wpisania przypadkowej, niereprezentatywnej ceny jako stałej dla wszystkich relacji i dat). Konsekwencja: realna cena, jaką pasażer zapłaci kupując u PKP, może być NIŻSZA niż cena pokazana tutaj (regularna) — symetrycznie do tego, że DB Super Sparpreis 'cena od' też bywa wyprzedana i realna cena wyższa. Do ponownej oceny, jeśli zbierzemy więcej pomiarów Super Promo z różnych dat/relacji.",
   "waluta": "EUR",
-  "berlin_miasta": ["berlin"],
+  "berlin_miasta": [
+    "berlin"
+  ],
   "relacje": [
-    {"miasta": ["warszawa"], "cena": 69},
-    {"miasta": ["krak"], "cena": 69},
-    {"miasta": ["gdynia", "gdansk", "gdańsk"], "cena": 69},
-    {"miasta": ["lublin"], "cena": 79},
-    {"miasta": ["przemysl", "przemyśl"], "cena": 79},
-    {"miasta": ["poznan", "poznań"], "cena": 47}
+    {
+      "miasta": [
+        "warszawa"
+      ],
+      "cena": 69
+    },
+    {
+      "miasta": [
+        "krak"
+      ],
+      "cena": 69
+    },
+    {
+      "miasta": [
+        "gdynia",
+        "gdansk",
+        "gdańsk"
+      ],
+      "cena": 69
+    },
+    {
+      "miasta": [
+        "lublin"
+      ],
+      "cena": 79
+    },
+    {
+      "miasta": [
+        "przemysl",
+        "przemyśl"
+      ],
+      "cena": 79
+    },
+    {
+      "miasta": [
+        "poznan",
+        "poznań"
+      ],
+      "cena": 47
+    }
   ],
   "niemowle_wiek_max": 6,
   "niemowle_rabat_procent": 100,

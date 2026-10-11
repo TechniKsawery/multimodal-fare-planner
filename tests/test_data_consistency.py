@@ -91,8 +91,7 @@ KNOWN_VERIFIED_WITHOUT_URL: set[str] = set()
 
 # Pliki taryf, w których URL źródła nie jest zapisany w polu `_zrodlo*` (znane braki, do uzupełnienia).
 KNOWN_FARE_FILES_WITHOUT_URL = {
-    "flixbus_fallback.json",  # jawnie oznaczony zgrubny fallback, nie cennik operatora
-    "international_pl_de_pkp.json",  # źródło to PDF cennika PKP IC bez adresu URL w polu
+    "flixbus_fallback.json",  # wciąż bez URL operatora: zgrubny fallback, nie cennik
 }
 
 

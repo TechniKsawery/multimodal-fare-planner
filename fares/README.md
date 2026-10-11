@@ -133,7 +133,7 @@ Polska–Niemcy* (ważny od 19.08.2026, tekst w `verification/zrodla-pdf/`, oryg
   górna = min(poziom V SPI, cena regularna PKP). Dla stacji w kilku pociągach bierzemy minimum
   poziomu I i maksimum poziomu V po wszystkich pociągach z cennika.
 - `amount` (cena główna) zostaje dolną granicą jak dotąd; `Itinerary.total_price_pln_high` ma
-  sumę z górnymi granicami. Etykieta: „szacunek (przedział wg cennika SPI)".
+  sumę z górnymi granicami. Etykieta: „szacunek: od X (źródło dolnej) do Y (źródło górnej)" — `od_zrodlo`/`do_zrodlo` w `zakres_cen`.
 - Tylko dorosły (cennik SPI nie podaje ulg) i tylko 2. klasa. Dziecko/niemowlę: bez SPI.
 - NIE modelujemy reguły przydziału poziomu na konkretny dzień (cennik jej nie podaje).
 - Poza zakresem: Saxonia 132/133 i Via Regia 134/135 (Lipsk), Chopin i Carpatia (Monachium,

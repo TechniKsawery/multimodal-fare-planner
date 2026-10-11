@@ -607,7 +607,7 @@ def test_price_rail_leg_warszawa_berlin_ma_zakres_spi_i_gorna_regularna_69():
     assert (z["spi_od"], z["spi_do"]) == (34.90, 59.90)
     assert z["pkp_cena_regularna"] == 69
     assert z["do"] <= 69
-    assert "przedział wg cennika SPI" in priced.notes
+    assert "Przedział PKP Super Promo International" in priced.notes
     assert priced.price_type == "szacunek"
 
 
@@ -654,3 +654,12 @@ def test_dane_spi_zgodne_z_tekstem_cennika_pdf():
             for poziom, strefy in poziomy.items():
                 for i, (strefa, v) in enumerate(strefy.items()):
                     assert [v["klasa_2"], v["klasa_1"]] == pdf[p["numer"]]["tabela"][rel][poziom][i]
+
+
+def test_zakres_cen_podaje_zrodla_obu_koncow():
+    leg = _international_leg("Warszawa Centralna", "Berlin Hauptbahnhof", distance_km=519)
+    z = price_rail_leg(leg, DiscountProfile()).breakdown["zakres_cen"]
+    assert z["od_zrodlo"].startswith("DB")  # 29.99 < SPI poziom I 34.90
+    assert z["do_zrodlo"] == "SPI poziom V"
+    leg = _international_leg("Lublin Główny", "Berlin Hauptbahnhof", distance_km=800)
+    assert price_rail_leg(leg, DiscountProfile(age=25)).breakdown["zakres_cen"]["do_zrodlo"] == "SPI poziom V"

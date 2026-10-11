@@ -75,7 +75,7 @@ def test_flixbus_bez_travel_date_spada_od_razu_do_fallbacku_km():
     result = estimate_price(seg)
     assert result.price_type is PriceType.ESTIMATE
     assert result.breakdown["zrodlo"] == "fallback_km"
-    assert result.amount == pytest.approx(600 * 0.35)
+    assert result.amount == pytest.approx(600 * 0.27)
 
 
 def test_flixbus_uzywa_najtanszego_wyniku_z_api(monkeypatch):
@@ -105,7 +105,7 @@ def test_flixbus_spada_do_fallbacku_km_gdy_api_rzuca_blad(monkeypatch):
     )
     result = estimate_price(seg)
     assert result.breakdown["zrodlo"] == "fallback_km"
-    assert result.amount == pytest.approx(1000 * 0.35)
+    assert result.amount == pytest.approx(1000 * 0.27)
 
 
 def test_flixbus_bez_distance_km_i_bez_travel_date_rzuca_blad():

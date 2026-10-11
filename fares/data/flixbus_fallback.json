@@ -1,4 +1,4 @@
 {
-  "pln_per_km": 0.35,
-  "_zrodlo": "Brak API/danych dla tej relacji/daty (albo brak travel_date w segmencie) - bardzo zgrubny szacunek, ta sama stawka co dawny GENERIC_FALLBACK_PLN_PER_KM w routing/pricing.py (Sesja 4). Nie jest skalibrowany do realnych cennikow FlixBusa - uzywany TYLKO gdy fares/_flixbus_api.py nie zwrocilo wyniku."
+  "pln_per_km": 0.27,
+  "_zrodlo": "Mediana ceny/km z 72 prawdziwych odpowiedzi API FlixBusa (24 trasy PL-PL i PL-DE, 3 daty: 2026-10-25, 2026-11-08, 2026-11-29, pobrane 2026-10-11, waluta PLN, odleglosc w linii prostej jak distance_km w routingu) - patrz fares/data/flixbus_calibration.json i scripts/calibrate_flixbus.py. Rozrzut duzy (Q1 0.209, Q3 0.303; trasy >=400 km mediana 0.286), wiec to nadal SZACUNEK, nie cennik operatora. Uzywany TYLKO gdy API nie zwrocilo wyniku."
 }

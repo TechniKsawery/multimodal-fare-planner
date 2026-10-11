@@ -548,8 +548,11 @@ def test_audit_pr52_data_fixes():
     assert best_price_for_attraction(p, pl)[0] != 1.0
     # weryfikacja 2026-10-11: Museum Ludwig 15,40 EUR, nie 10 EUR; niepotwierdzone ceny oznaczone
     assert A["koln_museum_ludwig"].normal_price == 15.4
-    for i in ("munchen_bmw_museum", "koln_wallraf_richartz", "wroclaw_ogrod_botaniczny"):
-        assert A[i].price_verified is False
+    # BMW Museum (17 EUR) i Ogrod Botaniczny Wroclaw (30 zl) potwierdzone u operatora 2026-10-11;
+    # Wallraf-Richartz zamkniety do konca 2028 - cena niepotwierdzona
+    assert A["munchen_bmw_museum"].price_verified is True
+    assert A["wroclaw_ogrod_botaniczny"].price_verified is True
+    assert A["koln_wallraf_richartz"].price_verified is False
     # Filmstadt: brak ceny studenckiej, jest senioralna 60+
     f = A["munchen_bavaria_filmstadt"]
     assert f.student_price is None and f.senior_price.min_age == 60

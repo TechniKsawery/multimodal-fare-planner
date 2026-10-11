@@ -539,14 +539,17 @@ def test_audit_pr52_data_fixes():
     for i in ("hamburg_st_michaelis", "hamburg_speicherstadtmuseum", "munchen_skylift_olympiapark", "koln_odysseum"):
         assert best_price_for_attraction(A[i], adult)[0] == A[i].normal_price
     assert best_price_for_attraction(A["koln_odysseum"], DiscountProfile(age=10))[0] == 16.0
-    # Powstanie: 1 PLN tylko dla polskiej legitymacji i wieku 7-26
+    # Powstanie: operator (bilety.1944.pl/cennik.html) podaje normalny 35 / ulgowy 30 PLN;
+    # cena studencka 1 PLN i rodzinna 95 PLN nie mają potwierdzenia i zostały usunięte
     p = A["warszawa_muzeum_powstania"]
-    assert best_price_for_attraction(p, DiscountProfile(age=30, is_student=True))[0] != 1.0
-    assert best_price_for_attraction(p, DiscountProfile(age=20, is_student=True))[0] != 1.0
-    de = DiscountProfile(age=20, documents=[HeldDocument("legitymacja_studencka", "DE")])
-    assert best_price_for_attraction(p, de)[0] != 1.0
+    assert p.normal_price == 35.0
+    assert p.student_price is None and p.family_price is None
     pl = DiscountProfile(age=20, documents=[HeldDocument("legitymacja_studencka", "PL")])
-    assert best_price_for_attraction(p, pl)[0] == 1.0
+    assert best_price_for_attraction(p, pl)[0] != 1.0
+    # weryfikacja 2026-10-11: Museum Ludwig 15,40 EUR, nie 10 EUR; niepotwierdzone ceny oznaczone
+    assert A["koln_museum_ludwig"].normal_price == 15.4
+    for i in ("munchen_bmw_museum", "koln_wallraf_richartz", "wroclaw_ogrod_botaniczny"):
+        assert A[i].price_verified is False
     # Filmstadt: brak ceny studenckiej, jest senioralna 60+
     f = A["munchen_bavaria_filmstadt"]
     assert f.student_price is None and f.senior_price.min_age == 60

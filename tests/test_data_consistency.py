@@ -38,7 +38,6 @@ KNOWN_UNSTRUCTURED_CONDITIONS = {
     "berlin_olympiastadion.family_price",
     "berlin_alte_foersterei.family_price",
     "warszawa_pge_narodowy.family_price",
-    "warszawa_muzeum_powstania.family_price",
     "warszawa_muzeum_powstania.senior_price",
     "hamburg_st_michaelis.student_price",
     "hamburg_st_michaelis.family_price",
@@ -88,14 +87,7 @@ KNOWN_UNSTRUCTURED_CONDITIONS = {
 # Płatne atrakcje oznaczone price_verified bez official_url — cena jest "potwierdzona", ale nie da
 # się jej zweryfikować po URL. Realny, istniejący brak: trzeba dopisać źródło albo ustawić
 # price_verified:false. Nowych takich rekordów nie wolno dodawać.
-KNOWN_VERIFIED_WITHOUT_URL = {
-    "koln_minigolf_familienpark",
-    "koln_museum_ludwig",
-    "koln_wallraf_richartz",
-    "koln_romisch_germanisches",
-    "koln_ns_dokumentationszentrum",
-    "wroclaw_ogrod_botaniczny",
-}
+KNOWN_VERIFIED_WITHOUT_URL: set[str] = set()
 
 # Pliki taryf, w których URL źródła nie jest zapisany w polu `_zrodlo*` (znane braki, do uzupełnienia).
 KNOWN_FARE_FILES_WITHOUT_URL = {

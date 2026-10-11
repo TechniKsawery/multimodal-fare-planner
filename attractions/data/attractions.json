@@ -623,7 +623,8 @@
         "source_url": "https://wycieczki.pgenarodowy.pl/cennik",
         "verified_date": "2026-10-11",
         "price_verified": true
-      }
+      },
+      "_weryfikacja_2026-10-11": "wycieczki.pgenarodowy.pl/cennik: trasa 'Poczuj się jak VIP' 45/35/125 PLN potwierdzone; inne trasy: punkt widokowy 25/20/70, 'Piłkarskie emocje' 40/30/105."
     },
     {
       "id": "warszawa_legia_trasa",
@@ -650,11 +651,11 @@
       "city": "warszawa",
       "category": "turystyka_kultura",
       "description": "Muzeum poświęcone Powstaniu Warszawskiemu 1944 — jedna z najpopularniejszych atrakcji miasta.",
-      "normal_price": 45.0,
+      "normal_price": 35.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "ul. Grzybowska 79, Warszawa",
-      "official_url": "https://www.1944.pl",
+      "official_url": "https://www.1944.pl/en/article/visit-us,4993.html",
       "highlight": true,
       "tags": [
         "muzeum",
@@ -662,34 +663,14 @@
         "powstanie warszawskie"
       ],
       "price_verified": true,
-      "_potwierdzenie_2026-10-11": "Cena 45 PLN potwierdzona ponownie na 1944.pl jako 'Regular (full price)' — nie jest błędna.",
-      "student_price": {
-        "price": 1.0,
-        "label": "Bilet dla uczących się 7-26 lat z ważną polską legitymacją szkolną/studencką (ekspozycja główna, audioprzewodnik, Galeria Pamięci)",
-        "source_url": "https://www.1944.pl",
-        "verified_date": "2026-10-11",
-        "price_verified": true,
-        "min_age": 7,
-        "max_age": 26,
-        "requires_status": "polska legitymacja szkolna/studencka",
-        "recognized_countries": [
-          "PL"
-        ]
-      },
       "senior_price": {
-        "price": 35.0,
-        "label": "Bilet ulgowy (ogólny, bez wymogu polskiej legitymacji)",
-        "source_url": "https://www.1944.pl",
+        "price": 30.0,
+        "label": "Bilet ulgowy (ogólny, 'discounted ticket'; operator nie podaje listy uprawnionych)",
+        "source_url": "https://bilety.1944.pl/cennik.html",
         "verified_date": "2026-10-11",
         "price_verified": true
       },
-      "family_price": {
-        "price": 95.0,
-        "label": "Bilet rodzinny (do 2 dorosłych + do 4 dzieci do 18 lat), cena za całą rodzinę",
-        "source_url": "https://www.1944.pl",
-        "verified_date": "2026-10-11",
-        "price_verified": true
-      }
+      "_weryfikacja_2026-10-11": "Przeglądarka: bilety.1944.pl/cennik.html i 1944.pl/en/article/visit-us,4993.html: normalny 35 PLN, ulgowy 30 PLN, w czwartki wstęp bezpłatny; 45 PLN to bilet 'joint tour with a guide'. Wcześniejsze 45 PLN, student 1 PLN i rodzinny 95 PLN nie mają potwierdzenia u operatora i zostały usunięte."
     },
     {
       "id": "warszawa_polin",
@@ -1163,7 +1144,8 @@
         "muzeum",
         "motoryzacja"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "_weryfikacja_2026-10-11": "tkts.bmw-welt.com (2026-10-11): sklep nie pokazuje ceny poza procesem rezerwacji. Cena 17 EUR niepotwierdzona."
     },
     {
       "id": "munchen_schloss_nymphenburg",
@@ -1537,13 +1519,14 @@
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Sachsenbergstrasse 1, 50679 Köln",
-      "official_url": "https://www.claudius-therme.de",
+      "official_url": "https://www.claudius-therme.de/oeffnungszeiten-preise/",
       "highlight": false,
       "tags": [
         "termy",
         "basen"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "claudius-therme.de: Thermalbad Tageskarte pon-pt 36,50 EUR (weekend/święta 39,50); 2h 19,50, 4h 26,50; Thermalbad+Sauna Tageskarte 44,50. Operator wprost: brak ulg i zniżek, dzieci od 6 lat."
     },
     {
       "id": "koln_minigolf_familienpark",
@@ -1561,7 +1544,8 @@
         "minigolf",
         "rodzina"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "_weryfikacja_2026-10-11": "Brak strony operatora w danych, cena niepotwierdzona 2026-10-11."
     },
     {
       "id": "koln_dom",
@@ -1602,17 +1586,26 @@
       "city": "koln",
       "category": "turystyka_kultura",
       "description": "Muzeum sztuki modernistycznej i współczesnej (m.in.",
-      "normal_price": 10.0,
+      "normal_price": 15.4,
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Heinrich-Böll-Platz, 50667 Köln",
-      "official_url": "",
+      "official_url": "https://www.museum-ludwig.de/en/home/visit/information/tickets-opening-hours",
       "highlight": false,
       "tags": [
         "muzeum",
         "sztuka"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 10.4,
+        "label": "Ermäßigt (studenci uczelni, praktykanci)",
+        "source_url": "https://www.museum-ludwig.de/en/home/visit/information/tickets-opening-hours",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "requires_status": "student/praktykant"
+      },
+      "_weryfikacja_2026-10-11": "Operator: Regular 15,40 EUR, Reduced 10,40 EUR, do 18 lat wstęp bezpłatny (poprzednio 10 EUR - błąd)."
     },
     {
       "id": "koln_wallraf_richartz",
@@ -1630,7 +1623,8 @@
         "muzeum",
         "malarstwo"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "_weryfikacja_2026-10-11": "wallraf.museum (2026-10-11): muzeum tymczasowo zamknięte (renowacja), cennik niepublikowany. Cena 8 EUR niepotwierdzona."
     },
     {
       "id": "koln_romisch_germanisches",
@@ -1642,13 +1636,14 @@
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Cäcilienstraße 46, 50667 Köln (lokalizacja tymczasowa)",
-      "official_url": "",
+      "official_url": "https://www.roemisch-germanisches-museum.de/oeffnungszeiten-Eintrittspreise",
       "highlight": false,
       "tags": [
         "muzeum",
         "archeologia"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "Operator: dorośli 6 EUR, ermäßigt 3,50 EUR (bez listy uprawnionych, więc nie dodano), tymczasowa lokalizacja Belgisches Haus."
     },
     {
       "id": "koln_ns_dokumentationszentrum",
@@ -1660,13 +1655,22 @@
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Appellhofplatz 23-25, 50667 Köln",
-      "official_url": "",
+      "official_url": "https://nsdok.de/Ihr-Besuch",
       "highlight": false,
       "tags": [
         "muzeum",
         "historia"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 2.0,
+        "label": "Ermäßigt (studenci i praktykanci)",
+        "source_url": "https://nsdok.de/Ihr-Besuch",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "requires_status": "student/praktykant"
+      },
+      "_weryfikacja_2026-10-11": "Operator: regularny 4,50 EUR, ermäßigt 2 EUR (studenci, Auszubildende, GdB>=50 itd.); uczniowie wstęp wolny."
     },
     {
       "id": "koln_zoo",
@@ -1753,18 +1757,28 @@
       "name": "Kölner Seilbahn",
       "city": "koln",
       "category": "rozrywka",
-      "description": "Sezonowa (ok.",
+      "description": "Sezonowa (od marca do początku listopada) kolejka linowa nad Renem, łącząca Rheinpark z Zoo.",
       "normal_price": 9.5,
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "",
-      "official_url": "",
+      "official_url": "https://www.koelner-seilbahn.de/fahrten.html",
       "highlight": false,
       "tags": [
         "kolejka linowa",
         "sezonowa"
       ],
-      "price_verified": false
+      "price_verified": true,
+      "child_price": {
+        "price": 4.8,
+        "label": "Dzieci 4-12 lat, bilet tam i z powrotem",
+        "source_url": "https://www.koelner-seilbahn.de/fahrten.html",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 4,
+        "max_age": 12
+      },
+      "_weryfikacja_2026-10-11": "Operator: tam i z powrotem 9,50 EUR dorośli / 4,80 EUR dzieci (4-12), w jedną stronę 5,50/3,30 EUR."
     },
     {
       "id": "koln_schokoladenmuseum",
@@ -1948,7 +1962,8 @@
       "tags": [
         "ogród botaniczny"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "_weryfikacja_2026-10-11": "Nie znaleziono strony operatora (domeny zgadywane nie istnieją); wtórne źródło wroclaw.pl z 2025: 30/20 zł - niewystarczające."
     },
     {
       "id": "wroclaw_park_szczytnicki",
@@ -2017,7 +2032,8 @@
         "source_url": "https://termymaltanskie.com.pl/cenniki/",
         "verified_date": "2026-10-11",
         "price_verified": true
-      }
+      },
+      "_weryfikacja_2026-10-11": "termymaltanskie.com.pl/cenniki: 46 zł = bilet normalny 1-godzinny (2h 61, 3h 75, całodzienny 109 zł); ulgowy 1h 37 zł."
     },
     {
       "id": "poznan_brama_poznania",
@@ -2081,7 +2097,8 @@
         "source_url": "https://zoo.poznan.pl/ceny-biletow-wstepu-do-ogrodu-zoologicznego/",
         "verified_date": "2026-10-11",
         "price_verified": true
-      }
+      },
+      "_weryfikacja_2026-10-11": "zoo.poznan.pl: 45/30/80 PLN to dzień powszedni mar-paź; sobota/święta 55/35/115; od listopada do końca lutego 20 PLN (rodzinny 35). Model ma stałą cenę, dla dat listopad-luty cena jest wyższa niż rzeczywista."
     },
     {
       "id": "poznan_fotoplastykon",

@@ -64,7 +64,7 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 | Międzynarodowy PL↔DE — taryfa Young (15-26 lat) | **oficjalna cena "od" (MINIMUM, nie realna cena — bahn.de explicite nie podaje górnej granicy, "je nach Verfügbarkeit"), flat (bez progów km — tak reklamuje to bahn.de)** | [Super Sparpreis Europa Young Polen](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-young-polen), [FAQ cena](https://www.bahn.de/bahnbusiness/faq/preis-super-sparpreis-europa-polen), [FAQ Young](https://www.bahn.de/faq/pk/angebot/sparpreis/young/super-sparpreis-young) — sprawdzone 2026-10-07 (2x, niezależnie) |
 | HVV (Hamburg) — Einzelkarte/Tageskarte najniższa strefa + Kindertarif 6-14 | **oficjalne** | [hvv.de](https://www.hvv.de/), Tarifstand 01.01.2026 (zweryfikowane w przeglądarce 2026-10-09) + niezależnie potwierdzone komunikatem prasowym HVV `PM251028_Tarifanpassung.pdf` i wandernundmehr.at (wiek dziecka) 2026-10-10 |
 | MVV (Monachium) — Einzelkarte Zone M + Kindertarif 6-14 | **oficjalne** | cennik MVV (ceny od 01.01.2026, zweryfikowane w przeglądarce 2026-10-09) + niezależnie potwierdzone muenchen.de i komunikatem prasowym MVV "Neue Fahrpreise...01.01.2027" 2026-10-10 |
-| VRS/Rheinlandtarif (Kolonia) — Preisstufe 1b (miasto) + Kindertarif 6-14 | **oficjalne** (poprzednio ESTIMATE — mapowanie nazwa poziomu→kwota było niejednoznaczne) | [dialogforum.vrs.de](https://dialogforum.vrs.de/en/tickets/ticket-assortment/ticket/einzeltickets) — tabela z jednoznacznie nazwanymi poziomami (1a/1b/2a/2b/3/4/5), zweryfikowane 2026-10-10 |
+| VRS/Rheinlandtarif (Kolonia) — Preisstufe 1b (miasto) + Kindertarif 6-14 | **oficjalne** (poprzednio ESTIMATE — mapowanie nazwa poziomu→kwota było niejednoznaczne) | [vrs.de](https://www.vrs.de/tickets/ticketsortiment/einzelticket) — tabela K/1a/1b/2/3 (Stand 01.06.2026), zweryfikowane w przeglądarce 2026-10-11; 1b = 4,00 EUR (stara tabela z dialogforum, 404, miała 3,50 EUR) |
 | HVV/MVV/VRS — bezpłatny przejazd, ciężka niepełnosprawność (Wertmarke) | **oficjalne, podstawa ustawowa** | § 228 SGB IX ([gesetze-im-internet.de](https://www.gesetze-im-internet.de/sgb_9_2018/__228.html)); szczegóły Wertmarke (104/53 EUR, zwolnienia dla H/Bl i świadczeń socjalnych) wg [gegen-hartz.de](https://www.gegen-hartz.de/news/mit-dem-schwerbehindertenausweis-kostenlos-pnv-fahren-diese-regeln-sind-fix) — zweryfikowane 2026-10-10. Zasada ogólnoniemiecka, NIE taryfa związku — identyczna dla HVV/MVV/VRS (i, poza zakresem tej zmiany, docelowo też dla VRR/BVG). |
 
 Każdy wynik niesie `price_type`: `PriceType.OFFICIAL` ("oficjalna_taryfa") tam, gdzie dane są
@@ -205,7 +205,7 @@ for s in suggest_bahncard(distance_km=550, journeys_per_year=2, age=22):
 `Itinerary` i sam wylicza sumę dystansów odcinków DB Fernverkehr w wariancie — używane w
 `demo.py` (`--age`) i `app.py` (pole "Wiek pasażera" już istniejące dla ulg ZTM/VRR).
 
-Warianty i ceny (`fares/data/bahncard.json`, sprawdzone 2026-09-27 na bahn.de/angebot/bahncard):
+Warianty i ceny (`fares/data/bahncard.json`, sprawdzone 2026-10-11 na bahn.de/angebot/bahncard):
 
 | Wariant | Cena roczna | Rabat na Flexpreis | Wiek |
 |---|---|---|---|
@@ -213,7 +213,7 @@ Warianty i ceny (`fares/data/bahncard.json`, sprawdzone 2026-09-27 na bahn.de/an
 | BahnCard 50 (standard) | 244,00 EUR | 50% | dowolny |
 | My BahnCard 25 | 39,90 EUR | 25% | 19–26 lat |
 | My BahnCard 50 | 79,90 EUR | 50% | 19–26 lat |
-| Jugend BahnCard 25 | 7,90 EUR (**0 EUR promocyjnie do 2026-09-30**) | 25% | 6–18 lat |
+| Jugend BahnCard 25 | 7,90 EUR (**0 EUR promocyjnie 2026-10-07 do 2026-12-12**) | 25% | 6–18 lat |
 
 Bez podanego wieku pod uwagę brane są tylko warianty standardowe (dostępne każdemu). Wariant
 promocyjny automatycznie przestaje być darmowy po dacie z `promocja_do` (`reference_date`

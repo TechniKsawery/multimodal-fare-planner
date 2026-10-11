@@ -1,8 +1,8 @@
 """Szacowanie ceny segmentu komunikacji miejskiej w Kolonii: VRS/Rheinlandtarif, Preisstufe
 1b (przejazd w obrębie miasta Kolonii lub Bonn — oficjalnie nazwana strefa, nie przybliżenie).
 
-Dane pochodzą z oficjalnej angielskiej strony dialogforum.vrs.de ("Ticket assortment" ->
-"Einzeltickets"), zweryfikowanej 2026-10-10 — patrz pole "_zrodlo" w fares/data/vrs_koln.json
+Dane pochodzą z oficjalnej angielskiej strony vrs.de (Ticketsortiment ->
+Einzelticket, Stand 01.06.2026), zweryfikowanej w przeglądarce 2026-10-11 — patrz pole "_zrodlo" w fares/data/vrs_koln.json
 oraz README.md w tym katalogu. To źródło NAZYWA jednoznacznie każdy poziom cenowy (1a = gmina
 w której się jest, poza Kolonią/Bonn; 1b = przejazd w obrębie Kolonii lub Bonn; 2a/2b/3/4/5 =
 coraz dalsze relacje), co rozwiązuje wcześniejszą niejednoznaczność mapowania nazwa->kwota

@@ -134,6 +134,46 @@ def test_fewest_transfers_itinerary_preferuje_mniej_przesiadek():
     assert motis_client.fewest_transfers_itinerary(payload)["id"] == "b"
 
 
+WALK_ONLY = {
+    "duration": 420,
+    "transfers": 0,
+    "id": "pieszo",
+    "legs": [
+        {
+            "mode": "WALK",
+            "from": {"name": "Plac Defilad", "lat": 52.2318, "lon": 21.0060},
+            "to": {"name": "Warszawa Centralna", "lat": 52.2289, "lon": 21.0033},
+            "startTime": "2026-10-09T06:00:00Z",
+            "endTime": "2026-10-09T06:07:00Z",
+            "distance": 480,
+        }
+    ],
+}
+
+
+def test_fastest_itinerary_uwzglednia_direct_pieszo():
+    """Regresja: Plac Defilad -> Dworzec Centralny (~500 m) dawał 7,3 h przez Poznań, bo lista
+    `direct` (marsz) z odpowiedzi MOTIS była ignorowana."""
+    payload = {"itineraries": [{"duration": 26400, "transfers": 3, "id": "poznan"}],
+               "direct": [WALK_ONLY]}
+    assert motis_client.fastest_itinerary(payload)["id"] == "pieszo"
+    assert motis_client.fewest_transfers_itinerary(payload)["id"] == "pieszo"
+
+
+def test_plan_tylko_direct_nie_podnosi_bledu(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"itineraries": [], "direct": [WALK_ONLY]}
+
+    monkeypatch.setattr(motis_client.requests, "get", lambda *a, **kw: FakeResponse())
+    payload = motis_client.plan("a", "b", "2026-10-09T06:00:00Z")
+    legs = motis_client.itinerary_to_legs(motis_client.fastest_itinerary(payload))
+    assert [l.mode for l in legs] == [LegMode.WALK]
+
+
 def test_plan_bez_itinerariow_podnosi_motiserror(monkeypatch):
     class FakeResponse:
         def raise_for_status(self):

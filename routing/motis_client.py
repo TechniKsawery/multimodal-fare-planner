@@ -167,6 +167,14 @@ def plan(
             },
             timeout=30,
         )
+        if getattr(response, "status_code", None) == 400:
+            # MOTIS zwraca {"error": "..."} np. gdy data jest poza wczytanym rozkładem jazdy
+            try:
+                detail = response.json().get("error")
+            except ValueError:
+                detail = None
+            if detail:
+                raise MotisError(f"MOTIS odrzucił zapytanie: {detail}.")
         response.raise_for_status()
     except requests.RequestException as exc:
         raise MotisError(
@@ -177,7 +185,10 @@ def plan(
     payload = response.json()
     if not _all_itineraries(payload):
         raise MotisError(
-            f"MOTIS nie znalazł żadnego połączenia {from_place} -> {to_place} dla time={time}."
+            f"MOTIS nie znalazł żadnego połączenia {from_place} -> {to_place} dla time={time} "
+            f"(limit dojścia pieszego do/z przystanku: {MAX_WALK_SECONDS // 60} min — punkt "
+            "daleko od stacji albo w mieście bez komunikacji miejskiej w danych może nie mieć "
+            "przystanku w zasięgu; wybierz adres bliżej dworca)."
         )
     return payload
 

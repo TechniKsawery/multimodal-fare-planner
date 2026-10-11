@@ -187,6 +187,39 @@ def test_plan_bez_itinerariow_podnosi_motiserror(monkeypatch):
         motis_client.plan("a", "b", "2026-09-28T06:00:00Z")
 
 
+def test_plan_http_400_pokazuje_komunikat_motis(monkeypatch):
+    class FakeResponse:
+        status_code = 400
+
+        def json(self):
+            return {"error": "query time 2026-11-20 08:00 is outside of loaded timetable window"}
+
+    monkeypatch.setattr(motis_client.requests, "get", lambda *a, **kw: FakeResponse())
+    with pytest.raises(MotisError, match="outside of loaded timetable window"):
+        motis_client.plan("a", "b", "2026-11-20T08:00:00Z")
+
+
+def test_plan_wysyla_limity_dojscia_pieszego(monkeypatch):
+    sent = {}
+
+    class FakeResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"itineraries": [{"duration": 1, "legs": []}]}
+
+    def fake_get(url, params=None, **kw):
+        sent.update(params)
+        return FakeResponse()
+
+    monkeypatch.setattr(motis_client.requests, "get", fake_get)
+    motis_client.plan("1,2", "3,4", "2026-10-14T08:00:00Z")
+    assert sent["maxPreTransitTime"] == sent["maxPostTransitTime"] == motis_client.MAX_WALK_SECONDS
+
+
 # --- transfers: bezpieczeństwo przesiadek -------------------------------------------------
 
 

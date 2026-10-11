@@ -591,7 +591,7 @@
       "city": "warszawa",
       "category": "sport",
       "description": "Wycieczka z przewodnikiem po kuluarach Stadionu Narodowego: szatnie, strefa VIP, murawa.",
-      "normal_price": 39.0,
+      "normal_price": 45.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "al. Ks. Józefa Poniatowskiego 1, Warszawa",
@@ -602,7 +602,23 @@
         "sport",
         "zwiedzanie"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_korekta_2026-10-11": "Poprzednia cena 39 PLN nie odpowiadała żadnemu realnemu produktowi z cennika wycieczki.pgenarodowy.pl/cennik. Opis atrakcji (szatnie, strefa VIP, murawa) odpowiada wariantowi 'Poczuj się jak VIP' (45 PLN normalny, indywidualny).",
+      "student_price": {
+        "price": 35.0,
+        "label": "Bilet ulgowy (dzieci/młodzież do 18 lat, uczniowie, studenci do 26 lat, seniorzy, osoby z niepełnosprawnością)",
+        "source_url": "https://wycieczki.pgenarodowy.pl/cennik",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "requires_status": "ważna legitymacja/dokument"
+      },
+      "family_price": {
+        "price": 125.0,
+        "label": "Bilet rodzinny 2+2 lub 2+1 (2 dorośli + do 2 dzieci/młodzieży do 18 lat), cena za całą rodzinę",
+        "source_url": "https://wycieczki.pgenarodowy.pl/cennik",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "warszawa_legia_trasa",
@@ -640,7 +656,32 @@
         "historia",
         "powstanie warszawskie"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_potwierdzenie_2026-10-11": "Cena 45 PLN potwierdzona ponownie na 1944.pl jako 'Regular (full price)' — nie jest błędna.",
+      "student_price": {
+        "price": 1.0,
+        "label": "Bilet dla uczących się 7-26 lat z ważną polską legitymacją szkolną/studencką (ekspozycja główna, audioprzewodnik, Galeria Pamięci)",
+        "source_url": "https://www.1944.pl",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 7,
+        "max_age": 26,
+        "requires_status": "polska legitymacja szkolna/studencka"
+      },
+      "senior_price": {
+        "price": 35.0,
+        "label": "Bilet ulgowy (ogólny, bez wymogu polskiej legitymacji)",
+        "source_url": "https://www.1944.pl",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 95.0,
+        "label": "Bilet rodzinny (do 2 dorosłych + do 4 dzieci do 18 lat), cena za całą rodzinę",
+        "source_url": "https://www.1944.pl",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "warszawa_polin",
@@ -771,7 +812,28 @@
         "kościół",
         "punkt widokowy"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 6.0,
+        "label": "Ermäßigt (Turm): Schüler, Studierende, Azubis ab 16, Rentner, Erwerbslose, Behinderte, Hamburg-Card, Gruppen 10+",
+        "source_url": "https://www.st-michaelis.de/michel-besuch/oeffnungszeiten-und-preise",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "child_price": {
+        "price": 5.0,
+        "label": "Kinder (Turm)",
+        "source_url": "https://www.st-michaelis.de/michel-besuch/oeffnungszeiten-und-preise",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 20.0,
+        "label": "Familienticket Turm (Eltern + Kinder bis 15 Jahre)",
+        "source_url": "https://www.st-michaelis.de/michel-besuch/oeffnungszeiten-und-preise",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "hamburg_speicherstadtmuseum",
@@ -789,7 +851,22 @@
         "muzeum",
         "speicherstadt"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 4.5,
+        "label": "Ermäßigt: Studierende bis 30, Azubis, FSJ, Arbeitslose, Bürgergeldempfänger",
+        "source_url": "https://www.speicherstadtmuseum.de/besucherinfos/oeffnungszeiten-preise.html",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "child_price": {
+        "price": 3.0,
+        "label": "Schüler",
+        "source_url": "https://www.speicherstadtmuseum.de/besucherinfos/oeffnungszeiten-preise.html",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "requires_status": "legitymacja szkolna"
+      }
     },
     {
       "id": "hamburg_imm",
@@ -807,7 +884,21 @@
         "muzeum",
         "morze"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 12.0,
+        "label": "Concessions (ermäßigt)",
+        "source_url": "https://www.imm-hamburg.de/international/en",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 36.0,
+        "label": "Family ticket (2 Erwachsene + bis 4 Kinder), Preis für die ganze Familie",
+        "source_url": "https://www.imm-hamburg.de/international/en",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "hamburg_elbphilharmonie_plaza",
@@ -825,7 +916,23 @@
         "punkt widokowy",
         "port"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 3.0,
+        "label": "Kinder 3-17 Jahre",
+        "source_url": "https://www.elbphilharmonie.de/en/plaza",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 3,
+        "max_age": 17
+      },
+      "student_price": {
+        "price": 3.0,
+        "label": "Ermäßigt: Schüler, Studierende, Azubis, Grundsicherungsempfänger, Arbeitslose, Schwerbehinderte",
+        "source_url": "https://www.elbphilharmonie.de/en/plaza",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "hamburg_hagenbeck",
@@ -843,7 +950,23 @@
         "zoo",
         "rodzina"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 19.0,
+        "label": "Kinder 4-16 Jahre (Einzelkarte)",
+        "source_url": "https://www.hagenbeck.de/de/tierpark/tierpark/besucherinfos.php",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 4,
+        "max_age": 16
+      },
+      "family_price": {
+        "price": 79.0,
+        "label": "Familienkarte 1 (2 Erwachsene + 2 Kinder)",
+        "source_url": "https://www.hagenbeck.de/de/tierpark/tierpark/besucherinfos.php",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "hamburg_miniatur_wunderland",
@@ -861,7 +984,22 @@
         "makieta",
         "rodzina"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 13.0,
+        "label": "Kinder unter 16 Jahren",
+        "source_url": "https://www.miniatur-wunderland.com/visiting/plan-your-visit/admission-fees",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "max_age": 15
+      },
+      "student_price": {
+        "price": 19.0,
+        "label": "Discounted: Studierende, Schüler ab 16, Senioren ab 65, Behinderte ab 16, Arbeitslose",
+        "source_url": "https://www.miniatur-wunderland.com/visiting/plan-your-visit/admission-fees",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "munchen_fcbayern_erlebniswelt",
@@ -880,7 +1018,30 @@
         "piłka nożna",
         "bayern"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 11.0,
+        "label": "Kinder 6-13 Jahre (Museum + Arena Tour)",
+        "source_url": "https://fcbayern.com/erlebniswelt/de/besucherinformation/preise",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 6,
+        "max_age": 13
+      },
+      "student_price": {
+        "price": 22.0,
+        "label": "Ermäßigt: FCB-Mitglieder, Schüler, Azubis, Studenten, Rentner, Schwerbehinderte (Museum + Arena Tour)",
+        "source_url": "https://fcbayern.com/erlebniswelt/de/besucherinformation/preise",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 59.0,
+        "label": "Familie: 2 Erwachsene + Kinder bis 16 Jahre (Museum + Arena Tour)",
+        "source_url": "https://fcbayern.com/erlebniswelt/de/besucherinformation/preise",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "munchen_sayaq_adventure_tower",
@@ -898,7 +1059,16 @@
         "wspinanie",
         "olympiapark"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 25.0,
+        "label": "Kinder 6-14 Jahre (2-godzinne wspinanie)",
+        "source_url": "https://www.olympiapark.de/de/sport/sayaq-adventure-tower",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 6,
+        "max_age": 14
+      }
     },
     {
       "id": "munchen_jochen_schweizer_klettergarten",
@@ -935,7 +1105,21 @@
         "nauka",
         "technika"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 9.0,
+        "label": "Concession day ticket (Hauptgebäude)",
+        "source_url": "https://www.deutsches-museum.de/en/museum/current-news/slight-increase-in-admission-prices",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 33.0,
+        "label": "Family ticket (Hauptgebäude), cena za całą rodzinę",
+        "source_url": "https://www.deutsches-museum.de/en/museum/current-news/slight-increase-in-admission-prices",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "munchen_residenz",
@@ -953,7 +1137,22 @@
         "pałac",
         "muzeum"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 13.0,
+        "label": "Ermäßigt (Residenzmuseum + Schatzkammer, bilet łączony)",
+        "source_url": "https://www.residenz-muenchen.de/deutsch/tourist/eintritt.htm",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci i młodzież do 18 lat (bezpłatnie, z dowodem)",
+        "source_url": "https://www.residenz-muenchen.de/deutsch/tourist/eintritt.htm",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "max_age": 18
+      }
     },
     {
       "id": "munchen_bmw_museum",
@@ -989,7 +1188,22 @@
         "pałac",
         "ogrody"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 18.0,
+        "label": "Ermäßigt: grupy 15+, studenci, 65+, niepełnosprawni (bilet 'Nymphenburg' łączony, sezon letni)",
+        "source_url": "https://www.schloss.bayern.de/englisch/service/tourism/preise2026_engl.pdf",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci/młodzież do 18 lat i uczniowie (bezpłatnie, z legitymacją szkolną)",
+        "source_url": "https://www.schloss.bayern.de/englisch/service/tourism/preise2026_engl.pdf",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "max_age": 18
+      }
     },
     {
       "id": "munchen_frauenkirche",
@@ -1007,7 +1221,30 @@
         "kościół",
         "punkt widokowy"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 5.5,
+        "label": "Kinder/Jugendliche 7-16 Jahre (Turmaufstieg)",
+        "source_url": "https://www.muenchner-dom.de/",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 7,
+        "max_age": 16
+      },
+      "student_price": {
+        "price": 5.5,
+        "label": "Ermäßigt: Studierende, Schüler mit Ausweis, Menschen mit Behinderung",
+        "source_url": "https://www.muenchner-dom.de/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 21.0,
+        "label": "Familie (2 Erwachsene + 2 Kinder/Jugendliche), +3 EUR pro weiterem Kind bis max. 3",
+        "source_url": "https://www.muenchner-dom.de/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "munchen_skylift_olympiapark",
@@ -1025,7 +1262,29 @@
         "punkt widokowy",
         "olympiapark"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 8.0,
+        "label": "Kinder 3 Jahre bis 1,40 m",
+        "source_url": "https://www.olympiapark.de/de/attraktionen-und-gastronomie/sightseeing/skylift-olympiapark",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 3
+      },
+      "student_price": {
+        "price": 11.0,
+        "label": "Studierende",
+        "source_url": "https://www.olympiapark.de/de/attraktionen-und-gastronomie/sightseeing/skylift-olympiapark",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "senior_price": {
+        "price": 11.0,
+        "label": "Senioren",
+        "source_url": "https://www.olympiapark.de/de/attraktionen-und-gastronomie/sightseeing/skylift-olympiapark",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "munchen_hellabrunn",
@@ -1043,7 +1302,37 @@
         "zoo",
         "rodzina"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 10.0,
+        "label": "Kinder 4-14 Jahre (mit Artenschutzeuro)",
+        "source_url": "https://www.hellabrunn.de/parkbesuch/allgemeine-informationen/tickets",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 4,
+        "max_age": 14
+      },
+      "student_price": {
+        "price": 18.0,
+        "label": "Ermäßigt: Schüler, Studierende, München-Pass, Schwerbehinderte unter GdB 90 (mit Artenschutzeuro)",
+        "source_url": "https://www.hellabrunn.de/parkbesuch/allgemeine-informationen/tickets",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "senior_price": {
+        "price": 18.0,
+        "label": "Senioren ab 65 (mit Artenschutzeuro)",
+        "source_url": "https://www.hellabrunn.de/parkbesuch/allgemeine-informationen/tickets",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 29.0,
+        "label": "Kleine Familienkarte (mit Artenschutzeuro); große Familienkarte 52 EUR",
+        "source_url": "https://www.hellabrunn.de/parkbesuch/allgemeine-informationen/tickets",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "munchen_sealife",
@@ -1079,7 +1368,23 @@
         "film",
         "studio"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 21.0,
+        "label": "Kinder/Jugendliche 6-17 Jahre (Filmstadt Kombi)",
+        "source_url": "https://www.filmstadt.de/infos-preise/preise",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 6,
+        "max_age": 17
+      },
+      "student_price": {
+        "price": 23.0,
+        "label": "Ermäßigt: Gruppen 20+, Senioren 60+, Schwerbehinderte, MVV-Tageskarte (Filmstadt Kombi)",
+        "source_url": "https://www.filmstadt.de/infos-preise/preise",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "munchen_bier_oktoberfest_museum",
@@ -1098,7 +1403,14 @@
         "oktoberfest",
         "muzeum"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 2.5,
+        "label": "Ermäßigt: Kinder, Schüler, Studierende, Rentner, Schwerbehinderte, München-Pass",
+        "source_url": "https://www.bier-und-oktoberfestmuseum.de/oeffnungszeiten-preise/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "munchen_viktualienmarkt",
@@ -1187,7 +1499,22 @@
       "tags": [
         "ogród botaniczny"
       ],
-      "price_verified": false
+      "price_verified": false,
+      "student_price": {
+        "price": 4.0,
+        "label": "Ermäßigt",
+        "source_url": "https://botmuc.snsb.de/oeffnungszeiten-und-tickets/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci do 12 lat bezpłatnie; uczniowie do 18 lat bezpłatnie",
+        "source_url": "https://botmuc.snsb.de/oeffnungszeiten-und-tickets/",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "max_age": 18
+      }
     },
     {
       "id": "koln_rheinenergiestadion",
@@ -1205,7 +1532,14 @@
         "stadion",
         "piłka nożna"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 9.9,
+        "label": "Ermäßigt (Stadiontour)",
+        "source_url": "https://willkommen.koelntourismus.de/en/event/stadiumtour",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "koln_claudius_therme",
@@ -1259,7 +1593,22 @@
         "katedra",
         "unesco"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 6.0,
+        "label": "Ermäßigt: Schüler ab 14, Azubis, Studierende, Begleitpersonen von Schülergruppen, Sozialpass NRW",
+        "source_url": "https://www.koelner-dom.de/besuchen/neue-besichtigungsgebuehr-ab-dem-1-juli-2026",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "child_price": {
+        "price": 0.0,
+        "label": "Kinder bis 13 Jahre bezpłatnie",
+        "source_url": "https://www.koelner-dom.de/besuchen/neue-besichtigungsgebuehr-ab-dem-1-juli-2026",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "max_age": 13
+      }
     },
     {
       "id": "koln_museum_ludwig",
@@ -1366,7 +1715,22 @@
       "tags": [
         "punkt widokowy"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 4.0,
+        "label": "Schüler, Studenten, Gruppen ab 5 Personen",
+        "source_url": "http://www.koelntrianglepanorama.de/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "child_price": {
+        "price": 0.0,
+        "label": "Kinder bis 12 Jahre bezpłatnie",
+        "source_url": "http://www.koelntrianglepanorama.de/",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "max_age": 12
+      }
     },
     {
       "id": "koln_odysseum",
@@ -1384,7 +1748,15 @@
         "nauka",
         "rodzina"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 16.0,
+        "label": "Kinder ab 5 Jahren, 'ab'-Preis (Ramses & das Gold der Pharaonen)",
+        "source_url": "https://www.odysseum.de",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "min_age": 5
+      }
     },
     {
       "id": "koln_seilbahn",
@@ -1420,7 +1792,36 @@
         "czekolada",
         "muzeum"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "child_price": {
+        "price": 10.0,
+        "label": "Kinder/Schüler bis 18 Jahre (Mo-Fr); Sa/So/Feiertage 11,50 EUR",
+        "source_url": "https://www.schokoladenmuseum.de/besuch-planen/",
+        "verified_date": "2026-10-11",
+        "price_verified": true,
+        "max_age": 18
+      },
+      "student_price": {
+        "price": 14.0,
+        "label": "Auszubildende/Studenten (Mo-Fr); Sa/So/Feiertage 15 EUR",
+        "source_url": "https://www.schokoladenmuseum.de/besuch-planen/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "senior_price": {
+        "price": 16.0,
+        "label": "Senioren ab 65 (Mo-Fr); Sa/So/Feiertage 17 EUR",
+        "source_url": "https://www.schokoladenmuseum.de/besuch-planen/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 35.0,
+        "label": "Familienkarte (2 Erwachsene + eigene Kinder bis 18 Jahre, Mo-Fr); Sa/So/Feiertage 38 EUR, cena za całą rodzinę",
+        "source_url": "https://www.schokoladenmuseum.de/besuch-planen/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "koln_brewery_tour",
@@ -1475,7 +1876,21 @@
         "panorama",
         "historia"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 35.0,
+        "label": "Bilet ulgowy",
+        "source_url": "https://mnwr.pl/en/branches/panorama-of-the-battle-of-raclawice/information/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 35.0,
+        "label": "Bilet rodzinny — 35 PLN OD OSOBY (1-2 opiekunów + dzieci 7-18 lat)",
+        "source_url": "https://mnwr.pl/en/branches/panorama-of-the-battle-of-raclawice/information/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "wroclaw_hydropolis",
@@ -1494,7 +1909,21 @@
         "woda",
         "rodzina"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 36.0,
+        "label": "Bilet ulgowy (dzień powszedni)",
+        "source_url": "https://bilety.hydropolis.pl/cennik.html?lang=en",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 130.0,
+        "label": "Bilet rodzinny (2 dorośli + do 2 dzieci, dzień powszedni), cena za całą rodzinę; święta/weekendy 140 PLN",
+        "source_url": "https://bilety.hydropolis.pl/cennik.html?lang=en",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "wroclaw_hala_targowa",
@@ -1584,7 +2013,21 @@
         "termy",
         "sport"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 37.0,
+        "label": "Bilet ulgowy (Aquapark, 1h)",
+        "source_url": "https://termymaltanskie.com.pl/cenniki/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 93.0,
+        "label": "Bilet rodzinny (Aquapark, 1h; 2 dorośli+1 dziecko lub 1 dorosły+2 dzieci) + 13 PLN za każde kolejne dziecko, cena bazowa",
+        "source_url": "https://termymaltanskie.com.pl/cenniki/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "poznan_brama_poznania",
@@ -1602,7 +2045,21 @@
         "muzeum",
         "historia"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 29.0,
+        "label": "Bilet ulgowy",
+        "source_url": "https://bramapoznania.pl/cennik",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 75.0,
+        "label": "Bilet rodzinny (max 5 osób, w tym max 2 dorośli + dzieci do 18 lat), cena za całą rodzinę",
+        "source_url": "https://bramapoznania.pl/cennik",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "poznan_nowe_zoo",
@@ -1620,7 +2077,21 @@
         "zoo",
         "rodzina"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 30.0,
+        "label": "Bilet ulgowy (dni powszednie, marzec-październik): przedszkolaki, uczniowie do 21 lat",
+        "source_url": "https://zoo.poznan.pl/ceny-biletow-wstepu-do-ogrodu-zoologicznego/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 80.0,
+        "label": "Bilet rodzinny (dni powszednie, marzec-październik), cena za całą rodzinę",
+        "source_url": "https://zoo.poznan.pl/ceny-biletow-wstepu-do-ogrodu-zoologicznego/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "poznan_fotoplastykon",
@@ -1638,7 +2109,21 @@
         "muzeum",
         "ciekawostka"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 3.0,
+        "label": "Bilet ulgowy: dzieci od 3 lat, uczniowie, studenci, emeryci, renciści, HDK/HDP/ZDP",
+        "source_url": "https://www.poznan.pl/mim/main/fotoplastykon,p,23153,45268.html",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 12.0,
+        "label": "Bilet rodzinny (min. 1 dziecko + 2 opiekunów albo 3 dzieci + 1 opiekun), cena za całą rodzinę",
+        "source_url": "https://www.poznan.pl/mim/main/fotoplastykon,p,23153,45268.html",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "poznan_rogalowe_muzeum",
@@ -1656,7 +2141,14 @@
         "rogal świętomarciński",
         "warsztat"
       ],
-      "price_verified": false
+      "price_verified": false,
+      "student_price": {
+        "price": 35.0,
+        "label": "Bilet ulgowy, 'od'-cena (brak szczegółowego podziału na stronie głównej)",
+        "source_url": "https://rogalowemuzeum.pl",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "poznan_palmiarnia",
@@ -1674,7 +2166,14 @@
         "palmiarnia",
         "rośliny"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "student_price": {
+        "price": 15.0,
+        "label": "Bilet ulgowy: dzieci przedszkolne, uczniowie, studenci, emeryci, renciści, niepełnosprawni, Karta Seniora",
+        "source_url": "https://palmiarnia.poznan.pl/wp-content/uploads/2024/12/cennik-od-1.01.2025-roku-Zarzadzenie-Prezydenta-Miasta-Poznania-1.pdf",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      }
     },
     {
       "id": "poznan_park_cytadela",

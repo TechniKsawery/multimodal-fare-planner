@@ -25,3 +25,14 @@
 | Minigolf Familienpark | NIEPOTWIERDZONE: brak źródła | - |
 | Claudius Therme | POTWIERDZONE 36,50 EUR (Tageskarte pon-pt), operator: brak ulg | claudius-therme.de/oeffnungszeiten-preise |
 | Nie sprawdzone | Kölner Zoo (osobny wątek), Brewery Tour, Jochen Schweizer, SEA LIFE, Fernsehturm, Zollverein, FlixBus fallback, PKP IC PL-DE, ok. 48 cen z warunkiem w opisie | - |
+
+## Uzupełnienie (druga tura)
+
+| Pozycja | Wynik |
+|---|---|
+| SEA LIFE Monachium | POTWIERDZONE: online od 20 EUR, na miejscu 25 EUR (dorosły 15+); brak cen ulgowych |
+| Jochen Schweizer Kletterpark | POTWIERDZONE: od 19,90 EUR (hochseilklettergarten); brak rozbicia wiekowego |
+| PKP IC PL-DE | Dodano URL cennika (PDF z 19.08.2026); kwoty 69/79/47 EUR z 2026-10-09, PDF nie czytany ponownie |
+| Brewery Tour Köln, FlixBus fallback | Bez zmian, niesprawdzone (FlixBus: zgrubny fallback bez cennika operatora) |
+| Fernsehturm, Zollverein, Kölner Zoo | Pominięte: robi je osobny wątek (ceny od + adnotacja o ulgach) |
+| Zoo Poznań (sezon) | Cena 45 zł = dzień powszedni mar-paź; od 1.11 do końca lutego 20 zł (opisane w polu `_weryfikacja`) |

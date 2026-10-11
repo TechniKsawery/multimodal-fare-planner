@@ -1060,7 +1060,8 @@
         "wspinanie",
         "linowy park"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "jochen-schweizer-arena.de/kletterpark (2026-10-11): hochseilklettergarten 'ab 19,90 EUR'; rozbicia wiekowego cen nie podano, ceny ulgowej nie dodano."
     },
     {
       "id": "munchen_deutsches_museum",
@@ -1317,7 +1318,8 @@
         "akwarium",
         "rodzina"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "visitsealife.com/muenchen/tickets (2026-10-11): online od 20 EUR (Frühbucher), na miejscu 25 EUR za dorosłego 15+; cennik dla dzieci nie jest publikowany, ceny ulgowej nie dodano."
     },
     {
       "id": "munchen_bavaria_filmstadt",
@@ -1843,7 +1845,8 @@
         "piwo",
         "degustacja"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "Nie sprawdzone w tym przejściu: strona operatora/koelntourismus bez weryfikacji ceny 27,50 EUR."
     },
     {
       "id": "koln_flora_botanischer_garten",

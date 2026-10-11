@@ -202,3 +202,14 @@ def test_real_attractions_data_has_discoverable_sources():
     categories = {s.category for s in sources}
     assert "atrakcja" in categories
     assert "karta miejska" in categories
+
+
+def test_discover_attraction_sources_includes_nested_price_source_urls(tmp_path):
+    data = {"atrakcje": [{
+        "id": "x", "name": "X", "official_url": "https://a.example/",
+        "student_price": {"price": 1, "source_url": "https://b.example/cennik"},
+        "family_price": {"price": 2, "source_url": "https://a.example/"},
+    }]}
+    (tmp_path / "attractions.json").write_text(json.dumps(data), encoding="utf-8")
+    urls = sorted(s.url for s in wos.discover_attraction_sources(tmp_path))
+    assert urls == ["https://a.example/", "https://b.example/cennik"]

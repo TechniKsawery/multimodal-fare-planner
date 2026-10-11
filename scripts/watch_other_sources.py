@@ -27,6 +27,7 @@ Kod wyjścia: 0 = brak zmian, 1 = wykryto zmianę w >=1 źródle, 2 = błąd pob
 """
 
 import argparse
+import hashlib
 import importlib
 import json
 import sys
@@ -79,18 +80,47 @@ def discover_attraction_sources(data_dir: Path | None = None) -> list[ContentSou
         category = "karta miejska" if list_key == "karty" else "atrakcja"
         for item in data.get(list_key, []):
             url = item.get("official_url")
-            if not url:
-                continue
-            sources.append(
-                ContentSource(
-                    category=category,
-                    data_file=filename,
-                    item_id=item.get("id", "?"),
-                    item_name=item.get("name", "?"),
-                    url=url,
+            if url:
+                sources.append(
+                    ContentSource(
+                        category=category,
+                        data_file=filename,
+                        item_id=item.get("id", "?"),
+                        item_name=item.get("name", "?"),
+                        url=url,
+                    )
                 )
-            )
+            # Strony, z których pochodzą ceny ulgowe/karty (source_url zagnieżdżone w polach
+            # cenowych), mogą być inne niż official_url (np. osobny cennik) — też je śledzimy.
+            seen = {url}
+            for extra in sorted(_nested_source_urls(item) - seen):
+                digest = hashlib.sha1(extra.encode("utf-8")).hexdigest()[:8]
+                sources.append(
+                    ContentSource(
+                        category=category,
+                        data_file=filename,
+                        item_id=f"{item.get('id', '?')}__{digest}",
+                        item_name=f"{item.get('name', '?')} (źródło ceny)",
+                        url=extra,
+                    )
+                )
     return sources
+
+
+def _nested_source_urls(node) -> set[str]:
+    """Zbiera wartości pól "source_url"/"existence_source_url" (http/https) z całego drzewa."""
+    urls: set[str] = set()
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key in ("source_url", "existence_source_url") and isinstance(value, str):
+                if value.startswith(("http://", "https://")):
+                    urls.add(value)
+            else:
+                urls |= _nested_source_urls(value)
+    elif isinstance(node, list):
+        for value in node:
+            urls |= _nested_source_urls(value)
+    return urls
 
 
 def discover_feed_sources() -> list[FeedSource]:

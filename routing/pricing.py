@@ -64,13 +64,12 @@ BVG_BERLIN_KEYWORDS = ("berlin", "bvg", "vbb")
 HVV_KEYWORDS = ("hamburg", "hvv")
 MVV_KEYWORDS = ("münchen", "muenchen", "munchen", "mvv")
 VRS_KOLN_KEYWORDS = ("köln", "koeln", "koln", "kvb", "vrs")
-"""HVV/MVV/VRS_KOLN: NIEUŻYWANE jeszcze w praktyce — nasze dane GTFS dla Niemiec obejmują
-tylko feed krajowy (FV) i regionalny NRW/VRR (patrz VRR_AREA_KEYWORDS wyżej), więc żaden
-przystanek/agencja w Hamburgu, Monachium czy Kolonii nie pojawi się tu dziś. Dodane na
-zapas (kalkulatory fares/hvv.py, fares/mvv.py, fares/kvb.py już istnieją — patrz
-attractions/ dla tych miast), żeby po ewentualnym dociągnięciu regionalnego GTFS dla tych
-miast kolejna sesja nie musiała na nowo zgadywać, pod jakimi słowami szukać przewoźnika —
-i żeby generyczne VRR_AREA_KEYWORDS ("s-bahn", "regio") nie złapały ich po drodze."""
+"""HVV/MVV/VRS_KOLN: od wprowadzenia pełnego GTFS miejskiego dla Hamburga/Monachium/Kolonii
+(docker-compose.de-full-city-gtfs.yml) te słowa kluczowe są aktywnie używane — zarówno przez
+city_carriers w price_bus_leg (legi sklasyfikowane przez MOTIS jako BUS), jak i przez dopasowanie
+w price_rail_leg (legi S-Bahn/U-Bahn sklasyfikowane jako RAIL, które inaczej wpadłyby pod
+generyczne VRR_AREA_KEYWORDS "s-bahn"/"regio" i policzyłyby się błędnie taryfą eezy.nrw/Ruhry —
+zob. [[hvv-mvv-vrs-rail-leg-fare-gap]] w pamięci projektu, naprawione 2026-10-11)."""
 
 
 PL_MOTIS_DATASETS = frozenset({"pl", "ztml"})
@@ -266,6 +265,25 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
         carrier: Carrier | None = Carrier.INTERNATIONAL_PL_DE
     else:
         carrier = infer_rail_carrier(leg.carrier_name)
+        if carrier in (None, Carrier.VRR):
+            # MOTIS klasyfikuje S-Bahn/U-Bahn w Hamburgu, Monachium i Kolonii jako RAIL (nie
+            # BUS — patrz komentarz w price_bus_leg), więc infer_rail_carrier() (który zna
+            # tylko nazwę przewoźnika, nie przystanki) łapie je generycznym dopasowaniem
+            # "s-bahn"/"regio" z VRR_AREA_KEYWORDS i liczy taryfą eezy.nrw (Zagłębie Ruhry) —
+            # błędną dla tych miast. Odkąd dataset 'defv' obejmuje też pełne GTFS miejskie dla
+            # Hamburga/Monachium/Kolonii (patrz docker-compose.de-full-city-gtfs.yml), trzeba
+            # tu sprawdzić to samo co city_carriers w price_bus_leg PRZED zaakceptowaniem
+            # ogólnego dopasowania VRR — stacja "Köln Hbf"/"Köln Messe/Deutz Bf" nie ma "köln"
+            # w nazwie przewoźnika ("DB Regio AG NRW"), więc patrzymy też na origin/destination.
+            tekst = f"{leg.carrier_name} {leg.origin_name} {leg.destination_name}".lower()
+            for keywords, city_carrier in (
+                (HVV_KEYWORDS, Carrier.HVV),
+                (MVV_KEYWORDS, Carrier.MVV),
+                (VRS_KOLN_KEYWORDS, Carrier.VRS_KOLN),
+            ):
+                if any(k in tekst for k in keywords):
+                    carrier = city_carrier
+                    break
     if carrier is None:
         return _fallback_priced_leg(leg, f"Brak modułu taryf dla przewoźnika '{leg.carrier_name}'.")
 

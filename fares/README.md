@@ -306,3 +306,9 @@ zapytań, cache na dysku): `fares/_unofficial.py`.
 - Każdy wynik to `PriceType.ESTIMATE`, `breakdown["zrodlo"]` = `nieoficjalne_db_vendo`, a w notes
   jest informacja o nieoficjalnym źródle. Każdy błąd, limit lub brak odpowiedzi = powrót do tabeli.
 - Droga formalna (zgody, konta partnerskie): `verification/instrukcje-oficjalne-drogi-dostepu-2026-10-11.md`.
+- **Test na żywo 2026-10-11 (komputer Ksaviego, 6 zapytań, profil dbnav):** DB odpowiedziało
+  `OPS_BLOCKED` na każde zapytanie, więc źródło DB nie zwraca dziś cen i nie omijamy blokady
+  (inne profile nie były próbowane). Kod zostaje jako opcja na wypadek zgody DB lub zmiany stanu.
+- **PKP IC / KOLEO / bilkom:** brak publicznego źródła cen bez omijania zabezpieczeń (Koleo
+  `connections` zwraca 406 "Nieprawidłowa wersja klienta", intercity.pl ma skrypt antybotowy,
+  bilkom bez JSON-a z ceną bez sesji). Moduł PKP nieoficjalny NIE powstał; zostaje oficjalny cennik.

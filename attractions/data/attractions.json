@@ -1519,13 +1519,14 @@
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Sachsenbergstrasse 1, 50679 Köln",
-      "official_url": "https://www.claudius-therme.de",
+      "official_url": "https://www.claudius-therme.de/oeffnungszeiten-preise/",
       "highlight": false,
       "tags": [
         "termy",
         "basen"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "claudius-therme.de: Thermalbad Tageskarte pon-pt 36,50 EUR (weekend/święta 39,50); 2h 19,50, 4h 26,50; Thermalbad+Sauna Tageskarte 44,50. Operator wprost: brak ulg i zniżek, dzieci od 6 lat."
     },
     {
       "id": "koln_minigolf_familienpark",

@@ -23,4 +23,5 @@
 | BMW Museum | NIEPOTWIERDZONE: cena tylko w procesie rezerwacji | tkts.bmw-welt.com |
 | Ogród Botaniczny Wrocław | NIEPOTWIERDZONE: nie znaleziono strony operatora | - |
 | Minigolf Familienpark | NIEPOTWIERDZONE: brak źródła | - |
-| Nie sprawdzone w tym przejściu | Kölner Zoo (ceny dynamiczne), Claudius Therme, Brewery Tour, Jochen Schweizer, SEA LIFE, ok. 48 cen ulgowych z warunkiem tylko w opisie, FlixBus fallback, cennik PKP IC PL-DE (brak URL) | - |
+| Claudius Therme | POTWIERDZONE 36,50 EUR (Tageskarte pon-pt), operator: brak ulg | claudius-therme.de/oeffnungszeiten-preise |
+| Nie sprawdzone | Kölner Zoo (osobny wątek), Brewery Tour, Jochen Schweizer, SEA LIFE, Fernsehturm, Zollverein, FlixBus fallback, PKP IC PL-DE, ok. 48 cen z warunkiem w opisie | - |

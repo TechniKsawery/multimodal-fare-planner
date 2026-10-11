@@ -292,3 +292,17 @@ pytest tests/test_fares.py
 Fallback `pln_per_km` zmieniono z 0.35 na 0.27 (mediana z 72 prawdziwych cen API, 24 trasy PL-PL/PL-DE,
 3 daty; próbka z datami w `fares/data/flixbus_calibration.json`, zbierana `scripts/calibrate_flixbus.py`).
 Rozrzut jest duży (Q1 0.209, Q3 0.303), krótkie trasy są tańsze za km niż długie — to nadal szacunek.
+
+## Nieoficjalne źródła cen (opcjonalne, domyślnie WYŁĄCZONE)
+
+Gdzie nie ma oficjalnego API cen (DB, PKP IC), można włączyć nieoficjalne źródło:
+`UNOFFICIAL_PRICES=1` (opcje: `UNOFFICIAL_PRICES_SOURCES=db,pkp`, `UNOFFICIAL_PRICES_PER_MINUTE=20`,
+`UNOFFICIAL_PRICES_TTL_MIN=360`, `UNOFFICIAL_PRICES_CACHE_DIR`). Wspólna logika (przełącznik, limit
+zapytań, cache na dysku): `fares/_unofficial.py`.
+
+- **DB**: `fares/_db_vendo_api.py` woła lokalny serwis `tools/db-vendo-service` (db-vendo-client,
+  `DB_VENDO_URL`, domyślnie http://127.0.0.1:3100). Wymaga `travel_date` w segmencie. Biblioteka
+  zastrzega, że formalnie potrzebna jest zgoda DB, a API bywa blokowane.
+- Każdy wynik to `PriceType.ESTIMATE`, `breakdown["zrodlo"]` = `nieoficjalne_db_vendo`, a w notes
+  jest informacja o nieoficjalnym źródle. Każdy błąd, limit lub brak odpowiedzi = powrót do tabeli.
+- Droga formalna (zgody, konta partnerskie): `verification/instrukcje-oficjalne-drogi-dostepu-2026-10-11.md`.

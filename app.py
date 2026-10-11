@@ -467,6 +467,11 @@ with st.form("search"):
             "bezpłatnie (bahn.de); bez zaznaczenia liczone jako podróżujące samodzielnie "
             "(-50% tylko na niemiecki odcinek trasy). Oferta PKP nie rozróżnia opiekuna.",
         )
+    st.caption("Taryfa dziecięca (Kindertarif, 6-14 lat) w innych miastach niemieckich")
+    k1, k2, k3 = st.columns(3)
+    hvv_dziecko = k1.checkbox("Hamburg (HVV)", value=6 <= wiek <= 14)
+    mvv_dziecko = k2.checkbox("Monachium (MVV)", value=6 <= wiek <= 14)
+    vrs_koln_dziecko = k3.checkbox("Kolonia (VRS)", value=6 <= wiek <= 14)
     st.caption("Bilety ulgowe w innych miastach (50% — zaznacz, jeśli dotyczy)")
     u1, u2, u3, u4, u5 = st.columns(5)
     ztm_warszawa_ulgowy = u1.checkbox("Warszawa", value=wiek < 18)
@@ -521,6 +526,12 @@ with st.form("search"):
         " wystarcza. Nie zaznaczaj bez obu dokumentów naraz. Brak w Berlinie ulgi wiekowej dla"
         " seniorów (65+ to płatny abonament VBB-Abo 65plus, nie modelowany tutaj).",
     )
+    schwerbehinderte_wertmarke_de = st.checkbox(
+        "Bezpłatny przejazd — ciężka niepełnosprawność z Wertmarke (Niemcy)",
+        help="§ 228 SGB IX: osoby z Merkzeichen G/aG/H/Bl/Gl i ważną Wertmarke w legitymacji "
+        "jeżdżą bezpłatnie lokalnym transportem w całych Niemczech. Obsłużone tu dla Hamburga "
+        "(HVV), Monachium (MVV) i Kolonii (VRS) — nie wpływa na inne miasta/przewoźników.",
+    )
     submitted = st.form_submit_button("Szukaj")
 
 if submitted:
@@ -543,6 +554,10 @@ if submitted:
         bvg_berlin_ulgowy=bvg_berlin_ulgowy,
         bvg_berlin_schwerbehindert=bvg_berlin_schwerbehindert,
         vrr_dziecko=vrr_dziecko,
+        hvv_dziecko=hvv_dziecko,
+        mvv_dziecko=mvv_dziecko,
+        vrs_koln_dziecko=vrs_koln_dziecko,
+        schwerbehinderte_wertmarke_de=schwerbehinderte_wertmarke_de,
         age=wiek,
         child_with_guardian=child_with_guardian,
         obywatelstwo=obywatelstwo,

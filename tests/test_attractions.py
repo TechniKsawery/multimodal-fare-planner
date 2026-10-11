@@ -24,7 +24,18 @@ def test_get_all_attractions():
     for a in attractions:
         assert a.id
         assert a.name
-        assert a.city in ("gelsenkirchen", "berlin", "krakow", "lublin")
+        assert a.city in (
+            "gelsenkirchen",
+            "berlin",
+            "krakow",
+            "lublin",
+            "warszawa",
+            "hamburg",
+            "munchen",
+            "koln",
+            "wroclaw",
+            "poznan",
+        )
         assert isinstance(a.category, AttractionCategory)
         assert a.normal_price >= 0.0
         assert a.currency in ("EUR", "PLN")
@@ -377,3 +388,66 @@ def test_best_price_respektuje_jawne_ograniczenie_kraju_dokumentu():
     price, _label, source = best_price_for_attraction(attr, with_german)
     assert price == 10.0
     assert source is student_price
+def test_nowe_miasta_rozpoznawane_i_maja_atrakcje():
+    """Miasta dodane 2026-10-09 (Warszawa doprecyzowana, Hamburg, Monachium, Kolonia, Wrocław)."""
+    cases = {
+        "Plac Defilad 1, Warszawa": "warszawa",
+        "Speersort 1, Hamburg": "hamburg",
+        "Marienplatz 1, München": "munchen",
+        "Domkloster 4, Köln": "koln",
+        "Rynek 1, Wrocław": "wroclaw",
+    }
+    for address, expected_city in cases.items():
+        assert normalize_city(address) == expected_city
+        attrs = get_attractions(city=expected_city)
+        assert len(attrs) >= 5, f"{expected_city}: oczekiwano co najmniej 5 atrakcji"
+
+
+def test_poznan_ma_fares_i_atrakcje_pelny_pakiet():
+    """Poznań miał już kalkulator transportu (fares/ztm_poznan.py) — dociągnęliśmy atrakcje, żeby domknąć pełny pakiet."""
+    attrs = get_attractions(city="Poznań")
+    assert len(attrs) >= 5
+    card_ids = [c.id for c in get_city_cards("Poznań")]
+    assert "poznan_city_card" in card_ids
+    poznan_card = next(c for c in get_all_city_cards() if c.id == "poznan_city_card")
+    assert all(v.price_verified for v in poznan_card.variants)
+    assert poznan_card.custom_discounts.get("poznan_brama_poznania") == 40.0
+
+
+def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
+    """Hamburg CARD/KölnCard/München CityTourCard/Warsaw Pass: tam gdzie cena nie jest
+    potwierdzona u operatora (lub dwa źródła podają rozbieżne ceny), price_verified musi być
+    False. Dane zweryfikowane w przeglądarce 2026-10-09 (Remote Control + Claude in Chrome)."""
+    cards_by_id = {
+        c.id: c
+        for c in get_all_city_cards()
+        if c.id in ("hamburg_card", "koln_card", "munchen_citytourcard", "warsaw_pass")
+    }
+    assert set(cards_by_id) == {"hamburg_card", "koln_card", "munchen_citytourcard", "warsaw_pass"}
+
+    hamburg_card = cards_by_id["hamburg_card"]
+    assert all(v.price_verified for v in hamburg_card.variants)
+    assert hamburg_card.custom_discounts == {
+        "hamburg_speicherstadtmuseum": 25.0,
+        "hamburg_imm": 22.0,
+    }
+
+    munchen_card = cards_by_id["munchen_citytourcard"]
+    assert all(v.price_verified for v in munchen_card.variants)
+    for not_a_partner in ("munchen_bmw_museum", "munchen_deutsches_museum", "munchen_hellabrunn", "munchen_skylift_olympiapark"):
+        assert not_a_partner not in munchen_card.custom_discounts
+
+    # KölnCard: flyer oficjalny i VRS-Ticketshop podają rozbieżne ceny dla 48h-single/24h-group —
+    # te dwa warianty muszą być oznaczone jako niepewne, podczas gdy 24h-single/48h-group (oba
+    # źródła zgodne) są potwierdzone.
+    koln_card = cards_by_id["koln_card"]
+    verified_by_id = {v.id: v.price_verified for v in koln_card.variants}
+    assert verified_by_id["koln_card_einzelkarte_24h"] is True
+    assert verified_by_id["koln_card_gruppenkarte_48h"] is True
+    assert verified_by_id["koln_card_einzelkarte_48h"] is False
+    assert verified_by_id["koln_card_gruppenkarte_24h"] is False
+    assert not koln_card.custom_discounts
+
+    warsaw_card = cards_by_id["warsaw_pass"]
+    assert all(not v.price_verified for v in warsaw_card.variants)
+    assert not warsaw_card.custom_discounts

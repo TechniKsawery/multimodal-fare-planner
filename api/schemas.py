@@ -21,6 +21,10 @@ class DiscountProfileIn(BaseModel):
     bvg_berlin_ulgowy: bool = False
     bvg_berlin_schwerbehindert: bool = False
     vrr_dziecko: bool = False
+    hvv_dziecko: bool = False
+    mvv_dziecko: bool = False
+    vrs_koln_dziecko: bool = False
+    schwerbehinderte_wertmarke_de: bool = False
     age: int | None = None
     obywatelstwo: str | None = None
 

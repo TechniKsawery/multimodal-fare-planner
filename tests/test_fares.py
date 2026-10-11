@@ -606,3 +606,81 @@ def test_bvg_berlin_bez_czasu_jazdy_podnosi_blad():
     seg = Segment(Carrier.BVG_BERLIN, "A", "B")
     with pytest.raises(ValueError):
         estimate_price(seg)
+
+
+def test_hvv_einzelkarte_normalny():
+    seg = Segment(Carrier.HVV, "Hauptbahnhof", "Landungsbrücken")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == 4.10  # Tarifstand 01.01.2026, najniższa strefa
+
+
+def test_hvv_einzelkarte_dziecko():
+    seg = Segment(
+        Carrier.HVV, "A", "B", discounts=DiscountProfile(hvv_dziecko=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 1.50
+
+
+def test_mvv_einzelfahrkarte_zone_m_normalny():
+    seg = Segment(Carrier.MVV, "Marienplatz", "Hauptbahnhof")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == 4.20  # ceny od 01.01.2026, Zone M
+
+
+def test_mvv_einzelfahrkarte_zone_m_dziecko():
+    seg = Segment(
+        Carrier.MVV, "A", "B", discounts=DiscountProfile(mvv_dziecko=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 2.00
+
+
+def test_vrs_koln_estimate_official_preisstufe_1b():
+    """VRS/Köln: dialogforum.vrs.de nazywa jednoznacznie każdy poziom cenowy (1b = przejazd
+    w obrębie Kolonii/Bonn), więc mapowanie nazwa->kwota jest teraz potwierdzone i wynik jest
+    OFFICIAL (w poprzedniej wersji było ESTIMATE z powodu niejednoznacznego źródła)."""
+    seg = Segment(Carrier.VRS_KOLN, "Dom/Hauptbahnhof", "Neumarkt")
+    result = estimate_price(seg)
+    assert result.price_type is PriceType.OFFICIAL
+    assert result.currency == "EUR"
+    assert result.amount == 3.50  # Preisstufe 1b, dialogforum.vrs.de
+
+
+def test_vrs_koln_dziecko_tansze_niz_normalny():
+    seg_normalny = Segment(Carrier.VRS_KOLN, "A", "B")
+    seg_dziecko = Segment(
+        Carrier.VRS_KOLN, "A", "B", discounts=DiscountProfile(vrs_koln_dziecko=True),
+    )
+    assert estimate_price(seg_dziecko).amount < estimate_price(seg_normalny).amount
+
+
+def test_hvv_schwerbehinderte_bezplatnie():
+    seg = Segment(
+        Carrier.HVV, "A", "B", discounts=DiscountProfile(schwerbehinderte_wertmarke_de=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+    assert result.price_type is PriceType.OFFICIAL
+
+
+def test_mvv_schwerbehinderte_bezplatnie():
+    seg = Segment(
+        Carrier.MVV, "A", "B", discounts=DiscountProfile(schwerbehinderte_wertmarke_de=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+    assert result.price_type is PriceType.OFFICIAL
+
+
+def test_vrs_koln_schwerbehinderte_bezplatnie():
+    seg = Segment(
+        Carrier.VRS_KOLN, "A", "B", discounts=DiscountProfile(schwerbehinderte_wertmarke_de=True),
+    )
+    result = estimate_price(seg)
+    assert result.amount == 0.0
+    assert result.price_type is PriceType.OFFICIAL

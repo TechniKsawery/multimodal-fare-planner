@@ -78,6 +78,8 @@ _CITY_ALIASES = {
     "köln": "koln",
     "cologne": "koln",
     "kolonia": "koln",
+    "wroclaw": "wroclaw",
+    "wrocław": "wroclaw",
 }
 
 

@@ -61,6 +61,16 @@ MPK_KRAKOW_KEYWORDS = ("kraków", "krakow", "mpk kraków", "mpk krakow", "ztp kr
 ZTM_POZNAN_KEYWORDS = ("poznań", "poznan", "ztm poznań", "ztm poznan", "mpk poznań", "mpk poznan")
 MPK_WROCLAW_KEYWORDS = ("wrocław", "wroclaw", "mpk wrocław", "mpk wroclaw")
 BVG_BERLIN_KEYWORDS = ("berlin", "bvg", "vbb")
+HVV_KEYWORDS = ("hamburg", "hvv")
+MVV_KEYWORDS = ("münchen", "muenchen", "munchen", "mvv")
+VRS_KOLN_KEYWORDS = ("köln", "koeln", "koln", "kvb", "vrs")
+"""HVV/MVV/VRS_KOLN: NIEUŻYWANE jeszcze w praktyce — nasze dane GTFS dla Niemiec obejmują
+tylko feed krajowy (FV) i regionalny NRW/VRR (patrz VRR_AREA_KEYWORDS wyżej), więc żaden
+przystanek/agencja w Hamburgu, Monachium czy Kolonii nie pojawi się tu dziś. Dodane na
+zapas (kalkulatory fares/hvv.py, fares/mvv.py, fares/kvb.py już istnieją — patrz
+attractions/ dla tych miast), żeby po ewentualnym dociągnięciu regionalnego GTFS dla tych
+miast kolejna sesja nie musiała na nowo zgadywać, pod jakimi słowami szukać przewoźnika —
+i żeby generyczne VRR_AREA_KEYWORDS ("s-bahn", "regio") nie złapały ich po drodze."""
 
 
 PL_MOTIS_DATASETS = frozenset({"pl", "ztml"})
@@ -361,6 +371,15 @@ def price_flixbus_leg(leg: Leg) -> PricedLeg:
 
 
 def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedLeg:
+    """UWAGA (sprawdzone 2026-10-10, test realnym GTFS HVV/MVV/VRS w PR #49): ten kalkulator
+    bywa wołany też dla legów, które MOTIS sklasyfikował jako "BUS" mimo że faktycznie są
+    S-Bahn/U-Bahn obsługiwanym przez DB Regio (routing/motis_client.py::itinerary_to_legs
+    mapuje każdy tryb MOTIS inny niż RAIL/TRAIN na LegMode.BUS, patrz komentarz tam). To NIE
+    jest błąd do naprawy: HVV/MVV/Rheinlandtarif (VRS) to Verbundtarif obejmujący WSZYSTKIE
+    lokalne środki transportu (S-Bahn, U-Bahn, tramwaj, autobus) w obrębie związku jedną,
+    wspólną ceną zależną od strefy/relacji, niezależnie od operatora czy trybu — więc
+    dopasowanie po nazwie przystanku/miasta (city_carriers poniżej) i wycena z taryfy
+    związkowej jest poprawna, nawet gdy przewoźnik widoczny w danych to "DB Regio ..."."""
     discounts = discounts or DiscountProfile()
 
     is_coach = leg.extra.get("motis_mode") == "COACH" or any(
@@ -380,6 +399,9 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
         (ZTM_POZNAN_KEYWORDS, Carrier.ZTM_POZNAN),
         (MPK_WROCLAW_KEYWORDS, Carrier.MPK_WROCLAW),
         (BVG_BERLIN_KEYWORDS, Carrier.BVG_BERLIN),
+        (HVV_KEYWORDS, Carrier.HVV),
+        (MVV_KEYWORDS, Carrier.MVV),
+        (VRS_KOLN_KEYWORDS, Carrier.VRS_KOLN),
     ]
     for keywords, carrier in city_carriers:
         if any(k in tekst for k in keywords):

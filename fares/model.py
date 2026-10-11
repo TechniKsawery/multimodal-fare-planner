@@ -22,6 +22,9 @@ class Carrier(str, Enum):
     ZTM_POZNAN = "ztm_poznan"
     MPK_WROCLAW = "mpk_wroclaw"
     BVG_BERLIN = "bvg_berlin"
+    HVV = "hvv"  # Hamburger Verkehrsverbund (Hamburg)
+    MVV = "mvv"  # Münchner Verkehrsverbund (Monachium)
+    VRS_KOLN = "vrs_koln"  # Verkehrsverbund Rhein-Sieg, obszar Kolonii (Rheinlandtarif)
     INTERNATIONAL_PL_DE = "international_pl_de"  # bilet PL<->DE przekraczający granicę jednym
     # ciągłym odcinkiem kolejowym (np. Berlin-Warszawa-Express) — SZTYWNE kategorie cenowe
     # (Super Sparpreis Europa), nie tabela pasm jak krajowe kalkulatory PKP/DB. Zob. fares/international.py.
@@ -111,6 +114,18 @@ class DiscountProfile:
     vrr_dziecko: bool = (
         False  # VRR/eezy.nrw: Kindertarif (6-14 lat), 50% rabatu wliczając sufity cenowe
     )
+    hvv_dziecko: bool = False  # HVV (Hamburg): cena dziecka (6-14 lat) z oficjalnego cennika
+    mvv_dziecko: bool = False  # MVV (Monachium): cena dziecka (6-14 lat) z oficjalnego cennika
+    vrs_koln_dziecko: bool = False  # VRS/Rheinlandtarif (Kolonia): cena dziecka (6-14 lat)
+    schwerbehinderte_wertmarke_de: bool = False
+    """Bezpłatny przejazd w niemieckim transporcie lokalnym dla osób z ciężką niepełnosprawnością
+    (Merkzeichen G/aG/H/Bl/Gl + ważna Wertmarke w legitymacji) — § 228 SGB IX. To zasada
+    OGÓLNONIEMIECKA (nie taryfa poszczególnego związku), więc jedno pole obsługuje identycznie
+    HVV, MVV i VRS/Köln (fares/hvv.py, mvv.py, kvb.py) — nie dotyczy VRR/BVG, które nie mają
+    jeszcze tej kategorii zamodelowanej (możliwe do dociągnięcia później, poza zakresem tej
+    zmiany). Sama Wertmarke bywa płatna (104 EUR/12 mies. lub 53 EUR/6 mies.) lub bezpłatna
+    (Merkzeichen H/Bl, określone świadczenia socjalne) — to nie wpływa na cenę PRZEJAZDU, którą
+    liczy ten kalkulator, tylko na koszt samej legitymacji, który tu nie jest modelowany."""
     age: int | None = None
     """Wiek pasażera w dniu podróży. Używany przez fares/international.py (bilet DB PL-DE) do
     wyboru taryfy wiekowej: dziecko/niemowlę (bis 5 lat gratis, 6-14 lat zależnie od

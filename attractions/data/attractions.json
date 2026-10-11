@@ -1141,14 +1141,14 @@
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Am Olympiapark 2, 80809 München",
-      "official_url": "https://www.bmw-welt.com/de/index.html",
+      "official_url": "https://tkts.bmw-welt.com/de",
       "highlight": false,
       "tags": [
         "muzeum",
         "motoryzacja"
       ],
-      "price_verified": false,
-      "_weryfikacja_2026-10-11": "tkts.bmw-welt.com (2026-10-11): sklep nie pokazuje ceny poza procesem rezerwacji. Cena 17 EUR niepotwierdzona."
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "Zweryfikowane 2026-10-11 w sklepie operatora tkts.bmw-welt.com (produkt \"BMW Museum entry\", wybór terminu 14.10.2026, bez koszyka/płatności): \"Single Ticket 17 Euro\", \"Single ticket reduced 9 Euro\", bilet grupowy 16 EUR; ważny 5 h. Cena 17 EUR potwierdzona. Wcześniejsze źródła wtórne podawały 10 EUR. Ulgowy 9 EUR NIE jest jeszcze modelowany (GroupPrice wymaga zasad kwalifikacji ulgi)."
     },
     {
       "id": "munchen_schloss_nymphenburg",
@@ -1628,7 +1628,7 @@
         "malarstwo"
       ],
       "price_verified": false,
-      "_weryfikacja_2026-10-11": "wallraf.museum (2026-10-11): muzeum tymczasowo zamknięte (renowacja), cennik niepublikowany. Cena 8 EUR niepotwierdzona."
+      "_weryfikacja_2026-10-11": "MUZEUM ZAMKNIĘTE do końca 2028 (generalny remont). Źródło: wallraf.museum/aktuell/voruebergehend-geschlossen/ (sprawdzone 2026-10-11): \"das Haus bis Ende 2028 für eine zweijährige Generalinstandsetzung geschlossen\". Cena 8 EUR niepotwierdzona; koeln.de podaje 13 EUR normalny / 9 ulgowy (źródło wtórne, nie operator). Nie polecać do czasu otwarcia."
     },
     {
       "id": "koln_romisch_germanisches",
@@ -1962,13 +1962,13 @@
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "ul. Henryka Sienkiewicza, Wrocław",
-      "official_url": "",
+      "official_url": "https://ogrodbotaniczny.wroclaw.pl/cennik.html",
       "highlight": false,
       "tags": [
         "ogród botaniczny"
       ],
-      "price_verified": false,
-      "_weryfikacja_2026-10-11": "Nie znaleziono strony operatora (domeny zgadywane nie istnieją); wtórne źródło wroclaw.pl z 2025: 30/20 zł - niewystarczające."
+      "price_verified": true,
+      "_weryfikacja_2026-10-11": "Zweryfikowane 2026-10-11 na stronie operatora ogrodbotaniczny.wroclaw.pl/cennik.html: bilet jednorazowy normalny 30 zł, ulgowy 20 zł (ulgowy: dzieci od 3 lat i uczniowie, studenci do 26 lat i doktoranci, osoby z umiarkowaną/lekką niepełnosprawnością, seniorzy od 60 lat, pracownicy UWr). Nasz Wrocław MAX 24/16 zł. Karta Rodzina Plus / Karta Dużej Rodziny: 60 zł od 3 osób. Cennik bez zaznaczonego sezonu; ulgi NIE są jeszcze modelowane jako student_price/senior_price."
     },
     {
       "id": "wroclaw_park_szczytnicki",

@@ -283,7 +283,10 @@
           "description": "Gruppenkarte (do 5 osób), wariant 'Mit Nahverkehr'. hamburg-tourism.de, zweryfikowane w przeglądarce 2026-10-09.",
           "price_verified": true
         }
-      ]
+      ],
+      "existence_verified": true,
+      "existence_source_url": "https://www.hamburg-tourism.de/buchen/hamburg-card/",
+      "existence_verified_date": "2026-10-09"
     },
     {
       "id": "munchen_citytourcard",
@@ -697,7 +700,10 @@
           "description": "Bilet grupowy 2-5 osób. mvv-muenchen.de, zweryfikowane w przeglądarce 2026-10-09.",
           "price_verified": true
         }
-      ]
+      ],
+      "existence_verified": true,
+      "existence_source_url": "https://www.mvv-muenchen.de/tickets-abos-preise/citytourcard",
+      "existence_verified_date": "2026-10-09"
     },
     {
       "id": "koln_card",
@@ -752,7 +758,10 @@
           "description": "Oba źródła (flyer koelntourismus.de i vrs-ticketshop.de) zgodne: 38,00 €. Zweryfikowane w przeglądarce 2026-10-09.",
           "price_verified": true
         }
-      ]
+      ],
+      "existence_verified": true,
+      "existence_source_url": "https://www.koelntourismus.de/buchen/koelncard",
+      "existence_verified_date": "2026-10-09"
     },
     {
       "id": "warsaw_pass",
@@ -774,7 +783,10 @@
           "description": "Cena niepotwierdzona u pierwotnego źródła (przeliczenie z ok. 46 USD wg wzmianki prasowej) — ceny OTA zmieniają się dynamicznie. Warianty 48h/72h nieustalone.",
           "price_verified": false
         }
-      ]
+      ],
+      "existence_verified": true,
+      "existence_source_url": "https://www.getyourguide.com/warsaw-l910/warsaw-pass-t390318/",
+      "existence_verified_date": "2026-10-09"
     },
     {
       "id": "poznan_city_card",
@@ -854,7 +866,10 @@
           "description": "Cena normalna bez transportu. Ulgowy wariant: 65 PLN.",
           "price_verified": true
         }
-      ]
+      ],
+      "existence_verified": true,
+      "existence_source_url": "https://visitpoznan.pl/en/poznan-city-card",
+      "existence_verified_date": "2026-10-09"
     }
   ]
 }

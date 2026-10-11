@@ -108,26 +108,33 @@ def test_poznan_city_card_zweryfikowana_z_pelnym_cennikiem():
     assert card.id == "poznan_city_card"
     assert len(card.variants) == 6
     by_id = {v.id for v in card.variants}
-    assert "poznan_24h_transport" in by_id
+    assert "poznan_card_24h_transport" in by_id
     assert all(v.price_verified for v in card.variants)
 
 
 def test_warsaw_pass_zweryfikowany_komercyjna_karta():
-    """Warsaw Pass (zweryfikowany w przeglądarce 2026-10-10 na shop.warsawpass.com i
-    warsaw-pass.com): komercyjna karta, nie obejmuje transportu publicznego."""
+    """Warsaw Pass: komercyjna karta OTA (nie oficjalna karta miasta), tylko wariant 24h,
+    cena niepotwierdzona u pierwotnego źródła (przeliczenie z ceny w USD) — warianty 48h/72h
+    nieustalone, patrz opis karty w city_cards.json."""
     cards = get_city_cards("Warszawa")
     assert len(cards) == 1
     card = cards[0]
     assert card.id == "warsaw_pass"
-    assert len(card.variants) == 3
-    assert all(v.price_verified and not v.includes_public_transit for v in card.variants)
+    assert len(card.variants) == 1
+    assert all(not v.price_verified and not v.includes_public_transit for v in card.variants)
 
 
-def test_krakow_card_oznaczona_jako_niepotwierdzona():
-    """official_url krakowcard.com przekierowuje dziś na komercyjny reseller z cenami w EUR,
-    więc nasze ceny w PLN są oznaczone jako niepotwierdzone (zweryfikowano 2026-10-10)."""
+def test_krakow_card_warianty_glowne_zweryfikowane_student_pass_nie():
+    """Kraków Card: warianty 1/2/3 dni zweryfikowane na żywo 2026-10-09 na discovercracow.com
+    (ceny w EUR). Krakow Museum Pass for Students to osobny produkt z ceną zależną od daty —
+    pozostaje niepotwierdzony."""
     card = next(c for c in get_all_city_cards() if c.id == "krakow_card")
-    assert all(v.price_verified is False for v in card.variants)
+    by_id = {v.id: v for v in card.variants}
+    assert all(
+        by_id[v].price_verified
+        for v in ("krakow_card_1_dzien", "krakow_card_2_dni", "krakow_card_3_dni")
+    )
+    assert by_id["krakow_museum_pass_student_3d"].price_verified is False
 
 
 def test_evaluate_city_cards_not_profitable_when_few_attractions():

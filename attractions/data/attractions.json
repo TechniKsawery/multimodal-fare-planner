@@ -98,6 +98,8 @@
       "default_card_discount_percent": 50.0,
       "address": "Gelsenkirchener Str. 181, 45309 Essen",
       "official_url": "https://www.zollverein.de",
+      "price_is_from": true,
+      "variable_pricing_note": "cena „od”: operator ma 20+ wariantów zwiedzania (1h od 12,50 €, 2h od 16,50 €); ulga ermäßigt od 9,50 € (1h) / od 13,50 € (2h) potwierdzona na zollverein.de/besuch-planen/eintrittspreise/ 2026-10-11, ale kto się kwalifikuje do ulgi na trasy i ulgi dla dzieci/rodzin NIE są tam podane — ulgi możliwe, kwota niepotwierdzona",
       "price_verified": true,
       "highlight": true,
       "tags": [
@@ -316,6 +318,9 @@
       "default_card_discount_percent": 25.0,
       "address": "Panoramastraße 1A, 10178 Berlin",
       "official_url": "https://tv-turm.de/tickets/",
+      "price_is_from": true,
+      "dynamic_pricing": true,
+      "variable_pricing_note": "cena „od”: ceny dynamiczne zależne od godziny i dnia (np. 24–29,50 € w jednym dniu); ulgi (dzieci 4–14 lat itd.) istnieją, ale ich kwota zmienia się razem z ceną — ulgi możliwe, kwota niepotwierdzona, sprawdź w kasie/rezerwacji",
       "price_verified": true,
       "highlight": true,
       "tags": [
@@ -1669,7 +1674,7 @@
       "city": "koln",
       "category": "rozrywka",
       "description": "Jeden z największych zoo w Niemczech, z akwarium.",
-      "normal_price": 29.5,
+      "normal_price": 22.5,
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Riehler Straße 173, 50735 Köln",
@@ -1679,6 +1684,9 @@
         "zoo",
         "akwarium"
       ],
+      "price_is_from": true,
+      "dynamic_pricing": true,
+      "variable_pricing_note": "cena „od”: online ceny dynamiczne (dorosły 22,50–29,50 €; dziecko 10,50–15 €; ulgowy/senior 63+ 16,10–23 € wg koelnerzoo.de/article/eintrittspreise/, 2026-10-11) — ulgi możliwe, kwota zależy od terminu",
       "price_verified": true
     },
     {

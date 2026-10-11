@@ -160,6 +160,11 @@ def get_all_attractions() -> list[Attraction]:
                 student_price=_load_group_price(item.get("student_price")),
                 senior_price=_load_group_price(item.get("senior_price")),
                 family_price=_load_group_price(item.get("family_price")),
+                dynamic_pricing=bool(item.get("dynamic_pricing", False)),
+                price_is_from=bool(
+                    item.get("price_is_from", False) or item.get("dynamic_pricing", False)
+                ),
+                variable_pricing_note=item.get("variable_pricing_note", ""),
             )
         )
     return res
@@ -261,6 +266,14 @@ def _status_title_applies(
     return flag or profile.has_recognized_document(doc_types, None)
 
 
+def price_from_note(attraction: Attraction) -> str:
+    """Adnotacja do ceny wyświetlanej użytkownikowi ("" gdy cena jest stała)."""
+    if not attraction.price_is_from:
+        return ""
+    note = attraction.variable_pricing_note or "ceny zależą od terminu/wariantu, ulgi możliwe"
+    return note
+
+
 def best_price_for_attraction(
     attraction: Attraction, profile: "DiscountProfile | None" = None
 ) -> tuple[float, str, GroupPrice | None]:
@@ -279,7 +292,8 @@ def best_price_for_attraction(
     candidates: list[tuple[float, str, GroupPrice | None]] = [
         (attraction.normal_price, "Cena standardowa (dorosły)", None)
     ]
-    if profile is not None:
+    # Ceny dynamiczne: nie ma stałej kwoty ulgi, więc nie zgadujemy - zostaje cena "od".
+    if profile is not None and not attraction.dynamic_pricing:
         gp = attraction.child_price
         if gp is not None and profile.age is not None:
             # Cena dziecięca bez ŻADNEJ granicy wieku nie może przysługiwać dorosłemu:

@@ -84,6 +84,14 @@ class Attraction:
     student_price: "GroupPrice | None" = None
     senior_price: "GroupPrice | None" = None
     family_price: "GroupPrice | None" = None
+    # normal_price to cena "od" (najniższa potwierdzona): operator ma wiele wariantów
+    # (np. 20+ tras zwiedzania) albo ceny dynamiczne. UI/API pokazują "od X" + notatkę.
+    price_is_from: bool = False
+    # Ceny zmieniają się z terminem/godziną (jak bilety lotnicze): nie ma stałej kwoty
+    # ulgi, więc best_price_for_attraction NIE zgaduje ulg i liczy z ceny "od".
+    dynamic_pricing: bool = False
+    # Wyjaśnienie dla użytkownika (np. "ulgi możliwe, kwota niepotwierdzona").
+    variable_pricing_note: str = ""
 
 
 @dataclass

@@ -15,6 +15,7 @@ import argparse
 from attractions import (
     AttractionCategory,
     best_price_for_attraction,
+    price_from_note,
     evaluate_city_cards,
     get_attractions,
     normalize_city,
@@ -88,12 +89,16 @@ def format_city_section(
     for a in attrs:
         price_val, label, source = best_price_for_attraction(a, profile)
         price = f"{price_val:.2f} {a.currency}" if price_val > 0 else "wstęp bezpłatny"
+        if a.price_is_from:
+            price = f"od {price}"
         if source is not None:
             price += f" ({label})"
             if not source.price_verified:
                 price += ", cena niepotwierdzona"
         elif not a.price_verified:
             price += ", cena niepotwierdzona"
+        if a.price_is_from:
+            price += f" [{price_from_note(a)}]"
         lines.append(f"  - [{CATEGORY_PLAIN[a.category]}] {a.name}: {price}")
 
     best = suggest_best_city_card(

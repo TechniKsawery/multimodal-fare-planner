@@ -13,6 +13,7 @@ from .model import (
 from .service import (
     DiscountProfile,
     best_price_for_attraction,
+    price_from_note,
     evaluate_city_cards,
     get_all_attractions,
     get_all_city_cards,
@@ -33,6 +34,7 @@ __all__ = [
     "HeldDocument",
     "DiscountProfile",
     "best_price_for_attraction",
+    "price_from_note",
     "evaluate_city_cards",
     "get_all_attractions",
     "get_all_city_cards",

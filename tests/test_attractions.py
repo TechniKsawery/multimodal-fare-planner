@@ -553,3 +553,42 @@ def test_audit_pr52_data_fixes():
     assert best_price_for_attraction(f, DiscountProfile(age=22, is_student=True))[0] == f.normal_price
     assert best_price_for_attraction(A["munchen_botanischer_garten"], DiscountProfile(age=17))[0] == 0.0
     assert best_price_for_attraction(A["munchen_botanischer_garten"], DiscountProfile(age=18))[0] != 0.0
+
+
+def _by_id(attr_id):
+    return next(a for a in get_all_attractions() if a.id == attr_id)
+
+
+def test_zmienne_ceny_flagi_dla_zollverein_fernsehturm_zoo():
+    assert _by_id("essen_zeche_zollverein").price_is_from
+    assert not _by_id("essen_zeche_zollverein").dynamic_pricing
+    for aid in ("berlin_fernsehturm", "koln_zoo"):
+        a = _by_id(aid)
+        assert a.price_is_from and a.dynamic_pricing
+        assert "ulgi możliwe" in a.variable_pricing_note or "ulgi" in a.variable_pricing_note
+
+
+def test_ceny_dynamiczne_nie_zgaduja_ulg():
+    a = _by_id("berlin_fernsehturm")
+    assert a.child_price is not None  # dane zostają, ale kalkulator ich nie używa
+    price, label, source = best_price_for_attraction(a, DiscountProfile(age=8, is_student=True))
+    assert price == a.normal_price and source is None
+
+
+def test_cena_od_bez_dynamiki_nadal_stosuje_potwierdzona_ulge():
+    a = _by_id("essen_zeche_zollverein")
+    price, _label, source = best_price_for_attraction(a, DiscountProfile(is_student=True))
+    assert price == 9.5 and source is not None
+
+
+def test_price_from_note_pusta_dla_stalej_ceny_i_api_zwraca_pola():
+    from attractions import price_from_note
+
+    assert price_from_note(_by_id("krakow_wawel")) == ""
+    assert price_from_note(_by_id("koln_zoo"))
+    from fastapi.testclient import TestClient
+    from api.main import app
+
+    items = TestClient(app).get("/attractions", params={"city": "berlin"}).json()
+    ft = next(i for i in items if i["id"] == "berlin_fernsehturm")
+    assert ft["price_is_from"] is True and ft["dynamic_pricing"] is True

@@ -15,6 +15,7 @@ from attractions import (
     CATEGORY_LABELS,
     AttractionCategory,
     best_price_for_attraction,
+    price_from_note,
     evaluate_city_cards,
     get_attractions,
     get_city_cards,
@@ -346,12 +347,16 @@ def render_attractions_and_city_cards(
             price_text = (
                 f"{price_val:.2f} {attr.currency}" if price_val > 0 else "Wstęp bezpłatny"
             )
+            if attr.price_is_from:
+                price_text = f"od {price_text}"
             if price_source is not None:
                 price_text += f" ({price_label})"
                 if not price_source.price_verified:
                     price_text += " (cena niepotwierdzona)"
             elif not attr.price_verified:
                 price_text += " (cena niepotwierdzona)"
+            if attr.price_is_from:
+                price_text += f" — {price_from_note(attr)}"
             discount_note = (
                 f" • zniżka z kartą: do {attr.default_card_discount_percent:.0f}%"
                 if attr.default_card_discount_percent > 0

@@ -121,6 +121,25 @@ bo tabela pasm jest interpolacją).
   kategorii zamodelowanej (ta sama zasada ustawowa by tam zadziałała identycznie, ale to poza
   zakresem tej zmiany).
 
+### PKP Super Promo International (SPI): przedział cen PL↔DE
+
+Dla biletu PL↔DE (relacja polska stacja ↔ Berlin) silnik dokłada do wyniku
+`breakdown["zakres_cen"]` = „od X do Y" wg oficjalnego cennika *Super Promo International
+Polska–Niemcy* (ważny od 19.08.2026, tekst w `verification/zrodla-pdf/`, oryginalny PDF pod linkiem źródła). Dane:
+`fares/data/pkp_spi_pl_de.json`, generowane `scripts/build_spi_data.py` (parser
+`scripts/parse_spi_pdf.py`, strefy miejscowości wpisane ręcznie i sprawdzane względem tekstu PDF).
+
+- Dolna granica = min(poziom I SPI, cena główna, czyli tańsza z DB „od" i PKP regularnego);
+  górna = min(poziom V SPI, cena regularna PKP). Dla stacji w kilku pociągach bierzemy minimum
+  poziomu I i maksimum poziomu V po wszystkich pociągach z cennika.
+- `amount` (cena główna) zostaje dolną granicą jak dotąd; `Itinerary.total_price_pln_high` ma
+  sumę z górnymi granicami. Etykieta: „szacunek (przedział wg cennika SPI)".
+- Tylko dorosły (cennik SPI nie podaje ulg) i tylko 2. klasa. Dziecko/niemowlę: bez SPI.
+- NIE modelujemy reguły przydziału poziomu na konkretny dzień (cennik jej nie podaje).
+- Poza zakresem: Saxonia 132/133 i Via Regia 134/135 (Lipsk), Chopin i Carpatia (Monachium,
+  miejsca sypialne). Relacje do Frankfurtu n. Odrą są w danych, ale nie wyceniane.
+- DB „od" nadal nie ma górnej granicy w źródle. Wyniki weryfikacji: `verification/spi-cennik-weryfikacja-2026-10-11.md`.
+
 ### Czego by trzeba, żeby domknąć resztę
 
 1. **PKP EIC/EIP per relacja** — jeśli potrzebne, można by wczytać całą tabelę relacji z cennika

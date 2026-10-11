@@ -2,7 +2,7 @@
 
 ## Przed merge
 
-- CI (`.github/workflows/tests.yml`) uruchamia `ruff` i `pytest` na każdym pull requeście do `main`.
+- CI (`.github/workflows/tests.yml`) uruchamia `pytest` na każdym pull requeście do `main`.
   Musi być zielone. Testy wymagające MOTIS są w CI pomijane (skip), więc zielone CI to NIE jest
   dowód, że wyniki zgadzają się z rzeczywistością.
 - `tests/test_data_consistency.py` pilnuje reguł danych: każda cena ulgowa ma granicę wieku lub

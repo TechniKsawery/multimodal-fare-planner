@@ -43,4 +43,4 @@ Ceny "od" i ceny dynamiczne (Zollverein, Fernsehturm, Kölner Zoo) są w danych 
 - PKP IC PL-DE (Warszawa/Kraków/Gdynia-Berlin 69, Lublin/Przemyśl 79, Poznań 47 EUR): kwoty z odczytu 2026-10-09, PDF cennika (intercity.pl, od 19.08.2026) nie czytany ponownie.
 - FlixBus: stawka 0,35 zł/km to zgrubny fallback, nie cennik operatora.
 - Rozbicie cen ulgowych: wiele pozycji ma warunek ulgi tylko w opisie; ceny dla dzieci SEA LIFE, Jochen Schweizer nie są publikowane.
-- Wiadomość z bahn.de/VRS może się zmienić; ceny są stanem na dzień odczytu.
+- Ceny operatorów mogą się zmienić; wszystkie kwoty są stanem na dzień odczytu.

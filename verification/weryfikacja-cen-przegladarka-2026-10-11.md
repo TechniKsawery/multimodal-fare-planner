@@ -34,5 +34,7 @@
 | Jochen Schweizer Kletterpark | POTWIERDZONE: od 19,90 EUR (hochseilklettergarten); brak rozbicia wiekowego |
 | PKP IC PL-DE | Dodano URL cennika (PDF z 19.08.2026); kwoty 69/79/47 EUR z 2026-10-09, PDF nie czytany ponownie |
 | Brewery Tour Köln, FlixBus fallback | Bez zmian, niesprawdzone (FlixBus: zgrubny fallback bez cennika operatora) |
-| Fernsehturm, Zollverein, Kölner Zoo | Pominięte: robi je osobny wątek (ceny od + adnotacja o ulgach) |
+| Fernsehturm | Standard od 20 EUR (ceny dynamiczne, widżet nie pokazuje kwot bez daty) | tv-turm.de |
+| Zollverein | Führungen ab 12,50 / ermäßigt ab 9,50 EUR; strona nie określa uprawnionych do ulgi przy Führungen (zdanie o uczniach/studentach dotyczy tylko linii autobusowej); Ruhr Museum: uczniowie i studenci <25 wolny wstęp | zollverein.de |
+| Kölner Zoo | Pominięty: zweryfikowany osobnym fetchem (#57) |
 | Zoo Poznań (sezon) | Cena 45 zł = dzień powszedni mar-paź; od 1.11 do końca lutego 20 zł (opisane w polu `_weryfikacja`) |

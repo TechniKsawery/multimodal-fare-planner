@@ -281,14 +281,20 @@ def test_bahncard_mloda_osoba_19_26_widzi_tansze_warianty_my_bahncard():
 
 
 def test_bahncard_jugend_darmowa_w_trakcie_promocji():
-    results = suggest_bahncard(550, journeys_per_year=2, age=15, reference_date=date(2026, 9, 27))
+    results = suggest_bahncard(550, journeys_per_year=2, age=15, reference_date=date(2026, 10, 15))
     jugend = next(r for r in results if r.variant_key == "jugend_bc25_6_18")
     assert jugend.cena_karty == 0.0
     assert jugend.rekomendowana is True
 
 
 def test_bahncard_jugend_placi_standardowa_cene_po_koncu_promocji():
-    results = suggest_bahncard(550, journeys_per_year=2, age=15, reference_date=date(2026, 10, 15))
+    results = suggest_bahncard(550, journeys_per_year=2, age=15, reference_date=date(2026, 12, 13))
+    jugend = next(r for r in results if r.variant_key == "jugend_bc25_6_18")
+    assert jugend.cena_karty == 7.90
+
+
+def test_bahncard_jugend_placi_standardowa_cene_przed_poczatkiem_promocji():
+    results = suggest_bahncard(550, journeys_per_year=2, age=15, reference_date=date(2026, 10, 6))
     jugend = next(r for r in results if r.variant_key == "jugend_bc25_6_18")
     assert jugend.cena_karty == 7.90
 
@@ -641,14 +647,13 @@ def test_mvv_einzelfahrkarte_zone_m_dziecko():
 
 
 def test_vrs_koln_estimate_official_preisstufe_1b():
-    """VRS/Köln: dialogforum.vrs.de nazywa jednoznacznie każdy poziom cenowy (1b = przejazd
-    w obrębie Kolonii/Bonn), więc mapowanie nazwa->kwota jest teraz potwierdzone i wynik jest
-    OFFICIAL (w poprzedniej wersji było ESTIMATE z powodu niejednoznacznego źródła)."""
+    """VRS/Köln: tabela Einzelticket na vrs.de (Stand 01.06.2026, sprawdzona w przeglądarce
+    2026-10-11) podaje Preisstufe 1b = 4,00 EUR (dziecko 1,80 EUR)."""
     seg = Segment(Carrier.VRS_KOLN, "Dom/Hauptbahnhof", "Neumarkt")
     result = estimate_price(seg)
     assert result.price_type is PriceType.OFFICIAL
     assert result.currency == "EUR"
-    assert result.amount == 3.50  # Preisstufe 1b, dialogforum.vrs.de
+    assert result.amount == 4.00  # Preisstufe 1b, vrs.de Einzelticket
 
 
 def test_vrs_koln_dziecko_tansze_niz_normalny():

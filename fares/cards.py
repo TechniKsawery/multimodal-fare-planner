@@ -46,9 +46,11 @@ class CardSuggestion:
 
 def _effective_price(wariant: dict, reference_date: date) -> float:
     promocja_do = wariant.get("promocja_do")
+    promocja_od = wariant.get("promocja_od")
     if (
         promocja_do
         and "cena_promocyjna" in wariant
+        and (not promocja_od or date.fromisoformat(promocja_od) <= reference_date)
         and reference_date <= date.fromisoformat(promocja_do)
     ):
         return wariant["cena_promocyjna"]

@@ -61,7 +61,9 @@ CATEGORY_PLAIN = {
 
 
 def format_city_section(
-    destination_label: str, profile: "AttractionDiscountProfile | None" = None
+    destination_label: str,
+    profile: "AttractionDiscountProfile | None" = None,
+    fallback_text: str = "",
 ) -> str:
     """Atrakcje i opłacalność kart miejskich dla miasta docelowego (nie wymaga MOTIS).
 
@@ -72,7 +74,9 @@ def format_city_section(
     najtańszą cenę, do jakiej dana osoba ma prawo z DOWOLNEGO potwierdzonego tytułu
     (nie tylko cenę dorosłego), razem z nazwą tego tytułu.
     """
-    city = normalize_city(destination_label)
+    # Etykieta z geokodowania MOTIS dla konkretnego adresu (np. "Buerer Straße 8") często nie
+    # zawiera miasta — wtedy używamy tekstu wpisanego przez użytkownika (--to), jak w app.py.
+    city = normalize_city(destination_label) or normalize_city(fallback_text)
     if not city:
         return "Atrakcje i karty miejskie: nie rozpoznano miasta docelowego."
     attrs = get_attractions(city=city)
@@ -224,7 +228,11 @@ def main() -> None:
         f"Multimodalna wyszukiwarka — {request.origin_label} -> {request.destination_label}, {args.date}\n"
     )
 
-    print(format_city_section(request.destination_label, attraction_profile))
+    print(
+        format_city_section(
+            request.destination_label, attraction_profile, fallback_text=args.destination
+        )
+    )
     print()
 
     # UWAGA: alternative_destination_stops (np. Essen Hbf z routing/demo_route.py) celowo NIE

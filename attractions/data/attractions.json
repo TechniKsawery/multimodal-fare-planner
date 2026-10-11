@@ -666,7 +666,10 @@
         "price_verified": true,
         "min_age": 7,
         "max_age": 26,
-        "requires_status": "polska legitymacja szkolna/studencka"
+        "requires_status": "polska legitymacja szkolna/studencka",
+        "recognized_countries": [
+          "PL"
+        ]
       },
       "senior_price": {
         "price": 35.0,
@@ -820,13 +823,6 @@
         "verified_date": "2026-10-11",
         "price_verified": true
       },
-      "child_price": {
-        "price": 5.0,
-        "label": "Kinder (Turm)",
-        "source_url": "https://www.st-michaelis.de/michel-besuch/oeffnungszeiten-und-preise",
-        "verified_date": "2026-10-11",
-        "price_verified": true
-      },
       "family_price": {
         "price": 20.0,
         "label": "Familienticket Turm (Eltern + Kinder bis 15 Jahre)",
@@ -858,14 +854,6 @@
         "source_url": "https://www.speicherstadtmuseum.de/besucherinfos/oeffnungszeiten-preise.html",
         "verified_date": "2026-10-11",
         "price_verified": true
-      },
-      "child_price": {
-        "price": 3.0,
-        "label": "Schüler",
-        "source_url": "https://www.speicherstadtmuseum.de/besucherinfos/oeffnungszeiten-preise.html",
-        "verified_date": "2026-10-11",
-        "price_verified": true,
-        "requires_status": "legitymacja szkolna"
       }
     },
     {
@@ -1263,14 +1251,6 @@
         "olympiapark"
       ],
       "price_verified": true,
-      "child_price": {
-        "price": 8.0,
-        "label": "Kinder 3 Jahre bis 1,40 m",
-        "source_url": "https://www.olympiapark.de/de/attraktionen-und-gastronomie/sightseeing/skylift-olympiapark",
-        "verified_date": "2026-10-11",
-        "price_verified": true,
-        "min_age": 3
-      },
       "student_price": {
         "price": 11.0,
         "label": "Studierende",
@@ -1378,12 +1358,13 @@
         "min_age": 6,
         "max_age": 17
       },
-      "student_price": {
+      "senior_price": {
         "price": 23.0,
-        "label": "Ermäßigt: Gruppen 20+, Senioren 60+, Schwerbehinderte, MVV-Tageskarte (Filmstadt Kombi)",
+        "label": "Ermäßigt (Filmstadt Kombi): Senioren ab 60 Jahren (Ausweis, nur Tageskasse); gilt auch für Gruppen 20+, Schwerbehinderte, MVV-Tageskarte",
         "source_url": "https://www.filmstadt.de/infos-preise/preise",
         "verified_date": "2026-10-11",
-        "price_verified": true
+        "price_verified": true,
+        "min_age": 60
       }
     },
     {
@@ -1509,11 +1490,11 @@
       },
       "child_price": {
         "price": 0.0,
-        "label": "Dzieci do 12 lat bezpłatnie; uczniowie do 18 lat bezpłatnie",
+        "label": "Kinder bis 11 Jahre (unter 12) und Jugendliche bis 17 Jahre (unter 18) frei; bei Sonderausstellungen Jugendliche 4,50 EUR",
         "source_url": "https://botmuc.snsb.de/oeffnungszeiten-und-tickets/",
         "verified_date": "2026-10-11",
         "price_verified": true,
-        "max_age": 18
+        "max_age": 17
       }
     },
     {
@@ -1755,7 +1736,8 @@
         "source_url": "https://www.odysseum.de",
         "verified_date": "2026-10-11",
         "price_verified": true,
-        "min_age": 5
+        "min_age": 5,
+        "max_age": 15
       }
     },
     {

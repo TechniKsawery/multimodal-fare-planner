@@ -531,3 +531,25 @@ def test_card_in_eur_is_converted_for_pln_attractions():
     assert ev.currency == "PLN"
     assert ev.card_price == round(convert(10.0, "EUR", "PLN"), 2)
     assert ev.total_cost_with_card == round(convert(10.0, "EUR", "PLN") + ev.attractions_price_with_card, 2)
+
+
+def test_audit_pr52_data_fixes():
+    A = {a.id: a for a in get_all_attractions()}
+    adult = DiscountProfile(age=35)
+    for i in ("hamburg_st_michaelis", "hamburg_speicherstadtmuseum", "munchen_skylift_olympiapark", "koln_odysseum"):
+        assert best_price_for_attraction(A[i], adult)[0] == A[i].normal_price
+    assert best_price_for_attraction(A["koln_odysseum"], DiscountProfile(age=10))[0] == 16.0
+    # Powstanie: 1 PLN tylko dla polskiej legitymacji i wieku 7-26
+    p = A["warszawa_muzeum_powstania"]
+    assert best_price_for_attraction(p, DiscountProfile(age=30, is_student=True))[0] != 1.0
+    assert best_price_for_attraction(p, DiscountProfile(age=20, is_student=True))[0] != 1.0
+    de = DiscountProfile(age=20, documents=[HeldDocument("legitymacja_studencka", "DE")])
+    assert best_price_for_attraction(p, de)[0] != 1.0
+    pl = DiscountProfile(age=20, documents=[HeldDocument("legitymacja_studencka", "PL")])
+    assert best_price_for_attraction(p, pl)[0] == 1.0
+    # Filmstadt: brak ceny studenckiej, jest senioralna 60+
+    f = A["munchen_bavaria_filmstadt"]
+    assert f.student_price is None and f.senior_price.min_age == 60
+    assert best_price_for_attraction(f, DiscountProfile(age=22, is_student=True))[0] == f.normal_price
+    assert best_price_for_attraction(A["munchen_botanischer_garten"], DiscountProfile(age=17))[0] == 0.0
+    assert best_price_for_attraction(A["munchen_botanischer_garten"], DiscountProfile(age=18))[0] != 0.0

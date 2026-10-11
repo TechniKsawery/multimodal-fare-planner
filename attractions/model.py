@@ -92,6 +92,10 @@ class Attraction:
     dynamic_pricing: bool = False
     # Wyjaśnienie dla użytkownika (np. "ulgi możliwe, kwota niepotwierdzona").
     variable_pricing_note: str = ""
+    # Atrakcja tymczasowo zamknięta: data (YYYY-MM-DD) końca zamknięcia + źródło.
+    # Zamknięte atrakcje nie trafiają do wyników (get_attractions), dopóki ta data nie minie.
+    closed_until: str = ""
+    closed_source_url: str = ""
 
 
 @dataclass

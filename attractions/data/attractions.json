@@ -1628,6 +1628,8 @@
         "malarstwo"
       ],
       "price_verified": false,
+      "closed_until": "2028-12-31",
+      "closed_source_url": "https://www.wallraf.museum/aktuell/voruebergehend-geschlossen/",
       "_weryfikacja_2026-10-11": "MUZEUM ZAMKNIĘTE do końca 2028 (generalny remont). Źródło: wallraf.museum/aktuell/voruebergehend-geschlossen/ (sprawdzone 2026-10-11): \"das Haus bis Ende 2028 für eine zweijährige Generalinstandsetzung geschlossen\". Cena 8 EUR niepotwierdzona; koeln.de podaje 13 EUR normalny / 9 ulgowy (źródło wtórne, nie operator). Nie polecać do czasu otwarcia."
     },
     {

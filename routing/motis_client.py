@@ -175,19 +175,28 @@ def plan(
         ) from exc
 
     payload = response.json()
-    if not payload.get("itineraries"):
+    if not _all_itineraries(payload):
         raise MotisError(
             f"MOTIS nie znalazł żadnego połączenia {from_place} -> {to_place} dla time={time}."
         )
     return payload
 
 
+def _all_itineraries(payload: dict) -> list[dict]:
+    """Itineraria z transitem ORAZ bezpośrednie (`direct`, czysty marsz door-to-door).
+
+    MOTIS trzyma dojście pieszo w osobnej liście `direct`; pomijanie jej sprawiało, że dla
+    dwóch punktów w tym samym mieście (np. Plac Defilad -> Warszawa Centralna, ~500 m) zostawały
+    wyłącznie absurdalne trasy koleją (7,3 h przez Poznań) zamiast kilku minut pieszo."""
+    return [*payload.get("itineraries", []), *payload.get("direct", [])]
+
+
 def fastest_itinerary(payload: dict) -> dict:
-    return min(payload["itineraries"], key=lambda it: it["duration"])
+    return min(_all_itineraries(payload), key=lambda it: it["duration"])
 
 
 def fewest_transfers_itinerary(payload: dict) -> dict:
-    return min(payload["itineraries"], key=lambda it: (it["transfers"], it["duration"]))
+    return min(_all_itineraries(payload), key=lambda it: (it.get("transfers", 0), it["duration"]))
 
 
 def itinerary_to_legs(itinerary: dict) -> list[Leg]:
@@ -289,7 +298,7 @@ def plan_leg_candidates(
     payload = plan(
         from_place, to_place, time, max_transfers=5, num_itineraries=max(max_candidates, 1)
     )
-    itineraries = sorted(payload["itineraries"], key=lambda it: it["duration"])[:max_candidates]
+    itineraries = sorted(_all_itineraries(payload), key=lambda it: it["duration"])[:max_candidates]
     return [itinerary_to_legs(it) for it in itineraries]
 
 
@@ -298,4 +307,4 @@ def all_itineraries_as_legs(from_place: str, to_place: str, time: str) -> list[l
     payload = plan(
         from_place, to_place, time, max_transfers=5, num_itineraries=MAIN_QUERY_ITINERARIES
     )
-    return [itinerary_to_legs(it) for it in payload["itineraries"]]
+    return [itinerary_to_legs(it) for it in _all_itineraries(payload)]

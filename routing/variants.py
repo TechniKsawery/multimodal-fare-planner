@@ -165,7 +165,10 @@ def build_rail_only_variants(
 
         transit = [l for l in legs if l.mode is not LegMode.WALK]
         modes_used = sorted({l.extra.get("motis_mode", "RAIL") for l in transit})
-        name = f"Tylko kolej ({'/'.join(modes_used).lower()}, {len(transit) - 1} przesiadki)"
+        if not transit:  # MOTIS `direct`: cały dystans pieszo (punkty w tym samym mieście)
+            name = "Pieszo"
+        else:
+            name = f"Tylko kolej ({'/'.join(modes_used).lower()}, {len(transit) - 1} przesiadki)"
         priced = _price_legs(legs, request)
         candidate = build_itinerary(name, priced)
         if candidate.is_infeasible:  # przesiadka poniżej absolutnego minimum — odrzucamy

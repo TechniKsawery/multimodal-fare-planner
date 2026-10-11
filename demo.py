@@ -207,7 +207,7 @@ def main() -> None:
         "--child-with-guardian",
         action="store_true",
         help="dziecko 6-14 lat (--age) podróżuje w towarzystwie osoby od 15 lat — na bilecie DB "
-        "PL-DE jedzie wtedy bezpłatnie (bahn.de); bez tej flagi liczone jako samodzielne (-50% "
+        "PL-DE jedzie wtedy bezpłatnie (bahn.de); bez tej flagi liczone jako samodzielne (-50%% "
         "tylko na niemiecki odcinek). Nie dotyczy oferty PKP (jej ulga dziecięca jest taka sama "
         "niezależnie od opiekuna).",
     )

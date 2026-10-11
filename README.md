@@ -164,6 +164,8 @@ Pobiera do `data/` (katalog jest w `.gitignore`):
 | `data/gtfs/de/de_fv.zip` | gtfs.de, ruch dalekobieżny (FV) |
 | `data/gtfs/de/de_rv.zip` | gtfs.de, koleje regionalne (RV, całe Niemcy z NRW) |
 | `data/gtfs/pl/lublin.zip` | ZTM Lublin (ZDiTM), mkuran.pl, CC0 |
+| `data/gtfs/pl/warsaw.zip` | ZTM Warszawa, mkuran.pl, warunki ZTM + ODbL (atrybucja: zob. `motis/PL-CITIES-GTFS-NOTES.md`) |
+| `data/gtfs/pl/krakow_{a,m,t}.zip` | ZTP Kraków, licencja niepotwierdzona (tylko test) |
 | `data/osm/poland-latest.osm.pbf` | Geofabrik |
 | `data/osm/nordrhein-westfalen-latest.osm.pbf` | Geofabrik |
 

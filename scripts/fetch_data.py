@@ -27,6 +27,12 @@ GTFS = {
     "gtfs/de/de_nv.zip": "https://download.gtfs.de/germany/nv_free/latest.zip",
     # mkuran.pl: komunikacja miejska ZTM Lublin (ZDiTM), CC0
     "gtfs/pl/lublin.zip": "https://mkuran.pl/gtfs/lublin.zip",
+    # mkuran.pl: ZTM Warszawa (licencja ZTM Warszawa + ODbL dla shapes; wymagana atrybucja, zob. motis/PL-CITIES-GTFS-NOTES.md)
+    "gtfs/pl/warsaw.zip": "https://mkuran.pl/gtfs/warsaw.zip",
+    # ZTP Kraków: A, M, T (znaczenie liter niepotwierdzone przez źródło; licencja NIE podana — zob. motis/PL-CITIES-GTFS-NOTES.md)
+    "gtfs/pl/krakow_a.zip": "https://gtfs.ztp.krakow.pl/GTFS_KRK_A.zip",
+    "gtfs/pl/krakow_m.zip": "https://gtfs.ztp.krakow.pl/GTFS_KRK_M.zip",
+    "gtfs/pl/krakow_t.zip": "https://gtfs.ztp.krakow.pl/GTFS_KRK_T.zip",
 }
 OSM = {
     "osm/poland-latest.osm.pbf": "https://download.geofabrik.de/europe/poland-latest.osm.pbf",

@@ -1,0 +1,41 @@
+name: Ważność feedów GTFS
+
+# Codziennie pobiera wszystkie feedy z scripts/fetch_data.py i zgłasza issue, gdy któryś
+# wygasa za mniej niż 3 dni (gtfs.de free ma ważność 7 dni). Odświeżenie MOTIS robi się
+# na PC (scripts/refresh_motis.ps1), bo kontener/Actions nie mają dostępu do Dockera użytkownika.
+on:
+  schedule:
+    - cron: "30 5 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Sprawdź ważność
+        id: check
+        continue-on-error: true
+        run: python scripts/check_gtfs_freshness.py --fetch --min-days 3 --summary /tmp/report.md
+      - name: Zgłoś issue
+        if: steps.check.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/report.md', 'utf8')
+              + '\n\nOdśwież dane: `scripts/refresh_motis.ps1` na PC.\n\n---\n_Workflow `gtfs_freshness.yml`._';
+            const title = 'Feed GTFS wygasa lub nie da się go pobrać';
+            const open = await github.rest.issues.listForRepo({owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'gtfs-expiry'});
+            if (open.data.length) {
+              await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: open.data[0].number, body});
+            } else {
+              await github.rest.issues.create({owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['gtfs-expiry']});
+            }

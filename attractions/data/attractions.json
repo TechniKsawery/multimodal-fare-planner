@@ -341,7 +341,7 @@
         "price_verified": true
       },
       "_UWAGA_dynamiczne_ceny": "2026-10-11: zweryfikowano NA ŻYWO w widżecie rezerwacji (tv-turm.de/en/tickets-and-bundles/) po wybraniu konkretnego terminu — ceny 'Standard Ticket' są DYNAMICZNE (zależą od godziny i dnia, np. 24-29,50 EUR dla dorosłego w ciągu jednego dnia), nie jedną stałą kwotą jak normal_price=20 sugeruje (to prawdopodobnie najniższa możliwa cena 'ab'/'from'). Kategoria 'Child' (4-14 lat) istnieje i ma analogicznie dynamiczną cenę, potwierdzoną przykładowo na 14 EUR. Jest też osobna kategoria 'Infant' (prawdopodobnie 0-3 lata) — jej konkretną cenę/wiek nie sprawdzono dalej (czas sesji).",
-      "_weryfikacja_2026-10-11": "tv-turm.de/en/tickets-and-bundles (2026-10-11): Standard Ticket 'from 20.00 EUR', View & Drink od 31 EUR; ceny dynamiczne w widżecie rezerwacji, który nie pokazuje kwot bez wyboru terminu (nie przechodzono do koszyka)."
+      "_weryfikacja_2026-10-11": "tv-turm.de/en/tickets-and-bundles (2026-10-11): Standard Ticket 'from 20.00 EUR', View & Drink od 31 EUR; ceny dynamiczne w widżecie rezerwacji, który nie pokazuje kwot bez wyboru terminu (nie przechodzono do koszyka). Widżet (zrzut ekranu od Ksaviego 2026-10-11, 'View without VR', 1 dorosły): kategorie Adult/Child/Infant, brak osobnych cen student/senior/rodzina; ceny zależą od godziny, w widocznym zakresie wieczornym 24 EUR (best price) do 33 EUR (limited availability). Przedziały wiekowe z widżetu (zrzuty od Ksaviego 2026-10-11): Adult 15+, Child 4-14, Infant 0-3 lat. Child (4-14), 'View without VR': 11.10.2026 od 14 EUR (best price) do 23 EUR (limited availability), najtańszy termin na 12.10.2026 od 10 EUR; zależnie od godziny."
     },
     {
       "id": "berlin_brandenburger_tor",

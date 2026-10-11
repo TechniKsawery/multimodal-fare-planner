@@ -130,8 +130,14 @@ def format_itinerary(itinerary, age=None) -> str:
     lines = [
         f"  Czas podróży: {itinerary.total_duration_min / 60:.1f} h "
         f"({int(itinerary.total_duration_min)} min), przesiadek: {itinerary.num_transfers}",
-        f"  Cena łączna: {itinerary.total_price_pln:.2f} PLN "
-        f"(ocena wartości: {itinerary.value_score:.0f} PLN, niżej = lepiej)",
+        "  Cena łączna: "
+        + (
+            f"od {itinerary.total_price_pln:.2f} do {itinerary.total_price_pln_high:.2f} PLN "
+            "(szacunek, przedział wg cennika SPI) "
+            if itinerary.total_price_pln_high is not None
+            else f"{itinerary.total_price_pln:.2f} PLN "
+        )
+        + f"(ocena wartości: {itinerary.value_score:.0f} PLN, niżej = lepiej)",
     ]
     for priced in itinerary.legs:
         leg = priced.leg
@@ -156,6 +162,12 @@ def format_itinerary(itinerary, age=None) -> str:
             zrodlo_bagazu = priced.breakdown.get("bagaz_zrodlo")
             if zrodlo_bagazu:
                 line += f"\n      bagaż wg cennika: {zrodlo_bagazu}"
+        zakres = priced.breakdown.get("zakres_cen")
+        if zakres:
+            line += (
+                f"\n      szacunek (przedział wg cennika SPI): od {zakres['od']:.2f} "
+                f"do {zakres['do']:.2f} {zakres['waluta']} (cennik PKP od {zakres['data_cennika']})"
+            )
         alt = priced.breakdown.get("alternatywna_oferta")
         if alt:
             zrodlo = "DB Super Sparpreis Europa" if alt["zrodlo"] == "db" else "PKP Oferta Polska-Niemcy"

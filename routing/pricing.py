@@ -1,7 +1,7 @@
 """Wycena pojedynczego odcinka: dispatch do fares/ (kolej) albo flights/ (lot)."""
 
 from fares import estimate_price as fares_estimate_price
-from fares.international_pkp import estimate_pkp_offer
+from fares.international_pkp import estimate_pkp_offer, spi_range_for_segment
 from fares.model import Carrier, DiscountProfile, PriceEstimate, Segment
 from flights import ExtrasProfile, FlightSegment
 from flights import estimate_price as flights_estimate_price
@@ -252,6 +252,40 @@ def _with_pkp_alternative(segment: Segment, db_result: PriceEstimate) -> PriceEs
     return main
 
 
+def _with_spi_range(segment: Segment, result: PriceEstimate) -> PriceEstimate:
+    """Dla biletu PL-DE dokłada przedział "od X do Y" wg cennika PKP Super Promo International
+    (breakdown["zakres_cen"]). Dolna granica = min(poziom I SPI, cena główna, czyli tańsza z DB
+    "od" i PKP regularnego); górna = min(poziom V SPI, cena regularna PKP, o ile jest w tabeli).
+    Cena główna (`amount`) zostaje dolną granicą jak dotąd; górną widać w zakres_cen["do"].
+    Poza cennikiem SPI (albo dla dziecka) wynik bez zmian."""
+    spi = spi_range_for_segment(segment)
+    if spi is None:
+        return result
+    pkp = estimate_pkp_offer(segment)
+    gorna = spi["do"] if pkp is None else min(spi["do"], pkp.breakdown["cena_regularna"])
+    od = min(spi["od"], result.amount)
+    do = max(gorna, od)
+    result.breakdown["zakres_cen"] = {
+        "od": od,
+        "do": do,
+        "waluta": spi["waluta"],
+        "spi_od": spi["od"],
+        "spi_do": spi["do"],
+        "pkp_cena_regularna": None if pkp is None else pkp.breakdown["cena_regularna"],
+        "klasa": 2,
+        "pociagi_spi": spi["pociagi"],
+        "zrodlo": spi["zrodlo"],
+        "zrodlo_url": spi["zrodlo_url"],
+        "data_cennika": spi["data_cennika"],
+    }
+    result.notes = (
+        f"{result.notes} Szacunek (przedział wg cennika SPI): od {od:.2f} do {do:.2f} {spi['waluta']} "
+        f"(PKP Super Promo International, poziomy cenowe I-V, 2. klasa, dorosły; cennik od "
+        f"{spi['data_cennika']}). Który poziom obowiązuje danego dnia, cennik nie podaje."
+    )
+    return result
+
+
 def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
     if leg.mode is not LegMode.RAIL:
         raise ValueError(f"price_rail_leg wymaga LegMode.RAIL, dostał {leg.mode}")
@@ -301,6 +335,7 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
         result = fares_estimate_price(segment)
         if carrier is Carrier.INTERNATIONAL_PL_DE:
             result = _with_pkp_alternative(segment, result)
+            result = _with_spi_range(segment, result)
     except ValueError as exc:
         return _fallback_priced_leg(leg, f"Kalkulator {carrier.value} zwrócił błąd ({exc}).")
 

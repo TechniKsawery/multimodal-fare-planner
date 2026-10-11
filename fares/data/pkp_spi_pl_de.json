@@ -1,0 +1,3511 @@
+{
+ "_zrodlo": "PKP Intercity, 'Cennik oferty Super Promo International w komunikacji Polska – Niemcy', ważny od 19 sierpnia 2026 (33 strony).",
+ "_zrodlo_url": "https://www.intercity.pl/pl/dokumenty/Przepisy i taryfy/Cennik_SPI_Polska-Niemcy_od_19.08.2026.pdf",
+ "_kopia_zrodla": "PDF PKP IC (sha256 38d58ffc1b9640ba99e146330f653ddd1846b5d1d96b9ee4ed62f08775cf6088; oryginał pod _zrodlo_url, kopii PDF nie ma w repo) i verification/zrodla-pdf/cennik_spi.txt",
+ "_data_odczytu": "2026-10-11",
+ "_uwaga": "Ceny dla pasażera DOROSŁEGO (PDF nie podaje ulg), w euro, za miejsce do siedzenia, kolumny klasa 2 i klasa 1. Poziom cenowy I-V zależy od dostępności puli (PKP: pule aktualizowane dynamicznie i ograniczone) - reguła przydziału poziomu dla konkretnego dnia NIE jest w cenniku i nie jest modelowana; pokazujemy przedział poziom I - poziom V. Ceny obowiązują, gdy rozkład przewiduje kursowanie pociągu i zatrzymanie na stacji. Przeliczenie na PLN po kursie z dnia zakupu. Pominięte: Saxonia 132/133 i Via Regia 134/135 (Lipsk), Chopin i Carpatia (Monachium, miejsca sypialne) - inna struktura tabel.",
+ "waluta": "EUR",
+ "pociagi": [
+  {
+   "numer": "40/41",
+   "nazwa": "BERLIN-WARSZAWA-EXPRESS",
+   "trasa": "Warszawa – Berlin – Warszawa",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Świebodzin",
+     "Zbąszynek"
+    ],
+    "III": [
+     "Poznań"
+    ],
+    "IV": [
+     "Kutno",
+     "Konin"
+    ],
+    "V": [
+     "Warszawa"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "42/43",
+   "nazwa": "BERLIN-WARSZAWA-EXPRESS",
+   "trasa": "Warszawa – Berlin – Warszawa",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Świebodzin",
+     "Zbąszynek"
+    ],
+    "III": [
+     "Poznań"
+    ],
+    "IV": [
+     "Kutno",
+     "Konin"
+    ],
+    "V": [
+     "Warszawa"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "44/45",
+   "nazwa": "BERLIN-WARSZAWA-EXPRESS",
+   "trasa": "Warszawa – Berlin – Warszawa",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Świebodzin",
+     "Zbąszynek"
+    ],
+    "III": [
+     "Poznań"
+    ],
+    "IV": [
+     "Kutno",
+     "Konin"
+    ],
+    "V": [
+     "Warszawa"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "46/47",
+   "nazwa": "BERLIN-WARSZAWA-EXPRESS",
+   "trasa": "Warszawa – Berlin – Warszawa",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Świebodzin",
+     "Zbąszynek"
+    ],
+    "III": [
+     "Poznań"
+    ],
+    "IV": [
+     "Kutno",
+     "Konin"
+    ],
+    "V": [
+     "Warszawa"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "48/49",
+   "nazwa": "BERLIN-WARSZAWA-EXPRESS",
+   "trasa": "Warszawa – Berlin – Warszawa",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Świebodzin",
+     "Zbąszynek"
+    ],
+    "III": [
+     "Poznań"
+    ],
+    "IV": [
+     "Kutno",
+     "Konin"
+    ],
+    "V": [
+     "Warszawa"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "246/247",
+   "nazwa": "BERLIN-WARSZAWA-EXPRESS",
+   "trasa": "Warszawa – Berlin – Warszawa",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Świebodzin",
+     "Zbąszynek"
+    ],
+    "III": [
+     "Poznań"
+    ],
+    "IV": [
+     "Kutno",
+     "Konin"
+    ],
+    "V": [
+     "Warszawa"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "248/249",
+   "nazwa": "BERLIN-WARSZAWA-EXPRESS",
+   "trasa": "Warszawa – Berlin – Warszawa",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Świebodzin",
+     "Zbąszynek"
+    ],
+    "III": [
+     "Poznań"
+    ],
+    "IV": [
+     "Kutno",
+     "Konin"
+    ],
+    "V": [
+     "Warszawa"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "54/55",
+   "nazwa": "Odra",
+   "trasa": "Kraków – Berlin – Kraków",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Zielona Góra"
+    ],
+    "III": [
+     "Legnica",
+     "Lubin",
+     "Głogów"
+    ],
+    "IV": [
+     "Opole",
+     "Wrocław"
+    ],
+    "V": [
+     "Kraków",
+     "Katowice",
+     "Zabrze",
+     "Gliwice",
+     "Kędzierzyn-Koźle"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "56/57",
+   "nazwa": "Wawel",
+   "trasa": "Przemyśl – Berlin – Przemyśl",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Zielona Góra"
+    ],
+    "III": [
+     "Legnica",
+     "Lubin",
+     "Głogów"
+    ],
+    "IV": [
+     "Opole",
+     "Wrocław"
+    ],
+    "V": [
+     "Bochnia",
+     "Kraków",
+     "Katowice",
+     "Zabrze",
+     "Gliwice",
+     "Kędzierzyn-Koźle"
+    ],
+    "VI": [
+     "Przemyśl",
+     "Jarosław",
+     "Przeworsk",
+     "Łańcut",
+     "Rzeszów",
+     "Dębica",
+     "Tarnów"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "VI": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "VI": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      },
+      "VI": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      },
+      "VI": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      },
+      "VI": {
+       "klasa_2": 64.9,
+       "klasa_1": 99.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "VI": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "VI": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      },
+      "VI": {
+       "klasa_2": 44.9,
+       "klasa_1": 74.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      },
+      "VI": {
+       "klasa_2": 54.9,
+       "klasa_1": 89.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      },
+      "VI": {
+       "klasa_2": 69.9,
+       "klasa_1": 104.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "58/59",
+   "nazwa": "Galicja",
+   "trasa": "Przemyśl – Berlin – Przemyśl",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Zielona Góra"
+    ],
+    "III": [
+     "Legnica",
+     "Lubin",
+     "Głogów"
+    ],
+    "IV": [
+     "Opole",
+     "Wrocław"
+    ],
+    "V": [
+     "Bochnia",
+     "Kraków",
+     "Katowice",
+     "Zabrze",
+     "Gliwice",
+     "Kędzierzyn-Koźle"
+    ],
+    "VI": [
+     "Przemyśl",
+     "Jarosław",
+     "Przeworsk",
+     "Łańcut",
+     "Rzeszów",
+     "Dębica",
+     "Tarnów"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "VI": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "VI": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      },
+      "VI": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      },
+      "VI": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      },
+      "VI": {
+       "klasa_2": 64.9,
+       "klasa_1": 99.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "VI": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "VI": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      },
+      "VI": {
+       "klasa_2": 44.9,
+       "klasa_1": 74.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      },
+      "VI": {
+       "klasa_2": 54.9,
+       "klasa_1": 89.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      },
+      "VI": {
+       "klasa_2": 69.9,
+       "klasa_1": 104.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "230/231",
+   "nazwa": "Gedania",
+   "trasa": "Gdynia – Berlin – Gdynia",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Zbąszynek",
+     "Świebodzin"
+    ],
+    "III": [
+     "Gniezno",
+     "Poznań"
+    ],
+    "IV": [
+     "Bydgoszcz",
+     "Toruń",
+     "Inowrocław"
+    ],
+    "V": [
+     "Gdynia",
+     "Sopot",
+     "Gdańsk",
+     "Tczew"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "430/431",
+   "nazwa": "Ursa",
+   "trasa": "Przemyśl – Berlin – Przemyśl",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Świebodzin",
+     "Zbąszynek",
+     "Zbąszyń",
+     "Nowy Tomyśl"
+    ],
+    "III": [
+     "Opalenica",
+     "Poznań",
+     "Kościan",
+     "Leszno"
+    ],
+    "IV": [
+     "Rawicz",
+     "Żmigród",
+     "Oborniki Śląskie",
+     "Wrocław",
+     "Brzeg",
+     "Opole"
+    ],
+    "V": [
+     "Kędzierzyn Koźle",
+     "Gliwice",
+     "Zabrze",
+     "Katowice",
+     "Jaworzno Szczakowa",
+     "Trzebinia",
+     "Krzeszowice",
+     "Kraków",
+     "Bochnia",
+     "Brzesko Okocim"
+    ],
+    "VI": [
+     "Tarnów",
+     "Dębica",
+     "Rzeszów",
+     "Łańcut",
+     "Przeworsk",
+     "Jarosław",
+     "Przemyśl"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "VI": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "VI": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      },
+      "VI": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      },
+      "VI": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      },
+      "VI": {
+       "klasa_2": 64.9,
+       "klasa_1": 99.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "VI": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "VI": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      },
+      "VI": {
+       "klasa_2": 44.9,
+       "klasa_1": 74.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      },
+      "VI": {
+       "klasa_2": 54.9,
+       "klasa_1": 89.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      },
+      "VI": {
+       "klasa_2": 69.9,
+       "klasa_1": 104.9
+      }
+     }
+    }
+   }
+  },
+  {
+   "numer": "440/441",
+   "nazwa": "Ursa",
+   "trasa": "Chełm – Berlin – Chełm",
+   "strefy": {
+    "I": [
+     "Rzepin"
+    ],
+    "II": [
+     "Świebodzin",
+     "Zbąszynek",
+     "Zbąszyń",
+     "Nowy Tomyśl"
+    ],
+    "III": [
+     "Opalenica",
+     "Poznań",
+     "Środa Wielkopolska",
+     "Jarocin"
+    ],
+    "IV": [
+     "Pleszew",
+     "Kalisz",
+     "Sieradz",
+     "Zduńska Wola",
+     "Łask",
+     "Pabianice"
+    ],
+    "V": [
+     "Łódź",
+     "Koluszki",
+     "Skierniewice",
+     "Żyrardów",
+     "Warszawa",
+     "Otwock"
+    ],
+    "VI": [
+     "Pilawa",
+     "Dęblin",
+     "Puławy",
+     "Nałęczów",
+     "Lublin",
+     "Świdnik",
+     "Rejowiec",
+     "Chełm"
+    ]
+   },
+   "ceny_eur": {
+    "Frankfurt/O": {
+     "I": {
+      "I": {
+       "klasa_2": 11.0,
+       "klasa_1": 15.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "VI": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 26.9,
+       "klasa_1": 34.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "VI": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 28.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      },
+      "VI": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 30.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 38.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 79.9
+      },
+      "VI": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "II": {
+       "klasa_2": null,
+       "klasa_1": null
+      },
+      "III": {
+       "klasa_2": 32.9,
+       "klasa_1": 49.9
+      },
+      "IV": {
+       "klasa_2": 42.9,
+       "klasa_1": 64.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 89.9
+      },
+      "VI": {
+       "klasa_2": 64.9,
+       "klasa_1": 99.9
+      }
+     }
+    },
+    "Berlin": {
+     "I": {
+      "I": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "II": {
+       "klasa_2": 19.9,
+       "klasa_1": 29.9
+      },
+      "III": {
+       "klasa_2": 24.9,
+       "klasa_1": 29.9
+      },
+      "IV": {
+       "klasa_2": 27.9,
+       "klasa_1": 39.9
+      },
+      "V": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "VI": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      }
+     },
+     "II": {
+      "I": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "II": {
+       "klasa_2": 21.9,
+       "klasa_1": 32.9
+      },
+      "III": {
+       "klasa_2": 29.9,
+       "klasa_1": 39.9
+      },
+      "IV": {
+       "klasa_2": 32.9,
+       "klasa_1": 44.9
+      },
+      "V": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "VI": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      }
+     },
+     "III": {
+      "I": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "II": {
+       "klasa_2": 23.9,
+       "klasa_1": 35.9
+      },
+      "III": {
+       "klasa_2": 34.9,
+       "klasa_1": 44.9
+      },
+      "IV": {
+       "klasa_2": 34.9,
+       "klasa_1": 49.9
+      },
+      "V": {
+       "klasa_2": 44.9,
+       "klasa_1": 64.9
+      },
+      "VI": {
+       "klasa_2": 44.9,
+       "klasa_1": 74.9
+      }
+     },
+     "IV": {
+      "I": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "II": {
+       "klasa_2": 25.9,
+       "klasa_1": 38.9
+      },
+      "III": {
+       "klasa_2": 39.9,
+       "klasa_1": 54.9
+      },
+      "IV": {
+       "klasa_2": 39.9,
+       "klasa_1": 59.9
+      },
+      "V": {
+       "klasa_2": 54.9,
+       "klasa_1": 84.9
+      },
+      "VI": {
+       "klasa_2": 54.9,
+       "klasa_1": 89.9
+      }
+     },
+     "V": {
+      "I": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "II": {
+       "klasa_2": 27.9,
+       "klasa_1": 40.9
+      },
+      "III": {
+       "klasa_2": 44.9,
+       "klasa_1": 59.9
+      },
+      "IV": {
+       "klasa_2": 44.9,
+       "klasa_1": 69.9
+      },
+      "V": {
+       "klasa_2": 59.9,
+       "klasa_1": 94.9
+      },
+      "VI": {
+       "klasa_2": 69.9,
+       "klasa_1": 104.9
+      }
+     }
+    }
+   }
+  }
+ ]
+}

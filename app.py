@@ -97,7 +97,14 @@ def _is_near_miss_itinerary(it) -> bool:
 def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
     c1, c2, c3 = st.columns(3)
     c1.metric("Czas podróży", f"{it.total_duration_min / 60:.1f} h")
-    c2.metric("Cena łączna", f"{it.total_price_pln:.2f} PLN")
+    if it.total_price_pln_high is not None:
+        c2.metric(
+            "Cena łączna",
+            f"od {it.total_price_pln:.2f} PLN",
+            help=f"Górna granica wg cennika PKP SPI: {it.total_price_pln_high:.2f} PLN",
+        )
+    else:
+        c2.metric("Cena łączna", f"{it.total_price_pln:.2f} PLN")
     c3.metric("Przesiadki", it.num_transfers)
     rows = []
     for p in it.legs:
@@ -115,6 +122,12 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 f"+ bagaż {p.breakdown.get('bagaz', 0):.2f} {p.currency}"
             )
             zrodlo_bagazu = p.breakdown.get("bagaz_zrodlo", "")
+        zakres = p.breakdown.get("zakres_cen")
+        if zakres:
+            price += (
+                f" | szacunek (przedział wg cennika SPI): od {zakres['od']:.2f} "
+                f"do {zakres['do']:.2f} {zakres['waluta']}"
+            )
         alt = p.breakdown.get("alternatywna_oferta")
         alternatywa = ""
         if alt:
@@ -694,7 +707,13 @@ if result is not None:
             risk_suffix = ""
         with st.expander(
             f"{it.variant_name} — {it.total_duration_min / 60:.1f} h, "
-            f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}" + risk_suffix
+            + (
+                f"od {it.total_price_pln:.0f} do {it.total_price_pln_high:.0f} PLN"
+                if it.total_price_pln_high is not None
+                else f"{it.total_price_pln:.0f} PLN"
+            )
+            + f", przesiadek: {it.num_transfers}"
+            + risk_suffix
         ):
             render_itinerary(it, wiek, bc if bc != "brak" else None)
 

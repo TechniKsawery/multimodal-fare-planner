@@ -101,11 +101,26 @@ def build_itinerary(variant_name: str, priced_legs: list[PricedLeg]) -> Itinerar
         priced_legs[-1].leg.arrive - priced_legs[0].leg.depart
     ).total_seconds() / 60
     legs_only = [pl.leg for pl in priced_legs]
+    has_range = any("zakres_cen" in pl.breakdown for pl in priced_legs)
+    total_price_pln_high = (
+        round(
+            sum(
+                to_pln(pl.breakdown["zakres_cen"]["do"], pl.breakdown["zakres_cen"]["waluta"])
+                if "zakres_cen" in pl.breakdown
+                else to_pln(pl.amount, pl.currency)
+                for pl in priced_legs
+            ),
+            2,
+        )
+        if has_range
+        else None
+    )
 
     return Itinerary(
         variant_name=variant_name,
         legs=priced_legs,
         total_price_pln=round(total_price_pln, 2),
+        total_price_pln_high=total_price_pln_high,
         total_duration_min=total_duration_min,
         num_transfers=max(sum(1 for pl in priced_legs if pl.leg.mode is not LegMode.WALK) - 1, 0),
         transfer_warnings=check_all_transfers(legs_only),

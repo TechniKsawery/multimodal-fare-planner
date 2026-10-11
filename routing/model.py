@@ -74,6 +74,8 @@ class Itinerary:
     )
     num_transfers: int
     transfer_warnings: list[TransferWarning] = field(default_factory=list)
+    total_price_pln_high: float | None = None  # górna granica ceny łącznej (PLN), gdy któryś
+    # odcinek ma przedział breakdown["zakres_cen"] (PKP SPI); None = cena jednoznaczna
     is_safe_fallback: bool = False  # ustawiane przez pick_recommendations: True = nawet ta
     # "bezpieczna" rekomendacja ma ryzykowną przesiadkę, bo żaden wariant nie był w pełni bezpieczny
 

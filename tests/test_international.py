@@ -566,3 +566,91 @@ def test_price_rail_leg_relacja_spoza_tabeli_pkp_pokazuje_tylko_db():
     priced = price_rail_leg(leg, DiscountProfile())
     assert priced.currency == "EUR"
     assert "alternatywna_oferta" not in priced.breakdown
+
+
+# --- PKP Super Promo International: przedział cen (cennik od 19.08.2026) -----------------------
+# Wartości przepisane z oryginalny PDF PKP IC (link w źródłach)
+# (relacja Berlin, 2. klasa, poziomy I-V). Dane: fares/data/pkp_spi_pl_de.json.
+
+from fares.international_pkp import spi_range  # noqa: E402
+from routing.currency import PLACEHOLDER_RATES_TO_PLN  # noqa: E402
+from routing.scoring import build_itinerary  # noqa: E402
+
+
+@pytest.mark.parametrize(
+    "miasto,od,do",
+    [
+        ("Warszawa Centralna", 34.90, 59.90),
+        ("Poznań Główny", 24.90, 44.90),
+        ("Konin", 27.90, 44.90),
+        ("Rzepin", 19.90, 27.90),
+        ("Lublin Główny", 34.90, 69.90),  # tylko Ursa 440/441, strefa VI
+        ("Kraków Główny", 34.90, 59.90),
+    ],
+)
+def test_spi_range_wartosci_z_pdf(miasto, od, do):
+    r = spi_range(miasto, "Berlin Hauptbahnhof")
+    assert (r["od"], r["do"]) == (od, do)
+    assert r["waluta"] == "EUR"
+
+
+def test_spi_range_w_obie_strony_i_poza_cennikiem():
+    assert spi_range("Berlin Hauptbahnhof", "Warszawa Centralna")["do"] == 59.90
+    assert spi_range("Szczecin Główny", "Berlin Hauptbahnhof") is None
+    assert spi_range("Berlin Hauptbahnhof", "Hamburg Hbf") is None
+
+
+def test_price_rail_leg_warszawa_berlin_ma_zakres_spi_i_gorna_regularna_69():
+    leg = _international_leg("Warszawa Centralna", "Berlin Hauptbahnhof", distance_km=519)
+    priced = price_rail_leg(leg, DiscountProfile())
+    z = priced.breakdown["zakres_cen"]
+    assert (z["spi_od"], z["spi_do"]) == (34.90, 59.90)
+    assert z["pkp_cena_regularna"] == 69
+    assert z["do"] <= 69
+    assert "przedział wg cennika SPI" in priced.notes
+    assert priced.price_type == "szacunek"
+
+
+def test_price_rail_leg_lublin_berlin_zakres_nie_przekracza_regularnego_pkp():
+    leg = _international_leg("Lublin Główny", "Berlin Hauptbahnhof", distance_km=800)
+    z = price_rail_leg(leg, DiscountProfile(age=25)).breakdown["zakres_cen"]
+    assert z["do"] == 69.90 and z["do"] <= z["pkp_cena_regularna"] == 79
+    assert z["spi_od"] == 34.90 <= z["do"]
+
+
+def test_price_rail_leg_bez_spi_dla_dziecka_i_poza_cennikiem():
+    leg = _international_leg("Warszawa Centralna", "Berlin Hauptbahnhof", distance_km=519)
+    assert "zakres_cen" not in price_rail_leg(leg, DiscountProfile(age=10)).breakdown
+    leg = _international_leg("Szczecin Główny", "Berlin Hauptbahnhof", distance_km=150)
+    assert "zakres_cen" not in price_rail_leg(leg, DiscountProfile()).breakdown
+
+
+def test_zmiana_kursu_przelicza_oba_konce_przedzialu(monkeypatch):
+    leg = _international_leg("Warszawa Centralna", "Berlin Hauptbahnhof", distance_km=519)
+    priced = price_rail_leg(leg, DiscountProfile())
+    z = priced.breakdown["zakres_cen"]
+    monkeypatch.setitem(PLACEHOLDER_RATES_TO_PLN, "EUR", 5.0)
+    it = build_itinerary("test", [priced])
+    assert it.total_price_pln == round(priced.amount * 5.0, 2)
+    assert it.total_price_pln_high == round(z["do"] * 5.0, 2)
+    assert it.total_price_pln < it.total_price_pln_high
+
+
+def test_dane_spi_zgodne_z_tekstem_cennika_pdf():
+    # JSON ma być odtwarzalny z tekstu PDF (scripts/build_spi_data.py) - ceny nie są wpisywane z głowy.
+    import json
+    import pathlib
+    import sys
+
+    root = pathlib.Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(root / "scripts"))
+    from parse_spi_pdf import parse_text
+
+    pdf = {t["numer"]: t for t in parse_text((root / "verification/zrodla-pdf/cennik_spi.txt").read_text(encoding="utf-8"))}
+    dane = json.loads((root / "fares/data/pkp_spi_pl_de.json").read_text(encoding="utf-8"))
+    assert len(dane["pociagi"]) == 13
+    for p in dane["pociagi"]:
+        for rel, poziomy in p["ceny_eur"].items():
+            for poziom, strefy in poziomy.items():
+                for i, (strefa, v) in enumerate(strefy.items()):
+                    assert [v["klasa_2"], v["klasa_1"]] == pdf[p["numer"]]["tabela"][rel][poziom][i]

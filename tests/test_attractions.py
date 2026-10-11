@@ -264,6 +264,16 @@ def test_demo_format_city_section_dla_gelsenkirchen():
     assert "Rekomendacja: żadna karta miejska nie zwraca kosztu" in text
 
 
+def test_demo_format_city_section_etykieta_bez_miasta_uzywa_tekstu_uzytkownika():
+    import demo
+
+    assert "nie rozpoznano" in demo.format_city_section("Buerer Straße 8")
+    text = demo.format_city_section(
+        "Buerer Straße 8", fallback_text="Buerer Straße 8, Gelsenkirchen"
+    )
+    assert "Veltins-Arena" in text
+
+
 def test_demo_format_city_section_nieznane_miasto():
     import demo
 

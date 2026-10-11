@@ -743,3 +743,24 @@ def test_unofficial_limit_zapytan_i_cache(monkeypatch, tmp_path):
     assert not _unofficial.allow_request("x")
     _unofficial.cache_set("x", "k", {"a": 1})
     assert _unofficial.cache_get("x", "k") == {"a": 1}
+
+
+# --- Informacja w UI: kto jedzie bezpłatnie / dlaczego cena 0 -----------------------------------
+
+
+def test_explain_ticket_bezplatny_i_ulgowy_i_normalny():
+    from fares.eligibility_info import explain_ticket
+
+    assert "bezpłatny" in explain_ticket({"typ_biletu": "bezpłatny (100%)"})
+    assert "ulgowy" in explain_ticket({"typ_biletu": "ulgowy (50%)"})
+    assert explain_ticket({"typ_biletu": "normalny"}) is None
+    assert explain_ticket({}) is None
+
+
+def test_eligibility_info_miasta_z_bezplatnym_maja_zrodlo():
+    from fares.eligibility_info import ELIGIBILITY
+
+    for carrier, (miasto, bezplatne, _ulgowe, zrodlo) in ELIGIBILITY.items():
+        assert bezplatne and zrodlo.startswith("https://"), miasto
+    # Poznań: uczniowie TYLKO ulgowo (potwierdzone w fares/data/ztm_poznan.json)
+    assert not any("uczniowie" in t for t in ELIGIBILITY[__import__("fares.model").model.Carrier.ZTM_POZNAN][1])

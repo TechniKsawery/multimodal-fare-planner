@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 
+from fares.model import Carrier
+
 
 class LegMode(str, Enum):
     RAIL = "kolej"
@@ -45,6 +47,7 @@ class PricedLeg:
     breakdown: dict = field(
         default_factory=dict
     )  # przekazane 1:1 z PriceEstimate.breakdown (fares/flights)
+    carrier: Carrier | None = None  # przewoźnik taryfy (gdy wycenił go moduł fares/)
 
 
 @dataclass

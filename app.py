@@ -25,6 +25,7 @@ from attractions import (
 from attractions import DiscountProfile as AttractionDiscountProfile
 from attractions import HeldDocument
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
+from ui_helpers import render_bezplatne_info
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
 from routing import motis_client
@@ -151,6 +152,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             }
         )
     st.dataframe(rows, width="stretch", hide_index=True)
+    render_bezplatne_info(it)
     if it.is_risky:
         for w in it.transfer_warnings:
             if w.infeasible:

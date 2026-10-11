@@ -1872,3 +1872,15 @@ def test_build_rail_only_variants_nocny_przejazd_z_dnia_wyszukiwania_zostaje(mon
 
     result = variants.build_rail_only_variants(request, max_variants=5)
     assert len(result) == 1
+
+
+def test_bus_miejski_zwraca_carrier_i_breakdown_dla_ui():
+    from fares.model import Carrier, DiscountProfile
+
+    leg = make_leg(
+        LegMode.BUS, "Warszawa Centrum", "Warszawa Wola", _dt(6), _dt(6, 20), carrier="ZTM Warszawa"
+    )
+    priced = pricing.price_bus_leg(leg, DiscountProfile(ztm_warszawa_bezplatny=True))
+    assert priced.carrier is Carrier.ZTM_WARSZAWA
+    assert priced.amount == 0.0
+    assert priced.breakdown["typ_biletu"].startswith("bezpłatny")

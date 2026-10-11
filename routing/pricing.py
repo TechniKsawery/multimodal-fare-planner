@@ -361,6 +361,7 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
         price_type=result.price_type.value,
         notes=result.notes,
         breakdown=result.breakdown,
+        carrier=carrier,
     )
 
 
@@ -488,6 +489,8 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
                     currency=result.currency,
                     price_type=result.price_type.value,
                     notes=result.notes,
+                    breakdown=result.breakdown,
+                    carrier=carrier,
                 )
             except ValueError as exc:
                 return _fallback_priced_leg(leg, f"Kalkulator {carrier.value} zwrócił błąd ({exc}).")

@@ -22,6 +22,7 @@ from attractions import (
     suggest_best_city_card,
 )
 from attractions import DiscountProfile as AttractionDiscountProfile
+from attractions import HeldDocument
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
@@ -425,8 +426,23 @@ senior_attrakcje = c_attr_profile2.checkbox(
     "Senior",
     help="Wpływa na cenę ATRAKCJI tam, gdzie operator ma potwierdzoną zniżkę senioralną.",
 )
+_kraj_legitymacji = None
+if uczen_student:
+    _kraj_legitymacji = st.selectbox(
+        "Kraj wydania legitymacji",
+        ["Nie podaję", "Polska", "Niemcy", "Inny kraj"],
+        help="Część atrakcji (np. Muzeum Powstania Warszawskiego) przyznaje zniżkę tylko "
+        "legitymacji wydanej w konkretnym kraju; bez wskazania kraju liczymy tylko zniżki "
+        "bez takiego ograniczenia.",
+    )
+_kod_kraju = {"Polska": "PL", "Niemcy": "DE"}.get(_kraj_legitymacji or "")
 attraction_profile = AttractionDiscountProfile(
-    age=wiek, is_student=uczen_student, is_senior=senior_attrakcje
+    age=wiek,
+    is_student=uczen_student,
+    is_senior=senior_attrakcje,
+    documents=(
+        [HeldDocument("legitymacja_studencka", _kod_kraju)] if _kod_kraju else []
+    ),
 )
 
 st.subheader("Skąd i dokąd")

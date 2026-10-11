@@ -2,8 +2,8 @@
 
 import re
 import unicodedata
-
 from dataclasses import dataclass, field
+from datetime import date
 
 from routing.currency import convert
 
@@ -165,15 +165,28 @@ def get_all_attractions() -> list[Attraction]:
                     item.get("price_is_from", False) or item.get("dynamic_pricing", False)
                 ),
                 variable_pricing_note=item.get("variable_pricing_note", ""),
+                closed_until=item.get("closed_until", ""),
+                closed_source_url=item.get("closed_source_url", ""),
             )
         )
     return res
 
 
+def is_closed(attraction: Attraction, today: date | None = None) -> bool:
+    """True, gdy atrakcja ma flagę zamknięcia i data końca zamknięcia jeszcze nie minęła."""
+    if not attraction.closed_until:
+        return False
+    return (today or date.today()) <= date.fromisoformat(attraction.closed_until)
+
+
 def get_attractions(
-    city: str | None = None, category: AttractionCategory | str | None = None
+    city: str | None = None,
+    category: AttractionCategory | str | None = None,
+    include_closed: bool = False,
 ) -> list[Attraction]:
-    """Zwraca atrakcje, opcjonalnie przefiltrowane po mieście lub kategorii."""
+    """Zwraca atrakcje, opcjonalnie przefiltrowane po mieście lub kategorii.
+
+    Tymczasowo zamknięte atrakcje (closed_until) są pomijane, chyba że include_closed=True."""
     attractions = get_all_attractions()
     city_key = normalize_city(city) if city else None
     cat_enum = AttractionCategory(category) if isinstance(category, str) else category
@@ -183,6 +196,8 @@ def get_attractions(
         if city_key and a.city != city_key:
             continue
         if cat_enum and a.category != cat_enum:
+            continue
+        if not include_closed and is_closed(a):
             continue
         filtered.append(a)
     return filtered

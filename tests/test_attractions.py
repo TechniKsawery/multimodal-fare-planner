@@ -598,3 +598,19 @@ def test_price_from_note_pusta_dla_stalej_ceny_i_api_zwraca_pola():
     items = TestClient(app).get("/attractions", params={"city": "berlin"}).json()
     ft = next(i for i in items if i["id"] == "berlin_fernsehturm")
     assert ft["price_is_from"] is True and ft["dynamic_pricing"] is True
+
+
+def test_zamkniete_muzeum_nie_trafia_do_wynikow():
+    from datetime import date
+
+    from attractions import get_all_attractions, get_attractions
+    from attractions.service import is_closed
+
+    wallraf = next(a for a in get_all_attractions() if a.id == "koln_wallraf_richartz")
+    assert wallraf.closed_until == "2028-12-31" and wallraf.closed_source_url
+    assert is_closed(wallraf, today=date(2026, 10, 11))
+    assert not is_closed(wallraf, today=date(2029, 1, 1))
+    assert "koln_wallraf_richartz" not in {a.id for a in get_attractions(city="koln")}
+    assert "koln_wallraf_richartz" in {a.id for a in get_attractions(city="koln", include_closed=True)}
+    # pozostałe muzea bez flagi zachowują się jak dotąd
+    assert "koln_museum_ludwig" in {a.id for a in get_attractions(city="koln")}

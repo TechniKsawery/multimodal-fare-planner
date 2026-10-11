@@ -1,0 +1,724 @@
+{
+ "samples": [
+  {
+   "origin": "Warszawa",
+   "destination": "Łódź",
+   "distance_km": 118.7,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 25.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Łódź",
+   "distance_km": 118.7,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 26.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Łódź",
+   "distance_km": 118.7,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 25.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Warszawa",
+   "distance_km": 153.1,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 19.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Warszawa",
+   "distance_km": 153.1,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 19.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Warszawa",
+   "distance_km": 153.1,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 27.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Katowice",
+   "destination": "Kraków",
+   "distance_km": 69.3,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 20.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Katowice",
+   "destination": "Kraków",
+   "distance_km": 69.3,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 22.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Katowice",
+   "destination": "Kraków",
+   "distance_km": 69.3,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 19.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Poznań",
+   "distance_km": 144.6,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 24.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Poznań",
+   "distance_km": 144.6,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 19.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Poznań",
+   "distance_km": 144.6,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 23.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Kraków",
+   "distance_km": 252.0,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 19.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Kraków",
+   "distance_km": 252.0,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 19.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Kraków",
+   "distance_km": 252.0,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 9.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Gdańsk",
+   "distance_km": 283.5,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 57.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Gdańsk",
+   "distance_km": 283.5,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 59.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Gdańsk",
+   "distance_km": 283.5,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 54.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Kraków",
+   "destination": "Wrocław",
+   "distance_km": 235.7,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 21.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Kraków",
+   "destination": "Wrocław",
+   "distance_km": 235.7,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 17.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Kraków",
+   "destination": "Wrocław",
+   "distance_km": 235.7,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 18.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Wrocław",
+   "distance_km": 385.7,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 106.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Wrocław",
+   "distance_km": 385.7,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 100.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Wrocław",
+   "distance_km": 385.7,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 107.98,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Gdańsk",
+   "destination": "Kraków",
+   "distance_km": 484.8,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 84.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Gdańsk",
+   "destination": "Kraków",
+   "distance_km": 484.8,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 82.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Gdańsk",
+   "destination": "Kraków",
+   "distance_km": 484.8,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 90.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Szczecin",
+   "destination": "Kraków",
+   "distance_km": 526.7,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 115.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Szczecin",
+   "destination": "Kraków",
+   "distance_km": 526.7,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 99.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Szczecin",
+   "destination": "Kraków",
+   "distance_km": 526.7,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 126.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Poznań",
+   "destination": "Berlin",
+   "distance_km": 238.8,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 73.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Poznań",
+   "destination": "Berlin",
+   "distance_km": 238.8,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 69.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Poznań",
+   "destination": "Berlin",
+   "distance_km": 238.8,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 63.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Dresden",
+   "distance_km": 230.7,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 75.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Dresden",
+   "distance_km": 230.7,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 68.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Dresden",
+   "distance_km": 230.7,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 68.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Szczecin",
+   "destination": "Berlin",
+   "distance_km": 126.9,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 49.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Szczecin",
+   "destination": "Berlin",
+   "distance_km": 126.9,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 49.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Szczecin",
+   "destination": "Berlin",
+   "distance_km": 126.9,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 49.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Berlin",
+   "distance_km": 295.0,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 86.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Berlin",
+   "distance_km": 295.0,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 76.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Berlin",
+   "distance_km": 295.0,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 71.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Berlin",
+   "distance_km": 517.2,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 125.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Berlin",
+   "distance_km": 517.2,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 110.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Berlin",
+   "distance_km": 517.2,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 107.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Berlin",
+   "distance_km": 644.2,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 194.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Berlin",
+   "distance_km": 644.2,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 179.97,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Berlin",
+   "distance_km": 644.2,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 163.97,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Kraków",
+   "destination": "Berlin",
+   "distance_km": 530.1,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 149.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Kraków",
+   "destination": "Berlin",
+   "distance_km": 530.1,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 136.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Kraków",
+   "destination": "Berlin",
+   "distance_km": 530.1,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 124.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Gdańsk",
+   "destination": "Hamburg",
+   "distance_km": 572.8,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 201.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Gdańsk",
+   "destination": "Hamburg",
+   "distance_km": 572.8,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 183.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Gdańsk",
+   "destination": "Hamburg",
+   "distance_km": 572.8,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 172.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Hamburg",
+   "distance_km": 752.9,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 223.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Hamburg",
+   "distance_km": 752.9,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 191.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Hamburg",
+   "distance_km": 752.9,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 180.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Poznań",
+   "destination": "Köln",
+   "distance_km": 705.7,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 253.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Poznań",
+   "destination": "Köln",
+   "distance_km": 705.7,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 211.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Poznań",
+   "destination": "Köln",
+   "distance_km": 705.7,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 201.98,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Gelsenkirchen",
+   "distance_km": 1072.9,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 319.97,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Gelsenkirchen",
+   "distance_km": 1072.9,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 333.98,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Lublin",
+   "destination": "Gelsenkirchen",
+   "distance_km": 1072.9,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 323.98,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Köln",
+   "distance_km": 979.9,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 296.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Köln",
+   "distance_km": 979.9,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 262.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Warszawa",
+   "destination": "Köln",
+   "distance_km": 979.9,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 247.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Kraków",
+   "destination": "München",
+   "distance_km": 645.1,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 209.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Kraków",
+   "destination": "München",
+   "distance_km": 645.1,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 209.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Kraków",
+   "destination": "München",
+   "distance_km": 645.1,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 191.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Frankfurt",
+   "distance_km": 599.7,
+   "travel_date": "2026-10-25",
+   "fetched_on": "2026-10-11",
+   "price": 205.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Frankfurt",
+   "distance_km": 599.7,
+   "travel_date": "2026-11-08",
+   "fetched_on": "2026-10-11",
+   "price": 205.99,
+   "currency": "PLN",
+   "transfers": null
+  },
+  {
+   "origin": "Wrocław",
+   "destination": "Frankfurt",
+   "distance_km": 599.7,
+   "travel_date": "2026-11-29",
+   "fetched_on": "2026-10-11",
+   "price": 204.98,
+   "currency": "PLN",
+   "transfers": null
+  }
+ ]
+}

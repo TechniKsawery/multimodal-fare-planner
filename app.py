@@ -707,7 +707,13 @@ if result is not None:
             risk_suffix = ""
         with st.expander(
             f"{it.variant_name} — {it.total_duration_min / 60:.1f} h, "
-            f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}" + risk_suffix
+            + (
+                f"od {it.total_price_pln:.0f} do {it.total_price_pln_high:.0f} PLN"
+                if it.total_price_pln_high is not None
+                else f"{it.total_price_pln:.0f} PLN"
+            )
+            + f", przesiadek: {it.num_transfers}"
+            + risk_suffix
         ):
             render_itinerary(it, wiek, bc if bc != "brak" else None)
 

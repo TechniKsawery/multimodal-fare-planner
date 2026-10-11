@@ -374,6 +374,8 @@
       "default_card_discount_percent": 0.0,
       "address": "Mehringdamm 36, 10961 Berlin",
       "official_url": "https://curry36.de",
+      "price_verified": false,
+      "price_check_note": "2026-10-11: curry36.de (Speisekarte) nie podaje żadnych cen; cena do potwierdzenia w lokalu lub przez info@curry36.de",
       "highlight": false,
       "tags": [
         "street food",

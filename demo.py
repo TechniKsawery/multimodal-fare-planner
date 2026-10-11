@@ -14,11 +14,13 @@ import argparse
 
 from attractions import (
     AttractionCategory,
+    best_price_for_attraction,
     evaluate_city_cards,
     get_attractions,
     normalize_city,
     suggest_best_city_card,
 )
+from attractions import DiscountProfile as AttractionDiscountProfile
 from routing.card_suggestions import suggest_bahncard_for_itinerary
 from routing.demo_route import (
     FLIGHT_REGIONAL_HUBS,
@@ -57,11 +59,17 @@ CATEGORY_PLAIN = {
 }
 
 
-def format_city_section(destination_label: str) -> str:
+def format_city_section(
+    destination_label: str, profile: "AttractionDiscountProfile | None" = None
+) -> str:
     """Atrakcje i opłacalność kart miejskich dla miasta docelowego (nie wymaga MOTIS).
 
     Atrakcje wyróżnione (highlight) traktujemy jako zaplanowane; transport bez karty to
     szacunek (domyślnie 15 EUR / 25 PLN, jak w app.py). Ceny bez potwierdzenia są oznaczane.
+
+    `profile`, jeśli podany (wiek/uczeń-student/senior), dla każdej atrakcji pokazuje
+    najtańszą cenę, do jakiej dana osoba ma prawo z DOWOLNEGO potwierdzonego tytułu
+    (nie tylko cenę dorosłego), razem z nazwą tego tytułu.
     """
     city = normalize_city(destination_label)
     if not city:
@@ -78,17 +86,26 @@ def format_city_section(destination_label: str) -> str:
         f"Katalog: {len(attrs)} miejsc, zaplanowane (wyróżnione) do kalkulacji: {len(planned)}",
     ]
     for a in attrs:
-        price = f"{a.normal_price:.2f} {a.currency}" if a.normal_price > 0 else "wstęp bezpłatny"
-        if not a.price_verified:
+        price_val, label, source = best_price_for_attraction(a, profile)
+        price = f"{price_val:.2f} {a.currency}" if price_val > 0 else "wstęp bezpłatny"
+        if source is not None:
+            price += f" ({label})"
+            if not source.price_verified:
+                price += ", cena niepotwierdzona"
+        elif not a.price_verified:
             price += ", cena niepotwierdzona"
         lines.append(f"  - [{CATEGORY_PLAIN[a.category]}] {a.name}: {price}")
 
-    best = suggest_best_city_card(city, planned, estimated_transit_cost=transit_cost)
+    best = suggest_best_city_card(
+        city, planned, estimated_transit_cost=transit_cost, profile=profile
+    )
     if best and best.is_recommended:
         lines.append(f"  Rekomendacja: {best.summary}")
     else:
         lines.append("  Rekomendacja: żadna karta miejska nie zwraca kosztu przy wyróżnionych atrakcjach.")
-    for ev in evaluate_city_cards(city, planned, estimated_transit_cost=transit_cost):
+    for ev in evaluate_city_cards(
+        city, planned, estimated_transit_cost=transit_cost, profile=profile
+    ):
         verified = "" if ev.variant.price_verified else ", cena karty niepotwierdzona"
         lines.append(
             f"  - {ev.variant.name}: karta {ev.card_price:.2f} {ev.currency}, "
@@ -172,7 +189,20 @@ def main() -> None:
         "tylko na niemiecki odcinek). Nie dotyczy oferty PKP (jej ulga dziecięca jest taka sama "
         "niezależnie od opiekuna).",
     )
+    parser.add_argument(
+        "--student",
+        action="store_true",
+        help="posiadacz ważnej legitymacji ucznia/studenta — wpływa na cenę atrakcji z potwierdzoną zniżką uczniowską/studencką",
+    )
+    parser.add_argument(
+        "--senior",
+        action="store_true",
+        help="zniżka seniora — wpływa na cenę atrakcji z potwierdzoną zniżką senioralną",
+    )
     args = parser.parse_args()
+    attraction_profile = AttractionDiscountProfile(
+        age=args.age, is_student=args.student, is_senior=args.senior
+    )
 
     try:
         request = request_from_addresses(
@@ -189,7 +219,7 @@ def main() -> None:
         f"Multimodalna wyszukiwarka — {request.origin_label} -> {request.destination_label}, {args.date}\n"
     )
 
-    print(format_city_section(request.destination_label))
+    print(format_city_section(request.destination_label, attraction_profile))
     print()
 
     # UWAGA: alternative_destination_stops (np. Essen Hbf z routing/demo_route.py) celowo NIE

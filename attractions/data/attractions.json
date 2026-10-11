@@ -1,6 +1,7 @@
 {
   "_zrodlo": "Katalog atrakcji i rekomendowanych miejsc (PL + DE)",
-  "_data_aktualizacji": "2026-10-06",
+  "_data_aktualizacji": "2026-10-09",
+  "_UWAGA_ceny_grupowe": "AKTUALIZACJA 2026-10-10: dodano pola child_price/student_price/senior_price/family_price (GroupPrice w model.py) — kalkulator (best_price_for_attraction w service.py) bierze teraz najtańszą cenę z DOWOLNEGO potwierdzonego tytułu (wiek/uczeń-student/senior), nie tylko cenę dorosłego. Wypełnione na razie tylko tam, gdzie kwota jest potwierdzona wprost w cenniku operatora (patrz pola źródło/data przy każdym polu): ZOOM Erlebniswelt (dziecko 4-12 lat 15,50€, uczeń/student 17,50€ — UWAGA: <4 lata gratis NIE jest jeszcze modelowane, bo schemat ma tylko jedno pole child_price na atrakcję), Veltins-Arena (młodzież do 21 lat 5€), Signal Iduna Park (dziecko do 6 lat 1€, ermäßigt 12€ — zweryfikowane 2026-10-10 bezpośrednio w sklepie biletowym dla tego samego produktu 18€), Deutsches Fußballmuseum (dziecko do 6 lat gratis, uczeń/student <26 lat 15€), Alte Försterei (dziecko do 6 lat gratis, ermäßigt 10€, karta rodzinna 34€ — zweryfikowane 2026-10-10), Zamek Lubelski (dziecko do 7 lat gratis, ulgowy 30€, rodzic+dziecko do 16 lat 30€ — zweryfikowane 2026-10-10), Katedra Wawelska (ulgowy 18 PLN, PRZY OKAZJI poprawiono normal_price 22->26 PLN po weryfikacji na żywo), Zeche Zollverein (ermäßigt 'od' 9,50€ — wartość minimalna z cennika, patrz _UWAGA_warianty_zwiedzania przy tej atrakcji: pierwotny plan '6 wariantów' nie odpowiada rzeczywistości, operator ma 20+ nazwanych tras). Museumsinsel: dzieci/młodzież do 18 lat gratis potwierdzone, ale ogólna 50% zniżka SMB NIE jest explicite powiązana z tym konkretnym biletem zbiorczym — celowo niewypełniona, nie zgadywana. Olympiastadion Berlin: WERYFIKACJA 2026-10-10 wykazała, że istniejąca cena normal_price=15€ nie odpowiada żadnemu realnemu produktowi operatora (self-guided 11€, Führungen 17-25€) — price_verified przestawione na false, wymaga wyjaśnienia przed dodaniem zniżek. Bilety rodzinne (family_price) i zniżki grupowe (grupy 20+) poza wymienionymi wyżej jeszcze niewypełnione. UPROSZCZENIE do rozważenia: w evaluate_city_card_variant zniżka kartowa liczy się DODATKOWO na cenie z tytułu statusu — część operatorów może tego nie łączyć (nie zweryfikowane per atrakcja).",
   "atrakcje": [
     {
       "id": "gelsenkirchen_veltins_arena",
@@ -8,18 +9,27 @@
       "city": "gelsenkirchen",
       "category": "sport",
       "description": "Dom klubu FC Schalke 04 w Gelsenkirchen.",
-      "normal_price": 11.0,
+      "normal_price": 10.0,
       "currency": "EUR",
       "default_card_discount_percent": 50.0,
       "address": "Arenaring 1, 45891 Gelsenkirchen",
-      "official_url": "https://veltins-arena.de",
+      "official_url": "https://veltins-arena.de/veltins-arena/stadionfuehrungen/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "piłka nożna",
         "stadion",
         "schalke",
         "bundesliga"
-      ]
+      ],
+      "child_price": {
+        "price": 5.0,
+        "label": "Młodzież do 21 lat",
+        "max_age": 21,
+        "source_url": "https://veltins-arena.de/veltins-arena/stadionfuehrungen/",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "gelsenkirchen_zoom_erlebniswelt",
@@ -27,11 +37,11 @@
       "city": "gelsenkirchen",
       "category": "rozrywka",
       "description": "Nagradzany ogród zoologiczny nowej generacji z immersyjnymi światami tematycznymi: Alaska, Afryka i Azja.",
-      "normal_price": 21.5,
+      "normal_price": 23.5,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Bleckstraße 64, 45889 Gelsenkirchen",
-      "official_url": "https://www.zoom-erlebniswelt.de",
+      "official_url": "https://www.zoom-erlebniswelt.de/preise/",
       "price_verified": true,
       "highlight": true,
       "tags": [
@@ -39,7 +49,24 @@
         "zwierzęta",
         "rodzina",
         "przygoda"
-      ]
+      ],
+      "child_price": {
+        "price": 15.5,
+        "label": "Dziecko 4-12 lat",
+        "min_age": 4,
+        "max_age": 12,
+        "source_url": "https://www.zoom-erlebniswelt.de/preise/",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 17.5,
+        "label": "Uczeń/student (z legitymacją)",
+        "requires_status": "ważna legitymacja ucznia/studenta",
+        "source_url": "https://www.zoom-erlebniswelt.de/preise/",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "gelsenkirchen_nordsternpark",
@@ -66,18 +93,28 @@
       "city": "gelsenkirchen",
       "category": "turystyka_kultura",
       "description": "Ikona Szlaku Dziedzictwa Przemysłowego, wpisana na listę UNESCO.",
-      "normal_price": 10.0,
+      "normal_price": 12.5,
       "currency": "EUR",
       "default_card_discount_percent": 50.0,
       "address": "Gelsenkirchener Str. 181, 45309 Essen",
       "official_url": "https://www.zollverein.de",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "unesco",
         "muzeum",
         "kopalnia",
         "architektura"
-      ]
+      ],
+      "student_price": {
+        "price": 9.5,
+        "label": "Ermäßigt (od — cena bazowa dla 1-godzinnych wariantów zwiedzania)",
+        "requires_status": "dokładna kwota zależy od konkretnej nazwanej trasy (operator ma 20+ nazwanych Führungen w 2 kategoriach czasowych: 1h i 2h) — 9,50 EUR to zweryfikowana wartość MINIMALNA ('ab') z oficjalnej tabeli cen, nie uśredniona ani zgadnięta",
+        "source_url": "https://www.zollverein.de/besuch-planen/eintrittspreise/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "_UWAGA_warianty_zwiedzania": "2026-10-10: poprzednia notatka w tym pliku mówiła o '6 wariantach zwiedzania' Zeche Zollverein — PO WERYFIKACJI NA ŻYWO (zollverein.de/besuch-planen/eintrittspreise/ + zollverein.ticketfritz.de) to się NIE POTWIERDZA: oficjalny katalog ma 20+ osobno nazwanych Führungen pogrupowanych w 2 kategorie czasowe (1-godzinne od 12,50 EUR/ermäßigt od 9,50 EUR, 2-godzinne od 16,50 EUR/ermäßigt od 13,50 EUR), plus osobne produkty (Zollverein-Rundfahrten 17 EUR, linia turystyczna 7-8 EUR). Rozbicie na 6 osobnych wpisów Attraction, jak proponowano, nie odpowiada rzeczywistej strukturze cennika — wymaga decyzji produktowej (które konkretne trasy modelować osobno), a nie tylko weryfikacji. Jeden przykładowo sprawdzony konkretny produkt, 'Von Kohle, Koks und harter Arbeit' (1,5h): 14,50 EUR dorosły / 11,50 EUR ermäßigt i dzieci 5-17 lat / Familienticket I 22,50 EUR / Familienticket II 33,50 EUR — ale TO NIE jest ten sam produkt co obecny wpis 12,50 EUR w tym pliku (inny czas trwania i cena)."
     },
     {
       "id": "dortmund_signal_iduna_park",
@@ -85,18 +122,35 @@
       "city": "gelsenkirchen",
       "category": "sport",
       "description": "Największy stadion piłkarski w Niemczech (81 tys.",
-      "normal_price": 15.0,
+      "normal_price": 18.0,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Strobelallee 50, 44139 Dortmund",
       "official_url": "https://www.bvb.de",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "piłka nożna",
         "stadion",
         "bvb",
         "dortmund"
-      ]
+      ],
+      "child_price": {
+        "price": 1.0,
+        "label": "Dziecko do 6 lat",
+        "max_age": 6,
+        "source_url": "https://ticket-onlineshop.com/ols/bvbstadion",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 12.0,
+        "label": "Ermäßigt (Jugendliche unter 18, Schüler, Studenten, Arbeitslose, Schwerbehinderte, Rentner)",
+        "requires_status": "Jugendliche unter 18, Schüler, Studenten, Arbeitslose, Schwerbehinderte, Rentner — wszystkie tylko z ważnym dokumentem (dokładny cytat operatora, potwierdzony po wybraniu konkretnego terminu zwiedzania 11.10.2026 w sklepie biletowym)",
+        "source_url": "https://www.ticket-onlineshop.com/ols/bvbstadion/de/adrenalin/channel/shop/areaplan/venue/event/693365",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
     },
     {
       "id": "dortmund_fussballmuseum",
@@ -108,14 +162,31 @@
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Platz der Deutschen Einheit 1, 44137 Dortmund",
-      "official_url": "https://www.fussballmuseum.de",
+      "official_url": "https://www.fussballmuseum.de/museum/eintrittspreise",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "piłka nożna",
         "muzeum",
         "dfb",
         "sport"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dziecko do 6 lat (gratis)",
+        "max_age": 6,
+        "source_url": "https://www.fussballmuseum.de/museum/eintrittspreise",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 15.0,
+        "label": "Uczeń/student <26 lat (z legitymacją)",
+        "requires_status": "wiek <26 lat i ważna legitymacja ucznia/studenta",
+        "source_url": "https://www.fussballmuseum.de/museum/eintrittspreise",
+        "verified_date": "2026-10-09",
+        "price_verified": true
+      }
     },
     {
       "id": "berlin_olympiastadion",
@@ -123,18 +194,44 @@
       "city": "berlin",
       "category": "sport",
       "description": "Legendarny stadion olimpijski z 1936 roku, dom Herthy BSC i arena finałów DFB-Pokal oraz Mistrzostw Europy.",
-      "normal_price": 15.0,
+      "normal_price": 11.0,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Olympischer Platz 3, 14053 Berlin",
-      "official_url": "https://olympiastadion.berlin",
+      "official_url": "https://olympiastadion.berlin/de/besichtigung/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "stadion",
         "sport",
         "historia",
         "olimpiada"
-      ]
+      ],
+      "child_price": {
+        "price": 6.0,
+        "label": "Dzieci 6-14 lat",
+        "min_age": 6,
+        "max_age": 14,
+        "source_url": "https://olympiastadion.berlin/de/besichtigung/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 8.0,
+        "label": "Ermäßigt (Schüler, Studenten, Auszubildende, Schwerbehinderte, BFD-Leistende, Arbeitslose, ALG II)",
+        "requires_status": "Schüler, Studenten, Auszubildende, Schwerbehinderte, BFD-Leistende, Arbeitslose, Empfänger von ALG II (jeweils mit gültigem Ausweis) oraz grupy od 10 osób",
+        "source_url": "https://olympiastadion.berlin/de/besichtigung/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 27.0,
+        "label": "Family Card (2 dorosłych + 3 dzieci, dzieci do 6 lat gratis w towarzystwie dorosłego)",
+        "source_url": "https://olympiastadion.berlin/de/besichtigung/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "_UWAGA_produkt": "normal_price modeluje samodzielne zwiedzanie (Besichtigung), nie płatne Führungen z przewodnikiem (Highlight-Tour/Premium-Tour/Hertha BSC-Tour itd., 17-25€ dorosły) — to osobny produkt turystyczny, niemodelowany w tym katalogu. Zweryfikowane NA ŻYWO 2026-10-11 na olympiastadion.berlin/de/besichtigung/."
     },
     {
       "id": "berlin_alte_foersterei",
@@ -147,13 +244,37 @@
       "default_card_discount_percent": 0.0,
       "address": "An der Wuhlheide 263, 12555 Berlin",
       "official_url": "https://www.stadion-an-der-alten-foersterei.de",
+      "price_verified": true,
       "highlight": false,
       "tags": [
         "sport",
         "piłka nożna",
         "union berlin",
         "klimat"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci do 6 lat (bezpłatnie)",
+        "max_age": 6,
+        "source_url": "https://www.altefoersterei.berlin/de/stadion/stadionfuehrung-xcFo",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 10.0,
+        "label": "Ermäßigt (uczniowie/studenci/bezrobotni/renciści/członkowie klubu)",
+        "requires_status": "Schüler, Auszubildende, Studenten, Arbeitssuchende, Rentner, osoby z niepełnosprawnością od 50% GdB (opiekun wchodzi bezpłatnie), członkowie 1. FC Union Berlin — każdorazowo wymagany dokument",
+        "source_url": "https://www.altefoersterei.berlin/de/stadion/stadionfuehrung-xcFo",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 34.0,
+        "label": "Karta rodzinna (2 dorosłych + 2 dzieci do 14 lat)",
+        "source_url": "https://www.altefoersterei.berlin/de/stadion/stadionfuehrung-xcFo",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
     },
     {
       "id": "berlin_museumsinsel",
@@ -161,18 +282,28 @@
       "city": "berlin",
       "category": "turystyka_kultura",
       "description": "Światowej sławy kompleks 5 muzeów UNESCO w sercu Berlina (w tym Neues Museum ze słynnym popiersiem Nefertiti i Altes Museum).",
-      "normal_price": 14.0,
+      "normal_price": 24.0,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Bodestraße 1-3, 10178 Berlin",
-      "official_url": "https://www.smb.museum",
+      "official_url": "https://www.smb.museum/besuch-planen/preise-tickets/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "muzeum",
         "unesco",
         "sztuka",
         "starożytność"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci i młodzież do 18 lat (bezpłatnie)",
+        "max_age": 18,
+        "source_url": "https://www.smb.museum/besuch-planen/preise-tickets/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "_UWAGA_ermazigt": "2026-10-10: SMB (zarządca Museumsinsel) ogłasza ogólną 'allgemeine Ermäßigung' 50% dla uczniów/studentów/wolontariuszy/bezrobotnych (ALG I)/osób z niepełnosprawnością od 50% — ale ani strona ogólna (/besuch-planen/preise-tickets/), ani strona samego Museumsinsel-Ticket (/tickets-einlass/) nie podają wprost, że ta ogólna zniżka obejmuje TEN konkretny bilet zbiorczy (24 EUR) — nie wpisano student_price, żeby nie zgadywać (50% z 24 EUR to policzona, nie podana wprost kwota)."
     },
     {
       "id": "berlin_fernsehturm",
@@ -180,18 +311,30 @@
       "city": "berlin",
       "category": "rozrywka",
       "description": "Najwyższy obiekt w Niemczech (368 m) na Alexanderplatz.",
-      "normal_price": 24.5,
+      "normal_price": 20.0,
       "currency": "EUR",
       "default_card_discount_percent": 25.0,
       "address": "Panoramastraße 1A, 10178 Berlin",
-      "official_url": "https://tv-turm.de",
+      "official_url": "https://tv-turm.de/tickets/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "panorama",
         "widok",
         "alexanderplatz",
         "wieża"
-      ]
+      ],
+      "child_price": {
+        "price": 14.0,
+        "label": "Dziecko 4-14 lat (przykładowa stawka — ceny DYNAMICZNE per godzina/dzień, tak jak bilet dorosły)",
+        "min_age": 4,
+        "max_age": 14,
+        "requires_status": "cena zmienia się z godziną/dniem rezerwacji identycznie jak u dorosłych (np. 24 EUR dorosły / 14 EUR dziecko dla terminu 11.10.2026 9:00) — nie jest to kwota stała",
+        "source_url": "https://tv-turm.de/en/tickets-and-bundles/",
+        "verified_date": "2026-10-11",
+        "price_verified": true
+      },
+      "_UWAGA_dynamiczne_ceny": "2026-10-11: zweryfikowano NA ŻYWO w widżecie rezerwacji (tv-turm.de/en/tickets-and-bundles/) po wybraniu konkretnego terminu — ceny 'Standard Ticket' są DYNAMICZNE (zależą od godziny i dnia, np. 24-29,50 EUR dla dorosłego w ciągu jednego dnia), nie jedną stałą kwotą jak normal_price=20 sugeruje (to prawdopodobnie najniższa możliwa cena 'ab'/'from'). Kategoria 'Child' (4-14 lat) istnieje i ma analogicznie dynamiczną cenę, potwierdzoną przykładowo na 14 EUR. Jest też osobna kategoria 'Infant' (prawdopodobnie 0-3 lata) — jej konkretną cenę/wiek nie sprawdzono dalej (czas sesji)."
     },
     {
       "id": "berlin_brandenburger_tor",
@@ -204,6 +347,7 @@
       "default_card_discount_percent": 0.0,
       "address": "Pariser Platz, 10117 Berlin",
       "official_url": "https://www.berlin.de/sehenswuerdigkeiten/3560242-3558930-brandenburger-tor.html",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "zabytki",
@@ -233,15 +377,16 @@
     },
     {
       "id": "krakow_wawel",
-      "name": "Zamek Królewski na Wawelu i Katedra",
+      "name": "Zamek Królewski na Wawelu – Komnaty Królewskie",
       "city": "krakow",
       "category": "turystyka_kultura",
-      "description": "Historyczna siedziba królów Polski, Reprezentacyjne Komnaty Królewskie, Skarbiec Koronny oraz Katedra z Dzwonem Zygmunta.",
-      "normal_price": 35.0,
+      "description": "Historyczna siedziba królów Polski.",
+      "normal_price": 57.0,
       "currency": "PLN",
       "default_card_discount_percent": 20.0,
       "address": "Wawel 5, 31-001 Kraków",
       "official_url": "https://wawel.krakow.pl",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "zamek",
@@ -251,16 +396,45 @@
       ]
     },
     {
+      "id": "krakow_katedra_wawelska",
+      "name": "Katedra Wawelska (Dzwon Zygmunta, groby królewskie)",
+      "city": "krakow",
+      "category": "turystyka_kultura",
+      "description": "Katedra na Wawelu z Dzwonem Zygmunta, krypty i groby królewskie oraz Muzeum Katedralne.",
+      "normal_price": 26.0,
+      "currency": "PLN",
+      "default_card_discount_percent": 0.0,
+      "address": "Wawel 3, 31-001 Kraków",
+      "official_url": "https://bilety-wawel.pl",
+      "price_verified": true,
+      "highlight": false,
+      "tags": [
+        "katedra",
+        "historia",
+        "dzwon zygmunta",
+        "unesco"
+      ],
+      "student_price": {
+        "price": 18.0,
+        "label": "Bilet ulgowy",
+        "requires_status": "zgodnie z regulaminem operatora — dokładne kryteria uprawniające (wiek/status) nie są podane wprost na stronie sprzedaży",
+        "source_url": "https://bilety-wawel.pl",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
+    },
+    {
       "id": "krakow_schindler_factory",
       "name": "Fabryka Emalia Oskara Schindlera",
       "city": "krakow",
       "category": "turystyka_kultura",
       "description": "Światowej sławy ekspozycja 'Kraków - czas okupacji 1939-1945' w dawnej fabryce naczyń emaliowanych.",
-      "normal_price": 36.0,
+      "normal_price": 60.0,
       "currency": "PLN",
-      "default_card_discount_percent": 100.0,
+      "default_card_discount_percent": 20.0,
       "address": "Lipowa 4, 30-702 Kraków",
       "official_url": "https://muzeumkrakowa.pl",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "muzeum",
@@ -313,11 +487,12 @@
       "city": "lublin",
       "category": "sport",
       "description": "Nowoczesny stadion piłkarski Motoru Lublin (15,5 tys.",
-      "normal_price": 15.0,
+      "normal_price": 7.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Stadionowa 1, 20-405 Lublin",
       "official_url": "https://mosir.lublin.pl/obiekty/arena-lublin",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "sport",
@@ -332,18 +507,43 @@
       "city": "lublin",
       "category": "turystyka_kultura",
       "description": "Zamek z romańskim donżonem oraz bezcenna Kaplica Trójcy Świętej z XIV-wiecznymi rusko-bizantyjskimi freskami.",
-      "normal_price": 25.0,
+      "normal_price": 40.0,
       "currency": "PLN",
       "default_card_discount_percent": 20.0,
       "address": "Zamkowa 9, 20-117 Lublin",
-      "official_url": "https://zamek-lublin.pl",
+      "official_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "zamek",
         "zabytki",
         "freski",
         "sztuka"
-      ]
+      ],
+      "child_price": {
+        "price": 0.0,
+        "label": "Dzieci do 7 lat (bezpłatnie)",
+        "max_age": 7,
+        "source_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "student_price": {
+        "price": 30.0,
+        "label": "Bilet ulgowy (bilet zbiorczy: ekspozycje stałe + Kaplica + wieża)",
+        "requires_status": "uczniowie, studenci i doktoranci (z ważnym dokumentem), osoby powyżej 65 lat, emeryci i renciści, nauczyciele, posiadacze Europejskiej Karty Młodzieżowej, kombatanci",
+        "source_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      },
+      "family_price": {
+        "price": 30.0,
+        "label": "Rodzic z dzieckiem do 16 lat lub posiadacz Karty Dużej Rodziny (cena biletu ulgowego za osobę, bilet zbiorczy)",
+        "requires_status": "rodzic w towarzystwie dziecka do 16 lat, lub Karta Dużej Rodziny",
+        "source_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+        "verified_date": "2026-10-10",
+        "price_verified": true
+      }
     },
     {
       "id": "lublin_majdanek",
@@ -355,7 +555,8 @@
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Droga Męczenników Majdanka 67, 20-325 Lublin",
-      "official_url": "https://www.majdanek.eu",
+      "official_url": "https://www.majdanek.eu/zaplanuj-wizyte",
+      "price_verified": true,
       "highlight": true,
       "tags": [
         "historia",
@@ -369,12 +570,13 @@
       "name": "Regionalne Muzeum Cebularza",
       "city": "lublin",
       "category": "gastronomia",
-      "description": "Interaktywny pokaz tradycyjnego wypieku słynnego lubelskiego cebularza z cebulą i makiem pod ochroną unijną.",
-      "normal_price": 26.0,
+      "description": "Interaktywny pokaz i warsztat wypieku słynnego lubelskiego cebularza z cebulą i makiem pod ochroną unijną (uczestnik samodzielnie wypieka cebularza).",
+      "normal_price": 39.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Szewska 4, 20-086 Lublin",
-      "official_url": "https://muzeumcebularza.com.pl",
+      "official_url": "https://muzeumcebularza.com.pl/index.php/o-muzeum-4/bilety-new",
+      "price_verified": true,
       "highlight": false,
       "tags": [
         "tradycja",

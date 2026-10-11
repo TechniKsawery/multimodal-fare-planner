@@ -3,6 +3,8 @@
 import re
 import unicodedata
 
+from dataclasses import dataclass, field
+
 from ._data_loading import load
 from .model import (
     Attraction,
@@ -10,7 +12,44 @@ from .model import (
     CityCard,
     CityCardEvaluation,
     CityCardVariant,
+    GroupPrice,
+    HeldDocument,
 )
+
+# Typy dokumentów traktowane jako "status ucznia/studenta" / "status seniora" przy
+# dopasowywaniu HeldDocument do GroupPrice.student_price / .senior_price.
+_STUDENT_DOC_TYPES = {"legitymacja_szkolna", "legitymacja_studencka", "ISIC"}
+_SENIOR_DOC_TYPES = {"karta_seniora"}
+
+
+@dataclass
+class DiscountProfile:
+    """Tytuły do zniżki, jakie posiada dana osoba — niezależne od karty miejskiej.
+
+    `is_student`/`is_senior` to proste flagi (bez info o kraju) — zachowane dla
+    wstecznej zgodności i prostych wywołań. `documents` pozwala opisać dokładniej
+    PRZYPADEK WIELU DOKUMENTÓW naraz z różnych krajów (np. osoba chodząca do szkoły
+    niemieckiej I dodatkowej szkoły polskiej w Niemczech, z legitymacją niemiecką
+    i polską) — wtedy różne atrakcje/przewoźnicy mogą uznawać różne z nich.
+    """
+
+    age: int | None = None
+    is_student: bool = False
+    is_senior: bool = False
+    documents: list[HeldDocument] = field(default_factory=list)
+
+    def has_recognized_document(
+        self, doc_types: set[str], recognized_countries: list[str] | None
+    ) -> bool:
+        """Czy profil ma dokument pasującego typu, którego kraj wydania jest
+        uznawany przez daną zniżkę (recognized_countries=None = źródło nie
+        ogranicza wg kraju, więc każdy pasujący typ dokumentu się liczy)."""
+        for doc in self.documents:
+            if doc.doc_type not in doc_types:
+                continue
+            if recognized_countries is None or doc.issuing_country in recognized_countries:
+                return True
+        return False
 
 _CITY_ALIASES = {
     "gelsenkirchen": "gelsenkirchen",
@@ -77,6 +116,22 @@ def normalize_city(query: str | None) -> str | None:
 
 
 
+def _load_group_price(item: dict | None) -> GroupPrice | None:
+    if not item:
+        return None
+    return GroupPrice(
+        price=float(item["price"]),
+        label=item["label"],
+        min_age=item.get("min_age"),
+        max_age=item.get("max_age"),
+        requires_status=item.get("requires_status", ""),
+        source_url=item.get("source_url", ""),
+        verified_date=item.get("verified_date", ""),
+        price_verified=bool(item.get("price_verified", False)),
+        recognized_countries=item.get("recognized_countries"),
+    )
+
+
 def get_all_attractions() -> list[Attraction]:
     """Wczytuje wszystkie atrakcje z bazy danych JSON."""
     raw = load("attractions.json")["atrakcje"]
@@ -97,6 +152,10 @@ def get_all_attractions() -> list[Attraction]:
                 highlight=bool(item.get("highlight", False)),
                 tags=list(item.get("tags", [])),
                 price_verified=bool(item.get("price_verified", False)),
+                child_price=_load_group_price(item.get("child_price")),
+                student_price=_load_group_price(item.get("student_price")),
+                senior_price=_load_group_price(item.get("senior_price")),
+                family_price=_load_group_price(item.get("family_price")),
             )
         )
     return res
@@ -149,18 +208,76 @@ def get_all_city_cards() -> list[CityCard]:
                 variants=variants,
                 default_discount_percent=float(item.get("default_discount_percent", 25.0)),
                 custom_discounts=dict(item.get("custom_discounts", {})),
+                existence_verified=bool(item.get("existence_verified", False)),
+                existence_source_url=item.get("existence_source_url", ""),
+                existence_verified_date=item.get("existence_verified_date", ""),
             )
         )
     return res
 
 
 def get_city_cards(city: str | None = None) -> list[CityCard]:
-    """Zwraca karty miejskie dla wskazanego miasta."""
-    cards = get_all_city_cards()
+    """Zwraca karty miejskie dla wskazanego miasta, TYLKO te z potwierdzonym istnieniem.
+
+    Niepotwierdzona może być co najwyżej cena istniejącej karty (price_verified na
+    wariancie, z adnotacją w UI) — samo istnienie i działanie karty dziś musi być
+    potwierdzone (existence_verified), inaczej karta w ogóle nie trafia do
+    użytkownika jako opcja. Użyj `get_all_city_cards()`, żeby zobaczyć też karty
+    niepotwierdzone (np. do celów administracyjnych/audytu danych).
+    """
+    cards = [c for c in get_all_city_cards() if c.existence_verified]
     city_key = normalize_city(city) if city else None
     if not city_key:
         return cards
     return [c for c in cards if c.city == city_key]
+
+
+def best_price_for_attraction(
+    attraction: Attraction, profile: "DiscountProfile | None" = None
+) -> tuple[float, str, GroupPrice | None]:
+    """Najtańsza cena wstępu, do której dana osoba ma prawo z DOWOLNEGO tytułu
+    (wiek, status ucznia/studenta, senior) — niezależnie od posiadania karty miejskiej.
+
+    Zwraca (cena, etykieta, źródło-GroupPrice-albo-None-dla-ceny-standardowej).
+    Nigdy nie zgaduje: tytuł jest brany pod uwagę tylko jeśli atrakcja ma dla
+    niego wypełnione, potwierdzone-lub-nie pole GroupPrice w danych.
+
+    Osoba może posiadać KILKA dokumentów naraz z różnych krajów (np. legitymacja
+    niemiecka i polska) — `profile.documents` + `GroupPrice.recognized_countries`
+    pozwalają dopasować właściwy dokument, gdy źródło jawnie ogranicza zniżkę do
+    dokumentów z konkretnych krajów (patrz docstring `GroupPrice`).
+    """
+    candidates: list[tuple[float, str, GroupPrice | None]] = [
+        (attraction.normal_price, "Cena standardowa (dorosły)", None)
+    ]
+    if profile is not None:
+        gp = attraction.child_price
+        if gp is not None and profile.age is not None:
+            if (gp.min_age is None or profile.age >= gp.min_age) and (
+                gp.max_age is None or profile.age <= gp.max_age
+            ):
+                candidates.append((gp.price, gp.label, gp))
+
+        gp = attraction.student_price
+        if gp is not None and (
+            profile.is_student
+            or profile.has_recognized_document(_STUDENT_DOC_TYPES, gp.recognized_countries)
+        ):
+            candidates.append((gp.price, gp.label, gp))
+
+        gp = attraction.senior_price
+        if gp is not None and (
+            profile.is_senior
+            or profile.has_recognized_document(_SENIOR_DOC_TYPES, gp.recognized_countries)
+            or (
+                profile.age is not None
+                and gp.min_age is not None
+                and profile.age >= gp.min_age
+            )
+        ):
+            candidates.append((gp.price, gp.label, gp))
+
+    return min(candidates, key=lambda c: c[0])
 
 
 def _calculate_attraction_discount_percent(
@@ -187,15 +304,25 @@ def evaluate_city_card_variant(
     variant: CityCardVariant,
     attractions: list[Attraction],
     estimated_transit_cost: float = 0.0,
+    profile: "DiscountProfile | None" = None,
 ) -> CityCardEvaluation:
-    """Wylicza opłacalność pojedynczego wariantu karty miejskiej dla podanej listy atrakcji."""
+    """Wylicza opłacalność pojedynczego wariantu karty miejskiej dla podanej listy atrakcji.
+
+    `profile`, jeśli podany, każdej atrakcji przypisuje najpierw jej własną
+    najtańszą aplikowalną cenę (wiek/uczeń/senior — patrz `best_price_for_attraction`),
+    a zniżka karty miejskiej liczy się DODATKOWO na tej cenie. To uproszczenie:
+    w rzeczywistości część operatorów nie pozwala łączyć zniżki statusowej ze
+    zniżką kartową — nie modelujemy tego wyjątku, dopóki nie znajdziemy go
+    wprost u źródła dla konkretnej atrakcji.
+    """
     price_without = 0.0
     price_with = 0.0
 
     for a in attractions:
-        price_without += a.normal_price
+        base_price, _label, _source = best_price_for_attraction(a, profile)
+        price_without += base_price
         disc_pct = _calculate_attraction_discount_percent(card, variant, a)
-        discounted = a.normal_price * (1.0 - (disc_pct / 100.0))
+        discounted = base_price * (1.0 - (disc_pct / 100.0))
         price_with += max(0.0, discounted)
 
     transit_savings = estimated_transit_cost if variant.includes_public_transit else 0.0
@@ -245,6 +372,7 @@ def evaluate_city_cards(
     city: str,
     attractions: list[Attraction],
     estimated_transit_cost: float = 0.0,
+    profile: "DiscountProfile | None" = None,
 ) -> list[CityCardEvaluation]:
     """Wylicza opłacalność wszystkich kart i ich wariantów dostępnych w danym mieście."""
     cards = get_city_cards(city)
@@ -253,7 +381,7 @@ def evaluate_city_cards(
         for variant in card.variants:
             evaluations.append(
                 evaluate_city_card_variant(
-                    card, variant, attractions, estimated_transit_cost
+                    card, variant, attractions, estimated_transit_cost, profile
                 )
             )
     return evaluations
@@ -263,9 +391,10 @@ def suggest_best_city_card(
     city: str,
     attractions: list[Attraction],
     estimated_transit_cost: float = 0.0,
+    profile: "DiscountProfile | None" = None,
 ) -> CityCardEvaluation | None:
     """Zwraca najbardziej opłacalny wariant karty miejskiej dla podanych atrakcji (jeśli istnieje)."""
-    evaluations = evaluate_city_cards(city, attractions, estimated_transit_cost)
+    evaluations = evaluate_city_cards(city, attractions, estimated_transit_cost, profile)
     profitable = [e for e in evaluations if e.is_recommended]
     if not profitable:
         return None

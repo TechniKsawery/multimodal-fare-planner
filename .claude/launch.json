@@ -8,6 +8,12 @@
       "port": 8501
     },
     {
+      "name": "streamlit-app-verify-citycards",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "streamlit", "run", "app.py", "--server.headless", "true", "--server.port", "8541"],
+      "port": 8541
+    },
+    {
       "name": "streamlit-pr35-pr34-pr32-merged",
       "runtimeExecutable": "python",
       "runtimeArgs": [

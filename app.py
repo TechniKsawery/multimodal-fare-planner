@@ -6,19 +6,23 @@ Wymaga działającego MOTIS (localhost:8080), patrz README.md.
 
 import datetime as dt
 import json
+import re
+from pathlib import Path
 
 import streamlit as st
 
 from attractions import (
     CATEGORY_LABELS,
     AttractionCategory,
+    best_price_for_attraction,
     evaluate_city_cards,
     get_attractions,
     get_city_cards,
     normalize_city,
     suggest_best_city_card,
 )
-from demo import DEFAULT_FROM, DEFAULT_TO
+from attractions import DiscountProfile as AttractionDiscountProfile
+from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
 from routing import motis_client
@@ -39,6 +43,39 @@ st.title("Multimodalna wyszukiwarka tras")
 # tylko odrobinę, dostaje łagodniejszą adnotację "prawie bezpieczna" zamiast zwykłego
 # ostrzeżenia o ryzykownej przesiadce.
 NEAR_MISS_MARGIN_MINUTES = 10
+
+# Lokalne profile użytkowników (zaznaczone atrakcje per miasto), żeby kilka osób mogło
+# współdzielić to samo demo i każda wracała do swoich wyborów pod własną nazwą profilu.
+# Katalog data/ jest w .gitignore — to dane runtime, nie repo.
+PROFILES_DIR = Path("data/profiles")
+
+
+def _profile_slug(name: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", name.strip().lower()).strip("-")
+    return slug or "profil"
+
+
+def _profile_path(name: str) -> Path:
+    return PROFILES_DIR / f"{_profile_slug(name)}.json"
+
+
+def _load_profile(name: str) -> dict:
+    path = _profile_path(name)
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_profile_selection(name: str, city: str, attraction_names: list[str]) -> None:
+    PROFILES_DIR.mkdir(parents=True, exist_ok=True)
+    data = _load_profile(name)
+    data[city] = attraction_names
+    _profile_path(name).write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def _is_near_miss(warning) -> bool:
@@ -137,7 +174,11 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             )
 
 
-def render_attractions_and_city_cards(destination_label: str, fallback_text: str = "") -> None:
+def render_attractions_and_city_cards(
+    destination_label: str,
+    fallback_text: str = "",
+    attraction_profile: "AttractionDiscountProfile | None" = None,
+) -> None:
     # destination_label pochodzi z podpowiedzi geocodingu MOTIS i dla konkretnego adresu
     # (np. "Buerer Straße 8") często NIE zawiera nazwy miasta, więc normalize_city się nie
     # trafia — spada wtedy na fallback_text, czyli surowy tekst wpisany w pole "Dokąd (adres)"
@@ -190,6 +231,44 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
     default_selected = [a.name for a in all_city_attrs if a.highlight]
 
     st.subheader("Zaplanuj wizytę")
+    st.caption(
+        "Kilka osób korzysta z tego samego demo? Podaj swoją nazwę profilu, by zapisać "
+        "zaznaczenia pod sobą i wrócić do nich później, bez nadpisywania cudzych wyborów."
+    )
+    profile_col, save_col, load_col = st.columns([3, 1, 1])
+    with profile_col:
+        profile_name = st.text_input(
+            "Twój profil",
+            key="profile_name",
+            placeholder="np. Kasia",
+        )
+    with save_col:
+        st.markdown("<div style='height: 1.6em'></div>", unsafe_allow_html=True)
+        if st.button(
+            "💾 Zapisz",
+            key="save_profile_btn",
+            disabled=not profile_name.strip(),
+            help="Zapisuje bieżące zaznaczenia dla tego miasta pod podaną nazwą profilu.",
+        ):
+            _save_profile_selection(
+                profile_name, norm_city, st.session_state.get("chosen_attractions", default_selected)
+            )
+            st.success(f"Zapisano zaznaczenia dla {display_city} w profilu „{profile_name.strip()}”.")
+    with load_col:
+        st.markdown("<div style='height: 1.6em'></div>", unsafe_allow_html=True)
+        if st.button(
+            "📂 Wczytaj",
+            key="load_profile_btn",
+            disabled=not profile_name.strip(),
+            help="Wczytuje wcześniej zapisane zaznaczenia dla tego miasta z tego profilu.",
+        ):
+            saved = _load_profile(profile_name).get(norm_city, [])
+            st.session_state["chosen_attractions"] = [n for n in saved if n in attr_names]
+            if saved:
+                st.success(f"Wczytano zaznaczenia dla {display_city} z profilu „{profile_name.strip()}”.")
+            else:
+                st.info(f"Profil „{profile_name.strip()}” nie ma jeszcze zapisanych zaznaczeń dla {display_city}.")
+
     chosen_names = st.multiselect(
         "Zaznacz miejsca, które planujesz odwiedzić (posłużą do kalkulacji opłacalności karty):",
         options=attr_names,
@@ -213,7 +292,10 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
         )
 
         best_eval = suggest_best_city_card(
-            norm_city, chosen_objects, estimated_transit_cost=transit_cost
+            norm_city,
+            chosen_objects,
+            estimated_transit_cost=transit_cost,
+            profile=attraction_profile,
         )
         if best_eval and best_eval.is_recommended:
             st.success(f"🎉 **Rekomendacja:** {best_eval.summary}")
@@ -223,7 +305,12 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
                 "Poniżej znajdziesz porównanie wszystkich dostępnych wariantów."
             )
 
-        evals = evaluate_city_cards(norm_city, chosen_objects, estimated_transit_cost=transit_cost)
+        evals = evaluate_city_cards(
+            norm_city,
+            chosen_objects,
+            estimated_transit_cost=transit_cost,
+            profile=attraction_profile,
+        )
         if evals:
             card_rows = []
             for ev in evals:
@@ -252,12 +339,17 @@ def render_attractions_and_city_cards(destination_label: str, fallback_text: str
     for idx, attr in enumerate(filtered_attrs):
         col = cols[idx % 2]
         with col:
-            price_text = (
-                f"{attr.normal_price:.2f} {attr.currency}"
-                if attr.normal_price > 0
-                else "Wstęp bezpłatny"
+            price_val, price_label, price_source = best_price_for_attraction(
+                attr, attraction_profile
             )
-            if not attr.price_verified:
+            price_text = (
+                f"{price_val:.2f} {attr.currency}" if price_val > 0 else "Wstęp bezpłatny"
+            )
+            if price_source is not None:
+                price_text += f" ({price_label})"
+                if not price_source.price_verified:
+                    price_text += " (cena niepotwierdzona)"
+            elif not attr.price_verified:
                 price_text += " (cena niepotwierdzona)"
             discount_note = (
                 f" • zniżka z kartą: do {attr.default_card_discount_percent:.0f}%"
@@ -323,6 +415,18 @@ obywatelstwo = st.selectbox(
     help="Nie zmienia ceny — po wyszukaniu pokażemy ostrzeżenia, czy zaznaczone ulgi realnie"
     " przysługują cudzoziemcowi wg zweryfikowanych źródeł (np. PKP ulga ustawowa, uznawanie"
     " zagranicznych legitymacji w MPK/ZTM).",
+)
+c_attr_profile1, c_attr_profile2 = st.columns(2)
+uczen_student = c_attr_profile1.checkbox(
+    "Uczeń/student (legitymacja)",
+    help="Wpływa na cenę ATRAKCJI (nie biletów transportu) tam, gdzie operator ma potwierdzoną zniżkę uczniowską/studencką, np. ZOOM Erlebniswelt czy Deutsches Fußballmuseum.",
+)
+senior_attrakcje = c_attr_profile2.checkbox(
+    "Senior",
+    help="Wpływa na cenę ATRAKCJI tam, gdzie operator ma potwierdzoną zniżkę senioralną.",
+)
+attraction_profile = AttractionDiscountProfile(
+    age=wiek, is_student=uczen_student, is_senior=senior_attrakcje
 )
 
 st.subheader("Skąd i dokąd")
@@ -559,5 +663,7 @@ if result is not None:
             render_itinerary(it, wiek, bc if bc != "brak" else None)
 
     render_attractions_and_city_cards(
-        request.destination_label, fallback_text=st.session_state.get("dest_query", "")
+        request.destination_label,
+        fallback_text=st.session_state.get("dest_query", ""),
+        attraction_profile=attraction_profile,
     )

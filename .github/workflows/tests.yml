@@ -1,0 +1,31 @@
+name: Testy
+
+# Uruchamiane na każdym pull requeście do main (oraz na pushu do main). Bez sekretów i bez MOTIS:
+# testy wymagające działającego MOTIS same się pomijają (skip). Test na żywo na realnym MOTIS
+# jest osobnym, ręcznym krokiem przed merge dużej zmiany — patrz CONTRIBUTING.md.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Zainstaluj zależności
+        run: pip install -r requirements-dev.txt
+
+      - name: Testy
+        run: python -m pytest -q

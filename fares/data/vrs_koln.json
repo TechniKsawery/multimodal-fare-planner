@@ -4,6 +4,7 @@
   "_zrodlo_niepelnosprawnosc": "Bezpłatny przejazd dla osób z ciężką niepełnosprawnością (Merkzeichen G/aG/H/Bl/Gl + ważna Wertmarke) na podstawie § 228 SGB IX — zasada ogólnoniemiecka, dotyczy identycznie VRS/KVB, nie jest to taryfa specyficzna dla Kolonii. Zweryfikowano 2026-10-10.",
   "_zrodlo_dzieci": "Dzieci poniżej 6 lat jeżdżą bezpłatnie (VRS_Gemeinschaftstarif_01072025.pdf, vrs.de, cytat: 'Kinder unter sechs Jahren werden unentgeltlich befördert'), Kindertarif 6-14 lat zgodnie z cenami 'dziecko' w tabeli poniżej (dialogforum.vrs.de). Zweryfikowano 2026-10-10.",
   "_uwaga": "Kalkulator (fares/kvb.py) domyślnie liczy Preisstufe 1b. Dla dłuższych relacji cena jest wyższa. Kurzstrecke (K): wsiadanie plus do 4 stacji.",
+  "dzieci_ponizej_6_lat_bezplatnie": {"zrodlo_url": "https://www.vrs.de/fileadmin/01_Tickets/Downloads_und_Informationen/NRW_Befoerderungsbedingungen_01012026.pdf", "cytat": "Ziffer 9.1 Kinder, Abs. 1, Satz 1: 'Kinder unter 6 Jahren werden unentgeltlich befördert.' (Stand 01.01.2026)", "warunek": "Dziecko poniżej 6 lat, jeśli nie chodzi do szkoły, musi być w podróży z osobą dorosłą lub innym dzieckiem (Ziffer 4 ust. 2).", "data_weryfikacji": "2026-10-11"},
   "waluta": "EUR",
   "nazwa_przewoznika": "VRS (Verkehrsverbund Rhein-Sieg) — Rheinlandtarif, obszar Kolonii/Bonn",
   "as_of": "2026-10-11",

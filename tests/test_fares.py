@@ -764,3 +764,28 @@ def test_eligibility_info_miasta_z_bezplatnym_maja_zrodlo():
         assert bezplatne and zrodlo.startswith("https://"), miasto
     # Poznań: uczniowie TYLKO ulgowo (potwierdzone w fares/data/ztm_poznan.json)
     assert not any("uczniowie" in t for t in ELIGIBILITY[__import__("fares.model").model.Carrier.ZTM_POZNAN][1])
+
+
+# --- Dzieci poniżej 6 lat jadą bezpłatnie: HVV/MVV/VRS (źródła w fares/data/*.json) -------------
+
+@pytest.mark.parametrize("carrier,dziecko_flag", [
+    (Carrier.HVV, "hvv_dziecko"), (Carrier.MVV, "mvv_dziecko"), (Carrier.VRS_KOLN, "vrs_koln_dziecko"),
+])
+def test_dziecko_ponizej_6_lat_bezplatnie_granice_wieku(carrier, dziecko_flag):
+    def cena(age, **kw):
+        return estimate_price(Segment(carrier, "A", "B", discounts=DiscountProfile(age=age, **kw)))
+
+    for age in (0, 4, 5):
+        r = cena(age)
+        assert r.amount == 0.0 and r.price_type is PriceType.OFFICIAL
+        assert r.breakdown["typ_biletu"].startswith("bezpłatny")
+    # 6 lat = już płaci (taryfa dziecięca przy zaznaczonym checkboxie, normalna bez)
+    assert cena(6).amount > 0
+    assert 0 < cena(6, **{dziecko_flag: True}).amount < cena(6).amount
+    # brak wieku: bez zmian
+    assert cena(None).amount > 0
+    # reguła ma źródło i datę
+    from fares._data_loading import load
+    plik = {Carrier.HVV: "hvv.json", Carrier.MVV: "mvv.json", Carrier.VRS_KOLN: "vrs_koln.json"}[carrier]
+    regula = load(plik)["dzieci_ponizej_6_lat_bezplatnie"]
+    assert regula["zrodlo_url"].startswith("https://") and regula["data_weryfikacji"]

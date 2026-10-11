@@ -14,6 +14,7 @@ w fares/model.py.
 """
 
 from ._data_loading import load
+from ._dzieci_do_6 import bezplatne_dziecko, dziecko_ponizej_6
 from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _TABLE = load("vrs_koln.json")
@@ -24,6 +25,9 @@ _DOMYSLNY = _POZIOMY[_TABLE["poziom_uzywany_domyslnie"]]
 def estimate(segment: Segment) -> PriceEstimate:
     if segment.carrier is not Carrier.VRS_KOLN:
         raise ValueError(f"nieprawidłowy przewoźnik dla kalkulatora VRS/Köln: {segment.carrier}")
+
+    if dziecko_ponizej_6(segment):
+        return bezplatne_dziecko(segment, _TABLE)
 
     if segment.discounts.schwerbehinderte_wertmarke_de:
         return PriceEstimate(

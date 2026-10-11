@@ -12,6 +12,7 @@ w fares/model.py.
 """
 
 from ._data_loading import load
+from ._dzieci_do_6 import bezplatne_dziecko, dziecko_ponizej_6
 from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _TABLE = load("hvv.json")
@@ -20,6 +21,9 @@ _TABLE = load("hvv.json")
 def estimate(segment: Segment) -> PriceEstimate:
     if segment.carrier is not Carrier.HVV:
         raise ValueError(f"nieprawidłowy przewoźnik dla kalkulatora HVV: {segment.carrier}")
+
+    if dziecko_ponizej_6(segment):
+        return bezplatne_dziecko(segment, _TABLE)
 
     if segment.discounts.schwerbehinderte_wertmarke_de:
         return PriceEstimate(

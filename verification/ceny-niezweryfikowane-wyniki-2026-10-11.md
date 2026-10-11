@@ -13,7 +13,7 @@ tv-turm.de/tickets: Standard od 20,00 EUR (BESTPREIS, jeśli dostępny), wariant
 - Ogród Botaniczny Wrocław: wroclaw.pl (sezon 2025) 30/20 zł; cennik 2026 niepublikowany, strona operatora niedostępna z tego środowiska.
 
 ## Aktualizacja 2026-10-11 (weryfikacja na PC przez przeglądarkę, bez płatności)
-- **BMW Museum:** potwierdzone 17 EUR normalny / 9 EUR ulgowy / 16 EUR grupowy (tkts.bmw-welt.com, produkt "BMW Museum entry", termin 14.10.2026). Dane: `price_verified` dalej false dla pól ulg, 17 EUR zgodne z danymi.
+- **BMW Museum:** potwierdzone 17 EUR normalny / 9 EUR ulgowy / 16 EUR grupowy (tkts.bmw-welt.com, produkt "BMW Museum entry", termin 14.10.2026). `price_verified: true` dla 17 EUR; ulgowy 9 EUR niemodelowany.
 - **Wallraf-Richartz:** zamknięte do końca 2028 (wallraf.museum/aktuell/voruebergehend-geschlossen/). Oznaczone w danych, ceny nie zgadywane.
 - **Ogród Botaniczny Wrocław:** 30/20 zł potwierdzone u operatora (ogrodbotaniczny.wroclaw.pl/cennik.html), `price_verified: true`.
 - **PKP IC:** kwoty 69/79/47 EUR (2 kl., do Berlina) potwierdzone w PDF `zrodla-pdf/`; do Frankfurtu Odra odpowiednio 65/68/38.

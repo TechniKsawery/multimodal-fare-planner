@@ -349,6 +349,84 @@ def test_price_rail_leg_pkp_woła_fares(monkeypatch):
     assert calls["segment"].distance_km == 170
 
 
+def test_price_rail_leg_s_bahn_hamburg_uzywa_hvv_nie_vrr():
+    # Regresja 2026-10-11: MOTIS klasyfikuje S-Bahn Hamburg jako RAIL (nie BUS), a nazwa
+    # przewoźnika "S-Bahn Hamburg" zawiera "s-bahn" z VRR_AREA_KEYWORDS — bez poprawki
+    # infer_rail_carrier() łapał to jako Carrier.VRR i liczył taryfą eezy.nrw (Zagłębie
+    # Ruhry) zamiast HVV. Realny test na żywym MOTIS: 4.10/1.50/0.00 EUR (HVV) vs błędne
+    # 2.46 EUR (VRR) przed poprawką — patrz verification/.
+    leg = make_leg(
+        LegMode.RAIL,
+        "Hamburg Hbf",
+        "Landungsbrücken",
+        _dt(6),
+        _dt(6, 6),
+        carrier="S-Bahn Hamburg",
+        distance_km=1.5,
+    )
+    priced = pricing.price_rail_leg(leg, DiscountProfile())
+    assert priced.currency == "EUR"
+    assert priced.amount == pytest.approx(4.10)
+    assert priced.price_type == "oficjalna_taryfa"
+
+    priced_dziecko = pricing.price_rail_leg(leg, DiscountProfile(hvv_dziecko=True))
+    assert priced_dziecko.amount == pytest.approx(1.50)
+
+    priced_niepelnosprawnosc = pricing.price_rail_leg(
+        leg, DiscountProfile(schwerbehinderte_wertmarke_de=True)
+    )
+    assert priced_niepelnosprawnosc.amount == pytest.approx(0.0)
+
+
+def test_price_rail_leg_db_regio_koln_uzywa_vrs_nie_vrr():
+    # Ta sama regresja co wyżej, ale dla Kolonii: agencja "DB Regio AG NRW" nie zawiera
+    # "köln" w nazwie (w przeciwieństwie do Hamburga, gdzie "hamburg" jest w nazwie
+    # przewoźnika) — rozpoznanie musi patrzeć też na origin/destination, nie tylko carrier_name.
+    leg = make_leg(
+        LegMode.RAIL,
+        "Köln Hbf",
+        "Köln Messe/Deutz Bf",
+        _dt(6),
+        _dt(6, 6),
+        carrier="DB Regio AG NRW",
+        distance_km=2.0,
+    )
+    priced = pricing.price_rail_leg(leg, DiscountProfile())
+    assert priced.currency == "EUR"
+    assert priced.price_type == "oficjalna_taryfa"
+    # fares/kvb.py (VRS Köln Preisstufe 1b) — nie eezy.nrw (VRR), inna kwota/strefa.
+    from fares.calculator import estimate_price as _estimate_price
+    from fares.model import Carrier as _Carrier
+    from fares.model import Segment as _Segment
+
+    vrs_result = _estimate_price(_Segment(carrier=_Carrier.VRS_KOLN, origin="a", destination="b"))
+    assert priced.amount == pytest.approx(vrs_result.amount)
+
+
+def test_price_rail_leg_regionalny_nrw_bez_miasta_nadal_vrr():
+    # Upewniamy się, że poprawka nie zepsuła domyślnego dopasowania VRR dla regionalnych
+    # tras NRW, które nie wspominają Hamburga/Monachium/Kolonii (np. Essen-Dortmund).
+    leg = make_leg(
+        LegMode.RAIL,
+        "Essen Hbf",
+        "Dortmund Hbf",
+        _dt(6),
+        _dt(7),
+        carrier="DB Regio AG NRW",
+        distance_km=40,
+    )
+    priced = pricing.price_rail_leg(leg, DiscountProfile())
+    assert priced.currency == "EUR"
+    assert priced.price_type == "oficjalna_taryfa"
+
+    from fares.calculator import estimate_price as _estimate_price
+    from fares.model import Carrier as _Carrier
+    from fares.model import Segment as _Segment
+
+    vrr_result = _estimate_price(_Segment(carrier=_Carrier.VRR, origin="a", destination="b", distance_km=40))
+    assert priced.amount == pytest.approx(vrr_result.amount)
+
+
 def test_price_rail_leg_gdy_fares_odrzuci_segment_uzywa_fallbacku(monkeypatch):
     leg = make_leg(LegMode.RAIL, "A", "B", _dt(6), _dt(8), carrier="PKP Intercity", distance_km=100)
 

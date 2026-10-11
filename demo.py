@@ -221,6 +221,11 @@ def main() -> None:
         action="store_true",
         help="zniżka seniora — wpływa na cenę atrakcji z potwierdzoną zniżką senioralną",
     )
+    parser.add_argument(
+        "--all-variants",
+        action="store_true",
+        help="pokaż w sekcji 'wszystkie warianty' także absurdalnie wolne (domyślnie ukryte)",
+    )
     args = parser.parse_args()
     attraction_profile = AttractionDiscountProfile(
         age=args.age, is_student=args.student, is_senior=args.senior
@@ -284,10 +289,25 @@ def main() -> None:
         print()
 
     print("=== Wszystkie wygenerowane warianty ===\n")
+    fastest = min(it.total_duration_min for it in built)
+    hidden = []
     for itinerary in built:
+        # Absurdalnie wolne warianty (>3x najszybszego i >6 h dłużej) tylko zaśmiecają wydruk.
+        too_slow = (
+            itinerary.total_duration_min > 3 * fastest
+            and itinerary.total_duration_min - fastest > 360
+        )
+        if too_slow and not args.all_variants:
+            hidden.append(itinerary)
+            continue
         print(f"- {itinerary.variant_name}")
         print(format_itinerary(itinerary, args.age))
         print()
+    if hidden:
+        print(
+            f"Ukryto {len(hidden)} wariant(y) absurdalnie dłuższe od najszybszego "
+            "(użyj --all-variants, aby pokazać wszystkie)."
+        )
 
 
 if __name__ == "__main__":

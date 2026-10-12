@@ -49,6 +49,21 @@ class PricedLeg:
     )  # przekazane 1:1 z PriceEstimate.breakdown (fares/flights)
     carrier: Carrier | None = None  # przewoźnik taryfy (gdy wycenił go moduł fares/)
 
+    @property
+    def price_verified(self) -> bool:
+        """False, gdy wycena to fallback bez cennika (breakdown["price_verified"] is False,
+        patrz routing/pricing.py) — UI i demo.py dopisują wtedy "cena niepotwierdzona"."""
+        return self.breakdown.get("price_verified") is not False
+
+    @property
+    def unverified_label(self) -> str:
+        """Dopisek przy cenie odcinka w UI i demo.py; pusty dla ceny z taryfy/oferty."""
+        if self.price_verified:
+            return ""
+        if self.breakdown.get("wartosc_zastepcza"):
+            return "cena niepotwierdzona (wartość zastępcza, nie z cennika)"
+        return "cena niepotwierdzona"
+
 
 @dataclass
 class TransferWarning:
@@ -81,6 +96,13 @@ class Itinerary:
     # odcinek ma przedział breakdown["zakres_cen"] (PKP SPI); None = cena jednoznaczna
     is_safe_fallback: bool = False  # ustawiane przez pick_recommendations: True = nawet ta
     # "bezpieczna" rekomendacja ma ryzykowną przesiadkę, bo żaden wariant nie był w pełni bezpieczny
+
+    @property
+    def price_verified(self) -> bool:
+        """True, gdy żaden odcinek nie ma ceny niepotwierdzonej (PricedLeg.price_verified).
+        Wariant z choć jednym takim odcinkiem nie wygrywa rankingu "Najtańsza" z wariantem o
+        potwierdzonej cenie — patrz routing/scoring.py::pick_recommendations."""
+        return all(pl.price_verified for pl in self.legs)
 
     @property
     def is_infeasible(self) -> bool:

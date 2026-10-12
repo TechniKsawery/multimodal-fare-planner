@@ -107,6 +107,24 @@ _DE_CITY_RAIL_CARRIERS = (Carrier.BVG_BERLIN, Carrier.HVV, Carrier.MVV, Carrier.
 więc stosujemy je również do odcinków, które MOTIS sklasyfikował jako RAIL."""
 
 
+BER_AIRPORT_AREA = (52.3644, 13.5108, 2.5)
+"""Lotnisko BER: (lat, lon) stacji Flughafen BER (Terminal 1-2) i promień w km. BER leży poza
+granicą Berlina, w strefie C taryfy VBB (fares/data/bvg_berlin.json::_uwaga: "ABC (z lotniskiem
+BER)"), ale w kole BVG_BERLIN z CITY_TARIFF_AREAS — bez tego rozróżnienia odcinek BER ->
+centrum dostawał bilet AB (4,00 EUR, który na BER nie obowiązuje) zamiast ABC (5,00 EUR).
+Promień celowo mały (granica Berlina jest ok. 3-4 km na północ), więc pozostałe przystanki
+strefy C w tym kole (np. Schönefeld, Waßmannsdorf, Teltow) nadal dostają AB — znane
+ograniczenie, patrz routing/README.md."""
+
+BER_AIRPORT_KEYWORDS = (
+    "flughafen ber",
+    "ber airport",
+    "airport ber",
+    "flughafen berlin brandenburg",
+)
+"""Nazwy (całe słowa) lotniska BER — używane tylko, gdy odcinek nie ma współrzędnych."""
+
+
 def _matches_any_word(text: str, keywords: tuple[str, ...]) -> bool:
     """Czy któreś słowo kluczowe występuje w tekście jako CAŁE słowo (nie fragment innego)."""
     return any(re.search(rf"(?<!\w){re.escape(k)}(?!\w)", text) for k in keywords)
@@ -138,6 +156,21 @@ def _city_carrier_for_leg(leg: Leg, carriers: tuple[Carrier, ...] | None = None)
         if carrier in allowed and _matches_any_word(tekst, keywords):
             return carrier
     return None
+
+
+def _bvg_tariff_zone(leg: Leg) -> str | None:
+    """Strefa "ABC", gdy któryś koniec odcinka BVG leży na lotnisku BER (strefa C), inaczej None."""
+    endpoints = _leg_endpoints(leg)
+    if endpoints is not None:
+        lat, lon, radius_km = BER_AIRPORT_AREA
+        at_ber = any(
+            haversine_km(p_lat, p_lon, lat, lon) <= radius_km for p_lat, p_lon in endpoints
+        )
+    else:
+        at_ber = _matches_any_word(
+            f"{leg.origin_name} {leg.destination_name}".lower(), BER_AIRPORT_KEYWORDS
+        )
+    return "ABC" if at_ber else None
 
 
 _NRW_INNER_BOXES = (
@@ -552,6 +585,7 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
             german_portion_fraction=(
                 german_portion_fraction(leg) if carrier is Carrier.INTERNATIONAL_PL_DE else None
             ),
+            tariff_zone=_bvg_tariff_zone(leg) if carrier is Carrier.BVG_BERLIN else None,
         )
         result = fares_estimate_price(segment)
         if carrier is Carrier.INTERNATIONAL_PL_DE:
@@ -638,10 +672,13 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
 
 
 LOCAL_BUS_FLAT_PLN = 4.0
-"""PLACEHOLDER (NIE cena z cennika): ryczałt za jeden przejazd autobusem/tramwajem, używany
-TYLKO gdy lokalny operator nie jest objęty żadnym modułem taryf (odcinek poza obszarami
-CITY_TARIFF_AREAS i poza NRW). Wynik zawsze ma price_type="szacunek" i
-breakdown["price_verified"]=False."""
+"""PLACEHOLDER (NIE cena z cennika, bez źródła): wartość zastępcza za odcinek MOTIS spoza
+RAIL/TRAIN (autobus, tramwaj, ale też SUBURBAN — np. SKM, S-Bahn), używana TYLKO gdy operator
+nie jest objęty żadnym modułem taryf (odcinek poza obszarami CITY_TARIFF_AREAS i poza NRW).
+Nie zależy od kraju ani długości odcinka, więc w Niemczech i na dłuższych odcinkach zaniża
+koszt. Wynik zawsze ma price_type="szacunek", breakdown["price_verified"]=False i
+breakdown["wartosc_zastepcza"]=True; wariant z takim odcinkiem nie wygrywa rankingu "Najtańsza"
+z wariantem o potwierdzonej cenie (routing/scoring.py)."""
 
 
 LONG_DISTANCE_COACH_KEYWORDS = ("flix", "regiojet", "blablabus")
@@ -701,6 +738,7 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
                 destination=leg.destination_name,
                 ride_duration_min=leg.duration_min,
                 discounts=discounts,
+                tariff_zone=_bvg_tariff_zone(leg) if carrier is Carrier.BVG_BERLIN else None,
             )
             result = fares_estimate_price(segment)
             return PricedLeg(
@@ -748,7 +786,11 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
             f"Nieznany operator lokalny '{leg.carrier_name}' poza obsługiwanymi miastami i NRW — "
             f"placeholder {LOCAL_BUS_FLAT_PLN:.2f} PLN, cena niepotwierdzona (nie z cennika)."
         ),
-        breakdown={"price_verified": False, "powod_szacunku": "nieznany operator lokalny"},
+        breakdown={
+            "price_verified": False,
+            "wartosc_zastepcza": True,
+            "powod_szacunku": "nieznany operator lokalny",
+        },
     )
 
 

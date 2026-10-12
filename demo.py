@@ -30,7 +30,7 @@ from routing.demo_route import (
 )
 from fares.model import DiscountProfile
 from routing.motis_client import MotisError
-from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
+from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations, price_ranking_note
 from routing.variants import generate_variants, request_from_addresses
 
 DEFAULT_FROM = "Krakowskie Przedmieście 50, Lublin"
@@ -137,6 +137,11 @@ def format_itinerary(itinerary, age=None) -> str:
             if itinerary.total_price_pln_high is not None
             else f"{itinerary.total_price_pln:.2f} PLN "
         )
+        + (
+            ""
+            if itinerary.price_verified
+            else "— cena niepotwierdzona (zawiera odcinki bez potwierdzonej taryfy) "
+        )
         + f"(ocena wartości: {itinerary.value_score:.0f} PLN, niżej = lepiej)",
     ]
     for priced in itinerary.legs:
@@ -154,6 +159,8 @@ def format_itinerary(itinerary, age=None) -> str:
             f"({leg.depart.strftime('%H:%M')}-{leg.arrive.strftime('%H:%M')}, "
             f"{leg.carrier_name or '?'}): {priced.amount:.2f} {priced.currency} ({priced.price_type})"
         )
+        if priced.unverified_label:
+            line += f" — {priced.unverified_label}"
         if leg.mode.value == "lot" and "cena_biletu" in priced.breakdown:
             line += (
                 f" [bilet {priced.breakdown['cena_biletu']:.2f} "
@@ -297,6 +304,9 @@ def main() -> None:
     for key, label in RECOMMENDATION_LABELS.items():
         itinerary = recommendations[key]
         print(f"[{label}] {itinerary.variant_name}")
+        note = price_ranking_note(key, itinerary, built)
+        if note:
+            print(f"  Uwaga: {note}")
         print(format_itinerary(itinerary, args.age))
         if id(itinerary) in already_shown:
             print("  (ten sam wariant wygrywa też w innej kategorii powyżej)")

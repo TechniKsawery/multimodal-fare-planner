@@ -28,6 +28,12 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
   6-14 lat, wliczając sufity cenowe (dzieci poniżej 6 lat jeżdżą bez biletu — nie modelowane).
 - **ZTM Lublin** (`fares/ztm_lublin.py`) — taryfa czasowa (bilety 15/40/90-minutowe, strefa 1+2):
   dobiera najkrótszy bilet, którego czas ważności pokrywa czas jazdy odcinka z MOTIS.
+- **BVG/VBB Berlin** (`fares/bvg_berlin.py`) — bilety Kurzstrecke/AB/ABC z cennika VBB od
+  1.01.2026 (źródło i data w `fares/data/bvg_berlin.json`). Dobiera bilet wg czasu jazdy; gdy
+  `Segment.tariff_zone == "ABC"` (routing/pricing.py ustawia to dla odcinka z/do lotniska BER,
+  strefa C) — tylko bilet ABC. Wcześniej ABC wybierany był tylko jako „najdłuższy” bilet dla
+  jazdy ponad 120 min (przy równym czasie ważności 120 min wygrywał AB), więc BER → centrum
+  dostawało 4,00 EUR (AB) zamiast 5,00 EUR (ABC).
 - **FlixBus** (`fares/flixbus.py` + `fares/_flixbus_api.py`) — REALNA cena z publicznego
   (nieoficjalnego) API FlixBusa dla konkretnej daty przejazdu, z fallbackiem do zgrubnego
   szacunku PLN/km gdy API jest niedostępne/bez wyniku — patrz sekcja niżej.

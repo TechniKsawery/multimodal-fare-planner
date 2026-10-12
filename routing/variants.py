@@ -30,9 +30,9 @@ from .model import Itinerary, Leg, LegMode, SkippedVariant
 from .motis_client import MotisError, StopRef
 from .scoring import build_itinerary
 from .transfers import (
-    MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL,
     MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT,
     MIN_TRANSFER_MINUTES_WALK,
+    flight_to_rail_minimum,
 )
 
 try:
@@ -58,6 +58,8 @@ class RouteRequest:
     )
     discounts: DiscountProfile = field(default_factory=DiscountProfile)
     flight_currency: str = "PLN"
+    checked_baggage: bool = True  # True = bagaż rejestrowany (w cenie lotu, dłuższy bufor po
+    # lądowaniu); False = tylko podręczny (bez opłaty za bagaż, krótszy bufor)
 
     @property
     def motis_time(self) -> str:
@@ -102,7 +104,9 @@ class HubConfig:
     )
 
 
-def build_flight_leg(origin_iata: str, destination_iata: str, depart_at: datetime) -> Leg:
+def build_flight_leg(
+    origin_iata: str, destination_iata: str, depart_at: datetime, checked_baggage: bool = True
+) -> Leg:
     """Leg lotu ze SZTYWNYM czasem trwania placeholderem (2h) — nie mamy rozkładu lotów,
     tylko cenę (flights/travelpayouts.py zwraca cenę, nie godziny odlotu/przylotu w naszym
     zapytaniu). To wystarcza do liczenia bufora przesiadki, ale nie jest realną godziną lotu."""
@@ -120,6 +124,7 @@ def build_flight_leg(origin_iata: str, destination_iata: str, depart_at: datetim
             "origin_iata": origin_iata,
             "destination_iata": destination_iata,
             "depart_date": depart_at.strftime("%Y-%m-%d"),
+            "checked_baggage": checked_baggage,
         },
     )
 
@@ -296,8 +301,11 @@ def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Iti
         else:
             flight_depart = datetime.fromisoformat(request.motis_time.replace("Z", "+00:00"))
 
-        flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
-        onward_time = (flight_leg.arrive + timedelta(minutes=MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL)).isoformat().replace("+00:00", "Z")
+        flight_leg = build_flight_leg(
+            hub.origin_iata, hub.destination_iata, flight_depart, request.checked_baggage
+        )
+        landing_buffer = timedelta(minutes=flight_to_rail_minimum(request.checked_baggage))
+        onward_time = (flight_leg.arrive + landing_buffer).isoformat().replace("+00:00", "Z")
         onward_options = motis_client.plan_leg_candidates(
             destination_access_id,
             request.destination_stop_id,
@@ -318,9 +326,12 @@ def build_flight_regional_variant(request: RouteRequest, hub: HubConfig) -> Itin
     Odjazd z huba sprawdza po HUB_LEG_ALTERNATIVES alternatywnych itinerariów MOTIS (patrz
     build_rail_flight_rail_variant) zamiast brać automatycznie najszybszy."""
     flight_depart = datetime.fromisoformat(request.motis_time.replace("Z", "+00:00"))
-    flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
+    flight_leg = build_flight_leg(
+            hub.origin_iata, hub.destination_iata, flight_depart, request.checked_baggage
+        )
 
-    onward_time = (flight_leg.arrive + timedelta(minutes=MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL)).isoformat().replace("+00:00", "Z")
+    landing_buffer = timedelta(minutes=flight_to_rail_minimum(request.checked_baggage))
+    onward_time = (flight_leg.arrive + landing_buffer).isoformat().replace("+00:00", "Z")
     onward_options = motis_client.plan_leg_candidates(
         motis_client.stop_id(hub.destination_rail_access_stop_id),
         request.destination_stop_id,

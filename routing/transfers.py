@@ -13,6 +13,9 @@ MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT = 120  # dojście do terminala, odprawa, kon
 MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL = (
     60  # wyjście z samolotu, odbiór bagażu, dojście/dojazd do stacji
 )
+MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL_CHECKED = (
+    90  # jw., gdy podróżny odbiera bagaż rejestrowany (SZACUNEK, nie wytyczne przewoźnika)
+)
 # Bufory, które variants.py wstawia wokół lotu, to dokładnie te progi (jedno miejsce wartości):
 # przed odlotem = MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT, po przylocie = MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL.
 
@@ -88,12 +91,23 @@ def minimum_transfer_minutes(
     return MIN_TRANSFER_MINUTES_WALK if requires_walk else MIN_TRANSFER_MINUTES_SAME_PLATFORM
 
 
+def flight_to_rail_minimum(checked_baggage: bool) -> int:
+    """Próg lot->kolej: dłuższy, gdy trzeba odebrać bagaż rejestrowany."""
+    return (
+        MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL_CHECKED
+        if checked_baggage
+        else MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL
+    )
+
+
 def check_transfer(prev_leg: Leg, next_leg: Leg, after_leg_index: int) -> TransferWarning | None:
     gap_minutes = (next_leg.depart - prev_leg.arrive).total_seconds() / 60
     same_stop = next_leg.requires_walk and _same_stop(prev_leg, next_leg)
     minimum = minimum_transfer_minutes(
         prev_leg.mode, next_leg.mode, next_leg.requires_walk, same_stop
     )
+    if prev_leg.mode is LegMode.FLIGHT and next_leg.mode is LegMode.RAIL:
+        minimum = flight_to_rail_minimum(prev_leg.extra.get("checked_baggage", True))
 
     if gap_minutes < minimum:
         infeasible = gap_minutes < feasible_minimum_minutes(

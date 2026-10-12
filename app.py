@@ -484,6 +484,15 @@ with st.form("search"):
         step=dt.timedelta(minutes=15),
         help="Czas lokalny miejsca startu (PL/DE). Domyślnie 06:00, jak dotychczas.",
     )
+    bagaz_rejestrowany = st.checkbox(
+        "Bagaż rejestrowany (loty)",
+        value=True,
+        help=(
+            "Zaznaczone: cena lotu zawiera bagaż rejestrowany, a po lądowaniu liczymy 90 min "
+            "do kolei. Odznaczone: tylko bagaż podręczny, 60 min. Bufory to szacunek, nie "
+            "wytyczne przewoźników."
+        ),
+    )
     c1, c2 = st.columns(2)
     pkp = c1.selectbox("Ulga PKP", PKP_ULGI)
     bc = c2.selectbox("BahnCard", ["brak", "25", "50", "100"])
@@ -620,6 +629,7 @@ if submitted:
                 date=date.isoformat(),
                 departure_time=godzina.strftime("%H:%M:%S"),
                 discounts=profile,
+                checked_baggage=bagaz_rejestrowany,
             )
             # search() (routing/search_service.py, współdzielone z API w api/) nie przekazuje
             # alternative_destination_stops — patrz komentarz tam / w demo.py (podmieniłoby

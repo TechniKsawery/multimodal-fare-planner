@@ -1961,4 +1961,95 @@ def test_bufory_wokol_lotu_to_progi_przesiadek():
     assert transfers.MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT == 120
     assert transfers.MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL == 60
     assert variants.MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT == 120
-    assert variants.MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL == 60
+    assert transfers.flight_to_rail_minimum(False) == 60
+    assert transfers.flight_to_rail_minimum(True) == 90
+
+
+def _flight_to_rail(gap_min, checked):
+    prev = make_leg(
+        LegMode.FLIGHT, "X", "Lotnisko", _dt(6), _dt(8), extra={"checked_baggage": checked}
+    )
+    nxt = make_leg(LegMode.RAIL, "Lotnisko", "Y", _dt(8) + timedelta(minutes=gap_min), _dt(11))
+    return transfers.check_transfer(prev, nxt, 0)
+
+
+def test_prog_lot_kolej_zalezy_od_bagazu_rejestrowanego():
+    assert _flight_to_rail(70, checked=False) is None  # 70 >= 60
+    warning = _flight_to_rail(70, checked=True)  # 70 < 90
+    assert warning is not None and warning.minimum_required_minutes == 90
+
+
+def test_domyslnie_bagaz_rejestrowany_prog_90():
+    prev = make_leg(LegMode.FLIGHT, "X", "L", _dt(6), _dt(8))
+    nxt = make_leg(LegMode.RAIL, "L", "Y", _dt(9, 10), _dt(11))
+    assert transfers.check_transfer(prev, nxt, 0).minimum_required_minutes == 90
+
+
+def test_build_flight_leg_zapamietuje_bagaz_i_request_ma_domyslnie_rejestrowany():
+    leg = variants.build_flight_leg("WAW", "BER", _dt(8), checked_baggage=False)
+    assert leg.extra["checked_baggage"] is False
+    assert variants.build_flight_leg("WAW", "BER", _dt(8)).extra["checked_baggage"] is True
+    req = variants.RouteRequest("a", "b", "A", "B", "2026-10-17")
+    assert req.checked_baggage is True
+
+
+def test_cena_lotu_bez_bagazu_rejestrowanego_nie_ma_oplaty_za_bagaz(monkeypatch):
+    captured = {}
+
+    def fake_estimate(segment):
+        captured["segment"] = segment
+        from flights.model import PriceEstimate, PriceType
+
+        return PriceEstimate(
+            origin="WAW",
+            destination="BER",
+            amount=200.0 + segment.extras.baggage_cost,
+            currency="PLN",
+            price_type=PriceType.ESTIMATE,
+            breakdown={"cena_biletu": 200.0, "bagaz": segment.extras.baggage_cost, "linia": "FR"},
+            notes="test",
+        )
+
+    monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
+
+    def leg(checked):
+        return make_leg(
+            LegMode.FLIGHT,
+            "WAW",
+            "BER",
+            _dt(6),
+            _dt(8),
+            extra={
+                "origin_iata": "WAW",
+                "destination_iata": "BER",
+                "depart_date": "2026-11-15",
+                "checked_baggage": checked,
+            },
+        )
+
+    cabin = pricing.price_flight_leg(leg(False))
+    checked = pricing.price_flight_leg(leg(True))
+    assert cabin.amount == 200.0
+    assert checked.amount > cabin.amount
+
+
+@pytest.mark.parametrize("checked,minutes", [(True, 90), (False, 60)])
+def test_bufor_po_ladowaniu_zalezy_od_bagazu(monkeypatch, checked, minutes):
+    captured = {}
+
+    def fake_candidates(from_place, to_place, time, max_candidates=3):
+        captured["time"] = time
+        return []
+
+    monkeypatch.setattr(motis_client, "plan_leg_candidates", fake_candidates)
+    monkeypatch.setattr(motis_client, "stop_id", lambda v: "stop")
+    req = variants.RouteRequest("a", "b", "A", "B", "2026-10-17", checked_baggage=checked)
+    hub = variants.HubConfig("WAW-BER", "WAW", "BER", None, "stop")
+    try:
+        variants.build_flight_regional_variant(req, hub)
+    except ValueError:
+        pass  # brak kandydatów: interesuje nas tylko czas zapytania o odjazd z huba
+    landing = datetime.fromisoformat(req.motis_time) + timedelta(hours=2)
+    assert datetime.fromisoformat(captured["time"].replace("Z", "+00:00")) == landing + timedelta(
+        minutes=minutes
+    )

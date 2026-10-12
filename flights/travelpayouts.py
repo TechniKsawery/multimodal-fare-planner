@@ -78,15 +78,14 @@ def cheapest_entry_or_none(payload: dict, destination: str) -> dict | None:
     entries = data.get(destination.upper())
     if not entries:
         return None
-    best_stops, best = min(entries.items(), key=lambda item: item[1]["price"])
-    return {**best, "transfers": int(best_stops)}
+    # Klucze "0"/"1"/"2" w /v1/prices/cheap to numer kolejny wyniku, NIE liczba przesiadek
+    # (dokumentacja Travelpayouts), a odpowiedź nie ma pola z przesiadkami — więc nie wiemy ile ich jest.
+    _, best = min(entries.items(), key=lambda item: item[1]["price"])
+    return {**best, "transfers": None}
 
 
 def cheapest_entry(payload: dict, destination: str) -> dict:
-    """Wybiera najtańszy wpis (spośród bezpośrednich / 1 / 2 przesiadek) dla danego kierunku.
-
-    /v1/prices/cheap grupuje wyniki wg liczby przesiadek (klucze "0"/"1"/"2"), więc żeby
-    dostać jedną, faktycznie najtańszą cenę trzeba porównać ceny między tymi wpisami.
+    """Wybiera najtańszy wpis spośród wyników dla danego kierunku (liczba przesiadek nieznana).
     """
     entry = cheapest_entry_or_none(payload, destination)
     if entry is None:

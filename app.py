@@ -31,7 +31,12 @@ from fares.model import DiscountProfile
 from routing import motis_client
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
-from routing.scoring import RECOMMENDATION_LABELS, SAFE_CATEGORY_KEYS, TOP_CATEGORY_KEYS
+from routing.scoring import (
+    RECOMMENDATION_LABELS,
+    SAFE_CATEGORY_KEYS,
+    TOP_CATEGORY_KEYS,
+    price_ranking_note,
+)
 from routing.search_service import search
 from routing.variants import RouteRequest
 
@@ -107,6 +112,11 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
     else:
         c2.metric("Cena łączna", f"{it.total_price_pln:.2f} PLN")
     c3.metric("Przesiadki", it.num_transfers)
+    if not it.price_verified:
+        st.caption(
+            "⚠️ Cena łączna niepotwierdzona: zawiera odcinki bez potwierdzonej taryfy (szacunek "
+            "albo wartość zastępcza) — porównuj ostrożnie."
+        )
     rows = []
     for p in it.legs:
         leg = p.leg
@@ -115,6 +125,8 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             price = f"{m:.0f} m" if m else ""
         else:
             price = f"{p.amount:.2f} {p.currency} ({p.price_type})"
+            if p.unverified_label:
+                price += f" — {p.unverified_label}"
         rozbicie = ""
         zrodlo_bagazu = ""
         if leg.mode.value == "lot" and "cena_biletu" in p.breakdown:
@@ -707,6 +719,9 @@ if result is not None:
             st.info(
                 "Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych."
             )
+        price_note = price_ranking_note(key, recs[key], built)
+        if price_note:
+            st.info(price_note)
         if key in ("najmniej_przesiadek", "najmniej_przesiadek_bezpieczna"):
             st.caption(
                 "Najmniej przesiadek spośród wariantów zwróconych przez MOTIS; remis rozstrzyga krótszy czas, potem niższa cena."
@@ -735,6 +750,7 @@ if result is not None:
                 if it.total_price_pln_high is not None
                 else f"{it.total_price_pln:.0f} PLN"
             )
+            + ("" if it.price_verified else " (cena niepotwierdzona)")
             + f", przesiadek: {it.num_transfers}"
             + risk_suffix
         ):

@@ -138,20 +138,47 @@ kraju po którejś stronie (brak lat/lon i stopId, albo stacja w pasie przygrani
 14.0-14.9°E, gdzie skrzynki PL/DE nachodzą na siebie) → bezpiecznie `False` (leg idzie zwykłą,
 krajową ścieżką wyceny zamiast fałszywie alarmować).
 
-Dopiero dla odcinków KRAJOWYCH `pricing.infer_rail_carrier()` mapuje `agencyName` z MOTIS na
-przewoźnika z `fares/`:
-- `"PKP Intercity"` → `Carrier.PKP_INTERCITY`
+Granica PL/DE: skrzynki PL/DE nakładają się w pasie ok. 14.0-15.05°E (Görlitz leży na wschód od
+14.9°E, Szczecin na zachód od Odry) — tam kraj rozstrzyga przybliżona łamana granicy Odra-Nysa
+(`_PL_DE_BORDER_LINE`), z marginesem ok. 700 m, w którym nie zgadujemy (None). Odcinek
+transgraniczny przewoźnika innego niż PKP Intercity/DB (np. DB Regio Szczecin–Berlin, Koleje
+Dolnośląskie Wrocław–Görlitz) NIE dostaje taryfy międzynarodowej — moduły `fares/international*.py`
+opisują oferty PKP Intercity/DB — tylko niepotwierdzony szacunek.
+
+Dla odcinków KRAJOWYCH `pricing.infer_rail_carrier()` mapuje `agencyName` z MOTIS wyłącznie na
+przewoźników dalekobieżnych:
+- `"PKP Intercity"` → `Carrier.PKP_INTERCITY` (pociąg EIC/EIP po `routeShortName`: kwota z pasm
+  TLK/IC, ale `price_type="szacunek"` i `breakdown["price_verified"]=False` — ceny EIC/EIP są w
+  cenniku per relacja, których nie mamy)
 - nazwa zawierająca `"DB Fernverkehr"`/`"Deutsche Bahn"` → `Carrier.DB`
-- każdy inny niemiecki przewoźnik regionalny (S-Bahn, Abellio, National Express, **DB Regio**, ...) →
-  `Carrier.VRR` — **zweryfikowane jako poprawne** (nie uproszczenie do poprawienia): nasz
-  regionalny feed GTFS (dataset `derv`) obejmuje wyłącznie obszar VRR (Nadrenia
-  Północna-Westfalia), więc każdy taki przewoźnik w naszych danych fizycznie jeździ w obszarze
-  taryfowym VRR, a taryfa eezy.nrw w ogóle nie uznaje BahnCard (sprawdzone na vrr.de,
-  2026-09-29) — w przeciwieństwie do biletów DB. Zob. `infer_rail_carrier()` w
-  `routing/pricing.py` po pełne uzasadnienie.
-- nieznany przewoźnik (np. polskie koleje regionalne) → zgrubny fallback
-  `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km) zamiast błędu, żeby jeden nierozpoznany
-  przewoźnik nie wywalał całego wariantu.
+- każdy inny przewoźnik (POLREGIO, DB Regio, S-Bahn, ODEG, ...) → taryfa zależy od MIEJSCA:
+  taryfa miejska, gdy oba końce leżą w obszarze miasta z `CITY_TARIFF_AREAS` (Berlin, Hamburg,
+  Monachium, Kolonia — Verbundtarif obejmuje też S-Bahn/RE), a `Carrier.VRR` (eezy.nrw) **tylko
+  gdy oba końce leżą w NRW** (`is_leg_in_nrw()`, konserwatywne prostokąty `_NRW_INNER_BOXES`).
+  Wcześniej każda nazwa z `"regio"`/`"s-bahn"` szła do VRR z uzasadnieniem, że feed `derv` obejmuje
+  tylko NRW — to nieprawda (`scripts/fetch_data.py` pobiera gtfs.de `rv_free`/`nv_free` dla całych
+  Niemiec), a `"regio"` łapało też POLREGIO (błąd K2 z audytu).
+- wszystko inne → zgrubny fallback `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km),
+  `price_type="szacunek"`, `breakdown["price_verified"]=False`, żeby jeden nierozpoznany
+  przewoźnik nie wywalał całego wariantu, ale też nie udawał ceny z cennika.
+
+Autobusy/tramwaje (`price_bus_leg()`): taryfa miejska tylko, gdy oba końce leżą w obszarze miasta
+z `CITY_TARIFF_AREAS` (bez współrzędnych: nazwy dopasowywane jako CAŁE słowa, więc „Krakowskie
+Przedmieście" w Warszawie nie dostaje taryfy MPK Kraków — błąd S4), eezy.nrw tylko w NRW, a poza
+tym jawna wartość zastępcza `LOCAL_BUS_FLAT_PLN` (4,00 PLN, bez źródła) z `price_verified=False` i
+`breakdown["wartosc_zastepcza"]=True`. UWAGA: tu trafia każdy tryb MOTIS spoza RAIL/TRAIN, także
+`SUBURBAN` (SKM, S-Bahn), więc wartość zastępcza potrafi wycenić np. kilkudziesięciokilometrowy
+odcinek Szczecin → Angermünde albo transgraniczny Zgorzelec → Görlitz (oba widziane w teście na
+żywo PR #97). Ta kwota nie jest ceną: UI i `demo.py`
+pokazują ją jako „cena niepotwierdzona (wartość zastępcza, nie z cennika)”, a ranking „Najtańsza”
+nie stawia takiego wariantu przed wariantem z potwierdzoną ceną (niżej).
+
+Berlin (BVG/VBB): koło `CITY_TARIFF_AREAS[BVG_BERLIN]` (20 km) obejmuje też lotnisko BER, które
+leży w strefie C. Odcinek, który zaczyna się lub kończy na BER (`BER_AIRPORT_AREA`, 2,5 km wokół
+stacji Flughafen BER; bez współrzędnych — nazwa „Flughafen BER”), dostaje bilet ABC (5,00 EUR), a
+nie AB (4,00 EUR, na BER nieważny). Obie kwoty pochodzą z `fares/data/bvg_berlin.json` (VBB, ceny
+od 1.01.2026). Ograniczenie: inne przystanki strefy C w tym kole (np. Schönefeld, Teltow,
+Hennigsdorf) nadal dostają AB — bez mapy stref VBB nie rozstrzygamy tego geograficznie.
 
 `fares/` wymaga teraz `distance_km` dla WSZYSTKICH przewoźników (w tym VRR, taryfa eezy.nrw:
 Grundpreis + cena/km w linii prostej) — liczymy je z `lat`/`lon`, które MOTIS podaje dla
@@ -249,12 +276,11 @@ pieszo z adresu → autobus/tramwaj miejski → pociągi → pieszo do adresu.
 - `LegMode.BUS`: autobusy/tramwaje z MOTIS. `pricing.price_bus_leg()` rozpoznaje operatora
   po `agencyName`/nazwach przystanków:
   - autokar dalekobieżny (Flixbus, RegioJet, ...) → wycena za km, `GENERIC_FALLBACK_PLN_PER_KM`;
-  - `"Lublin"`/`"ZDiTM"`/`"ZTM"` → `fares/ztm_lublin.py` (taryfa czasowa ZTM Lublin, oficjalna,
-    strefa 1+2 — dobiera bilet 15/40/90-minutowy wg czasu jazdy odcinka z MOTIS);
-  - reszta (cały niemiecki fragment sieci to NRW) → `fares/vrr.py` (eezy.nrw, ta sama taryfa
-    obejmuje bus/tramwaj/U-Bahn co pociągi regionalne VRR);
-  - brak rozpoznanego operatora i brak `distance_km` → ryczałt `LOCAL_BUS_FLAT_PLN`
-    (placeholder, tylko dla nieobsłużonych miast/operatorów).
+  - oba końce w obszarze miasta z `CITY_TARIFF_AREAS` → taryfa miejska tego miasta (np.
+    `fares/ztm_lublin.py`, taryfa czasowa ZTM Lublin, strefa 1+2);
+  - oba końce w NRW → `fares/vrr.py` (eezy.nrw, ta sama taryfa obejmuje bus/tramwaj/U-Bahn co
+    pociągi regionalne VRR);
+  - reszta → wartość zastępcza `LOCAL_BUS_FLAT_PLN` z `price_verified=False` (patrz wyżej).
 
 `python demo.py --from "..." --to "..." --date YYYY-MM-DD`
 
@@ -278,3 +304,9 @@ bezpiecznym wariant zostaje z oznaczeniem RYZYKOWNY. Progi to szacunek.
   dodatkowego przewoźnika (osobny bilet). Stałe w `scoring_config.py` (szacunek, do strojenia).
   Zastępuje PLN/h, które premiowało długie podróże. „Najtańsza”/„najszybsza”/„najmniej
   przesiadek” pozostają czyste (bez kar).
+- **„Najtańsza” i „Najtańsza bezpieczna” najpierw wśród cen potwierdzonych**: wariant z choć
+  jednym odcinkiem `price_verified=False` (`Itinerary.price_verified`) nie wygrywa z wariantem o
+  potwierdzonej cenie, nawet gdy jego suma jest nominalnie niższa. Gdy żaden wariant nie ma
+  potwierdzonej ceny, wygrywa najtańszy nominalnie, a UI i `demo.py` piszą o tym wprost
+  (`scoring.price_ranking_note`). Pominięte, nominalnie tańsze warianty pokazuje
+  `scoring.cheaper_unverified`. Pozostałe kategorie się nie zmieniły.

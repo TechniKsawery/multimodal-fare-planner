@@ -17,6 +17,13 @@ czubka rankingu czasowego — cena rozstrzyga tylko remisy/prawie-remisy w czasi
 wszystkie warianty w tolerancji od najszybszego czasu (patrz FASTEST_TOLERANCE_* niżej) i
 wybiera wśród nich najtańszy, czyli z uwzględnieniem konkretnych ulg usera (BahnCard, ulgi
 PKP itd. są już wliczone w total_price_pln każdego wariantu).
+
+"Najtańsza" (i "Najtańsza bezpieczna") najpierw porównuje warianty z potwierdzoną ceną
+(Itinerary.price_verified): wariant z odcinkiem bez taryfy (szacunek PLN/km albo wartość
+zastępcza LOCAL_BUS_FLAT_PLN, patrz routing/pricing.py) nie wygrywa z wariantem o potwierdzonej
+cenie, nawet gdy jego suma jest nominalnie niższa — ta suma nie jest ceną, tylko zgrubnym
+oszacowaniem. Gdy żaden wariant nie ma potwierdzonej ceny, wygrywa najtańszy nominalnie, a UI i
+demo.py oznaczają go jako cenę niepotwierdzoną. Pozostałe kategorie się nie zmieniają.
 """
 
 from .currency import to_pln
@@ -44,6 +51,10 @@ SAFE_CATEGORY_KEYS = (
     "najszybsza_z_ulgami_bezpieczna",
     "najmniej_przesiadek_bezpieczna",
 )
+
+# Kategorie, w których o wyborze decyduje cena: wariant z ceną niepotwierdzoną przegrywa w nich
+# z wariantem o potwierdzonej cenie (patrz docstring modułu i cheaper_unverified niżej).
+PRICE_RANKED_KEYS = ("najtansza", "najtansza_bezpieczna")
 
 # Kategorie pokazywane od razu w UI (reszta pod "Pokaż więcej" — patrz app.py). Dwa ekstrema
 # (najtańsza, najszybsza) + dwie "inteligentne" kategorie łączące cenę i czas (kompromis,
@@ -92,6 +103,46 @@ def _fastest_within_tolerance(pool: list[Itinerary], key=lambda i: i.total_price
     tolerance = max(fastest_duration * FASTEST_TOLERANCE_FRACTION, FASTEST_TOLERANCE_MIN_MINUTES)
     candidates = [i for i in pool if i.total_duration_min <= fastest_duration + tolerance]
     return min(candidates, key=key)
+
+
+def cheaper_unverified(itineraries: list[Itinerary], chosen: Itinerary) -> list[Itinerary]:
+    """Wykonalne warianty z ceną niepotwierdzoną, nominalnie tańsze od `chosen` (od
+    najtańszego) — te, które ranking "Najtańsza" pominął na rzecz wariantu z potwierdzoną ceną.
+    UI i demo.py pokazują je jako informację, nie jako rekomendację."""
+    return sorted(
+        (
+            i
+            for i in itineraries
+            if not i.is_infeasible
+            and not i.price_verified
+            and i.total_price_pln < chosen.total_price_pln
+        ),
+        key=lambda i: i.total_price_pln,
+    )
+
+
+def price_ranking_note(key: str, chosen: Itinerary, itineraries: list[Itinerary]) -> str | None:
+    """Wspólny dla UI i demo.py dopisek pod kategorią z PRICE_RANKED_KEYS: czy wygrał wariant z
+    ceną niepotwierdzoną (bo żaden nie miał potwierdzonej) albo czy pominięto nominalnie tańsze
+    warianty z ceną niepotwierdzoną. None, gdy nie ma czego dopisać."""
+    if key not in PRICE_RANKED_KEYS:
+        return None
+    if not chosen.price_verified:
+        return (
+            "Żaden wariant w tej kategorii nie ma w pełni potwierdzonej ceny — to najtańszy wg "
+            "cen niepotwierdzonych (szacunek), porównuj ostrożnie."
+        )
+    if key != "najtansza":
+        return None
+    skipped = cheaper_unverified(itineraries, chosen)
+    if not skipped:
+        return None
+    cheapest = skipped[0]
+    return (
+        f"Pominięto {len(skipped)} wariant(y) nominalnie tańsze, ale z ceną niepotwierdzoną "
+        f"(np. {cheapest.variant_name}: {cheapest.total_price_pln:.2f} PLN) — ich suma zawiera "
+        "odcinki bez potwierdzonej taryfy."
+    )
 
 
 def build_itinerary(variant_name: str, priced_legs: list[PricedLeg]) -> Itinerary:
@@ -154,7 +205,8 @@ def pick_recommendations(itineraries: list[Itinerary]) -> dict[str, Itinerary]:
     safe_compromise_key = _compromise_key(safe_pool)
 
     return {
-        "najtansza": min(itineraries, key=lambda i: i.total_price_pln),
+        # najpierw warianty z potwierdzoną ceną (False < True), potem cena — patrz docstring
+        "najtansza": min(itineraries, key=lambda i: (not i.price_verified, i.total_price_pln)),
         "najszybsza": min(itineraries, key=lambda i: i.total_duration_min),
         # liczą się wszystkie przesiadki; remis: krótszy czas, potem niższa cena. Wybór jest
         # spośród wariantów zwróconych przez MOTIS (nie szukamy tras, których MOTIS nie dał).
@@ -168,7 +220,8 @@ def pick_recommendations(itineraries: list[Itinerary]) -> dict[str, Itinerary]:
             safe_pool, key=lambda i: (i.num_risky_transfers, i.total_duration_min)
         ),
         "najtansza_bezpieczna": min(
-            safe_pool, key=lambda i: (i.num_risky_transfers, i.total_price_pln)
+            safe_pool,
+            key=lambda i: (i.num_risky_transfers, not i.price_verified, i.total_price_pln),
         ),
         "najlepszy_kompromis_bezpieczny": min(
             safe_pool, key=lambda i: (i.num_risky_transfers, safe_compromise_key(i))

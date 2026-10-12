@@ -178,6 +178,10 @@ class Segment:
     który oficjalnie dotyczy TYLKO niemieckiej części trasy (patrz fares/international.py).
     None = brak danych geograficznych do oszacowania -> rabat naliczany od całej ceny
     (zawyża realny rabat, ale to jedyny dostępny fallback bez współrzędnych stacji)."""
+    tariff_zone: str | None = None
+    """Tylko Carrier.BVG_BERLIN: "ABC", gdy któryś koniec odcinka leży w strefie C (lotnisko
+    BER, patrz routing/pricing.py::BER_AIRPORT_AREA) — bilet AB tam nie obowiązuje. None =
+    dobór biletu jak dotąd (Kurzstrecke/AB wg czasu jazdy)."""
 
 
 @dataclass

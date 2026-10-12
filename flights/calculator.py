@@ -1,11 +1,16 @@
 """Szacowanie ceny segmentu lotu: cena biletu (Travelpayouts) + bagaż + dojazd + transfer."""
 
+from dataclasses import replace
+
+from common.currency import convert, normalize_currency
+
 from . import extras as extras_module
 from . import travelpayouts
-from .model import FlightSegment, PriceEstimate, PriceType
+from .model import ExtrasProfile, FlightSegment, PriceEstimate, PriceType
 
 GENERIC_FLIGHT_FALLBACK_PLN = 350.0
-"""Bardzo zgrubny szacunek ceny biletu (PL-DE, tania linia, w jedną stronę), używany TYLKO gdy
+"""Kwota W ZŁOTYCH (dla innej waluty segmentu przeliczana placeholderowym kursem z
+common/currency.py). Bardzo zgrubny szacunek ceny biletu (PL-DE, tania linia, w jedną stronę), używany TYLKO gdy
 Travelpayouts nie ma w cache ceny ani dla dokładnej daty, ani dla całego miesiąca (relacja/data
 zbyt egzotyczna) — patrz README.md. Nie oparty na żadnych realnych danych dla tej konkretnej
 relacji, tylko na rzędzie wielkości typowych cen Ryanair/Wizz Air na krótkich trasach PL-DE."""
@@ -44,25 +49,53 @@ def _fetch_ticket(segment: FlightSegment):
                 f"miesiąca ({month}), może odbiegać od ceny na konkretny dzień."
             )
 
+    fallback_price = round(convert(GENERIC_FLIGHT_FALLBACK_PLN, "PLN", segment.currency), 2)
+    in_segment_currency = (
+        ""
+        if segment.currency == "PLN"
+        else f" (= {fallback_price:.2f} {segment.currency} po placeholderowym kursie)"
+    )
     return (
         {
-            "price": GENERIC_FLIGHT_FALLBACK_PLN,
+            "price": fallback_price,
             "transfers": None,
             "airline": None,
             "departure_at": None,
         },
         (
             "Brak ceny w cache Travelpayouts dla tej relacji (ani dokładna data, ani cały miesiąc) — "
-            f"BARDZO ZGRUBNY szacunek stały ({GENERIC_FLIGHT_FALLBACK_PLN:.0f} PLN), nieoparty na "
-            "realnych danych dla tej trasy."
+            f"BARDZO ZGRUBNY szacunek stały ({GENERIC_FLIGHT_FALLBACK_PLN:.0f} PLN"
+            f"{in_segment_currency}), nieoparty na realnych danych dla tej trasy."
         ),
     )
 
 
+def _table_extras_in_currency(origin: str, destination: str, currency: str) -> ExtrasProfile:
+    """Koszty dodatkowe z placeholderowej tabeli (zapisane w jej walucie, domyślnie PLN)
+    przeliczone na walutę segmentu — bez przeliczenia kwoty w PLN dostałyby etykietę EUR."""
+    table = extras_module.get_extras(origin, destination)
+    if table.currency == currency:
+        return table
+    return ExtrasProfile(
+        baggage_cost=round(convert(table.baggage_cost, table.currency, currency), 2),
+        airport_access_cost=round(convert(table.airport_access_cost, table.currency, currency), 2),
+        destination_transfer_cost=round(
+            convert(table.destination_transfer_cost, table.currency, currency), 2
+        ),
+        currency=currency,
+        note=f"{table.note} Przeliczone z {table.currency} na {currency} kursem placeholderowym.",
+    )
+
+
 def estimate_price(segment: FlightSegment) -> PriceEstimate:
+    # Waluta bez kursu = od razu czytelny błąd (UnsupportedCurrencyError), niezależnie od tego,
+    # czy bilet przyjdzie z cache Travelpayouts, czy z szacunku stałego.
+    segment = replace(segment, currency=normalize_currency(segment.currency))
     ticket, ticket_note = _fetch_ticket(segment)
 
-    extras = segment.extras or extras_module.get_extras(segment.origin, segment.destination)
+    extras = segment.extras or _table_extras_in_currency(
+        segment.origin, segment.destination, segment.currency
+    )
     if extras.currency != segment.currency:
         raise ValueError(
             f"Waluta kosztów dodatkowych ({extras.currency}) różni się od waluty biletu "

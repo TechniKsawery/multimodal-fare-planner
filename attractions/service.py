@@ -230,7 +230,6 @@ def get_all_city_cards() -> list[CityCard]:
                 description=item["description"],
                 official_url=item["official_url"],
                 variants=variants,
-                default_discount_percent=float(item.get("default_discount_percent", 25.0)),
                 custom_discounts=dict(item.get("custom_discounts", {})),
                 existence_verified=bool(item.get("existence_verified", False)),
                 existence_source_url=item.get("existence_source_url", ""),
@@ -350,10 +349,10 @@ def _calculate_attraction_discount_percent(
     if attraction.id in card.custom_discounts:
         return card.custom_discounts[attraction.id]
 
-    if attraction.default_card_discount_percent > 0:
-        return attraction.default_card_discount_percent
-
-    return card.default_discount_percent
+    # Zniżka tylko tam, gdzie jest ZAPISANA (custom_discounts karty albo
+    # default_card_discount_percent atrakcji). Brak wpisu = 0%: nie ma domyślnego rabatu "całej
+    # karty", bo to zgadywanie (np. 100% na Katedrę Wawelską, 25% na Curry 36 bez źródła).
+    return attraction.default_card_discount_percent
 
 
 def evaluate_city_card_variant(

@@ -138,6 +138,72 @@ def test_estimate_price_brak_ceny_w_ogole_uzywa_zgrubnego_szacunku(monkeypatch):
     assert result.breakdown["linia"] is None
 
 
+def test_estimate_price_zgrubny_szacunek_jest_przeliczany_na_walute_segmentu(monkeypatch):
+    """350 PLN to kwota w złotych: z flight_currency=EUR nie wolno jej podpisać jako 350 EUR."""
+    from common.currency import PLACEHOLDER_RATES_TO_PLN
+
+    empty_payload = {"success": True, "data": {}}
+    monkeypatch.setattr(
+        calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: empty_payload
+    )
+
+    seg = FlightSegment(
+        origin="WAW",
+        destination="DTM",
+        depart_date="2026-11-15",
+        currency="EUR",
+        extras=ExtrasProfile(baggage_cost=0, currency="EUR"),
+    )
+    result = estimate_price(seg)
+
+    expected = round(calculator.GENERIC_FLIGHT_FALLBACK_PLN / PLACEHOLDER_RATES_TO_PLN["EUR"], 2)
+    assert result.currency == "EUR"
+    assert result.amount == pytest.approx(expected)
+    assert result.amount != calculator.GENERIC_FLIGHT_FALLBACK_PLN
+    assert result.breakdown["cena_biletu"] == pytest.approx(expected)
+    # notatka podaje i kwotę źródłową w PLN, i przeliczenie
+    assert "350 PLN" in result.notes
+    assert f"{expected:.2f} EUR" in result.notes
+
+
+def test_estimate_price_tabela_extras_w_pln_jest_przeliczana_na_eur(monkeypatch):
+    """Bez własnego ExtrasProfile koszty z tabeli (PLN) wcześniej dawały ValueError dla EUR."""
+    from common.currency import PLACEHOLDER_RATES_TO_PLN
+
+    monkeypatch.setattr(
+        calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: SAMPLE_PAYLOAD
+    )
+    seg = FlightSegment(origin="WAW", destination="DUS", depart_date="2026-11-15", currency="EUR")
+    result = estimate_price(seg)
+
+    rate = PLACEHOLDER_RATES_TO_PLN["EUR"]
+    table = extras_module.get_extras("WAW", "DUS")  # 150 / 40 / 25 PLN
+    assert result.currency == "EUR"
+    assert result.breakdown["bagaz"] == pytest.approx(table.baggage_cost / rate, abs=0.01)
+    assert result.breakdown["dojazd_na_lotnisko"] == pytest.approx(
+        table.airport_access_cost / rate, abs=0.01
+    )
+    assert result.breakdown["transfer_z_lotniska"] == pytest.approx(
+        table.destination_transfer_cost / rate, abs=0.01
+    )
+    # bilet z cache jest już w EUR (Travelpayouts dostaje currency=EUR), extras w PLN dodane NIE 1:1
+    assert result.amount == pytest.approx(300 + table.total / rate, abs=0.02)
+
+
+def test_estimate_price_nieobslugiwana_waluta_podnosi_czytelny_blad(monkeypatch):
+    from common.currency import UnsupportedCurrencyError
+
+    def must_not_be_called(**kw):
+        raise AssertionError("waluta bez kursu powinna być odrzucona przed zapytaniem do API")
+
+    monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", must_not_be_called)
+    seg = FlightSegment(origin="WAW", destination="DUS", depart_date="2026-11-15", currency="GBP")
+    with pytest.raises(UnsupportedCurrencyError) as exc_info:
+        estimate_price(seg)
+    assert "GBP" in str(exc_info.value)
+    assert "EUR" in str(exc_info.value) and "PLN" in str(exc_info.value)
+
+
 def test_estimate_price_niezgodna_waluta_extras(monkeypatch):
     monkeypatch.setattr(
         calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: SAMPLE_PAYLOAD

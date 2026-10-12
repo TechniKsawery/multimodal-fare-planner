@@ -602,6 +602,114 @@ def test_price_flight_leg_doklada_tylko_bagaz_bez_dojazdu_i_transferu(monkeypatc
     assert extras.destination_transfer_cost == 0.0
 
 
+def _flight_leg_waw_dtm():
+    return make_leg(
+        LegMode.FLIGHT,
+        "WAW",
+        "DTM",
+        _dt(6),
+        _dt(8),
+        extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"},
+    )
+
+
+def test_price_flight_leg_eur_przelicza_bagaz_z_tabeli_pln_na_eur(monkeypatch):
+    """Tabela flights/ trzyma bagaż w PLN (WAW-DTM: 150) — z flight_currency=EUR kwota musi
+    zostać przeliczona, a nie podpisana jako 150 EUR."""
+    from routing.currency import PLACEHOLDER_RATES_TO_PLN
+
+    captured = {}
+
+    def fake_estimate(segment):
+        captured["segment"] = segment
+        raise TravelpayoutsError("stop po sprawdzeniu extras")
+
+    monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
+    with pytest.raises(TravelpayoutsError):
+        pricing.price_flight_leg(_flight_leg_waw_dtm(), currency="EUR")
+
+    extras = captured["segment"].extras
+    assert extras.currency == "EUR"
+    assert extras.baggage_cost == pytest.approx(150.0 / PLACEHOLDER_RATES_TO_PLN["EUR"], abs=0.01)
+    assert extras.baggage_cost != 150.0
+
+
+def test_price_flight_leg_eur_przelicza_domyslny_szacunek_bagazu():
+    from routing.currency import PLACEHOLDER_RATES_TO_PLN
+
+    extras = pricing._flight_baggage_only_extras("XXX", "YYY", "EUR")  # relacja spoza tabeli
+    assert extras.currency == "EUR"
+    assert extras.baggage_cost == pytest.approx(
+        pricing.DEFAULT_BAGGAGE_ESTIMATE_PLN / PLACEHOLDER_RATES_TO_PLN["EUR"], abs=0.01
+    )
+    assert "150 PLN" in extras.note
+
+
+def test_price_flight_leg_eur_bez_ceny_w_cache_nie_podpisuje_pln_jako_eur(monkeypatch):
+    """Cały tor (routing -> flights) dla flight_currency=EUR bez ceny w cache Travelpayouts:
+    szacunek 350 PLN + bagaż 150 PLN muszą wyjść jako kwoty przeliczone na EUR."""
+    from flights import calculator
+    from routing.currency import PLACEHOLDER_RATES_TO_PLN
+
+    monkeypatch.setattr(
+        calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: {"success": True, "data": {}}
+    )
+    priced = pricing.price_flight_leg(_flight_leg_waw_dtm(), currency="EUR")
+
+    rate = PLACEHOLDER_RATES_TO_PLN["EUR"]
+    assert priced.currency == "EUR"
+    assert priced.breakdown["cena_biletu"] == pytest.approx(350.0 / rate, abs=0.01)
+    assert priced.breakdown["bagaz"] == pytest.approx(150.0 / rate, abs=0.01)
+    assert priced.amount == pytest.approx(500.0 / rate, abs=0.02)
+
+
+def test_price_flight_leg_pln_zostawia_bagaz_z_tabeli_bez_zmian(monkeypatch):
+    extras = pricing._flight_baggage_only_extras("WAW", "DTM", "PLN")
+    assert extras.baggage_cost == 150.0
+
+
+def test_price_flight_leg_nieobslugiwana_waluta_podnosi_czytelny_blad(monkeypatch):
+    from routing.currency import UnsupportedCurrencyError
+
+    monkeypatch.setattr(
+        pricing,
+        "flights_estimate_price",
+        lambda segment: pytest.fail("wycena nie powinna ruszyć dla waluty bez kursu"),
+    )
+    with pytest.raises(UnsupportedCurrencyError, match="GBP"):
+        pricing.price_flight_leg(_flight_leg_waw_dtm(), currency="GBP")
+
+
+def test_route_request_odrzuca_nieobslugiwana_walute_i_normalizuje_kod():
+    from routing.currency import UnsupportedCurrencyError
+
+    kwargs = dict(
+        origin_stop_id="a", destination_stop_id="b", origin_label="A", destination_label="B",
+        date="2026-11-15",
+    )
+    with pytest.raises(UnsupportedCurrencyError):
+        variants.RouteRequest(**kwargs, flight_currency="GBP")
+    assert variants.RouteRequest(**kwargs, flight_currency="eur").flight_currency == "EUR"
+
+
+def test_currency_nieobslugiwana_waluta_ma_czytelny_komunikat():
+    from routing import currency
+
+    for call in (
+        lambda: currency.to_pln(10.0, "GBP"),
+        lambda: currency.convert(10.0, "EUR", "GBP"),
+        lambda: currency.convert(10.0, "GBP", "PLN"),
+        lambda: currency.normalize_currency("GBP"),
+    ):
+        with pytest.raises(currency.UnsupportedCurrencyError) as exc_info:
+            call()
+        assert "GBP" in str(exc_info.value)
+        assert "EUR, PLN" in str(exc_info.value)
+    # to nadal ValueError — dotychczasowe except ValueError działają
+    assert issubclass(currency.UnsupportedCurrencyError, ValueError)
+    assert currency.normalize_currency(" eur ") == "EUR"
+
+
 def test_price_flight_leg_nadpisuje_bagaz_realnym_cennikiem_linii(monkeypatch):
     """Gdy bilet wraca z linią znaną w flights/data/baggage_by_airline.json (tu: Ryanair, FR),
     routing ma nadpisać placeholderowy bagaż z tabeli relacji realną ceną tej linii."""

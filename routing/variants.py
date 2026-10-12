@@ -26,6 +26,7 @@ from zoneinfo import ZoneInfo
 from fares.model import DiscountProfile
 
 from . import motis_client, pricing
+from .currency import normalize_currency
 from .model import Itinerary, Leg, LegMode, SkippedVariant
 from .motis_client import MotisError, StopRef
 from .scoring import build_itinerary
@@ -60,6 +61,10 @@ class RouteRequest:
     flight_currency: str = "PLN"
     checked_baggage: bool = True  # True = bagaż rejestrowany (w cenie lotu, dłuższy bufor po
     # lądowaniu); False = tylko podręczny (bez opłaty za bagaż, krótszy bufor)
+
+    def __post_init__(self) -> None:
+        # waluta bez kursu = od razu UnsupportedCurrencyError, a nie błąd w głębi wyceny lotu
+        self.flight_currency = normalize_currency(self.flight_currency)
 
     @property
     def motis_time(self) -> str:

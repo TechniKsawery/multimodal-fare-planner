@@ -292,7 +292,11 @@ def main() -> None:
         print()
 
     if not built:
-        print("Brak żadnego działającego wariantu — sprawdź, czy MOTIS jest uruchomiony.")
+        print(
+            "Brak żadnego działającego wariantu — powody w liście pominiętych powyżej."
+            if skipped
+            else "Brak żadnego działającego wariantu — sprawdź, czy MOTIS jest uruchomiony."
+        )
         return
 
     recommendations = pick_recommendations(built)

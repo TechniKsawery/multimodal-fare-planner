@@ -309,3 +309,22 @@ def test_szczecin_berlin_ze_wspolrzednymi_odrzuca_poznan_przed_zapytaniem(monkey
 
     assert built == [] and calls == []
     assert any("objazd" in s.reason for s in skipped)
+
+
+def _empty_rail_request():
+    from routing.variants import RouteRequest
+
+    return RouteRequest(
+        origin_stop_id="a", destination_stop_id="b", origin_label="A", destination_label="B",
+        date="2026-10-17",
+    )
+
+
+def test_pusty_wynik_motis_ma_jawny_powod(monkeypatch):
+    from routing import motis_client, variants
+
+    monkeypatch.setattr(motis_client, "all_itineraries_as_legs", lambda *a, **k: [])
+    built, skipped = variants.generate_variants(_empty_rail_request())
+    assert built == []
+    reason = next(s.reason for s in skipped if s.variant_name == "Tylko kolej")
+    assert "nie zwrócił żadnego połączenia" in reason

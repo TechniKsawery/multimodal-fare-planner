@@ -7,6 +7,7 @@ from fares.international_pkp import estimate_pkp_offer, spi_range_for_segment
 from fares.model import Carrier, DiscountProfile, PriceEstimate, PriceType, Segment
 from flights import ExtrasProfile, FlightSegment
 from flights import estimate_price as flights_estimate_price
+from flights.cabin_baggage import get_cabin_baggage
 from flights.extras import get_baggage_by_airline
 from flights.extras import get_extras as flights_get_extras
 
@@ -666,6 +667,12 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
         result.breakdown["bagaz"] = round(amount_in_currency, 2)
         result.breakdown["bagaz_zrodlo"] = source_note
         result.notes = f"{result.notes} Bagaż wg realnego cennika przewoźnika: {source_note}."
+
+    # Bagaż PODRĘCZNY: osobna informacja (wliczony / płatny z kwotą w oryginalnej walucie /
+    # nieznany). NIE zmienia ceny biletu ani kwoty łącznej — dopłata to widełki w walucie
+    # przewoźnika, których nie przeliczamy po placeholderowym kursie.
+    cabin = get_cabin_baggage(result.breakdown.get("linia"))
+    result.breakdown["bagaz_podreczny"] = cabin.to_dict()
 
     return PricedLeg(
         leg=leg,

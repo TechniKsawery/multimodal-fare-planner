@@ -22,6 +22,7 @@ from attractions import (
     suggest_best_city_card,
 )
 from attractions import DiscountProfile as AttractionDiscountProfile
+from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
 from routing.card_suggestions import suggest_bahncard_for_itinerary
 from routing.demo_route import (
     FLIGHT_REGIONAL_HUBS,
@@ -169,6 +170,8 @@ def format_itinerary(itinerary, age=None) -> str:
             zrodlo_bagazu = priced.breakdown.get("bagaz_zrodlo")
             if zrodlo_bagazu:
                 line += f"\n      bagaż wg cennika: {zrodlo_bagazu}"
+        if leg.mode.value == "lot" and "bagaz_podreczny" in priced.breakdown:
+            line += f"\n      {format_cabin_breakdown(priced.breakdown['bagaz_podreczny'])}"
         zakres = priced.breakdown.get("zakres_cen")
         if zakres:
             line += (

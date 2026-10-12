@@ -560,7 +560,11 @@ def test_price_flight_leg_woła_flights(monkeypatch):
     priced = pricing.price_flight_leg(leg)
     assert priced.amount == 350.0
     assert priced.currency == "PLN"
-    assert priced.breakdown == {"cena_biletu": 200.0, "bagaz": 150.0}
+    assert {k: v for k, v in priced.breakdown.items() if k != "bagaz_podreczny"} == {
+        "cena_biletu": 200.0,
+        "bagaz": 150.0,
+    }
+    assert priced.breakdown["bagaz_podreczny"]["stan"] == "nieznany"  # brak linii w breakdown
 
 
 def test_price_flight_leg_doklada_tylko_bagaz_bez_dojazdu_i_transferu(monkeypatch):

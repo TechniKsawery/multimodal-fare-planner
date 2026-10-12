@@ -85,7 +85,23 @@ sezonu) — kwota w tabeli to **dolna granica** opublikowanego przedziału (patr
 Silnik tras (`routing/`) używa tej funkcji, żeby doprecyzować szacunek bagażu, gdy z biletu
 Travelpayouts znana jest linia — patrz `routing/README.md`.
 
-Sprawdzone źródła (stan na 2026-09-27):
+### Bagaż podręczny (`flights/data/cabin_baggage.json`, `flights/cabin_baggage.py`)
+
+`get_cabin_baggage(kod_iata)` zwraca jeden z trzech jawnych stanów: **wliczony**, **płatny**
+(dopłata jako kwota lub widełki w ORYGINALNEJ walucie przewoźnika — bez przeliczania po
+placeholderowym kursie) albo **nieznany** (brak przewoźnika/wpisu, wpis bez `price_verified`,
+albo zasada zależna od taryfy, której nie znamy z ceny z cache). Wynik trafia do
+`breakdown["bagaz_podreczny"]` odcinka lotu i jest pokazywany w UI (`app.py`) i `demo.py`.
+Dopłata za podręczny NIE jest doliczana do ceny biletu ani do ceny łącznej.
+
+**Weryfikacja danych bagażu podręcznego (2026-10-12):** `price_verified: true` oznacza tylko
+sprawdzone na stronie przewoźnika wymiary, wagę i zasadę wliczenia (źródło i data w każdym wpisie).
+Dopłaty (widełki, ceny dynamiczne) mają osobną flagę `doplata_potwierdzona`; dla Ryanair, Wizz Air,
+Eurowings i easyJet jest `false`, więc UI pokazuje je jako „orientacyjne, niepotwierdzone”. Każdy
+przewoźnik ma kwoty w jednej walucie (bez mieszania EUR/GBP/PLN); rozbieżności między źródłami
+są opisane w polu `uwaga`, nie rozstrzygane zgadywaniem.
+
+Sprawdzone źródła bagażu rejestrowanego (stan na 2026-09-27):
 - Ryanair: https://www.moneyguideireland.com/ryanair-increased-baggage-allowance-of-20kg.html
 - Wizz Air: https://www.sendmybag.com/airlines/wizz-air-baggage-allowance/
 - LOT: https://kolokwialnienaemigracji.pl/ile-kosztuje-bagaz-rejestrowany-w-lot-sprawdz-ceny-i-uniknij-doplat

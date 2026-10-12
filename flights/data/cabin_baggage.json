@@ -1,0 +1,286 @@
+{
+  "_uwaga": "Zasady bagażu PODRĘCZNEGO per przewoźnik. Wpis ma price_verified true tylko gdy wymiary/waga/cena pochodzą ze strony oficjalnej przewoźnika (zrodlo + data_weryfikacji). Bagaż rejestrowany: osobny plik baggage_by_airline.json. price_verified dotyczy wymiarów i wagi; dopłaty (widełki, dynamiczne) mają osobną flagę doplata_potwierdzona i do czasu potwierdzenia są tylko orientacyjne.",
+  "stany": [
+    "maly_tylko",
+    "podreczny_platny",
+    "podreczny_w_cenie"
+  ],
+  "przewoznicy": {
+    "LO": {
+      "nazwa": "LOT Polish Airlines",
+      "price_verified": true,
+      "data_weryfikacji": "2026-10-12",
+      "zrodlo": "https://www.lot.com/pl/en/journey/baggage/short-haul-baggage",
+      "taryfa": "Economy (krótki/średni zasięg; strona nie rozróżnia Saver/Classic/Flex)",
+      "stan_w_cenie_bazowej": "podreczny_w_cenie",
+      "maly": {
+        "wymiary_cm": [
+          40,
+          35,
+          12
+        ],
+        "waga_kg": 2
+      },
+      "podreczny": {
+        "wymiary_cm": [
+          55,
+          40,
+          23
+        ],
+        "suma_wymiarow_cm": 118,
+        "waga_kg": 8,
+        "w_cenie": true,
+        "doplata": null
+      }
+    },
+    "LH": {
+      "nazwa": "Lufthansa",
+      "price_verified": true,
+      "data_weryfikacji": "2026-10-12",
+      "zrodlo": "https://www.lufthansa.com/de/en/carry-on-baggage",
+      "taryfa": "Economy Basic vs Light/Comfort/Flex (krótki/średni zasięg)",
+      "stan_w_cenie_bazowej": "zalezy_od_taryfy",
+      "taryfy": {
+        "Economy Basic": {
+          "stan": "maly_tylko",
+          "maly": {
+            "wymiary_cm": [
+              40,
+              30,
+              15
+            ]
+          },
+          "podreczny": null,
+          "uwaga": "Brak bagażu podręcznego w cenie; wyjątek: Miles & More HON Circle/Senator i Star Alliance Gold."
+        },
+        "Economy Light/Comfort/Comfort Green/Flex": {
+          "stan": "podreczny_w_cenie",
+          "maly": {
+            "wymiary_cm": [
+              40,
+              30,
+              15
+            ]
+          },
+          "podreczny": {
+            "wymiary_cm": [
+              55,
+              40,
+              23
+            ],
+            "waga_kg": 8,
+            "w_cenie": true,
+            "doplata": null
+          }
+        }
+      },
+      "uwaga": "Strona nie podaje ceny dopłaty za podręczny w Basic; cena dopłaty niezweryfikowana (price_verified false dla dopłaty)."
+    },
+    "FR": {
+      "nazwa": "Ryanair",
+      "price_verified": true,
+      "data_weryfikacji": "2026-10-12",
+      "zrodlo": "https://help.ryanair.com/hc/en-gb/articles/12888036565521-Ryanair-s-Bag-Policy",
+      "zrodlo_oplaty": "https://www.ryanair.com/gb/en/useful-info/help-centre/fees",
+      "taryfa": "Basic (Value) vs Regular/Flexi Plus (krótki zasięg)",
+      "stan_w_cenie_bazowej": "podreczny_platny",
+      "maly": {
+        "wymiary_cm": [
+          40,
+          30,
+          20
+        ],
+        "waga_kg": null,
+        "w_cenie": true,
+        "uwaga": "Pod fotel; w cenie każdej taryfy. Brak limitu wagowego kg pod fotelem."
+      },
+      "podreczny": {
+        "wymiary_cm": [
+          55,
+          40,
+          20
+        ],
+        "waga_kg": 10,
+        "w_cenie": false,
+        "doplata": {
+          "waluta": "EUR",
+          "rezerwacja_online_min": 12.49,
+          "rezerwacja_online_max": 36.0,
+          "po_rezerwacji_lotnisko_min": 19.99,
+          "po_rezerwacji_lotnisko_max": 45.5,
+          "bramka_min": 46.0,
+          "bramka_max": 75.0
+        }
+      },
+      "taryfy": {
+        "Basic (Value)": {
+          "stan": "podreczny_platny",
+          "uwaga": "Tylko mały bagaż w cenie; duży podręczny 10 kg wymaga dokupienia usługi Priority & 2 Cabin Bags (dopłata dynamiczna, niepotwierdzona)."
+        },
+        "Regular / Flexi Plus": {
+          "stan": "podreczny_w_cenie",
+          "uwaga": "Mały bagaż pod fotel + duży podręczny 10 kg (Priority) wliczone w cenie taryfy."
+        }
+      },
+      "uwaga": "Dopłata za Priority & 2 Cabin Bags jest dynamiczna (zależy od trasy i terminu). Kwoty w polach (EUR) pochodzą z pomocy Ryanair; inne źródło podaje 6–36 online i 20–60 na lotnisku — rozbieżność NIEROZSTRZYGNIĘTA, więc dopłata jest niepotwierdzona.",
+      "doplata_potwierdzona": false
+    },
+    "W6": {
+      "nazwa": "Wizz Air",
+      "price_verified": true,
+      "data_weryfikacji": "2026-10-12",
+      "zrodlo": "https://wizzair.com/en-gb/help-centre/booking-information-and-services/baggage/baggage-allowance",
+      "zrodlo_oplaty": "https://wizzair.com/en-gb/information-and-services/prices-discounts/all-services-fees",
+      "taryfa": "Basic vs WIZZ Go / WIZZ Plus (krótki/średni zasięg)",
+      "stan_w_cenie_bazowej": "podreczny_platny",
+      "maly": {
+        "wymiary_cm": [
+          40,
+          30,
+          20
+        ],
+        "waga_kg": 10,
+        "w_cenie": true,
+        "uwaga": "Pod fotel, bezpłatny dla każdego pasażera, max 10 kg (kółka maks. 5 cm)."
+      },
+      "podreczny": {
+        "wymiary_cm": [
+          55,
+          40,
+          23
+        ],
+        "waga_kg": 10,
+        "w_cenie": false,
+        "doplata": {
+          "waluta": "EUR",
+          "online_min": 13.0,
+          "online_max": 57.5,
+          "lotnisko_min": 65.0,
+          "lotnisko_max": 75.0,
+          "bramka_min": 55.0,
+          "bramka_max": 65.0
+        }
+      },
+      "taryfy": {
+        "Basic": {
+          "stan": "podreczny_platny",
+          "uwaga": "Tylko mały bagaż w cenie; duży podręczny (trolley) wyłącznie z dokupioną usługą WIZZ Priority (dopłata dynamiczna, niepotwierdzona)."
+        },
+        "WIZZ Go": {
+          "stan": "podreczny_platny",
+          "uwaga": "Mały bagaż pod fotel + 20 kg bagaż rejestrowany w cenie; duży podręczny trolley na pokład NIE jest wliczony w WIZZ Go (wymaga dokupienia WIZZ Priority)."
+        },
+        "WIZZ Smart / WIZZ Plus": {
+          "stan": "podreczny_w_cenie",
+          "uwaga": "Mały bagaż + duży podręczny (trolley 10 kg w ramach WIZZ Priority) w cenie pakietu."
+        }
+      },
+      "ceny_za_wagi_wyjasnienie": {
+        "podreczny": "Bagaż podręczny NIE ma różnych cen za różne wagi – limit wagowy dla obu sztuk podręcznych (mały i trolley) wynosi sztywno max 10 kg.",
+        "rejestrowany_oficjalne_przedzialy_eur": {
+          "10kg": "niski sezon 0.00–105.50 €, wysoki sezon 2.00–115.00 €",
+          "20kg": "niski sezon 0.00–112.50 €, wysoki sezon 2.00–122.00 € (lotnisko: 70.00–80.00 €)",
+          "26kg": "niski sezon 0.00–120.50 €, wysoki sezon 3.00–130.00 €",
+          "32kg": "niski sezon 0.00–128.50 €, wysoki sezon 4.00–138.00 €",
+          "nadbagaz_kg": "13.00–15.00 € / kg na lotnisku"
+        }
+      },
+      "uwaga": "Zgłoszone 'różne ceny za różne wagi' dotyczą bagażu rejestrowanego, nie podręcznego. Duży podręczny (trolley do 10 kg) tylko z usługą WIZZ Priority. Widełki dopłat (EUR) dynamiczne i NIEPOTWIERDZONE; w polach lotnisko (65–75) wychodzi drożej niż bramka (55–65), co wymaga sprawdzenia.",
+      "doplata_potwierdzona": false
+    },
+    "EW": {
+      "nazwa": "Eurowings",
+      "price_verified": true,
+      "data_weryfikacji": "2026-10-12",
+      "zrodlo": "https://www.eurowings.com/en/information/baggage/hand-baggage-policy.html",
+      "zrodlo_faq": "https://www.eurowings.com/en/faq/baggage/hand-baggage.html",
+      "taryfa": "BASIC vs SMART / BIZclass (krótki/średni zasięg)",
+      "stan_w_cenie_bazowej": "podreczny_platny",
+      "maly": {
+        "wymiary_cm": [
+          40,
+          30,
+          25
+        ],
+        "waga_kg": null,
+        "w_cenie": true,
+        "uwaga": "Pod fotel; w cenie we wszystkich taryfach (Basic, Smart, BIZclass)."
+      },
+      "podreczny": {
+        "wymiary_cm": [
+          55,
+          40,
+          23
+        ],
+        "waga_kg": 8,
+        "w_cenie": false,
+        "doplata": {
+          "waluta": "EUR",
+          "online_od_eur": 18.0,
+          "bramka_eur": 60.0
+        }
+      },
+      "taryfy": {
+        "BASIC": {
+          "stan": "podreczny_platny",
+          "uwaga": "W cenie tylko mały bagaż; duży podręczny (do 8 kg) płatny opcjonalnie (od 18 € online, przy bramce 60 €; kwoty niepotwierdzone)."
+        },
+        "SMART": {
+          "stan": "podreczny_w_cenie",
+          "uwaga": "Mały bagaż + 1 duży podręczny (max 8 kg) w cenie taryfy."
+        },
+        "BIZclass": {
+          "stan": "podreczny_w_cenie",
+          "uwaga": "Mały bagaż + 2 duże podręczne (po max 8 kg każdy) w cenie taryfy."
+        }
+      },
+      "uwaga": "W taryfie BASIC duży bagaż podręczny (55x40x23 cm, max 8 kg) można dokupić; kwoty w EUR (od 18 € online, 60 € przy bramce) są NIEPOTWIERDZONE — źródła podają też inne progi (m.in. 21 €), rozbieżność nierozstrzygnięta. W SMART wliczona 1 sztuka, w BIZclass 2 sztuki.",
+      "doplata_potwierdzona": false
+    },
+    "U2": {
+      "nazwa": "easyJet",
+      "price_verified": true,
+      "data_weryfikacji": "2026-10-12",
+      "zrodlo": "https://www.easyjet.com/en/help/baggage/cabin-bags",
+      "zrodlo_oplaty": "https://www.easyjet.com/en/help-centre/policy-terms-and-conditions/fees-charges",
+      "taryfa": "Standard vs Inclusive Plus / easyJet Plus",
+      "stan_w_cenie_bazowej": "podreczny_platny",
+      "maly": {
+        "wymiary_cm": [
+          45,
+          36,
+          20
+        ],
+        "waga_kg": 15,
+        "w_cenie": true,
+        "uwaga": "Pod fotel, w cenie biletu dla każdego pasażera, max 15 kg (wymiary z kółkami i rączkami)."
+      },
+      "podreczny": {
+        "wymiary_cm": [
+          56,
+          45,
+          25
+        ],
+        "waga_kg": 15,
+        "w_cenie": false,
+        "doplata": {
+          "waluta": "GBP",
+          "online_od_gbp": 5.99,
+          "bramka_gbp": 60.0
+        }
+      },
+      "taryfy": {
+        "Standard": {
+          "stan": "podreczny_platny",
+          "uwaga": "Mały bagaż pod fotel w cenie; duży podręczny (do 15 kg, ze Speedy Boarding) płatny online od 5.99 £ (cena dynamiczna, niepotwierdzona)."
+        },
+        "Inclusive Plus / easyJet Plus / miejsca Up Front & Extra Legroom": {
+          "stan": "podreczny_w_cenie",
+          "uwaga": "Mały bagaż pod fotel + duży podręczny (56x45x25 cm, max 15 kg) w cenie."
+        }
+      },
+      "uwaga": "Ceny dopłaty za duży podręczny są dynamiczne (zależą od trasy, terminu i popytu), w GBP: od 5.99 £ online, 60 £ przy bramce — NIEPOTWIERDZONE. Cennik w EUR na rynku UE może się różnić i nie jest w danych.",
+      "doplata_potwierdzona": false
+    }
+  }
+}

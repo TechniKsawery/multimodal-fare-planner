@@ -149,17 +149,8 @@ def test_bilet_abc_ulgowy_z_tej_samej_tabeli():
 
 
 def test_wartosc_zastepcza_nigdy_nie_jest_oficjalna_taryfa():
+    # SKM/S-Bahn (SUBURBAN) NIE dostają już tej wartości — tests/test_suburban_pricing.py.
     for leg in (
-        _leg(
-            LegMode.BUS,
-            "Szczecin Główny",
-            "Angermünde",
-            SZCZECIN_GLOWNY,
-            ANGERMUENDE,
-            carrier="SKM",
-            minutes=60,
-            motis_mode="SUBURBAN",
-        ),
         _leg(
             LegMode.BUS,
             "Zgorzelec",

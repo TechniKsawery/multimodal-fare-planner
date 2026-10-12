@@ -166,12 +166,26 @@ Autobusy/tramwaje (`price_bus_leg()`): taryfa miejska tylko, gdy oba końce leż
 z `CITY_TARIFF_AREAS` (bez współrzędnych: nazwy dopasowywane jako CAŁE słowa, więc „Krakowskie
 Przedmieście" w Warszawie nie dostaje taryfy MPK Kraków — błąd S4), eezy.nrw tylko w NRW, a poza
 tym jawna wartość zastępcza `LOCAL_BUS_FLAT_PLN` (4,00 PLN, bez źródła) z `price_verified=False` i
-`breakdown["wartosc_zastepcza"]=True`. UWAGA: tu trafia każdy tryb MOTIS spoza RAIL/TRAIN, także
-`SUBURBAN` (SKM, S-Bahn), więc wartość zastępcza potrafi wycenić np. kilkudziesięciokilometrowy
-odcinek Szczecin → Angermünde albo transgraniczny Zgorzelec → Görlitz (oba widziane w teście na
-żywo PR #97). Ta kwota nie jest ceną: UI i `demo.py`
-pokazują ją jako „cena niepotwierdzona (wartość zastępcza, nie z cennika)”, a ranking „Najtańsza”
-nie stawia takiego wariantu przed wariantem z potwierdzoną ceną (niżej).
+`breakdown["wartosc_zastepcza"]=True`. UI i `demo.py` pokazują ją jako „cena niepotwierdzona
+(wartość zastępcza, nie z cennika)”, a ranking „Najtańsza” nie stawia takiego wariantu przed
+wariantem z potwierdzoną ceną (niżej).
+
+Kolej podmiejska — tryb MOTIS `SUBURBAN` (SKM, S-Bahn): `motis_client.itinerary_to_legs` mapuje go
+na `LegMode.BUS` (jak każdy tryb spoza RAIL/TRAIN), ale to POCIĄG, więc `price_bus_leg()` wycenia go
+tak (`is_suburban_leg()`, `leg.extra["motis_mode"] == "SUBURBAN"`):
+1. taryfa miejska, gdy oba końce leżą w kole z `CITY_TARIFF_AREAS` — np. S-Bahn Berlin w kole BVG
+   dostaje bilet BVG AB/ABC z `fares/data/bvg_berlin.json` (bez zmian),
+2. eezy.nrw, gdy oba końce leżą w NRW (bez zmian),
+3. w przeciwnym razie `price_suburban_leg()`: **nie** ryczałt autobusowy, tylko jawnie
+   niepotwierdzony szacunek `GENERIC_FALLBACK_PLN_PER_KM` x km (`price_type="szacunek"`,
+   `breakdown["price_verified"]=False`, `breakdown["tryb_motis"]="SUBURBAN"`, w `notes` powód i
+   „cena niepotwierdzona”; brak `wartosc_zastepcza`). Dotyczy m.in. SKM Szczecin (np. Szczecin →
+   Angermünde, ok. 70 km), SKM Trójmiasto i S-Bahnów poza znanymi taryfami.
+Cen SKM i pozostałych kolei podmiejskich spoza powyższych taryf NIE ma w `fares/data/*` — kwota
+PLN/km jest orientacyjna, a odcinek nie wygrywa rankingu „Najtańsza” z wariantem o potwierdzonej
+cenie (`Itinerary.price_verified`, `scoring.pick_recommendations`). Znane ograniczenia: SUBURBAN
+nadal ma `LegMode.BUS` (w UI „autobus”), a S-Bahn Berlin poza kołem 20 km (np. Potsdam) nie ma
+mapy stref VBB, więc też jest niepotwierdzony. Testy: `tests/test_suburban_pricing.py`.
 
 Berlin (BVG/VBB): koło `CITY_TARIFF_AREAS[BVG_BERLIN]` (20 km) obejmuje też lotnisko BER, które
 leży w strefie C. Odcinek, który zaczyna się lub kończy na BER (`BER_AIRPORT_AREA`, 2,5 km wokół

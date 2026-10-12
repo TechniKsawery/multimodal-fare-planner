@@ -34,6 +34,12 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
   strefa C) — tylko bilet ABC. Wcześniej ABC wybierany był tylko jako „najdłuższy” bilet dla
   jazdy ponad 120 min (przy równym czasie ważności 120 min wygrywał AB), więc BER → centrum
   dostawało 4,00 EUR (AB) zamiast 5,00 EUR (ABC).
+  Bilety BVG obowiązują też dla S-Bahnu Berlin (tryb MOTIS `SUBURBAN`) w kole 20 km wokół centrum.
+- **Kolej podmiejska poza znanymi taryfami (SKM Szczecin/Trójmiasto, S-Bahn spoza Berlina i NRW)**
+  — `fares/` NIE ma dla niej modułu ani danych w `fares/data/*`. `routing/pricing.py` (tryb
+  `SUBURBAN`, `price_suburban_leg`) wycenia ją jako niepotwierdzony szacunek PLN/km
+  (`price_verified=False`), a nie jako autobus za 4 PLN. Dodanie modułu wymaga cennika z URL źródła
+  i datą weryfikacji (jak pozostałe pliki w `fares/data/`).
 - **FlixBus** (`fares/flixbus.py` + `fares/_flixbus_api.py`) — REALNA cena z publicznego
   (nieoficjalnego) API FlixBusa dla konkretnej daty przejazdu, z fallbackiem do zgrubnego
   szacunku PLN/km gdy API jest niedostępne/bez wyniku — patrz sekcja niżej.

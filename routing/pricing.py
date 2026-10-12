@@ -673,10 +673,10 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
 
 LOCAL_BUS_FLAT_PLN = 4.0
 """PLACEHOLDER (NIE cena z cennika, bez źródła): wartość zastępcza za odcinek MOTIS spoza
-RAIL/TRAIN (autobus, tramwaj, ale też SUBURBAN — np. SKM, S-Bahn), używana TYLKO gdy operator
-nie jest objęty żadnym modułem taryf (odcinek poza obszarami CITY_TARIFF_AREAS i poza NRW).
-Nie zależy od kraju ani długości odcinka, więc w Niemczech i na dłuższych odcinkach zaniża
-koszt. Wynik zawsze ma price_type="szacunek", breakdown["price_verified"]=False i
+RAIL/TRAIN (autobus, tramwaj), używana TYLKO gdy operator nie jest objęty żadnym modułem taryf
+(odcinek poza obszarami CITY_TARIFF_AREAS i poza NRW). NIE dotyczy trybu SUBURBAN (SKM, S-Bahn):
+to kolej, więc ma osobną ścieżkę — patrz price_suburban_leg. Wartość nie zależy od kraju ani
+długości odcinka, więc w Niemczech i na dłuższych odcinkach zaniża koszt. Wynik zawsze ma price_type="szacunek", breakdown["price_verified"]=False i
 breakdown["wartosc_zastepcza"]=True; wariant z takim odcinkiem nie wygrywa rankingu "Najtańsza"
 z wariantem o potwierdzonej cenie (routing/scoring.py)."""
 
@@ -706,6 +706,34 @@ def price_flixbus_leg(leg: Leg) -> PricedLeg:
         price_type=result.price_type.value,
         notes=result.notes,
     )
+
+
+SUBURBAN_MOTIS_MODE = "SUBURBAN"
+"""Tryb MOTIS dla kolei podmiejskiej (SKM Trójmiasto/Szczecin, S-Bahn, ...). itinerary_to_legs
+mapuje go na LegMode.BUS (każdy tryb inny niż RAIL/TRAIN), ale to POCIĄG — nie wolno go wyceniać
+jak autobusu miejskiego (LOCAL_BUS_FLAT_PLN), bo odcinek bywa kilkudziesięciokilometrowy."""
+
+
+def is_suburban_leg(leg: Leg) -> bool:
+    """Czy MOTIS oznaczył odcinek trybem SUBURBAN (leg.extra["motis_mode"])."""
+    return leg.extra.get("motis_mode") == SUBURBAN_MOTIS_MODE
+
+
+def price_suburban_leg(leg: Leg) -> PricedLeg:
+    """Kolej podmiejska (MOTIS: SUBURBAN) bez znanej taryfy: NIE ryczałt autobusowy, tylko
+    jawnie niepotwierdzony szacunek PLN/km (_fallback_priced_leg), z dopiskiem w notes i
+    breakdown["tryb_motis"]="SUBURBAN". Wołane z price_bus_leg dopiero PO sprawdzeniu taryf
+    miejskich (np. S-Bahn Berlin w kole BVG dostaje bilet BVG) i eezy.nrw (S-Bahn w NRW).
+    Ceny SKM Szczecin/Trójmiasto i innych kolei podmiejskich nie ma w fares/data/* — bez
+    zweryfikowanego źródła nie podajemy kwoty jako pewnej."""
+    priced = _fallback_priced_leg(
+        leg,
+        f"Kolej podmiejska (MOTIS: {SUBURBAN_MOTIS_MODE}) '{leg.carrier_name}' poza obszarami z "
+        "potwierdzoną taryfą (taryfy miejskie z CITY_TARIFF_AREAS, eezy.nrw w NRW) — brak "
+        "zweryfikowanej stawki w fares/data/*; to nie autobus, więc bez ryczałtu autobusowego.",
+    )
+    priced.breakdown["tryb_motis"] = SUBURBAN_MOTIS_MODE
+    return priced
 
 
 def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedLeg:
@@ -776,6 +804,9 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
             )
         except ValueError as exc:
             return _fallback_priced_leg(leg, f"Kalkulator VRR zwrócił błąd ({exc}).")
+
+    if is_suburban_leg(leg):
+        return price_suburban_leg(leg)
 
     return PricedLeg(
         leg=leg,

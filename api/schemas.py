@@ -27,6 +27,7 @@ class DiscountProfileIn(BaseModel):
     schwerbehinderte_wertmarke_de: bool = False
     age: int | None = None
     obywatelstwo: str | None = None
+    legitymacja_zagraniczna: bool = False
 
 
 class RouteSearchRequest(BaseModel):

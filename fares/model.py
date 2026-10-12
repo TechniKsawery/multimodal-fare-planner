@@ -155,6 +155,11 @@ class DiscountProfile:
     studenckich wcale; Kraków wymaga konkretnie ISIC; Wrocław wymaga tłumaczenia przysięgłego
     zagranicznej legitymacji (chyba że ISIC/Euro26)."""
 
+    legitymacja_zagraniczna: bool = False
+    """Czy legitymacja szkolna/studencka jest ZAGRANICZNA (wydana poza Polską). Niezależna od
+    `obywatelstwo`: steruje wyłącznie ostrzeżeniami o uznawaniu legitymacji w MPK/ZTM
+    (Warszawa, Kraków, Poznań, Lublin, Wrocław) w fares/foreigner_eligibility.py — nie zmienia ceny."""
+
 
 @dataclass
 class Segment:

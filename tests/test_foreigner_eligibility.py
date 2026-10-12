@@ -34,13 +34,17 @@ def test_pkp_ulga_studencka_ue_ostrzega_o_karcie_pobytu():
 
 
 def test_krakow_ulgowy_ostrzega_o_isic():
-    profile = DiscountProfile(obywatelstwo="UE", mpk_krakow_ulgowy=True)
+    profile = DiscountProfile(
+        obywatelstwo="UE", legitymacja_zagraniczna=True, mpk_krakow_ulgowy=True
+    )
     warnings = warnings_for(profile)
     assert any("ISIC" in w for w in warnings)
 
 
 def test_poznan_ulgowy_ostrzega_o_braku_uznania():
-    profile = DiscountProfile(obywatelstwo="poza_UE", ztm_poznan_ulgowy=True)
+    profile = DiscountProfile(
+        obywatelstwo="poza_UE", legitymacja_zagraniczna=True, ztm_poznan_ulgowy=True
+    )
     warnings = warnings_for(profile)
     assert any("NIE są uznawane" in w for w in warnings)
 
@@ -48,8 +52,28 @@ def test_poznan_ulgowy_ostrzega_o_braku_uznania():
 def test_wiele_zaznaczonych_ulg_daje_wiele_ostrzezen():
     profile = DiscountProfile(
         obywatelstwo="UE",
+        legitymacja_zagraniczna=True,
         ztm_warszawa_ulgowy=True,
         mpk_krakow_ulgowy=True,
         ztm_lublin_ulgowy=True,
     )
     assert len(warnings_for(profile)) == 3
+
+
+def test_polska_legitymacja_cudzoziemca_nie_dostaje_ostrzezen_o_uznawaniu():
+    profile = DiscountProfile(
+        obywatelstwo="poza_UE",
+        ztm_warszawa_ulgowy=True,
+        mpk_krakow_ulgowy=True,
+        ztm_poznan_ulgowy=True,
+        ztm_lublin_ulgowy=True,
+        mpk_wroclaw_ulgowy=True,
+    )
+    assert warnings_for(profile) == []
+
+
+def test_zagraniczna_legitymacja_polaka_ostrzega_o_uznawaniu():
+    profile = DiscountProfile(
+        obywatelstwo="PL", legitymacja_zagraniczna=True, ztm_poznan_ulgowy=True
+    )
+    assert any("NIE są uznawane" in w for w in warnings_for(profile))

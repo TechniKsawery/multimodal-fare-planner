@@ -434,8 +434,15 @@ obywatelstwo = st.selectbox(
         "poza_UE": "poza UE/EOG",
     }[o],
     help="Nie zmienia ceny — po wyszukaniu pokażemy ostrzeżenia, czy zaznaczone ulgi realnie"
-    " przysługują cudzoziemcowi wg zweryfikowanych źródeł (np. PKP ulga ustawowa, uznawanie"
-    " zagranicznych legitymacji w MPK/ZTM).",
+    " przysługują cudzoziemcowi wg zweryfikowanych źródeł (PKP ulga ustawowa, brak ulgi"
+    " studenckiej w Niemczech).",
+)
+legitymacja_zagraniczna = st.selectbox(
+    "Legitymacja szkolna/studencka",
+    [False, True],
+    format_func=lambda z: "polska" if not z else "zagraniczna (wydana poza Polską)",
+    help="Nie zmienia ceny — przy zagranicznej legitymacji pokażemy ostrzeżenia o jej uznawaniu"
+    " w MPK/ZTM (Warszawa, Kraków, Poznań, Lublin, Wrocław).",
 )
 c_attr_profile1, c_attr_profile2 = st.columns(2)
 uczen_student = c_attr_profile1.checkbox(
@@ -597,6 +604,7 @@ if submitted:
         age=wiek,
         child_with_guardian=child_with_guardian,
         obywatelstwo=obywatelstwo,
+        legitymacja_zagraniczna=legitymacja_zagraniczna,
     )
     for ostrzezenie in foreigner_warnings_for(profile):
         st.warning(ostrzezenie)

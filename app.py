@@ -27,6 +27,7 @@ from attractions import HeldDocument
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from ui_helpers import render_bezplatne_info
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
+from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
 from fares.model import DiscountProfile
 from routing import motis_client
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
@@ -117,6 +118,9 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             price = f"{p.amount:.2f} {p.currency} ({p.price_type})"
         rozbicie = ""
         zrodlo_bagazu = ""
+        bagaz_podreczny = ""
+        if leg.mode.value == "lot" and "bagaz_podreczny" in p.breakdown:
+            bagaz_podreczny = format_cabin_breakdown(p.breakdown["bagaz_podreczny"])
         if leg.mode.value == "lot" and "cena_biletu" in p.breakdown:
             rozbicie = (
                 f"bilet {p.breakdown['cena_biletu']:.2f} "
@@ -148,6 +152,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 "Cena / dystans": price,
                 "Rozbicie ceny lotu": rozbicie,
                 "Cennik bagażu": zrodlo_bagazu,
+                "Bagaż podręczny": bagaz_podreczny,
                 "Alternatywna oferta (PL-DE)": alternatywa,
             }
         )

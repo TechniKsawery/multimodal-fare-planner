@@ -80,6 +80,19 @@ sezonu) — kwota w tabeli to **dolna granica** opublikowanego przedziału (patr
 Silnik tras (`routing/`) używa tej funkcji, żeby doprecyzować szacunek bagażu, gdy z biletu
 Travelpayouts znana jest linia — patrz `routing/README.md`.
 
+### Bagaż podręczny (`flights/data/cabin_baggage.json`, `flights/cabin_baggage.py`)
+
+`get_cabin_baggage(kod_iata)` zwraca jeden z trzech jawnych stanów: **wliczony**, **płatny**
+(dopłata jako kwota lub widełki w ORYGINALNEJ walucie przewoźnika — bez przeliczania po
+placeholderowym kursie) albo **nieznany** (brak przewoźnika/wpisu, wpis bez `price_verified`,
+albo zasada zależna od taryfy, której nie znamy z ceny z cache). Wynik trafia do
+`breakdown["bagaz_podreczny"]` odcinka lotu i jest pokazywany w UI (`app.py`) i `demo.py`.
+Dopłata za podręczny NIE jest doliczana do ceny biletu ani do ceny łącznej.
+
+**Uwaga o pochodzeniu danych:** wpisy Wizz Air, Ryanair, Eurowings i easyJet wpisała zewnętrzna
+AI (Gemini) i NIE zostały jeszcze sprawdzone przez Claude; na tej gałęzi aplikacja traktuje je
+zgodnie z flagą `price_verified` w pliku. Nie scalać na `main` przed weryfikacją w źródłach.
+
 Sprawdzone źródła (stan na 2026-09-27):
 - Ryanair: https://www.moneyguideireland.com/ryanair-increased-baggage-allowance-of-20kg.html
 - Wizz Air: https://www.sendmybag.com/airlines/wizz-air-baggage-allowance/

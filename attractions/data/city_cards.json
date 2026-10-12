@@ -870,6 +870,31 @@
       "existence_verified": true,
       "existence_source_url": "https://visitpoznan.pl/en/poznan-city-card",
       "existence_verified_date": "2026-10-09"
+    },
+    {
+      "id": "lublin_trippass",
+      "city": "lublin",
+      "name": "Karta Turysty TripPass – Pakiet Lubelski",
+      "description": "Następca dawnej Lubelskiej Karty Turysty (24h/72h z transportem i wstępami — nie znaleziono jej już w sprzedaży 2026-10-12). Obecny pakiet to wyłącznie zniżki/upominki u partnerów (restauracje, hotele, spacery z przewodnikiem, pamiątki), BEZ darmowych wstępów i BEZ transportu; żaden z partnerów nie jest atrakcją z naszego katalogu Lublina, więc kalkulator nie przypisuje jej zniżek. Cena niepotwierdzona jednoznacznie: lublin.eu podaje 'zawsze 5 zł' za pakiet, a trippass.pl pokazuje 0,00 zł za 365 dni (obie strony sprawdzone 2026-10-12).",
+      "official_url": "https://lublin.eu/turystyka/niezbednik-turysty/karta-turysty/",
+      "default_discount_percent": 0.0,
+      "custom_discounts": {},
+      "variants": [
+        {
+          "id": "lublin_trippass_365d",
+          "name": "Pakiet Lubelski (365 dni)",
+          "duration_hours": 8760,
+          "price": 5.0,
+          "currency": "PLN",
+          "includes_public_transit": false,
+          "transit_zones": "brak transportu w cenie",
+          "description": "lublin.eu: pakiet 'zawsze 5 zł'; trippass.pl/szczegoly-pakietu?id=16263: 0,00 zł (normalny i ulgowy). Rozbieżność niewyjaśniona, stąd price_verified: false.",
+          "price_verified": false
+        }
+      ],
+      "existence_verified": true,
+      "existence_source_url": "https://trippass.pl/szczegoly-pakietu?id=16263",
+      "existence_verified_date": "2026-10-12"
     }
   ]
 }

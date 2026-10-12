@@ -752,7 +752,8 @@
         "food hall",
         "gastronomia"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "price_check_note": "2026-10-12: nie znaleziono dostępnej oficjalnej strony potwierdzającej wstęp wolny (halakoszyki.com zablokowana dla automatycznego odczytu); do potwierdzenia ręcznie"
     },
     {
       "id": "warszawa_bazar_rozyckiego",
@@ -764,14 +765,15 @@
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "ul. Targowa 54, Warszawa",
-      "official_url": "",
+      "official_url": "https://www.zptp.waw.pl/strona-3332-obiekty_handlowe.html",
       "highlight": false,
       "tags": [
         "targ",
         "praga",
         "gastronomia"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "price_check_note": "2026-10-12: ZPTP (zarządca bazaru, godz. pn-sob 6-19, nd 10-18) oficjalna strona nie podaje wprost, że wstęp jest bezpłatny"
     },
     {
       "id": "warszawa_lazienki",
@@ -1399,13 +1401,14 @@
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Viktualienmarkt, 80331 München",
-      "official_url": "",
+      "official_url": "https://www.muenchen.de/sehenswuerdigkeiten/viktualienmarkt",
       "highlight": true,
       "tags": [
         "targ",
         "gastronomia"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "price_check_note": "2026-10-12: muenchen.de (oficjalny portal miasta), FAQ: \"Nein, der Viktualienmarkt ist frei zugänglich und kostet keinen Eintritt.\""
     },
     {
       "id": "munchen_hofbrauhaus",
@@ -1435,13 +1438,14 @@
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Englischer Garten, 80538 München",
-      "official_url": "",
+      "official_url": "https://www.muenchen.de/sehenswuerdigkeiten/englischer-garten",
       "highlight": true,
       "tags": [
         "park",
         "natura"
       ],
-      "price_verified": true
+      "price_verified": true,
+      "price_check_note": "2026-10-12: muenchen.de (oficjalny portal miasta), FAQ: \"Der Englische Garten ist ganzjährig geöffnet. Der Eintritt ist frei.\""
     },
     {
       "id": "munchen_westpark",
@@ -1453,13 +1457,14 @@
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
       "address": "Westpark, 81377 München",
-      "official_url": "",
+      "official_url": "https://www.muenchen.de/sehenswuerdigkeiten/westpark",
       "highlight": false,
       "tags": [
         "park",
         "natura"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "price_check_note": "2026-10-12: muenchen.de opisuje park jako miejsce do spacerów i wypoczynku, ale oficjalna strona nie podaje wprost, że wstęp jest bezpłatny; brak opłaty niepotwierdzony wprost"
     },
     {
       "id": "munchen_botanischer_garten",
@@ -1951,13 +1956,14 @@
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "ul. Piaskowa 17, Wrocław",
-      "official_url": "",
+      "official_url": "https://pik.wroclaw.pl/miejsca/hala-targowa-wroclaw/",
       "highlight": false,
       "tags": [
         "targ",
         "gastronomia"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "price_check_note": "2026-10-12: pik.wroclaw.pl (pn-sob 8-18:30, nd nieczynne) nie wspomina o opłacie za wstęp; oficjalna strona nie podaje wprost, że wstęp jest bezpłatny"
     },
     {
       "id": "wroclaw_ogrod_botaniczny",
@@ -2005,13 +2011,14 @@
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Park Szczytnicki, Wrocław",
-      "official_url": "",
+      "official_url": "https://zzm.wroc.pl/obiektyzzmcp/park-szczytnicki/",
       "highlight": false,
       "tags": [
         "park",
         "natura"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "price_check_note": "2026-10-12: strona ZZM Wrocław nie podaje zasad wstępu ani opłat (osobne bilety ma tylko Ogród Japoński); brak opłaty niepotwierdzony wprost"
     },
     {
       "id": "wroclaw_wyspa_slodowa",
@@ -2023,13 +2030,14 @@
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
       "address": "Wyspa Słodowa, Wrocław",
-      "official_url": "",
+      "official_url": "https://zzm.wroc.pl/obiektyzzmcp/wyspa-slodowa/",
       "highlight": false,
       "tags": [
         "wyspa",
         "odra"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "price_check_note": "2026-10-12: strona ZZM Wrocław nie podaje opłat wstępu (wspomina bramki zamykane na noc); brak opłaty niepotwierdzony wprost"
     },
     {
       "id": "poznan_termy_maltanskie",
@@ -2228,7 +2236,8 @@
         "park",
         "historia"
       ],
-      "price_verified": true
+      "price_verified": false,
+      "price_check_note": "2026-10-12: nie znaleziono oficjalnej strony parku z informacją o wstępie (strona poznan.pl o spacerze po parku podaje 'Wstęp wolny' tylko dla wydarzenia, nie dla parku); do potwierdzenia ręcznie"
     }
   ],
   "_UWAGA_merge_42_49": "Scalono z PR #42/#49 (Hamburg/Monachium/Kolonia/Wrocław/Poznań, nowe miasta) zachowując zweryfikowane na żywo ceny Berlin/Gelsenkirchen/Kraków/Lublin/Dortmund/Essen z PR #48 (świeższa weryfikacja, 2026-10-10) dla wszystkich id obecnych w obu wersjach."

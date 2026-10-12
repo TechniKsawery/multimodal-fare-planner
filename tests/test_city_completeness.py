@@ -31,26 +31,15 @@ LOCAL_FARE = {
     "gelsenkirchen": "vrr_eezy.json",
 }
 
-# Miasta, dla których jawnie przyjęto, że nie mają karty miejskiej (decyzja projektu, nie wynik
-# weryfikacji u źródła; powód w wartości). Karta w city_cards.json zawsze wygrywa z tym wpisem.
+# Miasta bez karty miejskiej w city_cards.json: powód i data sprawdzenia w wartości (wpis musi
+# opisywać, co sprawdzono u źródła, nie samo założenie). Karta w city_cards.json zawsze wygrywa.
 NO_CARD_DECLARED = {
-    "lublin": "przyjęte w projekcie: brak karty miejskiej w ofercie Lublina; wyszukiwanie 2026-10-11 nie znalazło takiej karty, ale to nie dowód braku",
+    "wroclaw": "2026-10-12: nie potwierdzono aktywnej sprzedaży Wrocław Tourist Card: visitwroclaw.eu/pl/wroclaw-tourist-card zwraca 404, wroclaw.travel i strona o komunikacji (visitwroclaw.eu/en/public-transportation-in-wroclaw) nie wspominają o karcie; znalezione ceny pochodzą wyłącznie z nieoficjalnych artykułów 2017-2019 i nie są używane",
 }
 
 # Znane, zaakceptowane luki: (miasto, kod) -> powód. Nie ukrywamy ich, tylko nazywamy.
 FREE_NO_URL = "wstęp bezpłatny (cena 0) z price_verified:true, ale bez official_url"
-KNOWN_GAPS = {
-    ("wroclaw", "karta: brak wpisu w city_cards.json"): "Wrocław Tourist Card istnieje (visitwroclaw.eu/en/wroclaw-tourist-card-faq, sprawdzone 2026-10-11), ale dostępne strony nie podają ceny ani wariantów (punkty + opcjonalny transport); wpis dopiero po odczycie cennika w przeglądarce",
-    ("warszawa", "atrakcja warszawa_hala_koszyki: " + FREE_NO_URL): "darmowe miejsce, brak URL w danych",
-    ("warszawa", "atrakcja warszawa_bazar_rozyckiego: " + FREE_NO_URL): "darmowe miejsce, brak URL w danych",
-    ("munchen", "atrakcja munchen_viktualienmarkt: " + FREE_NO_URL): "darmowe miejsce, brak URL w danych",
-    ("munchen", "atrakcja munchen_englischer_garten: " + FREE_NO_URL): "darmowe miejsce, brak URL w danych",
-    ("munchen", "atrakcja munchen_westpark: " + FREE_NO_URL): "darmowe miejsce, brak URL w danych",
-    ("wroclaw", "atrakcja wroclaw_hala_targowa: " + FREE_NO_URL): "darmowe miejsce, brak URL w danych",
-    ("wroclaw", "atrakcja wroclaw_park_szczytnicki: " + FREE_NO_URL): "darmowe miejsce, brak URL w danych",
-    ("wroclaw", "atrakcja wroclaw_wyspa_slodowa: " + FREE_NO_URL): "darmowe miejsce, brak URL w danych",
-    ("poznan", "atrakcja poznan_park_cytadela: " + FREE_NO_URL): "darmowe miejsce, brak URL w danych",
-}
+KNOWN_GAPS: dict[tuple[str, str], str] = {}
 
 
 def _fare_gaps(city: str) -> list[str]:

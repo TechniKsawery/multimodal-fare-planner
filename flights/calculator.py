@@ -19,7 +19,8 @@ relacji, tylko na rzędzie wielkości typowych cen Ryanair/Wizz Air na krótkich
 def _fetch_ticket(segment: FlightSegment):
     """Zwraca (ticket_dict, notatka_o_zrodle). Próbuje kolejno: dokładna data z cache
     Travelpayouts -> cały miesiąc z cache Travelpayouts (API akceptuje depart_date="YYYY-MM") ->
-    zgrubny szacunek stały, gdy obie próby nie dały ceny dla tej relacji."""
+    zgrubny szacunek stały (breakdown["price_verified"]=False), gdy obie próby nie dały ceny lotu
+    bezpośredniego dla tej relacji."""
     payload = travelpayouts.fetch_cheapest_price(
         origin=segment.origin,
         destination=segment.destination,
@@ -61,9 +62,11 @@ def _fetch_ticket(segment: FlightSegment):
             "transfers": None,
             "airline": None,
             "departure_at": None,
+            "price_verified": False,
         },
         (
-            "Brak ceny w cache Travelpayouts dla tej relacji (ani dokładna data, ani cały miesiąc) — "
+            "Cena niepotwierdzona: brak ceny lotu BEZPOŚREDNIEGO w cache Travelpayouts dla tej "
+            "relacji (ani dokładna data, ani cały miesiąc; wpisy z przesiadkami pomijamy) — "
             f"BARDZO ZGRUBNY szacunek stały ({GENERIC_FLIGHT_FALLBACK_PLN:.0f} PLN"
             f"{in_segment_currency}), nieoparty na realnych danych dla tej trasy."
         ),
@@ -108,20 +111,24 @@ def estimate_price(segment: FlightSegment) -> PriceEstimate:
     if extras.note:
         notes += " " + extras.note
 
+    breakdown = {
+        "cena_biletu": ticket["price"],
+        "przesiadki": ticket.get("transfers"),
+        "linia": ticket.get("airline"),
+        "wylot": ticket.get("departure_at"),
+        "bagaz": extras.baggage_cost,
+        "dojazd_na_lotnisko": extras.airport_access_cost,
+        "transfer_z_lotniska": extras.destination_transfer_cost,
+    }
+    if ticket.get("price_verified") is False:
+        breakdown["price_verified"] = False  # UI/demo dopisują "cena niepotwierdzona"
+
     return PriceEstimate(
         origin=segment.origin.upper(),
         destination=segment.destination.upper(),
         amount=total,
         currency=segment.currency,
         price_type=PriceType.ESTIMATE,
-        breakdown={
-            "cena_biletu": ticket["price"],
-            "przesiadki": ticket.get("transfers"),
-            "linia": ticket.get("airline"),
-            "wylot": ticket.get("departure_at"),
-            "bagaz": extras.baggage_cost,
-            "dojazd_na_lotnisko": extras.airport_access_cost,
-            "transfer_z_lotniska": extras.destination_transfer_cost,
-        },
+        breakdown=breakdown,
         notes=notes,
     )

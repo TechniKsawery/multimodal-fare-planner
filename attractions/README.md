@@ -18,6 +18,33 @@ Moduł odpowiada za:
      (id atrakcji -> %) albo `default_card_discount_percent` atrakcji. Atrakcja bez wpisu dostaje 0%
      — nie ma "domyślnego rabatu karty" (dawne `default_discount_percent` dawało np. 100% na Katedrę
      Wawelską z Kraków Card, bo zgadywało). Nowy wpis dodawaj dopiero z potwierdzeniem u źródła.
+   - **Zniżka > 0% wymaga pola źródła** (`source_url` + `verified_date`, model `DiscountSource`):
+     dla `custom_discounts` karty — `custom_discount_sources` (id atrakcji -> źródło), dla
+     `default_card_discount_percent` atrakcji — `card_discount_source`. Zapisana zniżka bez
+     kompletnego źródła jest liczona jako **0%** i trafia do `CityCardEvaluation.unverified_discount_attraction_ids`
+     (+ zdanie „niezweryfikowane” w `summary`) — ten sam mechanizm co Katedra Wawelska w Kraków Card.
+     Jawne `0.0` w `custom_discounts` to znany brak zniżki (bez flagi). Wyjątek z definicji produktu:
+     wariant `bwc_72h_museumsinsel` daje 100% na Museumsinsel (wstęp wliczony w zweryfikowaną cenę wariantu).
+   - **Zerowanie 2026-10-12**: zniżki bez pola źródła w Berlinie, Krakowie, Hamburgu, Monachium, Poznaniu
+     i Lublinie (16 atrakcji) wyzerowano; stara wartość zostaje w `city_cards.json`
+     (`_zerowane_znizki_bez_zrodla_2026_10_12` na karcie) i `attractions.json` (`_UWAGA_zniezka_karty`).
+     Żeby zniżkę przywrócić: wpisz wartość w `custom_discounts` i URL + datę w `custom_discount_sources`
+     (albo `default_card_discount_percent` + `card_discount_source`) — wpis bez źródła nadal da 0%.
+   - **Przywrócenie ze źródłem 2026-10-12** (raport `research/zrodla-znizek-kart.md`, gałąź
+     `gemini/zrodla-znizek`; źródła **wg Gemini, niezweryfikowane niezależnie** — domeny operatorów
+     niedostępne z chmury). Przywrócono tylko zniżki jednoznacznie potwierdzone cytatem i zgodną ceną
+     bazową (10): Fernsehturm 25%, Olympiastadion 22,7% (8,50 z 11,00 EUR wg cen źródła, nie
+     deklarowane 25%), Speicherstadtmuseum 25%, FC Bayern 8%, Residenz 13,3%, Frauenkirche 33,3%,
+     SEA LIFE 20%, Bavaria Filmstadt 10%, Brama Poznania 40%, Fotoplastykon 100%. Zniżki kwotowe w euro
+     przeliczono na % tylko przy zgodnej cenie bazowej. URL, data, cytat i uwagi: pole
+     `_zrodla_znizek_2026_10_12` na karcie w `city_cards.json`.
+     Nadal **0% z flagą** niezweryfikowanej zniżki: Museumsinsel (Classic), Nymphenburg (cena bazowa
+     20 EUR vs 10 EUR w raporcie), IMM (17 EUR w danych vs 18 EUR w cenniku — do uzgodnienia), Fabryka
+     Schindlera (źródło opisuje Krakowską Kartę Turystyczną z krakow.travel, a nasz wpis to Krakow City
+     Pass z discovercracow.com; dotyczy też osobnego produktu `krakow_museum_pass_student_3d`; 100%
+     wpisz dopiero po potwierdzeniu produktu), Zamek Lubelski (brak źródła). **Wawel**: jawne `0.0`
+     bez flagi — znany brak zniżki (krakow.travel: „Nie obejmuje zwiedzania Wawelu i Kopalni Soli
+     Wieliczka.”).
 4. Zniżki z dowolnego tytułu (wiek/uczeń-student/senior), niezależnie od posiadania karty miejskiej: `best_price_for_attraction(attraction, DiscountProfile(...))` wybiera najtańszą potwierdzoną cenę spośród ceny standardowej i pól `child_price`/`student_price`/`senior_price`/`family_price` (typu `GroupPrice`: konkretna kwota + źródło + data, nigdy procent). Zniżki się nie sumują — bierzemy minimum.
 
 ## Użycie

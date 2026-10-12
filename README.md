@@ -246,7 +246,10 @@ mogą być nieaktualne o kilka dni) + bagaż + dojazd na lotnisko + transfer z l
 docelowego (osobne, konfigurowalne składniki). Wymaga darmowego tokena API w zmiennej
 środowiskowej `TRAVELPAYOUTS_TOKEN` — szczegóły konfiguracji i struktura są w
 [`flights/README.md`](flights/README.md). Każdy wynik oznaczony jako `PriceType.ESTIMATE`
-("szacunek"), tak jak w module `fares/`.
+("szacunek"), tak jak w module `fares/`. Jako lot bezpośredni liczy się tylko wpis z kluczem "0"
+(liczba przesiadek) w `/v1/prices/cheap`; gdy go brak, cena to zgrubny szacunek z dopiskiem
+"cena niepotwierdzona", a nie bilet z przesiadkami (szczegóły i stan weryfikacji dokumentacji w
+[`flights/README.md`](flights/README.md)).
 
 ```python
 from flights import FlightSegment, estimate_price
@@ -343,9 +346,15 @@ zakupu oficjalnych kart miejskich (Berlin WelcomeCard, WelcomeCard Ruhr, Kraków
 Silnik ocenia, czy zakup karty zwraca się przy wybranym zestawie atrakcji oraz darmowym
 transporcie miejskim (np. VRR / Berlin AB / Kraków strefa I+II), wyliczając realne oszczędności netto.
 
+Zniżka karty > 0% jest liczona tylko z polem źródła (`source_url` + `verified_date`); zniżka bez źródła
+= 0% + flaga niezweryfikowanej zniżki w wycenie (zniżki bez źródła w 6 miastach wyzerowano 2026-10-12;
+10 z nich przywrócono ze źródłem wg raportu `research/zrodla-znizek-kart.md`, 6 zostaje 0% — patrz
+`attractions/README.md`). Źródła strefy C (BER) w `fares/data/bvg_berlin.json` (`zrodlo_strefa_c_ber`:
+bvg.de i vbb.de, 2026-10-12). Wszystkie te źródła są wg Gemini, niezweryfikowane niezależnie.
+
 Szczegóły: [`attractions/README.md`](attractions/README.md).
 
-Testy: `pytest tests/test_attractions.py`.
+Testy: `pytest tests/test_attractions.py tests/test_znizki_bez_zrodla.py`.
 
 ## Code style
 

@@ -7,6 +7,7 @@ from .model import (
     CityCard,
     CityCardEvaluation,
     CityCardVariant,
+    DiscountSource,
     GroupPrice,
     HeldDocument,
 )
@@ -30,6 +31,7 @@ __all__ = [
     "CityCard",
     "CityCardEvaluation",
     "CityCardVariant",
+    "DiscountSource",
     "GroupPrice",
     "HeldDocument",
     "DiscountProfile",

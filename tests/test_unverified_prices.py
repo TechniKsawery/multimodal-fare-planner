@@ -11,8 +11,10 @@ cenowymi."""
 
 from datetime import datetime, timedelta
 
+import pytest
+
 import demo
-from fares import estimate_price
+from fares import _flixbus_api, estimate_price
 from fares._data_loading import load
 from fares.model import Carrier, DiscountProfile, PriceType, Segment
 from routing import motis_client, pricing, scoring
@@ -267,3 +269,120 @@ def test_demo_format_itinerary_oznacza_ceny_niepotwierdzone():
 def test_demo_format_itinerary_bez_dopisku_dla_potwierdzonych_cen():
     itinerary = scoring.build_itinerary("IC", [_priced(50.0)])
     assert "niepotwierdzona" not in demo.format_itinerary(itinerary)
+
+
+# --- 4) FlixBus: cena z fallbacku km jest niepotwierdzona, z live API nie --------------------
+
+
+def _flixbus_leg(depart_hour=8):
+    depart = datetime(2026, 10, 20, depart_hour, 0)
+    return Leg(
+        mode=LegMode.BUS,
+        origin_name="Lublin",
+        destination_name="Berlin",
+        depart=depart,
+        arrive=depart + timedelta(hours=9),
+        carrier_name="FlixBus",
+        distance_km=600.0,
+        extra={"motis_mode": "BUS"},
+    )
+
+
+def _flixbus_api_nie_dziala(monkeypatch):
+    def boom(*a, **kw):
+        raise _flixbus_api.FlixbusApiError("brak sieci (test)")
+
+    monkeypatch.setattr(_flixbus_api, "find_city_id", boom)
+
+
+def _flixbus_api_dziala(monkeypatch, payload=None):
+    monkeypatch.setattr(
+        _flixbus_api, "find_city_id", lambda city, **kw: {"Lublin": "1", "Berlin": "2"}[city]
+    )
+    monkeypatch.setattr(
+        _flixbus_api,
+        "fetch_cheapest_trip",
+        lambda *a, **kw: payload or {"price": {"total": 19.99, "currency": "EUR"}},
+    )
+
+
+def test_flixbus_fallback_km_w_fares_ma_price_verified_false(monkeypatch):
+    _flixbus_api_nie_dziala(monkeypatch)
+    seg = Segment(Carrier.FLIXBUS, "Lublin", "Berlin", distance_km=600, travel_date="2026-10-20")
+    result = estimate_price(seg)
+    assert result.breakdown["zrodlo"] == "fallback_km"
+    assert result.breakdown["price_verified"] is False
+    assert result.amount == pytest.approx(600 * 0.27)
+
+
+def test_flixbus_z_live_api_nie_ma_flagi_niepotwierdzonej(monkeypatch):
+    _flixbus_api_dziala(monkeypatch)
+    seg = Segment(Carrier.FLIXBUS, "Lublin", "Berlin", distance_km=600, travel_date="2026-10-20")
+    result = estimate_price(seg)
+    assert result.breakdown["zrodlo"] == "api_flixbus_live"
+    assert "price_verified" not in result.breakdown
+
+
+def test_flixbus_fallback_przy_bledzie_bez_daty_i_zlej_odpowiedzi_jest_niepotwierdzony(
+    monkeypatch,
+):
+    # bez travel_date (API wymaga daty)
+    bez_daty = estimate_price(Segment(Carrier.FLIXBUS, "Lublin", "Berlin", distance_km=600))
+    assert bez_daty.breakdown["price_verified"] is False
+    # API odpowiada, ale bez ceny
+    _flixbus_api_dziala(monkeypatch, payload={"price": {}})
+    zla_odpowiedz = estimate_price(
+        Segment(Carrier.FLIXBUS, "Lublin", "Berlin", distance_km=600, travel_date="2026-10-20")
+    )
+    assert zla_odpowiedz.breakdown["zrodlo"] == "fallback_km"
+    assert zla_odpowiedz.breakdown["price_verified"] is False
+
+
+def test_odcinek_flixbus_z_fallbacku_jest_niepotwierdzony_z_dopiskiem(monkeypatch):
+    _flixbus_api_nie_dziala(monkeypatch)
+    priced = pricing.price_bus_leg(_flixbus_leg())
+    assert priced.breakdown["zrodlo"] == "fallback_km"
+    assert not priced.price_verified
+    assert priced.unverified_label == "cena niepotwierdzona"  # ten sam tekst co przy innych
+
+
+def test_odcinek_flixbus_z_live_api_zostaje_potwierdzony(monkeypatch):
+    _flixbus_api_dziala(monkeypatch)
+    priced = pricing.price_bus_leg(_flixbus_leg())
+    assert priced.breakdown["zrodlo"] == "api_flixbus_live"
+    assert priced.amount == 19.99 and priced.currency == "EUR"
+    assert priced.price_verified
+    assert priced.unverified_label == ""
+
+
+def test_flixbus_fallback_nie_wygrywa_najtanszej_z_potwierdzona_cena(monkeypatch):
+    _flixbus_api_nie_dziala(monkeypatch)
+    flix = scoring.build_itinerary("Flixbus", [pricing.price_bus_leg(_flixbus_leg())])
+    potwierdzony = scoring.build_itinerary("Intercity", [_priced(300.0)])
+    assert flix.total_price_pln < potwierdzony.total_price_pln  # 600 km x 0,27 = 162 zł < 300 zł
+    assert not flix.price_verified and potwierdzony.price_verified
+
+    recs = scoring.pick_recommendations([flix, potwierdzony])
+
+    assert recs["najtansza"] is potwierdzony
+    assert scoring.cheaper_unverified([flix, potwierdzony], potwierdzony) == [flix]
+
+
+def test_flixbus_z_live_api_nadal_moze_wygrac_najtanszej(monkeypatch):
+    _flixbus_api_dziala(monkeypatch, payload={"price": {"total": 15.0, "currency": "EUR"}})
+    flix = scoring.build_itinerary("Flixbus", [pricing.price_bus_leg(_flixbus_leg())])
+    potwierdzony = scoring.build_itinerary("Intercity", [_priced(300.0)])
+    assert flix.price_verified
+    assert scoring.pick_recommendations([flix, potwierdzony])["najtansza"] is flix
+
+
+def test_demo_format_itinerary_oznacza_flixbusa_z_fallbacku_ale_nie_z_api(monkeypatch):
+    _flixbus_api_nie_dziala(monkeypatch)
+    z_fallbacku = scoring.build_itinerary("Flixbus", [pricing.price_bus_leg(_flixbus_leg())])
+    text = demo.format_itinerary(z_fallbacku)
+    assert "cena niepotwierdzona (zawiera odcinki bez potwierdzonej taryfy)" in text
+    assert "162.00 PLN (szacunek) — cena niepotwierdzona" in text
+
+    _flixbus_api_dziala(monkeypatch)
+    z_api = scoring.build_itinerary("Flixbus", [pricing.price_bus_leg(_flixbus_leg())])
+    assert "niepotwierdzona" not in demo.format_itinerary(z_api)

@@ -27,6 +27,8 @@ topowych itinerariach (np. Poznań/Rzepin zamiast Warszawa/Berlin), oraz startu/
   odcinka (bez tego MOTIS łapał połączenie na styk kilku minut, poniżej nawet absolutnego
   minimum wykonalności) i węzeł pośredni jest jawnie oznaczony jako wymagający przejścia
   (`requires_walk=True`) — dwa niezależnie zapytane odcinki nie gwarantują tego samego peronu.
+  **Limit objazdu** (patrz niżej, „Limit objazdu przez huby kolejowe”) odrzuca węzły, które nie
+  leżą po drodze, i trasy wracające tą samą stacją.
 - `alternative_origin_stops` / `alternative_destination_stops` — powtarza główne zapytanie
   "tylko kolej" z podmienionym dworcem startu/mety.
 
@@ -46,6 +48,34 @@ rejestrowany, bufor po lądowaniu przy budowie wariantu i próg przesiadki lot->
 (`flight_to_rail_minimum` w `transfers.py`: 90 min z rejestrowanym, 60 min bez). Wartość jest
 zapisana w `Leg.extra["checked_baggage"]` odcinka lotu. To SZACUNKI, nie wytyczne przewoźników.
 Bagaż podręczny per przewoźnik (limity wag i opłaty) jest osobnym zadaniem i nie jest tu modelowany.
+
+### Limit objazdu przez huby kolejowe (`VIA_HUB_STOPS`, dziś Poznań Główny)
+
+Gdy MOTIS nie ma bezpośredniej trasy (np. Kraków → Gorlice), wariant „Kolej przez Poznań Główny”
+składał absurd: Kraków → Wrocław → Poznań → Wrocław → Tarnów → Stróże → Gorlice (32 h, 5
+przesiadek). Dwa osobne zapytania spięte węzłem nie pytały, czy węzeł jest po drodze. Teraz
+`build_rail_via_stop_variant` rzuca `MotisError` z powodem, a `generate_variants` wpisuje go do
+`skipped` („Pominięte warianty”), gdy:
+
+1. **Objazd w linii prostej:** `origin→via + via→destination > VIA_HUB_MAX_DETOUR_RATIO (1,5) ×
+   origin→destination` (haversine; ta sama skala co `HUB_MAX_DETOUR_RATIO` dla hubów lotniczych).
+   Gdy współrzędne znamy z zapytania (adres → adres daje `"lat,lon"`), odrzucenie następuje
+   **przed** zapytaniem do MOTIS. Przy samych `stopId` limit liczymy ze współrzędnych odcinków po
+   zbudowaniu wariantu. Brak współrzędnych = nie filtrujemy (jak `hub_is_detour`).
+2. **Powrót tą samą stacją:** trasa przejeżdża dwa razy przez tę samą stację (współrzędne w
+   promieniu `SAME_STATION_RADIUS_KM = 0,5 km`, a bez współrzędnych ta sama nazwa), np.
+   Wrocław → Poznań → Wrocław. Przesiadka w jednym miejscu i dwa różne dworce jednego miasta
+   (Berlin Hbf / Ostbahnhof) to nie powrót; dojścia piesze nie są liczone.
+
+**Skąd próg 1,5.** Współczynniki dla Poznania (haversine, centra miast): Lublin → Berlin 1,00,
+Lublin → Gelsenkirchen 1,02, Warszawa → Berlin 1,00, Kraków → Berlin 1,08, Katowice → Berlin 1,12,
+Wrocław → Gelsenkirchen 1,19, Gdańsk → Berlin 1,20, Wrocław → Berlin 1,29 — Poznań po drodze albo
+lekki łuk. Bez sensu: Zielona Góra → Berlin 2,19, Kraków → Warszawa 2,44, Szczecin → Berlin
+3,40, Kraków → Gorlice 7,74. Próg 1,5 leży w luce między jednymi a drugimi (zapas ok. 0,2 nad
+najgorszą sensowną trasą). Świadomy koszt: Gdańsk → Szczecin (1,53) odpada z wariantu przez
+Poznań — tę relację pokrywa główne zapytanie origin → destination. Próg to heurystyka na
+liniach prostych, nie na realnej sieci kolejowej. Testy graniczne (±0,0001° wokół 1,5) i
+korytarze: `tests/test_via_hub_detour.py`.
 
 ## Dynamiczny dobór lotnisk (huby lot<->kolej)
 
@@ -222,6 +252,15 @@ jak inne, nierozpoznane autokary (RegioJet, BlaBlaBus, ...). `fares/flixbus.py` 
 realną cenę z (nieoficjalnego) API FlixBusa dla konkretnej daty (`leg.depart`), z fallbackiem do
 tego samego zgrubnego PLN/km gdy API jest niedostępne — patrz `fares/README.md`.
 
+**Cena z fallbacku jest niepotwierdzona.** Źródło ceny jest w `breakdown["zrodlo"]`
+(`api_flixbus_live` albo `fallback_km`). Fallback km (0,27 PLN/km) dostaje dodatkowo
+`breakdown["price_verified"] = False` — ten sam mechanizm i ten sam dopisek „cena niepotwierdzona”
+w UI i `demo.py` co przy innych szacunkach — więc wariant z takim odcinkiem nie wygrywa rankingu
+„Najtańsza” z wariantem o potwierdzonej cenie (logika `scoring.pick_recommendations` bez zmian).
+Cena z live API zostaje bez flagi. `price_flixbus_leg` przenosi teraz `breakdown` do `PricedLeg`
+(wcześniej go gubił, więc źródła ceny nie było widać poza `fares/`). Testy:
+`tests/test_unverified_prices.py` (sekcja FlixBus).
+
 ## Scoring: "najlepszy stosunek cena/czas"
 
 `Itinerary.price_per_hour = total_price_pln / (total_duration_min / 60)` — jedna prosta,
@@ -305,7 +344,8 @@ pieszo z adresu → autobus/tramwaj miejski → pociągi → pieszo do adresu.
   Odcinki WALK nie liczą się jako przesiadki i nie są sprawdzane w `transfers.py`. Cena 0.
 - `LegMode.BUS`: autobusy/tramwaje z MOTIS. `pricing.price_bus_leg()` rozpoznaje operatora
   po `agencyName`/nazwach przystanków:
-  - autokar dalekobieżny (Flixbus, RegioJet, ...) → wycena za km, `GENERIC_FALLBACK_PLN_PER_KM`;
+  - autokar dalekobieżny (RegioJet, BlaBlaBus, ...) → wycena za km, `GENERIC_FALLBACK_PLN_PER_KM`
+    (Flixbus ma własny moduł, patrz wyżej);
   - oba końce w obszarze miasta z `CITY_TARIFF_AREAS` → taryfa miejska tego miasta (np.
     `fares/ztm_lublin.py`, taryfa czasowa ZTM Lublin, strefa 1+2);
   - oba końce w NRW → `fares/vrr.py` (eezy.nrw, ta sama taryfa obejmuje bus/tramwaj/U-Bahn co

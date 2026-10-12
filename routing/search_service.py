@@ -10,8 +10,8 @@ pod inny frontend/klienta, tylko skrypt demonstracyjny.
 
 from dataclasses import dataclass
 
-from .demo_route import FLIGHT_REGIONAL_HUBS, VIA_HUB_STOPS
 from .airports import discover_hubs
+from .demo_route import FLIGHT_REGIONAL_HUBS, VIA_HUB_STOPS
 from .model import Itinerary, SkippedVariant
 from .scoring import pick_recommendations
 from .variants import RouteRequest, generate_variants

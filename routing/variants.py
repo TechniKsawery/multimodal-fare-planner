@@ -201,6 +201,79 @@ class AlternativeStop:
     stop_id: str | StopRef
 
 
+# Limit objazdu dla wariantu "Kolej przez <węzeł>" (VIA_HUB_STOPS, dziś Poznań Główny). Bez niego
+# zapytanie bez bezpośredniej trasy w MOTIS (Kraków -> Gorlice) budowało absurd: Kraków ->
+# Wrocław -> Poznań -> Wrocław -> Tarnów -> Stróże -> Gorlice, 32 h i 5 przesiadek, bo "przez
+# Poznań" to dwa niezależne zapytania spięte węzłem i nikt nie pytał, czy węzeł jest po drodze.
+#
+# Próg 1.5: (origin->via + via->destination w linii prostej) <= 1.5 x origin->destination.
+# Skąd: współczynniki dla Poznania na realnych korytarzach (haversine, centra miast):
+#   Lublin->Berlin 1.00, Lublin->Gelsenkirchen 1.02, Warszawa->Berlin 1.00, Kraków->Berlin 1.08,
+#   Katowice->Berlin 1.12, Gdańsk->Berlin 1.20, Wrocław->Gelsenkirchen 1.19, Wrocław->Berlin 1.29
+#   — to trasy, na których Poznań leży po drodze albo jest uczciwym lekkim łukiem (maks. 1.29).
+#   Objazdy bez sensu: Zielona Góra->Berlin 2.19, Kraków->Warszawa 2.44, Szczecin->Berlin 3.40,
+#   Kraków->Gorlice 7.74. Próg 1.5 siedzi w luce między jednymi a drugimi (z zapasem ~0.2 nad
+#   najgorszą sensowną trasą) i jest ten sam co HUB_MAX_DETOUR_RATIO dla hubów lotniczych, więc
+#   obie reguły "objazdu" mają jedną skalę. Świadomy koszt: Gdańsk->Szczecin (1.53) odpada
+#   z wariantu przez Poznań — tę relację i tak pokrywa główne zapytanie origin->destination do MOTIS.
+VIA_HUB_MAX_DETOUR_RATIO = 1.5
+# Dwa punkty trasy bliżej niż tyle uznajemy za TĘ SAMĄ stację (np. dwa wejścia/perony tego samego
+# dworca mają nieco inne współrzędne w GTFS); różne dworce w dużym mieście są od siebie dalej.
+SAME_STATION_RADIUS_KM = 0.5
+
+
+def via_hub_detour_reason(origin, via, destination) -> str | None:
+    """Powód odrzucenia wariantu przez węzeł `via`, gdy origin->via->destination w linii prostej
+    przekracza VIA_HUB_MAX_DETOUR_RATIO x origin->destination; None, gdy węzeł jest sensowny.
+    Brak któregokolwiek ze współrzędnych = nie filtrujemy (jak `hub_is_detour`)."""
+    if not (origin and via and destination):
+        return None
+    h = motis_client.haversine_km
+    direct = h(*origin, *destination)
+    path = h(*origin, *via) + h(*via, *destination)
+    if path > VIA_HUB_MAX_DETOUR_RATIO * max(direct, 1.0):
+        return (
+            f"Pominięty: objazd — trasa przez ten węzeł to ok. {path:.0f} km w linii prostej "
+            f"przy {direct:.0f} km bezpośrednio (limit {VIA_HUB_MAX_DETOUR_RATIO}x)."
+        )
+    return None
+
+
+def _transit_points(legs: list[Leg]) -> list[tuple[str, tuple[float, float] | None]]:
+    """Kolejne punkty trasy po odcinkach z taborem (bez dojść): start pierwszego odcinka, potem
+    koniec każdego. Zwraca (nazwa, współrzędne albo None)."""
+    transit = [leg for leg in legs if leg.mode is not LegMode.WALK]
+    if not transit:
+        return []
+
+    def coords(leg: Leg, prefix: str):
+        lat, lon = leg.extra.get(f"{prefix}_lat"), leg.extra.get(f"{prefix}_lon")
+        return (lat, lon) if lat is not None and lon is not None else None
+
+    points = [(transit[0].origin_name, coords(transit[0], "origin"))]
+    points += [(leg.destination_name, coords(leg, "destination")) for leg in transit]
+    return points
+
+
+def revisited_station_reason(legs: list[Leg]) -> str | None:
+    """Powód odrzucenia, gdy trasa przejeżdża dwa razy przez tę samą stację (np. Kraków ->
+    Wrocław -> Poznań -> Wrocław -> ...: powrót tą samą drogą zamiast jazdy do przodu).
+    Ta sama stacja = te same współrzędne w promieniu SAME_STATION_RADIUS_KM, a bez współrzędnych —
+    ta sama nazwa. Przesiadka w jednym miejscu (koniec odcinka i start następnego) to nie powrót."""
+    points = _transit_points(legs)
+    for j in range(1, len(points)):
+        for i in range(j):
+            name_i, xy_i = points[i]
+            name_j, xy_j = points[j]
+            if xy_i and xy_j:
+                same = motis_client.haversine_km(*xy_i, *xy_j) <= SAME_STATION_RADIUS_KM
+            else:
+                same = name_i.strip().casefold() == name_j.strip().casefold()
+            if same:
+                return f"Pominięty: objazd — trasa wraca przez {name_j} (ta sama stacja dwa razy)."
+    return None
+
+
 def build_rail_via_stop_variant(request: RouteRequest, via: AlternativeStop) -> Itinerary:
     """Kolej: origin -> via -> destination jako DWA osobne zapytania do MOTIS, jawnie spięte
     przez węzeł pośredni `via` — zamiast polegać na tym, że MOTIS sam wybierze tę trasę w
@@ -213,7 +286,19 @@ def build_rail_via_stop_variant(request: RouteRequest, via: AlternativeStop) -> 
     zapytania o MIN_TRANSFER_MINUTES_WALK (bezpieczny próg przesiadki z przejściem — patrz
     transfers.py). Przesiadka w węźle pośrednim między dwoma NIEZALEŻNIE zapytanymi odcinkami
     też jest jawnie oznaczona jako wymagająca przejścia (requires_walk), bo w przeciwieństwie
-    do itinerary z jednego zapytania nie wiemy, czy to ten sam peron."""
+    do itinerary z jednego zapytania nie wiemy, czy to ten sam peron.
+
+    Objazd (węzeł nie po drodze albo powrót tą samą stacją) kończy się MotisError z powodem —
+    `generate_variants` wpisuje go do `skipped`. Limit sprawdzamy najpierw ze współrzędnych
+    zapytania (bez wołania MOTIS), a po zbudowaniu odcinków jeszcze raz ze współrzędnych
+    odcinków, bo przy zapytaniu z samymi stopId MOTIS współrzędnych zapytania nie znamy."""
+    via_xy = _coords_of(via.stop_id)
+    origin_xy = _coords_of(request.origin_stop_id)
+    dest_xy = _coords_of(request.destination_stop_id)
+    reason = via_hub_detour_reason(origin_xy, via_xy, dest_xy)
+    if reason:
+        raise MotisError(reason)
+
     via_id = motis_client.stop_id(via.stop_id)
     first_legs = motis_client.plan_leg(request.origin_stop_id, via_id, request.motis_time)
     if not _departs_on_request_date(first_legs, request):
@@ -226,6 +311,17 @@ def build_rail_via_stop_variant(request: RouteRequest, via: AlternativeStop) -> 
     second_legs[0] = replace(second_legs[0], requires_walk=True)
 
     legs = first_legs + second_legs
+    points = _transit_points(legs)
+    if points:
+        # współrzędne z odcinków uzupełniają to, czego nie dało się wyczytać z samego zapytania
+        origin_xy = origin_xy or points[0][1]
+        dest_xy = dest_xy or points[-1][1]
+        first_points = _transit_points(first_legs)
+        via_xy = via_xy or (first_points[-1][1] if first_points else None)
+    reason = via_hub_detour_reason(origin_xy, via_xy, dest_xy) or revisited_station_reason(legs)
+    if reason:
+        raise MotisError(reason)
+
     priced = _price_legs(legs, request)
     return build_itinerary(f"Kolej przez {via.label}", priced)
 

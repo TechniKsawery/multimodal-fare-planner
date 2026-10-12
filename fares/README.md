@@ -34,6 +34,11 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
   strefa C) — tylko bilet ABC. Wcześniej ABC wybierany był tylko jako „najdłuższy” bilet dla
   jazdy ponad 120 min (przy równym czasie ważności 120 min wygrywał AB), więc BER → centrum
   dostawało 4,00 EUR (AB) zamiast 5,00 EUR (ABC).
+  Źródło tego, że BER leży w strefie C (vbb.de i bvg.de), ma w `bvg_berlin.json` pole
+  `zrodlo_strefa_c_ber` (`vbb_url`: vbb.de/tickets/einzelfahrausweise/, `bvg_url`:
+  bvg.de/de/touristen/verkehrsmittel-tarifbereiche, `data_weryfikacji` 2026-10-12, z cytatami). URL-e wg raportu
+  `research/zrodla-znizek-kart.md` (Gemini) — niezweryfikowane niezależnie, bo strony przewoźników są
+  niedostępne z chmury. Ceny bez zmian.
   Bilety BVG obowiązują też dla S-Bahnu Berlin (tryb MOTIS `SUBURBAN`) w kole 20 km wokół centrum.
 - **Kolej podmiejska poza znanymi taryfami (SKM Szczecin/Trójmiasto, S-Bahn spoza Berlina i NRW)**
   — `fares/` NIE ma dla niej modułu ani danych w `fares/data/*`. `routing/pricing.py` (tryb

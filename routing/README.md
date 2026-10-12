@@ -66,7 +66,7 @@ zalecenia przewoźników — patrz `transfers.py`):
 
 Loty nie mają w tym module własnego rozkładu godzin (`flights/` daje tylko cenę, nie godziny
 odlotu/przylotu) — `variants.py` przyjmuje **placeholder 2h czasu lotu** i buforuje odjazd/
-przyjazd kolei wokół niego (150 min przed odlotem na dojazd+odprawę, 90 min po przylocie).
+przyjazd kolei wokół niego (120 min przed odlotem na odprawę, 60 min po przylocie; to te same stałe co progi przesiadek w `transfers.py`).
 To wystarcza do liczenia bufora przesiadki, ale nie jest realnym rozkładem lotów.
 
 ## Wycena odcinków lotniczych: tylko bilet + bagaż (bez dojazdu/transferu)

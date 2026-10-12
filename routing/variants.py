@@ -29,7 +29,11 @@ from . import motis_client, pricing
 from .model import Itinerary, Leg, LegMode, SkippedVariant
 from .motis_client import MotisError, StopRef
 from .scoring import build_itinerary
-from .transfers import MIN_TRANSFER_MINUTES_WALK
+from .transfers import (
+    MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL,
+    MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT,
+    MIN_TRANSFER_MINUTES_WALK,
+)
 
 try:
     from flights.travelpayouts import TravelpayoutsError
@@ -287,13 +291,13 @@ def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Iti
     for access_legs in access_options:
         if access_legs:
             flight_depart = access_legs[-1].arrive + timedelta(
-                minutes=150
+                minutes=MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT
             )  # bufor: odprawa/security
         else:
             flight_depart = datetime.fromisoformat(request.motis_time.replace("Z", "+00:00"))
 
         flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
-        onward_time = (flight_leg.arrive + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
+        onward_time = (flight_leg.arrive + timedelta(minutes=MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL)).isoformat().replace("+00:00", "Z")
         onward_options = motis_client.plan_leg_candidates(
             destination_access_id,
             request.destination_stop_id,
@@ -316,7 +320,7 @@ def build_flight_regional_variant(request: RouteRequest, hub: HubConfig) -> Itin
     flight_depart = datetime.fromisoformat(request.motis_time.replace("Z", "+00:00"))
     flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
 
-    onward_time = (flight_leg.arrive + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
+    onward_time = (flight_leg.arrive + timedelta(minutes=MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL)).isoformat().replace("+00:00", "Z")
     onward_options = motis_client.plan_leg_candidates(
         motis_client.stop_id(hub.destination_rail_access_stop_id),
         request.destination_stop_id,

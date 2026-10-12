@@ -11,8 +11,10 @@ MIN_TRANSFER_MINUTES_SAME_PLATFORM = (
 MIN_TRANSFER_MINUTES_WALK = 30  # kolej->kolej, ze zmianą peronu/dworca (jest leg WALK w MOTIS)
 MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT = 120  # dojście do terminala, odprawa, kontrola bezpieczeństwa
 MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL = (
-    90  # wyjście z samolotu, odbiór bagażu, dojście/dojazd do stacji
+    60  # wyjście z samolotu, odbiór bagażu, dojście/dojazd do stacji
 )
+# Bufory, które variants.py wstawia wokół lotu, to dokładnie te progi (jedno miejsce wartości):
+# przed odlotem = MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT, po przylocie = MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL.
 
 
 # ABSOLUTNE minima wykonalności — poniżej nich człowiek fizycznie nie zdąży (wariant jest

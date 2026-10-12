@@ -334,7 +334,7 @@ def test_przesiadka_kolej_lot_wymaga_duzego_bufora():
 def test_przesiadka_lot_kolej_z_wystarczajacym_buforem():
     prev = make_leg(LegMode.FLIGHT, "X", "Lotnisko", _dt(6), _dt(8))
     nxt = make_leg(LegMode.RAIL, "Lotnisko", "Y", _dt(9, 35), _dt(11))
-    assert transfers.check_transfer(prev, nxt, 0) is None  # 95 min >= 90
+    assert transfers.check_transfer(prev, nxt, 0) is None  # 95 min >= 60
 
 
 def test_check_all_transfers_zbiera_wiele_ostrzezen():
@@ -1021,7 +1021,7 @@ def test_build_rail_flight_rail_variant_wybiera_najlepsza_kombinacje_calosciowo(
     )
     hub = variants.HubConfig("Warszawa-Dortmund", "WAW", "DTM", "waw_airport", "dortmund_hbf")
 
-    # Najszybszy dojazd: przyjazd 7:55, zostawia tylko 5 min do (sztywnego) bufora 150 min
+    # Najszybszy dojazd: przyjazd 7:55, zostawia tylko 5 min do (sztywnego) bufora 120 min
     # przed lotem liczonym od MOMENTU PRZYJAZDU, więc to akurat nie wpływa na wykonalność —
     # różnicuje je za to CENA (symulowana przez różne distance_km -> różna cena via fares).
     fast_but_pricier = [
@@ -1955,3 +1955,10 @@ def test_motis_time_uwzglednia_godzine_wyjazdu_w_czasie_lokalnym():
 
     req = RouteRequest("a", "b", "A", "B", "2026-10-20", departure_time="14:30:00")
     assert req.motis_time == "2026-10-20T14:30:00+02:00"
+
+
+def test_bufory_wokol_lotu_to_progi_przesiadek():
+    assert transfers.MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT == 120
+    assert transfers.MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL == 60
+    assert variants.MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT == 120
+    assert variants.MIN_TRANSFER_MINUTES_FLIGHT_TO_RAIL == 60

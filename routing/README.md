@@ -38,6 +38,20 @@ reszty. Konkretne `stopId` dla `AlternativeStop` trzeba dobrać ręcznie (np. pr
 `/api/v1/geocode` albo znajomość sieci) — silnik nie zgaduje sam, które miasta/dworce warto
 sprawdzić.
 
+## Dynamiczny dobór lotnisk (huby lot<->kolej)
+
+Huby nie są stałą listą par: `routing/airports.py::discover_hubs` dobiera je dla każdego zapytania.
+1. Lotniska z `routing/data/airports.json` (PL+DE, współrzędne) w promieniu 200 km od startu i celu.
+2. Odrzucane są pary będące objazdem: lotnisko przylotu musi być bliżej celu niż wylotu, a droga
+   start->wylot->przylot->cel w linii prostej <= 1,5 x bezpośrednia.
+3. Do 16 najlepszych par sprawdzamy w Travelpayouts (`prices_for_dates`, `direct=true`, data, potem
+   miesiąc). Bez biletu bezpośredniego w cache para odpada: to brak POTWIERDZENIA, nie dowód braku lotu.
+4. Dojazd do lotniska: stacja z `AIRPORT_STATIONS`, a dla reszty współrzędne lotniska (MOTIS dobiera
+   przystanek; bez przystanku w zasięgu wariant trafia do pominiętych).
+
+Każda odrzucona para ma powód w "Pominięte warianty" (pary bez potwierdzenia są zgrupowane w jeden
+wpis na powód). Tabela lotnisk nie mówi nic o rejsach; lot jest nadal bezpośredni, ze sztywnym czasem.
+
 ## Moduły
 
 | Plik | Zawartość |

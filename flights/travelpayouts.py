@@ -94,3 +94,39 @@ def cheapest_entry(payload: dict, destination: str) -> dict:
             "(zbyt egzotyczna trasa albo data poza zakresem cache)."
         )
     return entry
+
+
+def fetch_direct_tickets(
+    origin: str, destination: str, departure_at: str, currency: str = "PLN"
+) -> list[dict]:
+    """GET /aviasales/v3/prices_for_dates z direct=true — bilety bezpośrednie (transfers == 0)
+    z cache Travelpayouts dla daty ("YYYY-MM-DD") albo miesiąca ("YYYY-MM").
+
+    Używane do potwierdzania, że lot bezpośredni między lotniskami w ogóle istnieje. Uwaga:
+    /v1/prices/cheap NIE nadaje się do tego — klucze "0"/"1"/"2" w jego odpowiedzi to numer
+    kolejny wyniku, nie liczba przesiadek (dokumentacja Travelpayouts). Pusta lista oznacza
+    brak biletu bezpośredniego W CACHE, a nie dowód braku lotu."""
+    token = _get_token()
+    try:
+        response = requests.get(
+            "https://api.travelpayouts.com/aviasales/v3/prices_for_dates",
+            params={
+                "origin": origin.upper(),
+                "destination": destination.upper(),
+                "departure_at": departure_at,
+                "direct": "true",
+                "one_way": "true",
+                "sorting": "price",
+                "limit": 30,
+                "currency": currency,
+            },
+            headers={"x-access-token": token},
+            timeout=15,
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise TravelpayoutsError(f"Błąd zapytania do Travelpayouts API: {exc}") from exc
+    payload = response.json()
+    if not payload.get("success"):
+        raise TravelpayoutsError(f"Travelpayouts API zwróciło błąd: {payload.get('error')}")
+    return [t for t in payload.get("data") or [] if t.get("transfers") == 0]

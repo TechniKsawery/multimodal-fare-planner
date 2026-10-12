@@ -70,28 +70,36 @@ def fetch_cheapest_price(
     return payload
 
 
+DIRECT_KEY = "0"
+"""Klucz wpisu bez przesiadek w data[<IATA>] odpowiedzi /v1/prices/cheap. Klucze "0"/"1"/"2" to
+liczba przesiadek (0 = lot bezpośredni), a NIE numer kolejny wyniku — patrz flights/README.md,
+sekcja "Znaczenie kluczy"."""
+
+
 def cheapest_entry_or_none(payload: dict, destination: str) -> dict | None:
-    """Jak cheapest_entry, ale zwraca None zamiast podnosić błąd, gdy brak wpisów dla tej
-    relacji w odpowiedzi — używane przez calculator.py do próby fallbacku (np. cache
-    miesięczny) zamiast od razu odrzucać cały wariant lotu."""
+    """Wpis z BEZPOŚREDNIM lotem (klucz "0") dla relacji albo None, gdy go brak.
+
+    Wpisy z kluczy "1"/"2" (lot z przesiadkami) są ignorowane — nie wolno ich podawać jako lotu
+    bezpośredniego. None oznacza dla calculator.py próbę fallbacku (cache miesięczny), a na końcu
+    szacunek z etykietą "cena niepotwierdzona"."""
     data = payload.get("data") or {}
     entries = data.get(destination.upper())
     if not entries:
         return None
-    # Klucze "0"/"1"/"2" w /v1/prices/cheap to numer kolejny wyniku, NIE liczba przesiadek
-    # (dokumentacja Travelpayouts), a odpowiedź nie ma pola z przesiadkami — więc nie wiemy ile ich jest.
-    _, best = min(entries.items(), key=lambda item: item[1]["price"])
-    return {**best, "transfers": None}
+    direct = entries.get(DIRECT_KEY)
+    if not direct:
+        return None
+    return {**direct, "transfers": 0}
 
 
 def cheapest_entry(payload: dict, destination: str) -> dict:
-    """Wybiera najtańszy wpis spośród wyników dla danego kierunku (liczba przesiadek nieznana).
-    """
+    """Jak cheapest_entry_or_none, ale podnosi błąd, gdy brak bezpośredniego wpisu dla relacji."""
     entry = cheapest_entry_or_none(payload, destination)
     if entry is None:
         raise TravelpayoutsError(
-            f"Brak cen dla relacji -> {destination.upper()} w odpowiedzi Travelpayouts "
-            "(zbyt egzotyczna trasa albo data poza zakresem cache)."
+            f"Brak ceny lotu bezpośredniego dla relacji -> {destination.upper()} w odpowiedzi "
+            "Travelpayouts (zbyt egzotyczna trasa, data poza zakresem cache albo w cache są "
+            "tylko loty z przesiadkami)."
         )
     return entry
 
@@ -102,10 +110,9 @@ def fetch_direct_tickets(
     """GET /aviasales/v3/prices_for_dates z direct=true — bilety bezpośrednie (transfers == 0)
     z cache Travelpayouts dla daty ("YYYY-MM-DD") albo miesiąca ("YYYY-MM").
 
-    Używane do potwierdzania, że lot bezpośredni między lotniskami w ogóle istnieje. Uwaga:
-    /v1/prices/cheap NIE nadaje się do tego — klucze "0"/"1"/"2" w jego odpowiedzi to numer
-    kolejny wyniku, nie liczba przesiadek (dokumentacja Travelpayouts). Pusta lista oznacza
-    brak biletu bezpośredniego W CACHE, a nie dowód braku lotu."""
+    Używane do potwierdzania, że lot bezpośredni między lotniskami w ogóle istnieje (filtrujemy
+    jeszcze po stronie klienta po transfers == 0). Pusta lista oznacza brak biletu
+    bezpośredniego W CACHE, a nie dowód braku lotu."""
     token = _get_token()
     try:
         response = requests.get(

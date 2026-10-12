@@ -1,6 +1,6 @@
 """Wspólny punkt wejścia do wyszukiwania trasy: generate_variants() + pick_recommendations()
-w jednym wywołaniu, ze standardowym zestawem hubów lot<->kolej i węzłów pośrednich z
-routing/demo_route.py.
+w jednym wywołaniu; huby lot<->kolej dobierają się dynamicznie (routing/airports.py), a węzły
+pośrednie pochodzą z routing/demo_route.py.
 
 Używane przez app.py (Streamlit) i api/ (FastAPI), żeby obie "fasady" wołały identyczną logikę
 routingu i taryf, a nie duplikowały tę samą sekwencję wywołań. demo.py (CLI) ma własne testy
@@ -10,7 +10,8 @@ pod inny frontend/klienta, tylko skrypt demonstracyjny.
 
 from dataclasses import dataclass
 
-from .demo_route import FLIGHT_REGIONAL_HUBS, RAIL_FLIGHT_RAIL_HUBS, VIA_HUB_STOPS
+from .demo_route import FLIGHT_REGIONAL_HUBS, VIA_HUB_STOPS
+from .airports import discover_hubs
 from .model import Itinerary, SkippedVariant
 from .scoring import pick_recommendations
 from .variants import RouteRequest, generate_variants
@@ -35,9 +36,9 @@ def search(request: RouteRequest) -> SearchResult:
     """
     built, skipped = generate_variants(
         request,
-        rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,
         flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
         via_hub_stops=VIA_HUB_STOPS,
+        hub_discovery=lambda o, d, skip: discover_hubs(o, d, request.date, skip),
     )
     recommendations = pick_recommendations(built) if built else {}
     return SearchResult(

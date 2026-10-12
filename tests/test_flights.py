@@ -37,10 +37,10 @@ SAMPLE_PAYLOAD = {
 }
 
 
-def test_cheapest_entry_wybiera_najnizsza_cene_miedzy_liczba_przesiadek():
+def test_cheapest_entry_wybiera_najnizsza_cene_a_przesiadki_sa_nieznane():
     entry = cheapest_entry(SAMPLE_PAYLOAD, "DUS")
     assert entry["price"] == 300.0
-    assert entry["transfers"] == 1
+    assert entry["transfers"] is None  # klucz "1" to numer wyniku, nie liczba przesiadek
     assert entry["airline"] == "W6"
 
 
@@ -74,7 +74,7 @@ def test_estimate_price_dolicza_wlasny_extras_profile(monkeypatch):
     assert result.price_type is PriceType.ESTIMATE
     assert result.amount == pytest.approx(300 + 100 + 30 + 20)
     assert result.breakdown["cena_biletu"] == 300
-    assert result.breakdown["przesiadki"] == 1
+    assert result.breakdown["przesiadki"] is None
     assert result.breakdown["bagaz"] == 100
     assert result.origin == "WAW"
     assert result.destination == "DUS"

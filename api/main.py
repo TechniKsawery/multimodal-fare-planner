@@ -60,6 +60,7 @@ def find_route(payload: RouteSearchRequest) -> dict:
             departure_time=payload.departure_time,
             discounts=discounts,
             flight_currency=payload.flight_currency,
+            checked_baggage=payload.checked_baggage,
         )
         result = search(route_request)
     except MotisError as exc:

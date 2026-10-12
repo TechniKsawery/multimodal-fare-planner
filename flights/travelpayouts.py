@@ -78,15 +78,14 @@ def cheapest_entry_or_none(payload: dict, destination: str) -> dict | None:
     entries = data.get(destination.upper())
     if not entries:
         return None
-    best_stops, best = min(entries.items(), key=lambda item: item[1]["price"])
-    return {**best, "transfers": int(best_stops)}
+    # Klucze "0"/"1"/"2" w /v1/prices/cheap to numer kolejny wyniku, NIE liczba przesiadek
+    # (dokumentacja Travelpayouts), a odpowiedź nie ma pola z przesiadkami — więc nie wiemy ile ich jest.
+    _, best = min(entries.items(), key=lambda item: item[1]["price"])
+    return {**best, "transfers": None}
 
 
 def cheapest_entry(payload: dict, destination: str) -> dict:
-    """Wybiera najtańszy wpis (spośród bezpośrednich / 1 / 2 przesiadek) dla danego kierunku.
-
-    /v1/prices/cheap grupuje wyniki wg liczby przesiadek (klucze "0"/"1"/"2"), więc żeby
-    dostać jedną, faktycznie najtańszą cenę trzeba porównać ceny między tymi wpisami.
+    """Wybiera najtańszy wpis spośród wyników dla danego kierunku (liczba przesiadek nieznana).
     """
     entry = cheapest_entry_or_none(payload, destination)
     if entry is None:
@@ -95,3 +94,39 @@ def cheapest_entry(payload: dict, destination: str) -> dict:
             "(zbyt egzotyczna trasa albo data poza zakresem cache)."
         )
     return entry
+
+
+def fetch_direct_tickets(
+    origin: str, destination: str, departure_at: str, currency: str = "PLN"
+) -> list[dict]:
+    """GET /aviasales/v3/prices_for_dates z direct=true — bilety bezpośrednie (transfers == 0)
+    z cache Travelpayouts dla daty ("YYYY-MM-DD") albo miesiąca ("YYYY-MM").
+
+    Używane do potwierdzania, że lot bezpośredni między lotniskami w ogóle istnieje. Uwaga:
+    /v1/prices/cheap NIE nadaje się do tego — klucze "0"/"1"/"2" w jego odpowiedzi to numer
+    kolejny wyniku, nie liczba przesiadek (dokumentacja Travelpayouts). Pusta lista oznacza
+    brak biletu bezpośredniego W CACHE, a nie dowód braku lotu."""
+    token = _get_token()
+    try:
+        response = requests.get(
+            "https://api.travelpayouts.com/aviasales/v3/prices_for_dates",
+            params={
+                "origin": origin.upper(),
+                "destination": destination.upper(),
+                "departure_at": departure_at,
+                "direct": "true",
+                "one_way": "true",
+                "sorting": "price",
+                "limit": 30,
+                "currency": currency,
+            },
+            headers={"x-access-token": token},
+            timeout=15,
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise TravelpayoutsError(f"Błąd zapytania do Travelpayouts API: {exc}") from exc
+    payload = response.json()
+    if not payload.get("success"):
+        raise TravelpayoutsError(f"Travelpayouts API zwróciło błąd: {payload.get('error')}")
+    return [t for t in payload.get("data") or [] if t.get("transfers") == 0]

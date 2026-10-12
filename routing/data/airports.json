@@ -1,0 +1,298 @@
+[
+ {
+  "iata": "WAW",
+  "name": "Warsaw Chopin Airport",
+  "city": "Warsaw",
+  "country": "Poland",
+  "lat": 52.1657,
+  "lon": 20.9671
+ },
+ {
+  "iata": "WMI",
+  "name": "Modlin Airport",
+  "city": "Warsaw",
+  "country": "Poland",
+  "lat": 52.4511,
+  "lon": 20.6518
+ },
+ {
+  "iata": "KRK",
+  "name": "Kraków John Paul II International Airport",
+  "city": "Krakow",
+  "country": "Poland",
+  "lat": 50.0777,
+  "lon": 19.7848
+ },
+ {
+  "iata": "KTW",
+  "name": "Katowice International Airport",
+  "city": "Katowice",
+  "country": "Poland",
+  "lat": 50.4743,
+  "lon": 19.08
+ },
+ {
+  "iata": "GDN",
+  "name": "Gdańsk Lech Wałęsa Airport",
+  "city": "Gdansk",
+  "country": "Poland",
+  "lat": 54.3776,
+  "lon": 18.4662
+ },
+ {
+  "iata": "WRO",
+  "name": "Copernicus Wrocław Airport",
+  "city": "Wroclaw",
+  "country": "Poland",
+  "lat": 51.1027,
+  "lon": 16.8858
+ },
+ {
+  "iata": "POZ",
+  "name": "Poznań-Ławica Airport",
+  "city": "Poznan",
+  "country": "Poland",
+  "lat": 52.421,
+  "lon": 16.8263
+ },
+ {
+  "iata": "LUZ",
+  "name": "Lublin Airport",
+  "city": "Lublin",
+  "country": "Poland",
+  "lat": 51.2403,
+  "lon": 22.7136
+ },
+ {
+  "iata": "RZE",
+  "name": "Rzeszów-Jasionka Airport",
+  "city": "Rzeszow",
+  "country": "Poland",
+  "lat": 50.11,
+  "lon": 22.019
+ },
+ {
+  "iata": "SZZ",
+  "name": "Szczecin-Goleniów \"Solidarność\" Airport",
+  "city": "Szczecin",
+  "country": "Poland",
+  "lat": 53.5847,
+  "lon": 14.9022
+ },
+ {
+  "iata": "BZG",
+  "name": "Bydgoszcz Ignacy Jan Paderewski Airport",
+  "city": "Bydgoszcz",
+  "country": "Poland",
+  "lat": 53.0968,
+  "lon": 17.9777
+ },
+ {
+  "iata": "LCJ",
+  "name": "Łódź Władysław Reymont Airport",
+  "city": "Lodz",
+  "country": "Poland",
+  "lat": 51.7219,
+  "lon": 19.3981
+ },
+ {
+  "iata": "HAM",
+  "name": "Hamburg Airport",
+  "city": "Hamburg",
+  "country": "Germany",
+  "lat": 53.6304,
+  "lon": 9.9882
+ },
+ {
+  "iata": "BRE",
+  "name": "Bremen Airport",
+  "city": "Bremen",
+  "country": "Germany",
+  "lat": 53.0475,
+  "lon": 8.7867
+ },
+ {
+  "iata": "HAJ",
+  "name": "Hannover Airport",
+  "city": "Hannover",
+  "country": "Germany",
+  "lat": 52.4611,
+  "lon": 9.6851
+ },
+ {
+  "iata": "DUS",
+  "name": "Düsseldorf Airport",
+  "city": "Duesseldorf",
+  "country": "Germany",
+  "lat": 51.2895,
+  "lon": 6.7668
+ },
+ {
+  "iata": "CGN",
+  "name": "Cologne Bonn Airport",
+  "city": "Cologne",
+  "country": "Germany",
+  "lat": 50.8659,
+  "lon": 7.1427
+ },
+ {
+  "iata": "DTM",
+  "name": "Dortmund Airport",
+  "city": "Dortmund",
+  "country": "Germany",
+  "lat": 51.5183,
+  "lon": 7.6122
+ },
+ {
+  "iata": "FMO",
+  "name": "Münster Osnabrück Airport",
+  "city": "Munster",
+  "country": "Germany",
+  "lat": 52.1346,
+  "lon": 7.6848
+ },
+ {
+  "iata": "NRN",
+  "name": "Weeze Airport",
+  "city": "Weeze",
+  "country": "Germany",
+  "lat": 51.6024,
+  "lon": 6.1422
+ },
+ {
+  "iata": "PAD",
+  "name": "Paderborn Lippstadt Airport",
+  "city": "Paderborn",
+  "country": "Germany",
+  "lat": 51.6141,
+  "lon": 8.6163
+ },
+ {
+  "iata": "DRS",
+  "name": "Dresden Airport",
+  "city": "Dresden",
+  "country": "Germany",
+  "lat": 51.1328,
+  "lon": 13.7672
+ },
+ {
+  "iata": "LEJ",
+  "name": "Leipzig/Halle Airport",
+  "city": "Leipzig",
+  "country": "Germany",
+  "lat": 51.4239,
+  "lon": 12.2364
+ },
+ {
+  "iata": "FRA",
+  "name": "Frankfurt am Main Airport",
+  "city": "Frankfurt",
+  "country": "Germany",
+  "lat": 50.0333,
+  "lon": 8.5706
+ },
+ {
+  "iata": "HHN",
+  "name": "Frankfurt-Hahn Airport",
+  "city": "Hahn",
+  "country": "Germany",
+  "lat": 49.9487,
+  "lon": 7.2639
+ },
+ {
+  "iata": "STR",
+  "name": "Stuttgart Airport",
+  "city": "Stuttgart",
+  "country": "Germany",
+  "lat": 48.6899,
+  "lon": 9.222
+ },
+ {
+  "iata": "MUC",
+  "name": "Munich Airport",
+  "city": "Munich",
+  "country": "Germany",
+  "lat": 48.3538,
+  "lon": 11.7861
+ },
+ {
+  "iata": "NUE",
+  "name": "Nuremberg Airport",
+  "city": "Nuernberg",
+  "country": "Germany",
+  "lat": 49.4987,
+  "lon": 11.0781
+ },
+ {
+  "iata": "FMM",
+  "name": "Memmingen Allgau Airport",
+  "city": "Memmingen",
+  "country": "Germany",
+  "lat": 47.9888,
+  "lon": 10.2395
+ },
+ {
+  "iata": "FDH",
+  "name": "Friedrichshafen Airport",
+  "city": "Friedrichshafen",
+  "country": "Germany",
+  "lat": 47.6713,
+  "lon": 9.5115
+ },
+ {
+  "iata": "SCN",
+  "name": "Saarbrücken Airport",
+  "city": "Saarbruecken",
+  "country": "Germany",
+  "lat": 49.2146,
+  "lon": 7.1095
+ },
+ {
+  "iata": "ERF",
+  "name": "Erfurt Airport",
+  "city": "Erfurt",
+  "country": "Germany",
+  "lat": 50.9798,
+  "lon": 10.9581
+ },
+ {
+  "iata": "FKB",
+  "name": "Karlsruhe Baden-Baden Airport",
+  "city": "Karlsruhe/Baden-Baden",
+  "country": "Germany",
+  "lat": 48.7794,
+  "lon": 8.0805
+ },
+ {
+  "iata": "LBC",
+  "name": "Lübeck Blankensee Airport",
+  "city": "Luebeck",
+  "country": "Germany",
+  "lat": 53.8054,
+  "lon": 10.7192
+ },
+ {
+  "iata": "RLG",
+  "name": "Rostock-Laage Airport",
+  "city": "Laage",
+  "country": "Germany",
+  "lat": 53.9182,
+  "lon": 12.2783
+ },
+ {
+  "iata": "KSF",
+  "name": "Kassel-Calden Airport",
+  "city": "Kassel",
+  "country": "Germany",
+  "lat": 51.4173,
+  "lon": 9.385
+ },
+ {
+  "iata": "BER",
+  "name": "Berlin Brandenburg Airport",
+  "city": "Berlin",
+  "country": "Germany",
+  "lat": 52.3667,
+  "lon": 13.5033
+ }
+]

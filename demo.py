@@ -228,6 +228,12 @@ def main() -> None:
         help="zniżka seniora — wpływa na cenę atrakcji z potwierdzoną zniżką senioralną",
     )
     parser.add_argument(
+        "--cabin-baggage-only",
+        action="store_true",
+        help="loty tylko z bagażem podręcznym (bez opłaty za rejestrowany, bufor po lądowaniu 60 "
+        "zamiast 90 min; bufory to szacunek) — domyślnie liczony bagaż rejestrowany",
+    )
+    parser.add_argument(
         "--all-variants",
         action="store_true",
         help="pokaż w sekcji 'wszystkie warianty' także absurdalnie wolne (domyślnie ukryte)",
@@ -245,6 +251,7 @@ def main() -> None:
             departure_time=args.departure_time if args.departure_time.count(":") == 2
             else f"{args.departure_time}:00",
             discounts=DiscountProfile(age=args.age, child_with_guardian=args.child_with_guardian),
+            checked_baggage=not args.cabin_baggage_only,
         )
     except MotisError as exc:
         print(f"Nie udało się zgeokodować adresów: {exc}")

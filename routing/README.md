@@ -38,6 +38,29 @@ reszty. Konkretne `stopId` dla `AlternativeStop` trzeba dobrać ręcznie (np. pr
 `/api/v1/geocode` albo znajomość sieci) — silnik nie zgaduje sam, które miasta/dworce warto
 sprawdzić.
 
+## Bagaż rejestrowany czy podręczny (loty)
+
+`RouteRequest.checked_baggage` (UI: pole "Bagaż rejestrowany (loty)", API: `checked_baggage`,
+domyślnie `True`, jak wcześniej) steruje trzema rzeczami naraz: czy cena lotu zawiera bagaż
+rejestrowany, bufor po lądowaniu przy budowie wariantu i próg przesiadki lot->kolej
+(`flight_to_rail_minimum` w `transfers.py`: 90 min z rejestrowanym, 60 min bez). Wartość jest
+zapisana w `Leg.extra["checked_baggage"]` odcinka lotu. To SZACUNKI, nie wytyczne przewoźników.
+Bagaż podręczny per przewoźnik (limity wag i opłaty) jest osobnym zadaniem i nie jest tu modelowany.
+
+## Dynamiczny dobór lotnisk (huby lot<->kolej)
+
+Huby nie są stałą listą par: `routing/airports.py::discover_hubs` dobiera je dla każdego zapytania.
+1. Lotniska z `routing/data/airports.json` (PL+DE, współrzędne) w promieniu 200 km od startu i celu.
+2. Odrzucane są pary będące objazdem: lotnisko przylotu musi być bliżej celu niż wylotu, a droga
+   start->wylot->przylot->cel w linii prostej <= 1,5 x bezpośrednia.
+3. Do 16 najlepszych par sprawdzamy w Travelpayouts (`prices_for_dates`, `direct=true`, data, potem
+   miesiąc). Bez biletu bezpośredniego w cache para odpada: to brak POTWIERDZENIA, nie dowód braku lotu.
+4. Dojazd do lotniska: stacja z `AIRPORT_STATIONS`, a dla reszty współrzędne lotniska (MOTIS dobiera
+   przystanek; bez przystanku w zasięgu wariant trafia do pominiętych).
+
+Każda odrzucona para ma powód w "Pominięte warianty" (pary bez potwierdzenia są zgrupowane w jeden
+wpis na powód). Tabela lotnisk nie mówi nic o rejsach; lot jest nadal bezpośredni, ze sztywnym czasem.
+
 ## Moduły
 
 | Plik | Zawartość |
@@ -66,7 +89,7 @@ zalecenia przewoźników — patrz `transfers.py`):
 
 Loty nie mają w tym module własnego rozkładu godzin (`flights/` daje tylko cenę, nie godziny
 odlotu/przylotu) — `variants.py` przyjmuje **placeholder 2h czasu lotu** i buforuje odjazd/
-przyjazd kolei wokół niego (150 min przed odlotem na dojazd+odprawę, 90 min po przylocie).
+przyjazd kolei wokół niego (120 min przed odlotem na odprawę, po przylocie 90 min z bagażem rejestrowanym albo 60 min z samym podręcznym; to te same stałe co progi przesiadek w `transfers.py`).
 To wystarcza do liczenia bufora przesiadki, ale nie jest realnym rozkładem lotów.
 
 ## Wycena odcinków lotniczych: tylko bilet + bagaż (bez dojazdu/transferu)

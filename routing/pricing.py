@@ -371,12 +371,20 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
 
     origin_iata = leg.extra["origin_iata"]
     destination_iata = leg.extra["destination_iata"]
+    checked_baggage = leg.extra.get("checked_baggage", True)
+    extras = (
+        _flight_baggage_only_extras(origin_iata, destination_iata, currency)
+        if checked_baggage
+        else ExtrasProfile(
+            baggage_cost=0.0, currency=currency, note="Tylko bagaż podręczny: bez opłaty za rejestrowany."
+        )
+    )
     segment = FlightSegment(
         origin=origin_iata,
         destination=destination_iata,
         depart_date=leg.extra["depart_date"],
         currency=currency,
-        extras=_flight_baggage_only_extras(origin_iata, destination_iata, currency),
+        extras=extras,
     )
     result = flights_estimate_price(
         segment
@@ -386,7 +394,9 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
     # Ryanaira), jeśli go znamy — nadpisuje szacunek z tabeli relacji/domyślny użyty wyżej
     # w _flight_baggage_only_extras (ten nie znał jeszcze linii, bo poznajemy ją dopiero z
     # odpowiedzi Travelpayouts).
-    airline_baggage = get_baggage_by_airline(result.breakdown.get("linia"))
+    airline_baggage = (
+        get_baggage_by_airline(result.breakdown.get("linia")) if checked_baggage else None
+    )
     if airline_baggage is not None:
         amount_native, currency_native, source_note = airline_baggage
         amount_in_currency = convert_currency(amount_native, currency_native, currency)

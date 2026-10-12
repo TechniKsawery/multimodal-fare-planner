@@ -43,6 +43,9 @@ class RouteSearchRequest(BaseModel):
     )
     discounts: DiscountProfileIn = Field(default_factory=DiscountProfileIn)
     flight_currency: str = "PLN"
+    checked_baggage: bool = Field(
+        True, description="True = bagaż rejestrowany (w cenie lotu, bufor po lądowaniu 90 min); False = tylko podręczny (60 min). Bufory to szacunek."
+    )
 
 
 class CityCardEvaluateRequest(BaseModel):

@@ -29,7 +29,11 @@ from . import motis_client, pricing
 from .model import Itinerary, Leg, LegMode, SkippedVariant
 from .motis_client import MotisError, StopRef
 from .scoring import build_itinerary
-from .transfers import MIN_TRANSFER_MINUTES_WALK
+from .transfers import (
+    MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT,
+    MIN_TRANSFER_MINUTES_WALK,
+    flight_to_rail_minimum,
+)
 
 try:
     from flights.travelpayouts import TravelpayoutsError
@@ -54,6 +58,8 @@ class RouteRequest:
     )
     discounts: DiscountProfile = field(default_factory=DiscountProfile)
     flight_currency: str = "PLN"
+    checked_baggage: bool = True  # True = bagaż rejestrowany (w cenie lotu, dłuższy bufor po
+    # lądowaniu); False = tylko podręczny (bez opłaty za bagaż, krótszy bufor)
 
     @property
     def motis_time(self) -> str:
@@ -98,7 +104,9 @@ class HubConfig:
     )
 
 
-def build_flight_leg(origin_iata: str, destination_iata: str, depart_at: datetime) -> Leg:
+def build_flight_leg(
+    origin_iata: str, destination_iata: str, depart_at: datetime, checked_baggage: bool = True
+) -> Leg:
     """Leg lotu ze SZTYWNYM czasem trwania placeholderem (2h) — nie mamy rozkładu lotów,
     tylko cenę (flights/travelpayouts.py zwraca cenę, nie godziny odlotu/przylotu w naszym
     zapytaniu). To wystarcza do liczenia bufora przesiadki, ale nie jest realną godziną lotu."""
@@ -116,6 +124,7 @@ def build_flight_leg(origin_iata: str, destination_iata: str, depart_at: datetim
             "origin_iata": origin_iata,
             "destination_iata": destination_iata,
             "depart_date": depart_at.strftime("%Y-%m-%d"),
+            "checked_baggage": checked_baggage,
         },
     )
 
@@ -287,13 +296,16 @@ def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Iti
     for access_legs in access_options:
         if access_legs:
             flight_depart = access_legs[-1].arrive + timedelta(
-                minutes=150
+                minutes=MIN_TRANSFER_MINUTES_RAIL_TO_FLIGHT
             )  # bufor: odprawa/security
         else:
             flight_depart = datetime.fromisoformat(request.motis_time.replace("Z", "+00:00"))
 
-        flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
-        onward_time = (flight_leg.arrive + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
+        flight_leg = build_flight_leg(
+            hub.origin_iata, hub.destination_iata, flight_depart, request.checked_baggage
+        )
+        landing_buffer = timedelta(minutes=flight_to_rail_minimum(request.checked_baggage))
+        onward_time = (flight_leg.arrive + landing_buffer).isoformat().replace("+00:00", "Z")
         onward_options = motis_client.plan_leg_candidates(
             destination_access_id,
             request.destination_stop_id,
@@ -314,9 +326,12 @@ def build_flight_regional_variant(request: RouteRequest, hub: HubConfig) -> Itin
     Odjazd z huba sprawdza po HUB_LEG_ALTERNATIVES alternatywnych itinerariów MOTIS (patrz
     build_rail_flight_rail_variant) zamiast brać automatycznie najszybszy."""
     flight_depart = datetime.fromisoformat(request.motis_time.replace("Z", "+00:00"))
-    flight_leg = build_flight_leg(hub.origin_iata, hub.destination_iata, flight_depart)
+    flight_leg = build_flight_leg(
+            hub.origin_iata, hub.destination_iata, flight_depart, request.checked_baggage
+        )
 
-    onward_time = (flight_leg.arrive + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
+    landing_buffer = timedelta(minutes=flight_to_rail_minimum(request.checked_baggage))
+    onward_time = (flight_leg.arrive + landing_buffer).isoformat().replace("+00:00", "Z")
     onward_options = motis_client.plan_leg_candidates(
         motis_client.stop_id(hub.destination_rail_access_stop_id),
         request.destination_stop_id,
@@ -332,6 +347,54 @@ def build_flight_regional_variant(request: RouteRequest, hub: HubConfig) -> Itin
     return _best_overall(candidates)
 
 
+# Huby lot<->kolej są konfigurowane na stałe (demo_route.py, pod Lublin->Gelsenkirchen), a
+# generate_variants stosuje je do KAŻDEGO zapytania. Bez filtra geograficznego Warszawa->Düsseldorf
+# trafiała też do trasy Lublin->Berlin (lot na zachód, potem pociąg 326 min z powrotem na wschód).
+HUB_MAX_DETOUR_RATIO = 1.5  # dojazd + lot + odjazd (linia prosta) <= 1.5 x origin->destination
+
+
+def _coords_of(place: str | StopRef) -> tuple[float, float] | None:
+    if isinstance(place, StopRef):
+        return place.lat, place.lon
+    try:
+        lat, lon = (float(x) for x in place.split(","))
+        return lat, lon
+    except (ValueError, AttributeError):
+        return None
+
+
+def _endpoints(request: RouteRequest, built: list[Itinerary]):
+    """Współrzędne origin/destination: z "lat,lon" w request albo z odcinków wariantów kolejowych
+    (zbudowanych wcześniej z TEGO samego zapytania). None, gdy nie da się ustalić."""
+    origin = _coords_of(request.origin_stop_id)
+    dest = _coords_of(request.destination_stop_id)
+    for it in built:
+        transit = [pl.leg for pl in it.legs if pl.leg.extra.get("origin_lat") is not None]
+        if not transit:
+            continue
+        origin = origin or (transit[0].extra["origin_lat"], transit[0].extra["origin_lon"])
+        dest = dest or (transit[-1].extra["destination_lat"], transit[-1].extra["destination_lon"])
+        break
+    return origin, dest
+
+
+def hub_is_detour(origin, destination, hub: HubConfig) -> bool:
+    """True, gdy hub lot<->kolej jest ewidentnym objazdem względem linii origin->destination:
+    lotnisko przylotu nie jest bliżej celu niż lotnisko wylotu, albo łączna droga w linii
+    prostej przekracza HUB_MAX_DETOUR_RATIO x bezpośrednią. Brak współrzędnych = nie filtrujemy."""
+    air_from = _coords_of(hub.origin_rail_access_stop_id) if hub.origin_rail_access_stop_id else None
+    air_to = _coords_of(hub.destination_rail_access_stop_id)
+    if not (origin and destination and air_to):
+        return False
+    h = motis_client.haversine_km
+    direct = h(*origin, *destination)
+    start = air_from or origin
+    if h(*air_to, *destination) >= h(*start, *destination):
+        return True
+    path = h(*origin, *start) + h(*start, *air_to) + h(*air_to, *destination)
+    return path > HUB_MAX_DETOUR_RATIO * max(direct, 1.0)
+
+
 def _infeasible_reason(itinerary: Itinerary) -> str:
     reasons = "; ".join(w.reason for w in itinerary.transfer_warnings if w.infeasible)
     return f"Odrzucony: przesiadka niewykonalna fizycznie. {reasons}"
@@ -344,6 +407,7 @@ def generate_variants(
     via_hub_stops: list[AlternativeStop] | None = None,
     alternative_origin_stops: list[AlternativeStop] | None = None,
     alternative_destination_stops: list[AlternativeStop] | None = None,
+    hub_discovery=None,
 ) -> tuple[list[Itinerary], list[SkippedVariant]]:
     """Generuje wszystkie warianty dla request + skonfigurowane huby/alternatywy. Warianty,
     których nie udało się zbudować (np. brak tokena Travelpayouts, MOTIS nie znalazł
@@ -411,19 +475,52 @@ def generate_variants(
         except MotisError as exc:
             skipped.append(SkippedVariant(label, str(exc)))
 
+    origin_ll, dest_ll = _endpoints(request, built)
+
+    # hub_discovery(origin_ll, dest_ll, skip_pairs) -> huby z lotniskami dobranymi do miast
+    # startu/celu (routing/airports.py::discover_hubs); błąd API lotów = brak dynamicznych hubów.
+    discovered: list[HubConfig] = []
+    if hub_discovery and not (origin_ll and dest_ll):
+        skipped.append(
+            SkippedVariant("Loty (dobór lotnisk)", "Pominięto: nie udało się ustalić współrzędnych startu/celu.")
+        )
+    elif hub_discovery:
+        static_pairs = {(h.origin_iata, h.destination_iata) for h in rail_flight_rail_hubs or []}
+        try:
+            discovered, rejected = hub_discovery(origin_ll, dest_ll, static_pairs)
+            for name, reason in rejected:
+                skipped.append(SkippedVariant(name, f"Pominięty: {reason}"))
+        except Exception as exc:  # np. błąd tabeli lotnisk
+            skipped.append(SkippedVariant("Loty (dobór lotnisk)", f"Pominięto: {exc}"))
+    rail_flight_rail_hubs = list(rail_flight_rail_hubs or []) + discovered
+
     for hub in rail_flight_rail_hubs or []:
         label = f"Kolej + lot ({hub.label}) + kolej lokalna"
+        if hub_is_detour(origin_ll, dest_ll, hub):
+            skipped.append(SkippedVariant(label, "Pominięty: hub to objazd względem trasy."))
+            continue
         try:
             candidate = build_rail_flight_rail_variant(request, hub)
             if candidate.is_infeasible:
                 skipped.append(SkippedVariant(label, _infeasible_reason(candidate)))
             else:
                 built.append(candidate)
-        except (MotisError, TravelpayoutsError) as exc:
+        except MotisError as exc:
+            reason = str(exc)
+            if hub in discovered:
+                reason = (
+                    f"Brak dojazdu komunikacją do lotniska {hub.origin_iata} lub z lotniska "
+                    f"{hub.destination_iata} (lotnisko bez przystanku w zasięgu w danych MOTIS). {reason}"
+                )
+            skipped.append(SkippedVariant(label, reason))
+        except TravelpayoutsError as exc:
             skipped.append(SkippedVariant(label, str(exc)))
 
     for hub in flight_regional_hubs or []:
         label = f"Lot ({hub.label}) + transport regionalny"
+        if hub_is_detour(origin_ll, dest_ll, hub):
+            skipped.append(SkippedVariant(label, "Pominięty: hub to objazd względem trasy."))
+            continue
         try:
             candidate = build_flight_regional_variant(request, hub)
             if candidate.is_infeasible:

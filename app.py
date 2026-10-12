@@ -690,7 +690,12 @@ if result is not None:
             for s in skipped:
                 st.write(f"**{s.variant_name}**: {s.reason}")
     if not built:
-        st.error("Brak działającego wariantu — sprawdź, czy MOTIS jest uruchomiony.")
+        st.error(
+            "Brak działającego wariantu. Powody: "
+            + " ".join(f"{s.variant_name}: {s.reason}" for s in skipped)
+            if skipped
+            else "Brak działającego wariantu — sprawdź, czy MOTIS jest uruchomiony."
+        )
         st.stop()
     header_col, toggle_col = st.columns([3, 1])
     with header_col:

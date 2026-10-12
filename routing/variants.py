@@ -164,11 +164,14 @@ def build_rail_only_variants(
     if seen_signatures is None:
         seen_signatures = set()
     variants: list[Itinerary] = []
+    other_day = infeasible = duplicates = 0
     for legs in sorted(all_legs_options, key=lambda ls: (ls[-1].arrive - ls[0].depart)):
         if not _departs_on_request_date(legs, request):
+            other_day += 1
             continue
         signature = _legs_signature(legs)
         if signature in seen_signatures:
+            duplicates += 1
             continue
         seen_signatures.add(signature)
 
@@ -181,13 +184,31 @@ def build_rail_only_variants(
         priced = _price_legs(legs, request)
         candidate = build_itinerary(name, priced)
         if candidate.is_infeasible:  # przesiadka poniżej absolutnego minimum — odrzucamy
+            infeasible += 1
             continue
         variants.append(candidate)
 
         if len(variants) >= max_variants:
             break
 
+    if not variants and not duplicates:
+        raise MotisError(_no_rail_reason(request, len(all_legs_options), other_day, infeasible))
     return variants
+
+
+def _no_rail_reason(request: RouteRequest, total: int, other_day: int, infeasible: int) -> str:
+    """Jawny powód pustego wyniku zapytania origin->destination (zamiast cichej pustej listy)."""
+    if total == 0:
+        return (
+            f"MOTIS nie zwrócił żadnego połączenia (od {request.departure_time}, {request.date}) — "
+            "brak trasy w wczytanych danych GTFS (PL+DE) albo przystanki poza zasięgiem rozkładów."
+        )
+    parts = []
+    if other_day:
+        parts.append(f"{other_day} połączeń rusza w innym dniu niż {request.date}")
+    if infeasible:
+        parts.append(f"{infeasible} odrzucono (przesiadka poniżej minimum)")
+    return f"MOTIS zwrócił {total} połączeń, ale żadne nie nadaje się do wyniku: " + ", ".join(parts) + "."
 
 
 @dataclass

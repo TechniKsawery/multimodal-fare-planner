@@ -14,6 +14,7 @@ from .model import (
     CityCard,
     CityCardEvaluation,
     CityCardVariant,
+    DiscountSource,
     GroupPrice,
     HeldDocument,
 )
@@ -120,6 +121,15 @@ def normalize_city(query: str | None) -> str | None:
 
 
 
+def _load_discount_source(item: dict | None) -> DiscountSource | None:
+    if not item:
+        return None
+    return DiscountSource(
+        source_url=str(item.get("source_url", "")),
+        verified_date=str(item.get("verified_date", "")),
+    )
+
+
 def _load_group_price(item: dict | None) -> GroupPrice | None:
     if not item:
         return None
@@ -151,6 +161,7 @@ def get_all_attractions() -> list[Attraction]:
                 normal_price=float(item["normal_price"]),
                 currency=item["currency"],
                 default_card_discount_percent=float(item.get("default_card_discount_percent", 0.0)),
+                card_discount_source=_load_discount_source(item.get("card_discount_source")),
                 address=item.get("address", ""),
                 official_url=item.get("official_url", ""),
                 highlight=bool(item.get("highlight", False)),
@@ -231,6 +242,11 @@ def get_all_city_cards() -> list[CityCard]:
                 official_url=item["official_url"],
                 variants=variants,
                 custom_discounts=dict(item.get("custom_discounts", {})),
+                custom_discount_sources={
+                    aid: src
+                    for aid, raw_src in item.get("custom_discount_sources", {}).items()
+                    if (src := _load_discount_source(raw_src)) is not None
+                },
                 existence_verified=bool(item.get("existence_verified", False)),
                 existence_source_url=item.get("existence_source_url", ""),
                 existence_verified_date=item.get("existence_verified_date", ""),
@@ -336,23 +352,44 @@ def best_price_for_attraction(
     return min(candidates, key=lambda c: c[0])
 
 
-def _calculate_attraction_discount_percent(
+def _resolve_card_discount(
     card: CityCard, variant: CityCardVariant, attraction: Attraction
-) -> float:
+) -> tuple[float, bool]:
+    """Zniżka karty na atrakcję: (procent, czy_niezweryfikowana).
+
+    Zniżka > 0% liczy się TYLKO ze źródłem (URL + data weryfikacji: `custom_discount_sources`
+    karty albo `card_discount_source` atrakcji). Zapisana zniżka bez kompletnego źródła, jak
+    i brak jakiegokolwiek wpisu, daje 0% i flagę niezweryfikowanej zniżki (karta mogłaby ją
+    dawać, tylko nie mamy tego w danych ze źródłem). Jawne 0.0 w custom_discounts to znany
+    brak zniżki, nie flaga.
+    """
     # Specjalne uprawnienia dla konkretnych wariantów (np. BWC Museumsinsel daje 100% zniżki na muzea)
     if (
         variant.id == "bwc_72h_museumsinsel"
         and attraction.id == "berlin_museumsinsel"
     ):
-        return 100.0
+        return 100.0, False
 
     if attraction.id in card.custom_discounts:
-        return card.custom_discounts[attraction.id]
+        percent = card.custom_discounts[attraction.id]
+        source = card.custom_discount_sources.get(attraction.id)
+    else:
+        percent = attraction.default_card_discount_percent
+        source = attraction.card_discount_source
 
-    # Zniżka tylko tam, gdzie jest ZAPISANA (custom_discounts karty albo
-    # default_card_discount_percent atrakcji). Brak wpisu = 0%: nie ma domyślnego rabatu "całej
-    # karty", bo to zgadywanie (np. 100% na Katedrę Wawelską, 25% na Curry 36 bez źródła).
-    return attraction.default_card_discount_percent
+    if percent == 0.0 and attraction.id in card.custom_discounts:
+        return 0.0, False
+    if percent > 0.0 and source is not None and source.is_complete:
+        return percent, False
+    # Brak wpisu albo wpis bez źródła: nie zgadujemy rabatu "całej karty" (np. 100% na Katedrę
+    # Wawelską, 25% na Curry 36).
+    return 0.0, True
+
+
+def _calculate_attraction_discount_percent(
+    card: CityCard, variant: CityCardVariant, attraction: Attraction
+) -> float:
+    return _resolve_card_discount(card, variant, attraction)[0]
 
 
 def evaluate_city_card_variant(
@@ -386,8 +423,8 @@ def evaluate_city_card_variant(
         base_price, _label, _source = best_price_for_attraction(a, profile)
         base_price = convert(base_price, a.currency, currency)
         price_without += base_price
-        disc_pct = _calculate_attraction_discount_percent(card, variant, a)
-        if disc_pct == 0.0 and a.id not in card.custom_discounts:
+        disc_pct, is_unverified = _resolve_card_discount(card, variant, a)
+        if is_unverified:
             unverified.append(a.id)
         discounted = base_price * (1.0 - (disc_pct / 100.0))
         price_with += max(0.0, discounted)

@@ -60,6 +60,22 @@ class GroupPrice:
     recognized_countries: list[str] | None = None
 
 
+@dataclass(frozen=True)
+class DiscountSource:
+    """Źródło zapisanej zniżki karty miejskiej: URL + data weryfikacji (YYYY-MM-DD).
+
+    Zniżka karty > 0% jest liczona TYLKO z kompletnym źródłem (oba pola niepuste) — bez niego
+    kalkulator liczy 0% i oznacza zniżkę jako niezweryfikowaną (nie zgadujemy rabatów).
+    """
+
+    source_url: str
+    verified_date: str
+
+    @property
+    def is_complete(self) -> bool:
+        return bool(self.source_url.strip()) and bool(self.verified_date.strip())
+
+
 @dataclass
 class Attraction:
     """Pojedyncza atrakcja / miejsce warte odwiedzenia."""
@@ -72,6 +88,8 @@ class Attraction:
     normal_price: float
     currency: str
     default_card_discount_percent: float = 0.0
+    # Źródło default_card_discount_percent (wymagane, by zniżka > 0% była liczona).
+    card_discount_source: "DiscountSource | None" = None
     address: str = ""
     official_url: str = ""
     highlight: bool = False
@@ -127,6 +145,9 @@ class CityCard:
     # Zniżki na atrakcje tej karty: id atrakcji -> %. Atrakcja bez wpisu (tu ani w
     # Attraction.default_card_discount_percent) nie dostaje żadnej zniżki — nie ma rabatu domyślnego.
     custom_discounts: dict[str, float] = field(default_factory=dict)
+    # Źródła zniżek z custom_discounts: id atrakcji -> DiscountSource. Zniżka > 0% bez
+    # kompletnego źródła jest liczona jako 0% i oznaczana jako niezweryfikowana.
+    custom_discount_sources: dict[str, DiscountSource] = field(default_factory=dict)
     # Czy POTWIERDZONO (u źródła, z datą), że karta w ogóle istnieje i działa DZIŚ —
     # niezależnie od tego, czy jej cena jest potwierdzona (price_verified na wariancie).
     # False domyślnie: karta nie pojawia się w get_city_cards()/kalkulatorze/rekomendacji,

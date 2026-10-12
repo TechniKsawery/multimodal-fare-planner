@@ -155,30 +155,72 @@ def test_evaluate_city_cards_not_profitable_when_few_attractions():
     assert suggest_best_city_card("Berlin", [free_attr], estimated_transit_cost=0.0) is None
 
 
-def test_evaluate_city_cards_profitable_with_many_attractions_and_transit():
-    # Odwiedzamy kilka płatnych atrakcji w Berlinie i korzystamy z komunikacji (np. koszt 15 EUR)
-    berlin_attrs = get_attractions(city="Berlin")
-    # Wybieramy wieżę telewizyjną (24.50 EUR), stadion (15 EUR), wyspę muzeów (14 EUR) -> 53.50 EUR
+def _berlin_attrs_3():
     selected = [
         a
-        for a in berlin_attrs
+        for a in get_attractions(city="Berlin")
         if a.id in ("berlin_fernsehturm", "berlin_olympiastadion", "berlin_museumsinsel")
     ]
     assert len(selected) == 3
+    return selected
 
-    # Transit w Berlinie za 2 dni: ~19 EUR
-    evals = evaluate_city_cards("Berlin", selected, estimated_transit_cost=19.0)
-    # Z kartą 48h (27 EUR):
-    # Koszt bez karty: 53.50 + 19.0 = 72.50 EUR
-    # Z kartą: 27.0 (karta z transportem) + zniżki 25% na bilety (~40.12 EUR) = ~67.12 EUR -> zysk ok. 5.38 EUR
-    profitable = [e for e in evals if e.is_recommended]
-    assert len(profitable) > 0
 
-    best = suggest_best_city_card("Berlin", selected, estimated_transit_cost=19.0)
+def _berlin_card_ze_zrodlem():
+    """Berlin WelcomeCard z 25% na 3 atrakcje ZE ŹRÓDŁEM (syntetyczne — w danych te zniżki
+    nie mają dziś pola źródła, więc są wyzerowane)."""
+    import dataclasses
+
+    from attractions import DiscountSource
+
+    card = _card("berlin_welcomecard")
+    ids = ("berlin_fernsehturm", "berlin_olympiastadion", "berlin_museumsinsel")
+    return dataclasses.replace(
+        card,
+        custom_discounts={i: 25.0 for i in ids},
+        custom_discount_sources={i: DiscountSource("https://example.test/zrodlo", "2026-10-12") for i in ids},
+    )
+
+
+def test_evaluate_city_cards_profitable_with_many_attractions_and_transit():
+    # Zniżki 25% ZE ŹRÓDŁEM + 19 EUR komunikacji: wariant 48h AB (28,50 EUR) się opłaca.
+    # Bez karty: 20 + 11 + 24 + 19 = 74,00; z kartą: 28,50 + 0,75 * 55 = 69,75 -> zysk 4,25 EUR.
+    from attractions.service import evaluate_city_card_variant
+
+    card = _berlin_card_ze_zrodlem()
+    variant = next(v for v in card.variants if v.id == "bwc_48h_ab")
+    ev = evaluate_city_card_variant(card, variant, _berlin_attrs_3(), estimated_transit_cost=19.0)
+    assert ev.is_recommended
+    assert ev.net_savings == 4.25
+    assert "Zaoszczędzisz" in ev.summary
+    assert not ev.unverified_discount_attraction_ids
+
+
+def test_suggest_best_city_card_wybiera_oplacalny_wariant_ze_zrodlem(monkeypatch):
+    import attractions.service as service
+
+    card = _berlin_card_ze_zrodlem()
+    monkeypatch.setattr(service, "get_city_cards", lambda city=None: [card])
+    best = suggest_best_city_card("Berlin", _berlin_attrs_3(), estimated_transit_cost=19.0)
     assert best is not None
     assert best.is_recommended
     assert best.net_savings > 0
-    assert "Zaoszczędzisz" in best.summary
+
+
+def test_berlin_bez_zrodel_zniszek_zadna_karta_nie_jest_rekomendowana_i_jest_flaga():
+    # Dane w repo: 25% na Fernsehturm/Olympiastadion/Museumsinsel nie miało pola źródła -> 0%.
+    evals = evaluate_city_cards("Berlin", _berlin_attrs_3(), estimated_transit_cost=19.0)
+    assert evals
+    for ev in evals:
+        if ev.variant.id == "bwc_72h_museumsinsel":
+            continue  # ten wariant ma 100% na Museumsinsel z definicji produktu
+        assert ev.attractions_price_with_card == ev.attractions_price_without_card
+        assert not ev.is_recommended
+        assert set(ev.unverified_discount_attraction_ids) == {
+            "berlin_fernsehturm",
+            "berlin_olympiastadion",
+            "berlin_museumsinsel",
+        }
+        assert "niezweryfikowane" in ev.summary
 
 
 def test_special_variant_discount_museumsinsel():
@@ -428,7 +470,9 @@ def test_poznan_ma_fares_i_atrakcje_pelny_pakiet():
     assert "poznan_city_card" in card_ids
     poznan_card = next(c for c in get_all_city_cards() if c.id == "poznan_city_card")
     assert all(v.price_verified for v in poznan_card.variants)
-    assert poznan_card.custom_discounts.get("poznan_brama_poznania") == 40.0
+    # 40% na Bramę Poznania nie miało pola źródła -> wyzerowane (flaga niezweryfikowanej zniżki)
+    assert "poznan_brama_poznania" not in poznan_card.custom_discounts
+    assert _card_discount_percent("poznan_city_card", "poznan_brama_poznania") == 0.0
 
 
 def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
@@ -444,10 +488,8 @@ def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
 
     hamburg_card = cards_by_id["hamburg_card"]
     assert all(v.price_verified for v in hamburg_card.variants)
-    assert hamburg_card.custom_discounts == {
-        "hamburg_speicherstadtmuseum": 25.0,
-        "hamburg_imm": 22.0,
-    }
+    # 25% (Speicherstadtmuseum) i 22% (IMM) nie miały pola źródła -> wyzerowane
+    assert hamburg_card.custom_discounts == {}
 
     munchen_card = cards_by_id["munchen_citytourcard"]
     assert all(v.price_verified for v in munchen_card.variants)
@@ -672,11 +714,13 @@ def test_berlin_welcomecard_nie_daje_25_procent_bez_zrodla_na_curry36_i_alte_foe
     assert _card_discount_percent("berlin_welcomecard", "berlin_alte_foersterei") == 0.0
 
 
-def test_zapisane_zniszki_dzialaja_jak_dotad():
-    assert _card_discount_percent("berlin_welcomecard", "berlin_fernsehturm") == 25.0
-    assert _card_discount_percent("krakow_card", "krakow_wawel") == 20.0
+def test_zniszki_ze_zrodlem_dzialaja_jak_dotad():
+    # RUHR.TOPCARD: źródło (ruhrtopcard.de/alle-ausflugsziele, 2026-10-09) jest w polach
+    # custom_discount_sources -> zniżki bez zmian.
     assert _card_discount_percent("ruhrtopcard", "essen_zeche_zollverein") == 100.0
     assert _card_discount_percent("ruhrtopcard", "gelsenkirchen_veltins_arena") == 50.0
+    assert _card_discount_percent("ruhrtopcard", "dortmund_signal_iduna_park") == 50.0
+    assert _card_discount_percent("ruhrtopcard", "dortmund_fussballmuseum") == 50.0
 
 
 def test_zoom_nie_jest_partnerem_ruhrtopcard_wiec_bez_zniszki():

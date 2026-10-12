@@ -343,9 +343,13 @@ zakupu oficjalnych kart miejskich (Berlin WelcomeCard, WelcomeCard Ruhr, Kraków
 Silnik ocenia, czy zakup karty zwraca się przy wybranym zestawie atrakcji oraz darmowym
 transporcie miejskim (np. VRR / Berlin AB / Kraków strefa I+II), wyliczając realne oszczędności netto.
 
+Zniżka karty > 0% jest liczona tylko z polem źródła (`source_url` + `verified_date`); zniżka bez źródła
+= 0% + flaga niezweryfikowanej zniżki w wycenie (zniżki bez źródła w 6 miastach wyzerowano 2026-10-12).
+Pole źródła strefy C (BER) w `fares/data/bvg_berlin.json` czeka na oficjalne URL-e (vbb.de / bvg.de).
+
 Szczegóły: [`attractions/README.md`](attractions/README.md).
 
-Testy: `pytest tests/test_attractions.py`.
+Testy: `pytest tests/test_attractions.py tests/test_znizki_bez_zrodla.py`.
 
 ## Code style
 

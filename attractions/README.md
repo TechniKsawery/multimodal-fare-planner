@@ -18,6 +18,19 @@ Moduł odpowiada za:
      (id atrakcji -> %) albo `default_card_discount_percent` atrakcji. Atrakcja bez wpisu dostaje 0%
      — nie ma "domyślnego rabatu karty" (dawne `default_discount_percent` dawało np. 100% na Katedrę
      Wawelską z Kraków Card, bo zgadywało). Nowy wpis dodawaj dopiero z potwierdzeniem u źródła.
+   - **Zniżka > 0% wymaga pola źródła** (`source_url` + `verified_date`, model `DiscountSource`):
+     dla `custom_discounts` karty — `custom_discount_sources` (id atrakcji -> źródło), dla
+     `default_card_discount_percent` atrakcji — `card_discount_source`. Zapisana zniżka bez
+     kompletnego źródła jest liczona jako **0%** i trafia do `CityCardEvaluation.unverified_discount_attraction_ids`
+     (+ zdanie „niezweryfikowane” w `summary`) — ten sam mechanizm co Katedra Wawelska w Kraków Card.
+     Jawne `0.0` w `custom_discounts` to znany brak zniżki (bez flagi). Wyjątek z definicji produktu:
+     wariant `bwc_72h_museumsinsel` daje 100% na Museumsinsel (wstęp wliczony w zweryfikowaną cenę wariantu).
+   - **Zerowanie 2026-10-12**: zniżki bez pola źródła w Berlinie, Krakowie, Hamburgu, Monachium, Poznaniu
+     i Lublinie (16 atrakcji) wyzerowano; stara wartość zostaje w `city_cards.json`
+     (`_zerowane_znizki_bez_zrodla_2026_10_12` na karcie) i `attractions.json` (`_UWAGA_zniezka_karty`).
+     Żeby zniżkę przywrócić: wpisz wartość w `custom_discounts` i URL + datę w `custom_discount_sources`
+     (albo `default_card_discount_percent` + `card_discount_source`) — wpis bez źródła nadal da 0%.
+     Zniżki RUHR.TOPCARD zostały (źródło z notatki `_UWAGA_partnerzy` przepisane do pól).
 4. Zniżki z dowolnego tytułu (wiek/uczeń-student/senior), niezależnie od posiadania karty miejskiej: `best_price_for_attraction(attraction, DiscountProfile(...))` wybiera najtańszą potwierdzoną cenę spośród ceny standardowej i pól `child_price`/`student_price`/`senior_price`/`family_price` (typu `GroupPrice`: konkretna kwota + źródło + data, nigdy procent). Zniżki się nie sumują — bierzemy minimum.
 
 ## Użycie

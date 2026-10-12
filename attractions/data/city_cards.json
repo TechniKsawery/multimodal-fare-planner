@@ -2,6 +2,7 @@
   "_zrodlo": "Oficjalne cenniki kart miejskich: Berlin WelcomeCard, RUHR.TOPCARD (następca WelcomeCard Ruhr w tym kalkulatorze), Kraków City Pass (Discover Cracow, następca krakowcard.com)",
   "_UWAGA_existence_verified": "2026-10-10: każda karta ma teraz existence_verified (+ existence_source_url + existence_verified_date) — get_city_cards()/kalkulator pokazują TYLKO karty z existence_verified=true. To osobna flaga od price_verified na wariancie: karta może istnieć na pewno, a mieć niepewną cenę (wtedy zostaje z adnotacją), ale karta, której istnienia/działania DZIŚ nie potwierdzono wprost u źródła (jak dawna WelcomeCard Ruhr — patrz usunięty wpis 'welcomecard_ruhr' i _UWAGA_zamiana niżej), nie trafia do użytkownika wcale. Wszystkie 3 karty poniżej mają existence_verified=true na podstawie weryfikacji na żywo opisanej w _UWAGA_weryfikacja i _UWAGA_zamiana.",
   "_data_aktualizacji": "2026-10-09",
+  "_UWAGA_zrodla_znizek_2026_10_12": "Zniżka karty na atrakcję > 0% jest liczona TYLKO ze źródłem: custom_discount_sources (karta, id atrakcji -> {source_url, verified_date}) albo card_discount_source na atrakcji. 2026-10-12: zniżki w Berlinie, Krakowie, Hamburgu, Monachium, Poznaniu i Lublinie, które nie miały pola źródła, wyzerowano (stare wartości w _zerowane_znizki_bez_zrodla_2026_10_12 na karcie i w _UWAGA_zniezka_karty na atrakcji) — atrakcja bez wpisu dostaje 0% i flagę niezweryfikowanej zniżki. Zniżki RUHR.TOPCARD zostały (źródło z _UWAGA_partnerzy przepisane do pól: ruhrtopcard.de/alle-ausflugsziele, 2026-10-09).",
   "_UWAGA_zniezki_wiek_status_2026_10_10": "Zweryfikowano NA ŻYWO, czy te 3 karty mają osobne ceny dla dzieci/uczniów-studentów/seniorów/rodzin (model CityCardVariant ma dziś tylko jedną cenę per wariant czasowy — to pytanie o to, czy brakuje pól, nie o ich wypełnienie): Berlin WelcomeCard (bvg.de) — NIE, jedna cena karty obejmuje 1 dorosłego + do 3 dzieci bezpłatnie ('Gültig für eine erwachsene Person und bis zu drei Kinder'), żadnych odrębnych cen student/senior. RUHR.TOPCARD (ruhrtopcard.de/card-kaufen) — jest TYLKO podział dorosły (70€) / dziecko (43€, bez podanego przedziału wieku), żadnej ulgi student/senior (poza niesprecyzowanym rabatem ADAC tylko w punktach sprzedaży ADAC). Kraków Card / Krakow City Pass (discovercracow.com) — NIE, jedna cena per wariant czasowy, bez podziału wiek/status (uwaga: istnieje osobny, niezależny produkt 'Krakow Museum Pass for Students' 28,57€, ale to nie jest ta karta). Wniosek: dla tych 3 kart brak dalszych pól do dodania — to jest POTWIERDZONY brak zróżnicowania cenowego, nie dziura w danych.",
   "_UWAGA_weryfikacja": "Berlin WelcomeCard: warianty AB/ABC (48h/72h/4dni/6dni) i 'Museumsinsel' potwierdzone DWOMA niezależnymi fetchami na bvg.de (oficjalny partner sprzedaży BVG) — price_verified: true na variantach. Warianty 'Basic' i 'All Inclusive' NIE są w tym pliku (niepotwierdzone, berlin-welcomecard.de blokuje automatyczny dostęp nawet przez web.archive.org). WelcomeCard Ruhr: zweryfikowano NA ŻYWO 2026-10-09 (welcomecard.ruhr) — panel rezerwacji dla wszystkich trzech wariantów (24/48/72h) pokazuje brak dostępnych terminów, żadna cena nie jest nigdzie wyświetlana na żywo, a 2 niezależne atrakcje (Veltins-Arena, Zeche Zollverein) na swoich stronach wymieniają jako partnera zniżkowego RUHR.TOPCARD, nie WelcomeCard Ruhr. Decyzja produktowa Ksaviego 2026-10-09: ZASTĄPIĆ 'welcomecard_ruhr' kartą 'ruhrtopcard' w tym pliku (usunięto starą kartę) — mimo że to inny produkt (roczny, bez transportu, nie 24/48/72h z transportem VRR), bo żywy jest tylko ten. Szczegóły w notatkach _UWAGA_zamiana i _UWAGA_partnerzy przy karcie 'ruhrtopcard' poniżej. Kraków Card: krakowcard.com teraz daje HTTP 301 redirect (potwierdzone przez web.archive.org, zrzut 2025-10-05) na discovercracow.com/tickets — to jest oficjalny następca produktu pod nazwą 'Krakow City Pass - Museums and Attractions + Transport'. Zweryfikowano NA ŻYWO 2026-10-09 na discovercracow.com: warianty 1 dzień 32,00 EUR, 2 dni 40,00 EUR, 3 dni 50,00 EUR; obejmuje wstęp do 20+ muzeów/atrakcji (m.in. Muzeum Czartoryskich z 'Damą z gronostajem', Kopiec Kościuszki, Muzeum Lotnictwa Polskiego) oraz darmowy nielimitowany transport publiczny na czas ważności karty. Ceny podane WYŁĄCZNIE w EUR (brak oficjalnego cennika w PLN) — zaktualizowano price + currency na EUR i price_verified: true dla wariantów 2 i 3 dni.",
   "karty": [
@@ -14,11 +15,7 @@
       "existence_verified": true,
       "existence_source_url": "https://www.bvg.de/de/touristen/welcomecard",
       "existence_verified_date": "2026-10-09",
-      "custom_discounts": {
-        "berlin_museumsinsel": 25.0,
-        "berlin_fernsehturm": 25.0,
-        "berlin_olympiastadion": 25.0
-      },
+      "custom_discounts": {},
       "variants": [
         {
           "id": "bwc_48h_ab",
@@ -64,7 +61,21 @@
           "description": "48 godzin transportu w strefie ABC + min. 25% rabatu na atrakcje.",
           "price_verified": true
         }
-      ]
+      ],
+      "_zerowane_znizki_bez_zrodla_2026_10_12": {
+        "berlin_museumsinsel": {
+          "stara_znizka_proc": 25.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "berlin_fernsehturm": {
+          "stara_znizka_proc": 25.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "berlin_olympiastadion": {
+          "stara_znizka_proc": 25.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        }
+      }
     },
     {
       "id": "ruhrtopcard",
@@ -95,7 +106,25 @@
           "description": "Ważna cały rok kalendarzowy 2026 (1.01–31.12), nie godziny jak poprzednio. Cena promocyjna 60 EUR przy zakupie do 31.12.2025.",
           "price_verified": true
         }
-      ]
+      ],
+      "custom_discount_sources": {
+        "gelsenkirchen_veltins_arena": {
+          "source_url": "https://ruhrtopcard.de/alle-ausflugsziele",
+          "verified_date": "2026-10-09"
+        },
+        "essen_zeche_zollverein": {
+          "source_url": "https://ruhrtopcard.de/alle-ausflugsziele",
+          "verified_date": "2026-10-09"
+        },
+        "dortmund_signal_iduna_park": {
+          "source_url": "https://ruhrtopcard.de/alle-ausflugsziele",
+          "verified_date": "2026-10-09"
+        },
+        "dortmund_fussballmuseum": {
+          "source_url": "https://ruhrtopcard.de/alle-ausflugsziele",
+          "verified_date": "2026-10-09"
+        }
+      }
     },
     {
       "id": "krakow_card",
@@ -107,8 +136,6 @@
       "existence_source_url": "https://discovercracow.com/tickets/?category%5B1396%5D=1396",
       "existence_verified_date": "2026-10-09",
       "custom_discounts": {
-        "krakow_schindler_factory": 20.0,
-        "krakow_wawel": 20.0,
         "krakow_stadion_wisly": 0.0
       },
       "variants": [
@@ -156,7 +183,17 @@
           "description": "UWAGA: to NIE jest Kraków Card/City Pass — to osobny produkt (\"an Original Product of Discover Cracow\", discovercracow.com/node/36288), tylko wstęp do 20+ muzeów/atrakcji, bez transportu. Cena 'from €28.57' jest orientacyjna/zależna od wybranej daty (strona nie podaje stałej ceny, booking flow wymaga wyboru terminu) — NIE jest to urzędowa, stała cena jak w pozostałych wariantach Kraków Card. Strona nie podaje żadnych wymogów (ISIC/legitymacja) na potwierdzenie statusu studenta. Sprawdzone 2026-10-10.",
           "price_verified": false
         }
-      ]
+      ],
+      "_zerowane_znizki_bez_zrodla_2026_10_12": {
+        "krakow_schindler_factory": {
+          "stara_znizka_proc": 20.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "krakow_wawel": {
+          "stara_znizka_proc": 20.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        }
+      }
     },
     {
       "id": "hamburg_card",
@@ -164,10 +201,7 @@
       "name": "Hamburg CARD",
       "description": "Karta turystyczna Hamburga, wariant 'Mit Nahverkehr' (z biletem HVV: bus, kolej, promy portowe) — ceny 1-5 dni zweryfikowane w przeglądarce 2026-10-09 (poprzednia wersja tego wpisu z produktami 'Green'/'Green Plus' była nieaktualna/niepotwierdzona u źródła i została zastąpiona). Wariant 'Ohne Nahverkehr' (bez transportu) NIE jest tu wpisany — strona podaje tylko cenę startową 'ab 4,50 €', pełna tabela nie udało się odczytać (przełącznik JS na stronie nie reagował).",
       "official_url": "https://www.hamburg-tourism.de/buchen/hamburg-card/",
-      "custom_discounts": {
-        "hamburg_speicherstadtmuseum": 25.0,
-        "hamburg_imm": 22.0
-      },
+      "custom_discounts": {},
       "variants": [
         {
           "id": "hamburg_card_einzelkarte_1d",
@@ -282,7 +316,17 @@
       ],
       "existence_verified": true,
       "existence_source_url": "https://www.hamburg-tourism.de/buchen/hamburg-card/",
-      "existence_verified_date": "2026-10-09"
+      "existence_verified_date": "2026-10-09",
+      "_zerowane_znizki_bez_zrodla_2026_10_12": {
+        "hamburg_speicherstadtmuseum": {
+          "stara_znizka_proc": 25.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "hamburg_imm": {
+          "stara_znizka_proc": 22.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        }
+      }
     },
     {
       "id": "munchen_citytourcard",
@@ -290,14 +334,7 @@
       "name": "München CityTourCard",
       "description": "Oficjalna karta turystyczna Monachium (nie mylić z osobnym produktem 'München Card', niesprawdzonym w tym researchu): nielimitowany transport MVV w wybranej strefie (M / M-6 / M-12) + zniżki u 113 partnerów. Ceny i lista partnerów zweryfikowane w przeglądarce 2026-10-09 (automatyczny fetch pokazywał 0,00 € — strona doładowuje ceny przez JS). BMW Museum, Deutsches Museum, Tierpark Hellabrunn i Skylift Olympiapark (pod tą nazwą) NIE są partnerami — potwierdzone brakiem wpisu na oficjalnej liście partnerów, nie dopisywać im zniżek.",
       "official_url": "https://www.mvv-muenchen.de/tickets-abos-preise/citytourcard",
-      "custom_discounts": {
-        "munchen_fcbayern_erlebniswelt": 8.0,
-        "munchen_residenz": 13.3,
-        "munchen_schloss_nymphenburg": 10.0,
-        "munchen_frauenkirche": 33.3,
-        "munchen_sealife": 20.0,
-        "munchen_bavaria_filmstadt": 10.0
-      },
+      "custom_discounts": {},
       "variants": [
         {
           "id": "munchen_ctc_single_m_24h",
@@ -698,7 +735,33 @@
       ],
       "existence_verified": true,
       "existence_source_url": "https://www.mvv-muenchen.de/tickets-abos-preise/citytourcard",
-      "existence_verified_date": "2026-10-09"
+      "existence_verified_date": "2026-10-09",
+      "_zerowane_znizki_bez_zrodla_2026_10_12": {
+        "munchen_fcbayern_erlebniswelt": {
+          "stara_znizka_proc": 8.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "munchen_residenz": {
+          "stara_znizka_proc": 13.3,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "munchen_schloss_nymphenburg": {
+          "stara_znizka_proc": 10.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "munchen_frauenkirche": {
+          "stara_znizka_proc": 33.3,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "munchen_sealife": {
+          "stara_znizka_proc": 20.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "munchen_bavaria_filmstadt": {
+          "stara_znizka_proc": 10.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        }
+      }
     },
     {
       "id": "koln_card",
@@ -787,10 +850,7 @@
       "name": "Poznań City Card",
       "description": "Oficjalna karta turystyczna Poznania (visitpoznan.pl): bezpłatny wstęp do ok. 21 atrakcji i zniżki w ponad 50 innych. Jednorazowe użycie na każdą atrakcję. Pełna lista partnerów zweryfikowana na karta.visitpoznan.pl — tylko potwierdzone % wpisane poniżej.",
       "official_url": "https://visitpoznan.pl/en/poznan-city-card",
-      "custom_discounts": {
-        "poznan_brama_poznania": 40.0,
-        "poznan_fotoplastykon": 100.0
-      },
+      "custom_discounts": {},
       "variants": [
         {
           "id": "poznan_card_24h_transport",
@@ -861,7 +921,17 @@
       ],
       "existence_verified": true,
       "existence_source_url": "https://visitpoznan.pl/en/poznan-city-card",
-      "existence_verified_date": "2026-10-09"
+      "existence_verified_date": "2026-10-09",
+      "_zerowane_znizki_bez_zrodla_2026_10_12": {
+        "poznan_brama_poznania": {
+          "stara_znizka_proc": 40.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        },
+        "poznan_fotoplastykon": {
+          "stara_znizka_proc": 100.0,
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+        }
+      }
     },
     {
       "id": "lublin_trippass",

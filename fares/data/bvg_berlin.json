@@ -7,6 +7,12 @@
   "nazwa_przewoznika": "BVG Berlin (VBB)",
   "as_of": "2026-10-06",
   "typ_ceny": "oficjalna_taryfa",
+  "zrodlo_strefa_c_ber": {
+    "vbb_url": "",
+    "bvg_url": "",
+    "data_weryfikacji": "",
+    "uwaga": "Pole na oficjalne źródła tego, że lotnisko BER leży w strefie C (bilet ABC) — strony vbb.de i bvg.de. Zlecenie z 2026-10-12 wskazuje, że źródła sprawdzono tego dnia, ale dokładne URL-e nie zostały podane, a strony przewoźników są niedostępne ze środowiska chmurowego, więc pól NIE uzupełniono (nie zgadujemy adresów). Do wpisania: vbb_url, bvg_url (pełne https://, domeny vbb.de / bvg.de) i data_weryfikacji (YYYY-MM-DD). Ceny bez zmian — bilety_czasowe nietknięte."
+  },
   "bilety_czasowe": [
     {"wazny_min": 15, "normalny": 2.80, "ulgowy": 2.10, "strefa": "Kurzstrecke"},
     {"wazny_min": 120, "normalny": 4.00, "ulgowy": 2.50, "strefa": "AB"},

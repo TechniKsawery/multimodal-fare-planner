@@ -437,9 +437,10 @@ PL_REGIONAL_RAIL_KEYWORDS = (
 )
 """Przewoźnicy regionalni PL, którym przypisujemy degresywną tabelę Taryfy Podstawowej
 (fares/polregio.py): POLREGIO, Koleje Dolnośląskie, Koleje Śląskie (dopasowanie jako CAŁE słowa).
-Nie obejmuje Kolei Mazowieckich (tabela niespójna, niewdrożona), Kolei Małopolskich (własna taryfa,
-niewdrożona), ŁKA, SKM Trójmiasto ani SKM Warszawa — te trzy mają osobne ścieżki w
-infer_pl_local_rail_carrier() (patrz routing/README.md, sekcja o taryfach regionalnych)."""
+Nie obejmuje Kolei Mazowieckich (tabela niespójna, niewdrożona), Kolei Małopolskich (własna taryfa
+TP-KMŁ, osobna ścieżka KML_KEYWORDS w infer_pl_local_rail_carrier()), ŁKA, SKM Trójmiasto ani
+SKM Warszawa — te mają osobne ścieżki w infer_pl_local_rail_carrier() (patrz routing/README.md,
+sekcja o taryfach regionalnych)."""
 
 
 def infer_pl_regional_carrier(leg: Leg) -> Carrier | None:
@@ -461,6 +462,7 @@ SKM_KEYWORDS = ("skm", "szybka kolej miejska")
 SKM_TROJMIASTO_NAME_KEYWORDS = ("trójmieście", "trojmiescie", "trójmiasto", "trojmiasto")
 LKA_KEYWORDS = ("łka", "lka", "łódzka kolej aglomeracyjna", "lodzka kolej aglomeracyjna")
 KM_WKD_KEYWORDS = ("koleje mazowieckie", "km", "wkd", "warszawska kolej dojazdowa")
+KML_KEYWORDS = ("koleje małopolskie", "koleje malopolskie", "kmł", "kml")
 """Nazwy przewoźników (CAŁE słowa, małe litery) dla lokalnych taryf kolejowych. "skm" samo nie mówi,
 które SKM (Warszawa, Trójmiasto, Szczecin) — o mieście decyduje geografia (obszary niżej)."""
 
@@ -473,6 +475,10 @@ LKA_LODZ_AREA = (51.7592, 19.4560, 9.0)
 """(lat, lon, promień km) przybliżenia Strefy A ŁKA (granice administracyjne Łodzi). Koło 9 km
 obejmuje stacje łódzkie (Widzew 5,4 km, Marysin 7,8 km), ale nie Zgierza (11,2 km) i Pabianic
 (12,8 km). Konstantynów Łódzki (9,3 km) leży tuż za kołem. To przybliżenie, nie mapa stref."""
+
+KML_AIRPORT_KEYWORDS = ("lotnisko", "balice")
+"""Tabela nr 1 TP-KMŁ NIE obowiązuje do/z Kraków Lotnisko (raport Gemini, 2026-10-12) — odcinek KMŁ
+z taką stacją nie dostaje tej tabeli (idzie niepotwierdzonym szacunkiem PLN/km)."""
 
 AIRPORT_LINE_KEYWORDS = (("płudy", "pludy"), ("lotnisko chopina",))
 """Wyjątek: na linii lotniskowej KM Warszawa Płudy - Warszawa Lotnisko Chopina (w obu kierunkach)
@@ -494,6 +500,21 @@ def _is_km_or_wkd(leg: Leg) -> bool:
     return _matches_any_word(leg.carrier_name.lower(), KM_WKD_KEYWORDS)
 
 
+def _is_koleje_malopolskie(leg: Leg) -> bool:
+    """Czy przewoźnik odcinka to Koleje Małopolskie (agencyName/nazwa z MOTIS: "Koleje Małopolskie",
+    wielkość liter i spacje bez znaczenia, także "Koleje Malopolskie" i skrót KMŁ/KML), a odcinek to
+    pociąg (LegMode.RAIL albo SUBURBAN), nie autobus."""
+    name = " ".join(leg.carrier_name.lower().split())
+    if not _matches_any_word(name, KML_KEYWORDS):
+        return False
+    return leg.mode is LegMode.RAIL or leg.extra.get("motis_mode") == "SUBURBAN"
+
+
+def _touches_krakow_airport(leg: Leg) -> bool:
+    stops = (leg.origin_name.lower(), leg.destination_name.lower())
+    return any(k in stop for stop in stops for k in KML_AIRPORT_KEYWORDS)
+
+
 def is_warsaw_airport_line(leg: Leg) -> bool:
     """Czy odcinek to Warszawa Płudy <-> Warszawa Lotnisko Chopina (po nazwach stacji)."""
     names = (leg.origin_name.lower(), leg.destination_name.lower())
@@ -512,9 +533,13 @@ def infer_pl_local_rail_carrier(leg: Leg) -> Carrier | None:
       "Łódź" w nazwie) -> Carrier.LKA_LODZ (bilety czasowe ŁKA),
     - SKM Warszawa: nazwa SKM + oba końce w kole ZTM Warszawa -> Carrier.ZTM_WARSZAWA (bilet
       czasowy ZTM jako cena odcinka),
+    - Koleje Małopolskie: pociąg KMŁ (nazwa przewoźnika) poza stacją Kraków Lotnisko ->
+      Carrier.KOLEJE_MALOPOLSKIE (Tabela nr 1 TP-KMŁ, 30 pasm),
     - KM: tylko linia lotniskowa Płudy - Lotnisko Chopina -> Carrier.ZTM_WARSZAWA. Reszta KM i WKD
       NIE honoruje biletów czasowych ZTM (patrz price_bus_leg), więc zwraca None."""
     name = leg.carrier_name.lower()
+    if _is_koleje_malopolskie(leg):
+        return None if _touches_krakow_airport(leg) else Carrier.KOLEJE_MALOPOLSKIE
     if _matches_any_word(name, SKM_KEYWORDS):
         in_trojmiasto = _leg_in_area(leg, SKM_TROJMIASTO_AREA)
         if in_trojmiasto or (
@@ -564,6 +589,7 @@ def price_pl_local_rail_leg(leg: Leg, carrier: Carrier, discounts: DiscountProfi
             discounts=discounts,
             travel_date=leg.depart.date().isoformat(),
             distance_along_track=along_track,
+            distance_source=leg.extra.get("distance_along_track_source") if along_track else None,
         )
         result = fares_estimate_price(segment)
     except ValueError as exc:

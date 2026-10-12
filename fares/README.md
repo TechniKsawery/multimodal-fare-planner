@@ -245,20 +245,19 @@ Znane ograniczenia:
 - **Koleje Mazowieckie.** Nie wdrożone: tabela z raportu Gemini ma niespójny wiersz 31-40 km
   (15,30 zł w raporcie `skm-km-tabele` vs 15,60 zł w raporcie `ztm-lka-regio`). Zostają przy
   zgrubnym szacunku 0,35 zł/km (wyjątek: linia lotniskowa Płudy - Lotnisko Chopina, niżej).
-- **Koleje Małopolskie.** Nie wdrożone (dwie tabele: bazowa TP-KMŁ i regionalna Taryfa
-  Małopolska, brak rozstrzygnięcia, którą stosuje dany pociąg). Szacunek 0,35 zł/km.
-- SKM Trójmiasto, SKM Warszawa i ŁKA w Łodzi: wdrożone, patrz niżej.
+- SKM Trójmiasto, SKM Warszawa, ŁKA w Łodzi i Koleje Małopolskie (Tabela nr 1 TP-KMŁ): wdrożone,
+  patrz niżej.
 
-## Lokalne taryfy kolejowe: SKM Trójmiasto, SKM Warszawa, ŁKA w Łodzi (2026-10-12)
+## Lokalne taryfy kolejowe: SKM Trójmiasto, SKM Warszawa, ŁKA w Łodzi, Koleje Małopolskie (2026-10-12)
 
 Wszystkie kwoty i zasady honorowania pochodzą z raportów Gemini z 2026-10-12
-(`research/skm-km-tabele.md`, `research/ztm-lka-regio.md`) i mają status **„wg Gemini,
+(`research/skm-km-tabele.md`, `research/ztm-lka-regio.md`, `research/km-malopolskie.md`) i mają status **„wg Gemini,
 niezweryfikowane niezależnie”** (domeny przewoźników są z chmury zablokowane). Status jest w
 `breakdown["status_weryfikacji"]`, w `notes` i w plikach danych. **Decyzja (CONTRIBUTING.md, „Dane
 z zewnętrznych AI”): wszystkie te kwoty mają `breakdown["price_verified"]=False` i
 `PriceType.ESTIMATE` do czasu drugiego niezależnego źródła** (otwarcie wskazanych PDF-ów/stron w
-przeglądarce). Dla SKM Trójmiasto i ŁKA przełącznikiem jest pole `status` w danych
-(`potwierdzone.status` w paśmie SKM, `weryfikacja.status` w `lka_lodz.json`): po zmianie na inny
+przeglądarce). Dla SKM Trójmiasto, Kolei Małopolskich i ŁKA przełącznikiem jest pole `status` w danych
+(`potwierdzone.status` w paśmie SKM/KMŁ, `weryfikacja.status` w `lka_lodz.json`): po zmianie na inny
 niż „wg Gemini, niezweryfikowane niezależnie” kwoty wracają do `price_verified=True`. Ranking
 (`Itinerary.price_verified`) traktuje je więc jak szacunek.
 
@@ -295,6 +294,33 @@ niż „wg Gemini, niezweryfikowane niezależnie” kwoty wracają do `price_ver
   Bilety z aplikacji trzeba skasować kodem QR; Open Payment System i check-in/check-out nie są
   honorowane. Ulgi (ulgowy 50%: 2,20 / 2,80 / 3,40 zł) i bilety okresowe nie są modelowane:
   przy uldze pokazujemy cenę normalną; `price_verified=False` zawsze (kwoty tylko z raportu Gemini).
+- **Koleje Małopolskie** (`fares/koleje_malopolskie.py`, `fares/data/koleje_malopolskie.json`,
+  `Carrier.KOLEJE_MALOPOLSKIE`): wyłącznie **Tabela nr 1** taryfy przewozowej TP-KMŁ, 30 pasm
+  biletu jednorazowego wg taryfy normalnej, 2. klasa, pociąg osobowy, cena brutto z 8% VAT (8,00 zł
+  do 5 km … 62,40 zł do 800 km; 91-100 km = 31,30 zł). Dokument: „Załącznik nr 2 do Uchwały Zarządu
+  „Koleje Małopolskie” sp. z o.o. nr 43/2026 z dnia 17 marca 2026 r.” (tekst jednolity po zmianie
+  nr 8), PDF (Tabela nr 1 na s. 66):
+  https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf ,
+  raport `research/km-malopolskie.md` (gałąź `gemini/km-malopolskie`), sprawdzenie 2026-10-12.
+  Źródło, cytat, data weryfikacji i status są w pliku danych (blok `zrodlo` oraz `potwierdzone` przy
+  każdym paśmie). **Data wejścia w życie: brak** — raport jej nie odczytał, w danych jest to
+  jawnie `"obowiazuje_od": null` (+ `obowiazuje_od_status`), a w `notes` „data wejścia w życie:
+  brak w raporcie, niezweryfikowana”. **Wszystkie kwoty: „wg Gemini, niezweryfikowane
+  niezależnie”**, więc `price_verified=False` i `PriceType.ESTIMATE`. Przełącznik jak w SKM:
+  zmiana `potwierdzone.status` pasma na inny niż „wg Gemini, niezweryfikowane niezależnie” przywraca
+  `price_verified=True` (a `PriceType.OFFICIAL` tylko przy km po torach). Przewoźnik: `routing`
+  rozpoznaje `agencyName`/nazwę z MOTIS „Koleje Małopolskie” (wielkość liter, spacje, bez polskich
+  znaków oraz skróty KMŁ/KML; pociąg, nie autobus) w `infer_pl_local_rail_carrier()`. Kilometry:
+  `leg.extra["distance_along_track_km"]` (km po torach), gdy jest, inaczej linia prosta
+  (`leg.distance_km`, pasmo bywa zaniżone, opis w `notes`). **Ograniczenia:** (1) tabela nie
+  obowiązuje do/z Kraków Lotnisko — taki odcinek nie dostaje tej tabeli (szacunek 0,35 zł/km);
+  (2) ulgi, bilety okresowe i łączne (np. WSPÓLNY KMK+KMŁ) nie są modelowane: przy uldze pokazujemy
+  cenę normalną, niepotwierdzoną; (3) raport podaje też cenę 28,50 zł dla Kraków Główny - Jasło
+  (rozkład K71), której w Tabeli nr 1 nie ma (patrz
+  `verification/koleje-malopolskie-weryfikacja-2026-10-12.md`); wcześniejsza notatka o drugiej,
+  regionalnej tabeli („Taryfa Małopolska”) nie jest tym raportem rozstrzygnięta. **Koleje
+  Mazowieckie i inni przewoźnicy nie są ruszani** (POLREGIO w Małopolsce dalej dostaje Taryfę
+  Podstawową). Testy: `tests/test_koleje_malopolskie_tariff.py`.
 
 Ograniczenia (wspólne): obszary to koła, nie granice (`routing/pricing.py`: `SKM_TROJMIASTO_AREA`
 20 km wokół Sopotu, `LKA_LODZ_AREA` 9 km wokół centrum Łodzi, SKM Warszawa/lotnisko: koło ZTM

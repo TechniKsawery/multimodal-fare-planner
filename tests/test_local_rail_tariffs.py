@@ -3,8 +3,9 @@
 2026-10-12 (research/skm-km-tabele.md, research/ztm-lka-regio.md) i mają status "wg Gemini,
 niezweryfikowane niezależnie" — domeny przewoźników są z chmury zablokowane.
 
-NIE wdrożone celowo: Koleje Mazowieckie (tabela ma niespójny wiersz 31-40 km: 15,30 zł vs 15,60 zł)
-i Koleje Małopolskie. Testy pilnują, że te odcinki dalej idą zgrubnym szacunkiem PLN/km.
+NIE wdrożone celowo: Koleje Mazowieckie (tabela ma niespójny wiersz 31-40 km: 15,30 zł vs 15,60 zł).
+Testy pilnują, że te odcinki dalej idą zgrubnym szacunkiem PLN/km. Koleje Małopolskie mają osobny
+moduł i testy: tests/test_koleje_malopolskie_tariff.py.
 
 Współrzędne przybliżone (ok. 0,01°) — rozróżniają miejsca, nie są danymi cenowymi."""
 
@@ -511,21 +512,21 @@ def test_koleje_mazowieckie_poza_warszawa_dalej_zgrubny_szacunek_nie_tabela_km()
     assert priced.amount == round(pricing.GENERIC_FALLBACK_PLN_PER_KM * leg.distance_km, 2)
 
 
-def test_koleje_malopolskie_dalej_zgrubny_szacunek():
+def test_koleje_malopolskie_maja_osobna_sciezke_nie_zgrubny_szacunek():
+    # KMŁ wdrożone osobno (tests/test_koleje_malopolskie_tariff.py); tu tylko: nie przez POLREGIO/KM.
     leg = _leg(
         "Koleje Małopolskie", "Kraków Główny", "Tarnów", (50.0680, 19.9475), (50.0120, 20.9860)
     )
     assert pricing.infer_pl_regional_carrier(leg) is None
-    assert pricing.infer_pl_local_rail_carrier(leg) is None
-    priced = pricing.price_rail_leg(leg, DiscountProfile())
-    assert priced.carrier is None and priced.price_verified is False
+    assert pricing.infer_pl_local_rail_carrier(leg) is Carrier.KOLEJE_MALOPOLSKIE
+    assert not pricing._is_km_or_wkd(leg)
 
 
-def test_nie_ma_kalkulatorow_ani_danych_km_i_kml():
+def test_nie_ma_kalkulatora_ani_danych_km_mazowieckich():
     nazwy = {c.name for c in Carrier}
-    assert not any("MAZOWIECK" in n or "KML" in n or "MALOPOLSK" in n for n in nazwy)
+    assert not any("MAZOWIECK" in n for n in nazwy)
     pliki = {p.name for p in (Path(__file__).parent.parent / "fares" / "data").glob("*.json")}
-    assert not any(re.search(r"(^km|kml|mazowieck|malopolsk)", n) for n in pliki)
+    assert not any(re.search(r"(^km_|^km\.|mazowieck)", n) for n in pliki)
 
 
 # --- ŁKA w Łodzi ------------------------------------------------------------------------------

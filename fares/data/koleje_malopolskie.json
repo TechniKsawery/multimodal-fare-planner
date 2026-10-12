@@ -1,0 +1,355 @@
+{
+  "_zrodlo": "Koleje Małopolskie sp. z o.o., Taryfa przewozowa (TP-KMŁ), Tabela nr 1: https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf (85 stron, Tabela nr 1 na s. 66). Strona źródłowa: https://kolejemalopolskie.com.pl/pl/dla-pasazera/oferty-taryfy-przepisy/regulamin-przewozu-i-taryfa-przewozowa . Raport research/km-malopolskie.md (gałąź gemini/km-malopolskie), sekcja 2, 2026-10-12.",
+  "_status_weryfikacji": "wg Gemini, niezweryfikowane niezależnie. Domeny przewoźników są z chmury zablokowane, więc PDF nie został otwarty przez wdrażającego; 30 kwot przepisano z raportu Gemini.",
+  "_uwaga": "Tylko Tabela nr 1 (30 pasm): bilet jednorazowy wg taryfy normalnej, klasa 2, pociąg osobowy, cena brutto (zawiera 8% VAT). Tabela NIE obowiązuje do/z Kraków Lotnisko. Odległość taryfowa to km po torach. Ulgi, bilety okresowe i bilety łączone (np. WSPÓLNY KMK+KMŁ) NIE są modelowane. Raport nie podaje daty wejścia w życie (okładka dokumentu nie została odczytana): obowiazuje_od = null oznacza BRAK tej informacji, nie brak ograniczenia. Raport cytuje też cenę 28,50 zł dla Kraków Główny - Jasło z rozkładu K71, której nie ma w Tabeli nr 1 (patrz verification/koleje-malopolskie-weryfikacja-2026-10-12.md).",
+  "waluta": "PLN",
+  "klasa": 2,
+  "as_of": "2026-10-12",
+  "obowiazuje_od": null,
+  "obowiazuje_od_status": "brak: raport nie odczytał daty wejścia w życie (NIEZWERYFIKOWANE)",
+  "typ_ceny": "oficjalna_taryfa",
+  "zrodlo": {
+    "url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+    "dokument": "Załącznik nr 2 do Uchwały Zarządu „Koleje Małopolskie” sp. z o.o. nr 43/2026 z dnia 17 marca 2026 r. (tekst jednolity po zmianie nr 8)",
+    "cytat": "Opłaty za bilety jednorazowe wg taryfy normalnej, klasa 2 pociąg osobowy; cena (zawiera 8% VAT)",
+    "data_weryfikacji": "2026-10-12",
+    "status": "wg Gemini, niezweryfikowane niezależnie"
+  },
+  "weryfikacja": {
+    "status": "wg Gemini, niezweryfikowane niezależnie",
+    "sprawdzono": "2026-10-12",
+    "wynik": "30 pasm biletu jednorazowego normalnego przepisanych z raportu Gemini; raport odnotowuje zgodność z wcześniejszym raportem Gemini dla do 5 km = 8,00 zł i 91-100 km = 31,30 zł (to nie jest niezależne źródło); niezweryfikowane niezależnie."
+  },
+  "pasma_odleglosci_km": [
+    {
+      "zakres": "do 5",
+      "do_km": 5,
+      "cena": 8.0,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "6-10",
+      "do_km": 10,
+      "cena": 8.6,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "11-15",
+      "do_km": 15,
+      "cena": 9.8,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "16-20",
+      "do_km": 20,
+      "cena": 11.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "21-25",
+      "do_km": 25,
+      "cena": 13.6,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "26-30",
+      "do_km": 30,
+      "cena": 14.5,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "31-35",
+      "do_km": 35,
+      "cena": 16.5,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "36-40",
+      "do_km": 40,
+      "cena": 18.0,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "41-47",
+      "do_km": 47,
+      "cena": 20.0,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "48-53",
+      "do_km": 53,
+      "cena": 22.2,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "54-59",
+      "do_km": 59,
+      "cena": 23.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "60-67",
+      "do_km": 67,
+      "cena": 24.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "68-73",
+      "do_km": 73,
+      "cena": 25.6,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "74-80",
+      "do_km": 80,
+      "cena": 27.6,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "81-90",
+      "do_km": 90,
+      "cena": 29.5,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "91-100",
+      "do_km": 100,
+      "cena": 31.3,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "101-120",
+      "do_km": 120,
+      "cena": 35.3,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "121-140",
+      "do_km": 140,
+      "cena": 37.6,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "141-160",
+      "do_km": 160,
+      "cena": 40.2,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "161-180",
+      "do_km": 180,
+      "cena": 42.0,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "181-200",
+      "do_km": 200,
+      "cena": 43.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "201-240",
+      "do_km": 240,
+      "cena": 45.6,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "241-280",
+      "do_km": 280,
+      "cena": 47.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "281-320",
+      "do_km": 320,
+      "cena": 49.6,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "321-360",
+      "do_km": 360,
+      "cena": 50.5,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "361-400",
+      "do_km": 400,
+      "cena": 52.3,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "401-500",
+      "do_km": 500,
+      "cena": 54.5,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "501-600",
+      "do_km": 600,
+      "cena": 57.0,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "601-700",
+      "do_km": 700,
+      "cena": 59.4,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    },
+    {
+      "zakres": "701-800",
+      "do_km": 800,
+      "cena": 62.4,
+      "potwierdzone": {
+        "zrodlo_url": "https://kolejemalopolskie.com.pl/brepo/panel_repo/2026/03/19/cpt2dx/taryfa-przewozowa-kml-zm8-ost.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 66 PDF)"
+      }
+    }
+  ]
+}

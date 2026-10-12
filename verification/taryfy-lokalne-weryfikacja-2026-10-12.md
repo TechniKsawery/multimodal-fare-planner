@@ -28,8 +28,9 @@ każdym z 21 pasm (test `tests/test_local_rail_tariffs.py`).
 - **KM — niewdrożone.** Pasmo 31-40 km: raport `skm-km-tabele` podaje 15,30 zł, raport
   `ztm-lka-regio` 15,60 zł (cytat „31 – 40 km – 15,60 zł”). Poza tym raporty różnią się źródłem
   (cennik od 1.07.2022 z późniejszymi zmianami 1-6).
-- **Koleje Małopolskie — niewdrożone.** Dwie tabele (bazowa TP-KMŁ i regionalna Taryfa Małopolska)
-  i brak informacji, którą stosuje dany pociąg.
+- **Koleje Małopolskie — wdrożona tylko Tabela nr 1 TP-KMŁ** (późniejszy raport
+  `km-malopolskie`, patrz `verification/koleje-malopolskie-weryfikacja-2026-10-12.md`). Wcześniejsza
+  uwaga o drugiej, regionalnej tabeli (Taryfa Małopolska) nie jest tym raportem rozstrzygnięta.
 - **ŁKA:** raport nie zawiera cennika MPK Łódź, więc wyceniamy własnym biletem ŁKA. Ulgi i bilety
   okresowe nie są modelowane.
 - **SKM Warszawa:** strefy 1/2 nie są znane routingowi (koło 15 km wokół centrum); bilet 75-minutowy

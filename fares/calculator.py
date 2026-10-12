@@ -6,6 +6,7 @@ from . import (
     flixbus,
     hvv,
     international,
+    koleje_malopolskie,
     kvb,
     lka_lodz,
     mpk_krakow,
@@ -38,6 +39,7 @@ _CALCULATORS = {
     Carrier.POLREGIO_PODSTAWOWA: polregio.estimate,
     Carrier.SKM_TROJMIASTO: skm_trojmiasto.estimate,
     Carrier.LKA_LODZ: lka_lodz.estimate,
+    Carrier.KOLEJE_MALOPOLSKIE: koleje_malopolskie.estimate,
     Carrier.INTERNATIONAL_PL_DE: international.estimate,
 }
 

@@ -215,7 +215,16 @@ przewoźników dalekobieżnych:
   Warszawa/KM lotniskowej) dają `price_type="szacunek"` i `breakdown["price_verified"]=False`
   (CONTRIBUTING.md) do czasu drugiego niezależnego źródła. Szczegóły:
   `fares/README.md`, testy `tests/test_local_rail_tariffs.py`.
-- wszystko inne (w tym Koleje Mazowieckie, Koleje Małopolskie, SKM Trójmiasto/ŁKA/SKM Warszawa
+- **Koleje Małopolskie** (`infer_pl_local_rail_carrier()` przez `KML_KEYWORDS`, bez obszaru
+  geograficznego — tabela dotyczy całej sieci KMŁ): `agencyName`/nazwa z MOTIS „Koleje
+  Małopolskie” (także bez polskich znaków i skróty KMŁ/KML; tylko pociąg: `LegMode.RAIL` albo
+  SUBURBAN) → `Carrier.KOLEJE_MALOPOLSKIE` (Tabela nr 1 TP-KMŁ, 30 pasm; `fares/koleje_malopolskie.py`).
+  Odcinek do/z Kraków Lotnisko tabeli nie dostaje (`KML_AIRPORT_KEYWORDS`, fallback). Km jak dla
+  SKM: `leg.extra["distance_along_track_km"]` (`distance_along_track_source` → `zrodlo_km`), inaczej
+  linia prosta. Kwoty „wg Gemini, niezweryfikowane niezależnie” → `price_type="szacunek"`,
+  `price_verified=False`. KMŁ nie trafia do `PL_REGIONAL_RAIL_KEYWORDS` (POLREGIO bez zmian).
+  Testy: `tests/test_koleje_malopolskie_tariff.py`.
+- wszystko inne (w tym Koleje Mazowieckie, SKM Trójmiasto/ŁKA/SKM Warszawa
   poza swoimi obszarami i autobus zastępczy
   RB66 Szczecin–Angermünde, który nie jest wyceniany jak pociąg VBB) → zgrubny fallback `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km),
   `price_type="szacunek"`, `breakdown["price_verified"]=False`, żeby jeden nierozpoznany

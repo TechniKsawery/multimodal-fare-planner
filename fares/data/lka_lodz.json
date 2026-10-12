@@ -1,0 +1,19 @@
+{
+  "_zrodlo": "Łódzka Kolej Aglomeracyjna, honorowanie biletów komunikacji miejskiej w Łodzi i bilety strefowe ŁKA (Strefa A): https://lka.lodzkie.pl/Honorowanie-biletow-komunikacji-miejskiej-w-Lodzi/ . Raport research/ztm-lka-regio.md (gałąź gemini/ztm-lka-regio), 2026-10-12.",
+  "_status_weryfikacji": "wg Gemini, niezweryfikowane niezależnie. Domeny przewoźników są z chmury zablokowane, więc strona ŁKA nie została otwarta przez wdrażającego.",
+  "_uwaga": "Bilety czasowe strefowe ŁKA obowiązują w Strefie A (granice administracyjne Łodzi) w pociągach ŁKA (w tym ŁKA Sprinter) i w pojazdach MPK Łódź. Wg raportu w ŁKA w Strefie A honorowane są też wszystkie ważne bilety lokalnego transportu zbiorowego Łodzi (MPK Łódź); cennika MPK Łódź w repo nie ma, więc wyceniamy własnymi biletami ŁKA. Bilety z aplikacji trzeba skasować kodem QR (naklejki przy drzwiach); NIE są honorowane Open Payment System (karta płatnicza) ani check-in/check-out. Bilety okresowe (miesięczny 140/168 zł itd.) i ulgowe (50%: 2,20/2,80/3,40 zł) nie są modelowane. Poza Strefą A (np. Zgierz, Pabianice, Konstantynów) tej taryfy nie stosujemy. ŁKA ma dodatkowo tańszą ofertę „Łódzkie Łączy”, której tu nie ma.",
+  "waluta": "PLN",
+  "nazwa_przewoznika": "Łódzka Kolej Aglomeracyjna (Strefa A, Łódź)",
+  "as_of": "2026-10-12",
+  "typ_ceny": "oficjalna_taryfa",
+  "weryfikacja": {
+    "status": "wg Gemini, niezweryfikowane niezależnie",
+    "sprawdzono": "2026-10-12",
+    "wynik": "3 bilety normalne i 3 ulgowe przepisane z raportu Gemini; price_verified=False do czasu drugiego niezależnego źródła (CONTRIBUTING.md)."
+  },
+  "bilety_czasowe": [
+    {"wazny_min": 20, "normalny": 4.40, "ulgowy": 2.20, "strefa": "A"},
+    {"wazny_min": 40, "normalny": 5.60, "ulgowy": 2.80, "strefa": "A"},
+    {"wazny_min": 80, "normalny": 6.80, "ulgowy": 3.40, "strefa": "A"}
+  ]
+}

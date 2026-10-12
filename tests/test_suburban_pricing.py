@@ -87,11 +87,12 @@ def test_skm_szczecin_angermunde_nie_dostaje_ryczaltu_autobusowego():
     assert priced.carrier is None  # żaden moduł taryf nie wycenił tego odcinka
 
 
-def test_skm_trojmiasto_tez_niepotwierdzony_nie_ryczalt():
+def test_skm_trojmiasto_ma_teraz_tabele_taryfy_pomorskiej_nie_szacunek_km():
+    # Wcześniej niepotwierdzony szacunek PLN/km; tabela wdrożona: tests/test_local_rail_tariffs.py.
     leg = _suburban("Gdańsk Główny", "Gdynia Główna", GDANSK_GLOWNY, GDYNIA_GLOWNA, carrier="SKM")
     priced = pricing.price_bus_leg(leg)
+    assert priced.carrier is Carrier.SKM_TROJMIASTO
     assert priced.amount != pricing.LOCAL_BUS_FLAT_PLN
-    assert priced.price_verified is False
 
 
 def test_pozostale_tryby_lokalne_nadal_maja_ryczalt_bus_jako_wartosc_zastepcza():

@@ -40,8 +40,9 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
   `research/zrodla-znizek-kart.md` (Gemini) — niezweryfikowane niezależnie, bo strony przewoźników są
   niedostępne z chmury. Ceny bez zmian.
   Bilety BVG obowiązują też dla S-Bahnu Berlin (tryb MOTIS `SUBURBAN`) w kole 20 km wokół centrum.
-- **Kolej podmiejska poza znanymi taryfami (SKM Szczecin/Trójmiasto, S-Bahn spoza Berlina i NRW)**
-  — `fares/` NIE ma dla niej modułu ani danych w `fares/data/*`. `routing/pricing.py` (tryb
+- **Kolej podmiejska poza znanymi taryfami (SKM Szczecin, S-Bahn spoza Berlina i NRW)**
+  — SKM Trójmiasto, SKM Warszawa i ŁKA w Łodzi mają od 2026-10-12 osobne taryfy (sekcja „Lokalne
+  taryfy kolejowe” niżej). Dla reszty `fares/` NIE ma modułu ani danych w `fares/data/*`. `routing/pricing.py` (tryb
   `SUBURBAN`, `price_suburban_leg`) wycenia ją jako niepotwierdzony szacunek PLN/km
   (`price_verified=False`), a nie jako autobus za 4 PLN. To samo dotyczy odcinków, które feed
   oznaczył jako `BUS`, ale są dłuższe niż 20 km (`LOCAL_BUS_MAX_KM`, np. RB66 Szczecin ->
@@ -230,7 +231,7 @@ Znane ograniczenia:
   Małopolska, Podkarpacka, Świętokrzyska), nie Podstawową; wyszukiwarka nie zna województwa.
   Cennik POLREGIO „Załącznik 2 — bilety jednorazowe od 1.03.2026” to załącznik do taryfy
   pomorskiej, nie do Podstawowej.
-- ŁKA ma dodatkowo tańszą taryfę „Łódzkie Łączy”, której tu nie ma.
+- ŁKA ma dodatkowo tańszą taryfę „Łódzkie Łączy”, której tu nie ma (też w sekcji o ŁKA w Łodzi).
 
 ## Odcinki bez wyceny pociągiem (niewdrożone)
 
@@ -241,10 +242,67 @@ Znane ograniczenia:
   (`price_type="szacunek"`, `price_verified=False`). Taryfę VBB Teil E (Szczecin – Angermünde,
   Szczecin – Tantow) można rozważyć dopiero, gdy pociąg wróci na trasę (od 13.12.2026) i kwoty
   zostaną odczytane z broszury VBB.
-- **SKM Trójmiasto i Koleje Mazowieckie.** Nie wdrożone: dane źródłowe są sprzeczne (raport vs
-  wyszukiwanie: SKM tylko źródło wtórne, KM wiersze z cennika 2022 vs zmiany 1-6). Zostają przy
-  zgrubnym szacunku 0,35 zł/km do czasu rozstrzygnięcia na oficjalnych PDF-ach.
-- **ZTM Warszawa (SKM/KM) i ŁKA w Łodzi** — bilety czasowe, nie kilometrowe; nie ruszane.
+- **Koleje Mazowieckie.** Nie wdrożone: tabela z raportu Gemini ma niespójny wiersz 31-40 km
+  (15,30 zł w raporcie `skm-km-tabele` vs 15,60 zł w raporcie `ztm-lka-regio`). Zostają przy
+  zgrubnym szacunku 0,35 zł/km (wyjątek: linia lotniskowa Płudy - Lotnisko Chopina, niżej).
+- **Koleje Małopolskie.** Nie wdrożone (dwie tabele: bazowa TP-KMŁ i regionalna Taryfa
+  Małopolska, brak rozstrzygnięcia, którą stosuje dany pociąg). Szacunek 0,35 zł/km.
+- SKM Trójmiasto, SKM Warszawa i ŁKA w Łodzi: wdrożone, patrz niżej.
+
+## Lokalne taryfy kolejowe: SKM Trójmiasto, SKM Warszawa, ŁKA w Łodzi (2026-10-12)
+
+Wszystkie kwoty i zasady honorowania pochodzą z raportów Gemini z 2026-10-12
+(`research/skm-km-tabele.md`, `research/ztm-lka-regio.md`) i mają status **„wg Gemini,
+niezweryfikowane niezależnie”** (domeny przewoźników są z chmury zablokowane). Status jest w
+`breakdown["status_weryfikacji"]`, w `notes` i w plikach danych. **Decyzja (CONTRIBUTING.md, „Dane
+z zewnętrznych AI”): wszystkie te kwoty mają `breakdown["price_verified"]=False` i
+`PriceType.ESTIMATE` do czasu drugiego niezależnego źródła** (otwarcie wskazanych PDF-ów/stron w
+przeglądarce). Dla SKM Trójmiasto i ŁKA przełącznikiem jest pole `status` w danych
+(`potwierdzone.status` w paśmie SKM, `weryfikacja.status` w `lka_lodz.json`): po zmianie na inny
+niż „wg Gemini, niezweryfikowane niezależnie” kwoty wracają do `price_verified=True`. Ranking
+(`Itinerary.price_verified`) traktuje je więc jak szacunek.
+
+- **SKM Trójmiasto** (`fares/skm_trojmiasto.py`, `fares/data/skm_trojmiasto.json`): tabela
+  odległościowa Taryfy Pomorskiej, 21 pasm (7,00 zł do 6 km … 42,00 zł do 500 km), cennik
+  C-PKP SKM obowiązujący od 1.03.2026 (Uchwała Zarządu nr 20/2026), Tabela nr 1 s. 15 PDF:
+  https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf .
+  Ulgi 37% i 51% bierzemy z tabel ulg (nr 4 i 8) z pliku danych; inne ulgi to procent od ceny
+  bazowej. `price_verified=False` zawsze (także dla cen bazowych i ulg z tabel), dopóki kwoty
+  mają tylko raport Gemini. Bilety **ZTM Gdańsk i ZKM Gdynia nie są honorowane w SKM**
+  (pasażer potrzebuje biletu kolejowego Taryfy Pomorskiej). Bilety strefowe Taryfy Pomorskiej
+  (Bilet Miejski 8,50 zł, Bilet Trójmiejski 12,50 zł) NIE są modelowane, więc na dłuższych
+  odcinkach cena z tabeli km może być wyższa niż realna najtańsza opcja. Archiwalne ceny
+  2023-2024 (12,00 zł za 31-40 km, 10,00 zł za 19-24 km) nie obowiązują od 1.03.2026.
+  Odległość: `Segment.distance_along_track=True` (km po torach) dałoby `PriceType.OFFICIAL`, ale
+  dopiero przy niezależnie zweryfikowanej kwocie (dziś zawsze `ESTIMATE`); routing ustawia flagę, gdy w `leg.extra["distance_along_track_km"]` są km po torach z odpowiedzi
+  MOTIS (PR #105, jeszcze niescalony); inaczej linia prosta i `PriceType.ESTIMATE` z opisem
+  przybliżenia (pasmo bywa zaniżone).
+- **SKM Warszawa** (bez nowego kalkulatora, `Carrier.ZTM_WARSZAWA`): cena odcinka SKM to bilet
+  czasowy ZTM wybrany wg czasu jazdy: 20 min 3,40 zł (strefy 1+2), 75 min 4,40 zł (strefa 1),
+  90 min 7,00 zł (strefy 1+2); ulgowy 50% z `ztm_warszawa_ulgowy`. Źródło honorowania:
+  https://www.wtp.waw.pl/ceny-i-rodzaje-biletow/ (`_zrodlo_skm` w `ztm_warszawa.json`).
+  **Koleje Mazowieckie i WKD nie honorują biletów czasowych ZTM** (Wspólny Bilet obejmuje tylko
+  dobowe i dłuższe): odcinek KM/WKD w obszarze ZTM nie dostaje ceny ZTM, tylko niepotwierdzony
+  szacunek 0,35 zł/km. Cena odcinka SKM/lotniskowego KM z biletu ZTM ma `price_verified=False`
+  i `PriceType.ESTIMATE`, bo honorowanie biletów czasowych ZTM pochodzi z raportu Gemini
+  (kwoty ZTM same w sobie są z cennika, odczyt z 2026-10-06). Wyjątek: linia lotniskowa KM Warszawa Płudy - Warszawa Lotnisko Chopina
+  (w obu kierunkach, rozpoznawana po nazwach stacji) dostaje bilet czasowy ZTM
+  (https://www.wtp.waw.pl/integracje/wspolny-bilet-ztm-km-wkd/ , `_zrodlo_km_wkd`).
+- **ŁKA w Łodzi** (`fares/lka_lodz.py`, `fares/data/lka_lodz.json`): w Strefie A (granice Łodzi)
+  honorowane są bilety MPK Łódź (cennika MPK Łódź w repo nie ma) i własne bilety strefowe ŁKA
+  20 min 4,40 zł, 40 min 5,60 zł, 80 min 6,80 zł (wybór wg czasu jazdy, dłużej niż 80 min to
+  szacunek). Źródło: https://lka.lodzkie.pl/Honorowanie-biletow-komunikacji-miejskiej-w-Lodzi/ .
+  Bilety z aplikacji trzeba skasować kodem QR; Open Payment System i check-in/check-out nie są
+  honorowane. Ulgi (ulgowy 50%: 2,20 / 2,80 / 3,40 zł) i bilety okresowe nie są modelowane:
+  przy uldze pokazujemy cenę normalną; `price_verified=False` zawsze (kwoty tylko z raportu Gemini).
+
+Ograniczenia (wspólne): obszary to koła, nie granice (`routing/pricing.py`: `SKM_TROJMIASTO_AREA`
+20 km wokół Sopotu, `LKA_LODZ_AREA` 9 km wokół centrum Łodzi, SKM Warszawa/lotnisko: koło ZTM
+15 km). Odcinek poza kołem (SKM do Wejherowa, ŁKA do Zgierza/Pabianic, SKM Warszawa do
+Pruszkowa/Otwocka) nie dostaje tych taryf i idzie szacunkiem 0,35 zł/km. Bilet czasowy ZTM jako
+cena odcinka SKM jest górną granicą dla podróży z przesiadkami (jeden bilet 75/90 min pokrywa
+kilka odcinków), a kalkulator ZTM nie zna granicy stref 1/2 (bilet 75-minutowy dotyczy tylko
+strefy 1). Testy: `tests/test_local_rail_tariffs.py`.
 
 ## FlixBus: realna cena z API zamiast szacunku po km (2026-09-26)
 

@@ -201,7 +201,22 @@ przewoźników dalekobieżnych:
   Wcześniej każda nazwa z `"regio"`/`"s-bahn"` szła do VRR z uzasadnieniem, że feed `derv` obejmuje
   tylko NRW — to nieprawda (`scripts/fetch_data.py` pobiera gtfs.de `rv_free`/`nv_free` dla całych
   Niemiec), a `"regio"` łapało też POLREGIO (błąd K2 z audytu).
-- wszystko inne (w tym Koleje Mazowieckie, ŁKA, SKM Trójmiasto, SKM Warszawa i autobus zastępczy
+- lokalne taryfy kolejowe w Polsce (`infer_pl_local_rail_carrier()`, tryb RAIL i SUBURBAN; oba
+  końce odcinka w kole z `SKM_TROJMIASTO_AREA` / `LKA_LODZ_AREA` / kole ZTM Warszawa, bez
+  współrzędnych wg nazw): **SKM Trójmiasto** → `Carrier.SKM_TROJMIASTO` (tabela Taryfy Pomorskiej,
+  21 pasm; bilety ZTM/ZKM nie obowiązują w SKM), **ŁKA w Łodzi** → `Carrier.LKA_LODZ` (bilety
+  czasowe ŁKA 20/40/80 min), **SKM Warszawa** → `Carrier.ZTM_WARSZAWA` (bilet czasowy ZTM jako
+  cena odcinka). Kolej Mazowiecka i WKD **nie honorują** biletów czasowych ZTM (odcinek w obszarze
+  ZTM dostaje niepotwierdzony szacunek, `_km_wkd_without_ztm_tickets()`), z wyjątkiem linii
+  lotniskowej Warszawa Płudy - Warszawa Lotnisko Chopina (`is_warsaw_airport_line()`). Dla
+  tabeli SKM km bierze się z `leg.extra["distance_along_track_km"]` (km po torach, PR #105), gdy
+  jest dostępne, inaczej z `leg.distance_km` (linia prosta). Status kwot: „wg Gemini,
+  niezweryfikowane niezależnie” — wszystkie trzy ścieżki (SKM Trójmiasto, ŁKA, bilet ZTM w SKM
+  Warszawa/KM lotniskowej) dają `price_type="szacunek"` i `breakdown["price_verified"]=False`
+  (CONTRIBUTING.md) do czasu drugiego niezależnego źródła. Szczegóły:
+  `fares/README.md`, testy `tests/test_local_rail_tariffs.py`.
+- wszystko inne (w tym Koleje Mazowieckie, Koleje Małopolskie, SKM Trójmiasto/ŁKA/SKM Warszawa
+  poza swoimi obszarami i autobus zastępczy
   RB66 Szczecin–Angermünde, który nie jest wyceniany jak pociąg VBB) → zgrubny fallback `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km),
   `price_type="szacunek"`, `breakdown["price_verified"]=False`, żeby jeden nierozpoznany
   przewoźnik nie wywalał całego wariantu, ale też nie udawał ceny z cennika.
@@ -240,7 +255,9 @@ tak (`is_suburban_leg()`, `leg.extra["motis_mode"] == "SUBURBAN"`):
    niepotwierdzony szacunek `GENERIC_FALLBACK_PLN_PER_KM` x km (`price_type="szacunek"`,
    `breakdown["price_verified"]=False`, `breakdown["tryb_motis"]="SUBURBAN"`, w `notes` powód i
    „cena niepotwierdzona”; brak `wartosc_zastepcza`). Dotyczy m.in. SKM Szczecin (np. Szczecin →
-   Angermünde, ok. 70 km), SKM Trójmiasto i S-Bahnów poza znanymi taryfami.
+   Angermünde, ok. 70 km), SKM Trójmiasto poza `SKM_TROJMIASTO_AREA` (np. Wejherowo) i S-Bahnów
+   poza znanymi taryfami. SKM w Trójmieście i Warszawie oraz ŁKA w Łodzi mają osobne taryfy
+   (wyżej, `price_bus_leg()` woła je PRZED taryfami miejskimi).
 Cen SKM i pozostałych kolei podmiejskich spoza powyższych taryf NIE ma w `fares/data/*` — kwota
 PLN/km jest orientacyjna, a odcinek nie wygrywa rankingu „Najtańsza” z wariantem o potwierdzonej
 cenie (`Itinerary.price_verified`, `scoring.pick_recommendations`). Znane ograniczenia: SUBURBAN

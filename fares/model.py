@@ -30,6 +30,11 @@ class Carrier(str, Enum):
     INTERNATIONAL_PL_DE = "international_pl_de"  # bilet PL<->DE przekraczający granicę jednym
     # ciągłym odcinkiem kolejowym (np. Berlin-Warszawa-Express) — SZTYWNE kategorie cenowe
     # (Super Sparpreis Europa), nie tabela pasm jak krajowe kalkulatory PKP/DB. Zob. fares/international.py.
+    SKM_TROJMIASTO = "skm_trojmiasto"  # PKP SKM w Trójmieście (Taryfa Pomorska, 21 pasm od
+    # 1.03.2026), fares/skm_trojmiasto.py (też używa Segment.distance_along_track); bilety ZTM
+    # Gdańsk/ZKM Gdynia tam nie obowiązują
+    LKA_LODZ = "lka_lodz"  # Łódzka Kolej Aglomeracyjna w Strefie A (Łódź): własne bilety
+    # czasowe 20/40/80 min, fares/lka_lodz.py
 
 
 @dataclass
@@ -175,9 +180,10 @@ class Segment:
     discounts: DiscountProfile = field(default_factory=DiscountProfile)
     travel_date: str | None = None  # "YYYY-MM-DD"; wymagane dla FlixBus (ceny dynamiczne per data)
     distance_along_track: bool = False
-    """Tylko Carrier.POLREGIO_PODSTAWOWA: czy distance_km to kilometry TARYFOWE (po torach), a nie
-    linia prosta. Domyślnie False — MOTIS daje linię prostą (leg.distance_km), która zaniża pasmo
-    taryfy, więc nawet potwierdzone pasmo daje wtedy PriceType.ESTIMATE (fares/polregio.py)."""
+    """Tylko Carrier.POLREGIO_PODSTAWOWA (oraz Carrier.SKM_TROJMIASTO — fares/skm_trojmiasto.py): czy
+    distance_km to kilometry TARYFOWE (po torach), a nie linia prosta. Domyślnie False — MOTIS daje
+    linię prostą (leg.distance_km), która zaniża pasmo taryfy, więc nawet potwierdzone pasmo daje
+    wtedy PriceType.ESTIMATE (fares/polregio.py)."""
     distance_source: str | None = None
     """Tylko Carrier.POLREGIO_PODSTAWOWA, gdy distance_along_track=True: skąd pochodzi kilometr
     (np. geometria odcinka z MOTIS albo suma odległości między przystankami); trafia do

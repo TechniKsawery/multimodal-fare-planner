@@ -437,8 +437,9 @@ PL_REGIONAL_RAIL_KEYWORDS = (
 )
 """Przewoźnicy regionalni PL, którym przypisujemy degresywną tabelę Taryfy Podstawowej
 (fares/polregio.py): POLREGIO, Koleje Dolnośląskie, Koleje Śląskie (dopasowanie jako CAŁE słowa).
-Nie obejmuje Kolei Mazowieckich, ŁKA, SKM Trójmiasto ani SKM Warszawa — mają własne taryfy, których
-nie potwierdzono (patrz routing/README.md, sekcja o taryfach regionalnych)."""
+Nie obejmuje Kolei Mazowieckich (tabela niespójna, niewdrożona), Kolei Małopolskich (własna taryfa,
+niewdrożona), ŁKA, SKM Trójmiasto ani SKM Warszawa — te trzy mają osobne ścieżki w
+infer_pl_local_rail_carrier() (patrz routing/README.md, sekcja o taryfach regionalnych)."""
 
 
 def infer_pl_regional_carrier(leg: Leg) -> Carrier | None:
@@ -454,6 +455,161 @@ def infer_pl_regional_carrier(leg: Leg) -> Carrier | None:
     ):
         return Carrier.POLREGIO_PODSTAWOWA
     return None
+
+
+SKM_KEYWORDS = ("skm", "szybka kolej miejska")
+SKM_TROJMIASTO_NAME_KEYWORDS = ("trójmieście", "trojmiescie", "trójmiasto", "trojmiasto")
+LKA_KEYWORDS = ("łka", "lka", "łódzka kolej aglomeracyjna", "lodzka kolej aglomeracyjna")
+KM_WKD_KEYWORDS = ("koleje mazowieckie", "km", "wkd", "warszawska kolej dojazdowa")
+"""Nazwy przewoźników (CAŁE słowa, małe litery) dla lokalnych taryf kolejowych. "skm" samo nie mówi,
+które SKM (Warszawa, Trójmiasto, Szczecin) — o mieście decyduje geografia (obszary niżej)."""
+
+SKM_TROJMIASTO_AREA = (54.4400, 18.5600, 20.0)
+"""(lat, lon, promień km) obszaru Trójmiasta (okolice Sopotu) dla tabeli SKM z Taryfy Pomorskiej.
+PRZYBLIŻENIE, nie granica: obejmuje Gdańsk Lipce (ok. 17 km), Gdańsk Osowa, Rumię (ok. 18 km); SKM
+dalej (Wejherowo, ok. 27 km) nie dostaje tabeli i idzie zgrubnym szacunkiem PLN/km."""
+
+LKA_LODZ_AREA = (51.7592, 19.4560, 9.0)
+"""(lat, lon, promień km) przybliżenia Strefy A ŁKA (granice administracyjne Łodzi). Koło 9 km
+obejmuje stacje łódzkie (Widzew 5,4 km, Marysin 7,8 km), ale nie Zgierza (11,2 km) i Pabianic
+(12,8 km). Konstantynów Łódzki (9,3 km) leży tuż za kołem. To przybliżenie, nie mapa stref."""
+
+AIRPORT_LINE_KEYWORDS = (("płudy", "pludy"), ("lotnisko chopina",))
+"""Wyjątek: na linii lotniskowej KM Warszawa Płudy - Warszawa Lotnisko Chopina (w obu kierunkach)
+obowiązują bilety czasowe ZTM (wg Gemini, niezweryfikowane niezależnie)."""
+
+TARIFF_ZTM_STATUS = "wg Gemini, niezweryfikowane niezależnie"
+
+
+def _leg_in_area(leg: Leg, area: tuple[float, float, float]) -> bool | None:
+    """Czy oba końce odcinka leżą w kole (lat, lon, promień km); None bez współrzędnych."""
+    endpoints = _leg_endpoints(leg)
+    if endpoints is None:
+        return None
+    lat, lon, radius_km = area
+    return all(haversine_km(p_lat, p_lon, lat, lon) <= radius_km for p_lat, p_lon in endpoints)
+
+
+def _is_km_or_wkd(leg: Leg) -> bool:
+    return _matches_any_word(leg.carrier_name.lower(), KM_WKD_KEYWORDS)
+
+
+def is_warsaw_airport_line(leg: Leg) -> bool:
+    """Czy odcinek to Warszawa Płudy <-> Warszawa Lotnisko Chopina (po nazwach stacji)."""
+    names = (leg.origin_name.lower(), leg.destination_name.lower())
+    pludy, lotnisko = AIRPORT_LINE_KEYWORDS
+    return any(
+        any(k in a for k in pludy) and any(k in b for k in lotnisko)
+        for a, b in (names, names[::-1])
+    )
+
+
+def infer_pl_local_rail_carrier(leg: Leg) -> Carrier | None:
+    """Lokalna taryfa kolejowa dla odcinka (MOTIS RAIL albo SUBURBAN), inaczej None:
+    - SKM Trójmiasto: nazwa SKM + oba końce w SKM_TROJMIASTO_AREA (bez współrzędnych: "Trójmieście"
+      w nazwie przewoźnika) -> Carrier.SKM_TROJMIASTO (tabela Taryfy Pomorskiej),
+    - ŁKA w Łodzi: nazwa ŁKA + oba końce w LKA_LODZ_AREA (bez współrzędnych: oba przystanki z
+      "Łódź" w nazwie) -> Carrier.LKA_LODZ (bilety czasowe ŁKA),
+    - SKM Warszawa: nazwa SKM + oba końce w kole ZTM Warszawa -> Carrier.ZTM_WARSZAWA (bilet
+      czasowy ZTM jako cena odcinka),
+    - KM: tylko linia lotniskowa Płudy - Lotnisko Chopina -> Carrier.ZTM_WARSZAWA. Reszta KM i WKD
+      NIE honoruje biletów czasowych ZTM (patrz price_bus_leg), więc zwraca None."""
+    name = leg.carrier_name.lower()
+    if _matches_any_word(name, SKM_KEYWORDS):
+        in_trojmiasto = _leg_in_area(leg, SKM_TROJMIASTO_AREA)
+        if in_trojmiasto or (
+            in_trojmiasto is None and _matches_any_word(name, SKM_TROJMIASTO_NAME_KEYWORDS)
+        ):
+            return Carrier.SKM_TROJMIASTO
+        if _city_carrier_for_leg(leg, (Carrier.ZTM_WARSZAWA,)) is Carrier.ZTM_WARSZAWA:
+            return Carrier.ZTM_WARSZAWA
+        return None
+    if _matches_any_word(name, LKA_KEYWORDS):
+        in_lodz = _leg_in_area(leg, LKA_LODZ_AREA)
+        if in_lodz is None:
+            in_lodz = all(
+                _matches_any_word(stop.lower(), ("łódź", "lodz"))
+                for stop in (leg.origin_name, leg.destination_name)
+            )
+        return Carrier.LKA_LODZ if in_lodz else None
+    if (
+        _is_km_or_wkd(leg)
+        and is_warsaw_airport_line(leg)
+        and _city_carrier_for_leg(leg, (Carrier.ZTM_WARSZAWA,)) is Carrier.ZTM_WARSZAWA
+    ):
+        return Carrier.ZTM_WARSZAWA
+    return None
+
+
+def _tariff_distance(leg: Leg) -> tuple[float | None, bool]:
+    """(km, po_torach): km po torach z leg.extra["distance_along_track_km"] (ustawia je routing z
+    odpowiedzi MOTIS, PR #105), gdy dostępne; inaczej linia prosta leg.distance_km i False."""
+    along = leg.extra.get("distance_along_track_km")
+    if isinstance(along, (int, float)) and not isinstance(along, bool) and along > 0:
+        return float(along), True
+    return leg.distance_km, False
+
+
+def price_pl_local_rail_leg(leg: Leg, carrier: Carrier, discounts: DiscountProfile) -> PricedLeg:
+    """Wycena odcinka lokalną taryfą kolejową z infer_pl_local_rail_carrier(); błąd kalkulatora
+    (np. brak odległości, odległość poza tabelą) -> niepotwierdzony szacunek PLN/km."""
+    try:
+        km, along_track = _tariff_distance(leg)
+        segment = Segment(
+            carrier=carrier,
+            origin=leg.origin_name,
+            destination=leg.destination_name,
+            distance_km=km,
+            ride_duration_min=leg.duration_min,
+            discounts=discounts,
+            travel_date=leg.depart.date().isoformat(),
+            distance_along_track=along_track,
+        )
+        result = fares_estimate_price(segment)
+    except ValueError as exc:
+        return _fallback_priced_leg(leg, f"Kalkulator {carrier.value} zwrócił błąd ({exc}).")
+
+    breakdown = dict(result.breakdown)
+    notes = result.notes
+    price_type = result.price_type.value
+    if carrier is Carrier.SKM_TROJMIASTO and along_track:
+        source = leg.extra.get("distance_along_track_source")
+        if source:
+            breakdown["zrodlo_km"] = source
+    if carrier is Carrier.ZTM_WARSZAWA:
+        airport = _is_km_or_wkd(leg)
+        breakdown["kolej"] = (
+            "KM linia lotniskowa Płudy - Lotnisko Chopina" if airport else "SKM Warszawa"
+        )
+        breakdown["status_weryfikacji_honorowania"] = TARIFF_ZTM_STATUS
+        # Kwoty ZTM są odczytane z cennika, ale honorowanie biletów czasowych ZTM w SKM/KM
+        # pochodzi z raportu Gemini: price_verified=False do czasu drugiego niezależnego źródła.
+        breakdown["price_verified"] = False
+        breakdown["powod_szacunku"] = "honorowanie biletów ZTM w kolei tylko z raportu Gemini"
+        price_type = PriceType.ESTIMATE.value
+        notes = (
+            f"{'Linia lotniskowa KM (Płudy - Lotnisko Chopina)' if airport else 'SKM Warszawa'}: "
+            f"honorowane bilety czasowe ZTM ({TARIFF_ZTM_STATUS}). {notes}"
+        )
+    return PricedLeg(
+        leg=leg,
+        amount=result.amount,
+        currency=result.currency,
+        price_type=price_type,
+        notes=notes,
+        breakdown=breakdown,
+        carrier=carrier,
+    )
+
+
+def _km_wkd_without_ztm_tickets(leg: Leg) -> PricedLeg:
+    """KM i WKD nie honorują biletów czasowych ZTM (poza linią lotniskową), a ich własnej taryfy
+    nie wdrożono (KM: niespójna tabela) — niepotwierdzony szacunek PLN/km zamiast ceny ZTM."""
+    return _fallback_priced_leg(
+        leg,
+        f"'{leg.carrier_name}': bilety czasowe ZTM nie są honorowane w pociągach KM i WKD "
+        f"({TARIFF_ZTM_STATUS}), a taryfa KM/WKD nie jest wdrożona.",
+    )
 
 
 PKP_PREMIUM_CATEGORIES = ("EIC", "EIP")
@@ -590,6 +746,10 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
         carrier = name_carrier
         if carrier is None:
             carrier = infer_pl_regional_carrier(leg)
+        if carrier is None:
+            local_carrier = infer_pl_local_rail_carrier(leg)
+            if local_carrier is not None:
+                return price_pl_local_rail_leg(leg, local_carrier, discounts)
         if carrier is None:
             # Taryfa regionalna zależy od miejsca, nie od nazwy przewoźnika. MOTIS klasyfikuje
             # część S-Bahnów jako RAIL (nie BUS — patrz komentarz w price_bus_leg), więc
@@ -868,7 +1028,13 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
             return price_flixbus_leg(leg)
         return _fallback_priced_leg(leg, "Autokar dalekobieżny — brak modułu taryf.")
 
+    local_carrier = infer_pl_local_rail_carrier(leg)
+    if local_carrier is not None:
+        return price_pl_local_rail_leg(leg, local_carrier, discounts)
+
     carrier = _city_carrier_for_leg(leg)
+    if carrier is Carrier.ZTM_WARSZAWA and _is_km_or_wkd(leg):
+        return _km_wkd_without_ztm_tickets(leg)
     if carrier is not None:
         try:
             segment = Segment(

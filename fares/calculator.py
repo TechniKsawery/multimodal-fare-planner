@@ -7,11 +7,13 @@ from . import (
     hvv,
     international,
     kvb,
+    lka_lodz,
     mpk_krakow,
     mpk_wroclaw,
     mvv,
     pkp,
     polregio,
+    skm_trojmiasto,
     vrr,
     ztm_lublin,
     ztm_poznan,
@@ -34,6 +36,8 @@ _CALCULATORS = {
     Carrier.MVV: mvv.estimate,
     Carrier.VRS_KOLN: kvb.estimate,
     Carrier.POLREGIO_PODSTAWOWA: polregio.estimate,
+    Carrier.SKM_TROJMIASTO: skm_trojmiasto.estimate,
+    Carrier.LKA_LODZ: lka_lodz.estimate,
     Carrier.INTERNATIONAL_PL_DE: international.estimate,
 }
 

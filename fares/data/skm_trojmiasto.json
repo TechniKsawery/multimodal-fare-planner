@@ -1,0 +1,333 @@
+{
+  "_zrodlo": "PKP SKM w Trójmieście, Cennik usług przewozowych (C-PKP SKM) „Taryfa Pomorska”, tekst jednolity po Zmianie nr 1, Załącznik do Uchwały Zarządu nr 20/2026 z 3.02.2026, obowiązuje od 1.03.2026: https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf . Tabele: nr 1 (s. 15, normalny), nr 4 (s. 18, ulga 37%), nr 6 (s. 20, ulga 49%), nr 8 (s. 22, ulga 51%). Strona z tabelami: https://www.skm.pkp.pl/dla-pasazera/taryfy-i-przepisy/tabele-oplat",
+  "_status_weryfikacji": "wg Gemini, niezweryfikowane niezależnie. Raport research/skm-km-tabele.md (gałąź gemini/skm-km-tabele), 2026-10-12; domeny przewoźników są z chmury zablokowane, więc PDF nie został otwarty przez wdrażającego.",
+  "_uwaga": "21 pasm biletu jednorazowego 2. klasy, ceny brutto PLN (8% VAT). Odległość taryfowa to km po torach. Raport poprzedni podawał 12,00 zł za 31-40 km i 10,00 zł za 19-24 km: to cennik archiwalny 2023-2024, nieobowiązujący od 1.03.2026. Ostatnie pasmo w PDF: 401-500 km (przyciski na stronie SKM: 401-600). Bilety strefowe Taryfy Pomorskiej (Bilet Miejski 8,50 zł, Trójmiejski 12,50 zł) NIE są wdrożone.",
+  "_honorowanie": "Bilety komunikacji miejskiej ZTM Gdańsk i ZKM Gdynia NIE są honorowane w pociągach SKM (jednorazowe, czasowe). Wyjątek wg raportu: okresowe bilety imienne ZTM Gdańsk powiązane z Gdańską Kartą Mieszkańca (nie modelowane). Wymagany bilet Taryfy Pomorskiej.",
+  "waluta": "PLN",
+  "klasa": 2,
+  "as_of": "2026-10-12",
+  "obowiazuje_od": "2026-03-01",
+  "typ_ceny": "oficjalna_taryfa",
+  "weryfikacja": {
+    "status": "wg Gemini, niezweryfikowane niezależnie",
+    "sprawdzono": "2026-10-12",
+    "wynik": "21 pasm normalnych i 63 kwoty z ulg 37/49/51% przepisane z raportu Gemini; niezweryfikowane niezależnie."
+  },
+  "pasma_odleglosci_km": [
+    {
+      "do_km": 6,
+      "cena": 7.0,
+      "ulgi": {
+        "37": 4.41,
+        "49": 3.57,
+        "51": 3.43
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 12,
+      "cena": 8.0,
+      "ulgi": {
+        "37": 5.04,
+        "49": 4.08,
+        "51": 3.92
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 18,
+      "cena": 9.0,
+      "ulgi": {
+        "37": 5.67,
+        "49": 4.59,
+        "51": 4.41
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 24,
+      "cena": 11.0,
+      "ulgi": {
+        "37": 6.93,
+        "49": 5.61,
+        "51": 5.39
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 30,
+      "cena": 12.0,
+      "ulgi": {
+        "37": 7.56,
+        "49": 6.12,
+        "51": 5.88
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 40,
+      "cena": 14.0,
+      "ulgi": {
+        "37": 8.82,
+        "49": 7.14,
+        "51": 6.86
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 50,
+      "cena": 16.0,
+      "ulgi": {
+        "37": 10.08,
+        "49": 8.16,
+        "51": 7.84
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 60,
+      "cena": 18.0,
+      "ulgi": {
+        "37": 11.34,
+        "49": 9.18,
+        "51": 8.82
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 70,
+      "cena": 20.0,
+      "ulgi": {
+        "37": 12.6,
+        "49": 10.2,
+        "51": 9.8
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 80,
+      "cena": 22.0,
+      "ulgi": {
+        "37": 13.86,
+        "49": 11.22,
+        "51": 10.78
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 90,
+      "cena": 24.0,
+      "ulgi": {
+        "37": 15.12,
+        "49": 12.24,
+        "51": 11.76
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 100,
+      "cena": 26.0,
+      "ulgi": {
+        "37": 16.38,
+        "49": 13.26,
+        "51": 12.74
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 120,
+      "cena": 30.0,
+      "ulgi": {
+        "37": 18.9,
+        "49": 15.3,
+        "51": 14.7
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 140,
+      "cena": 32.0,
+      "ulgi": {
+        "37": 20.16,
+        "49": 16.32,
+        "51": 15.68
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 160,
+      "cena": 34.0,
+      "ulgi": {
+        "37": 21.42,
+        "49": 17.34,
+        "51": 16.66
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 180,
+      "cena": 36.0,
+      "ulgi": {
+        "37": 22.68,
+        "49": 18.36,
+        "51": 17.64
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 200,
+      "cena": 38.0,
+      "ulgi": {
+        "37": 23.94,
+        "49": 19.38,
+        "51": 18.62
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 220,
+      "cena": 39.0,
+      "ulgi": {
+        "37": 24.57,
+        "49": 19.89,
+        "51": 19.11
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 300,
+      "cena": 40.0,
+      "ulgi": {
+        "37": 25.2,
+        "49": 20.4,
+        "51": 19.6
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 400,
+      "cena": 41.0,
+      "ulgi": {
+        "37": 25.83,
+        "49": 20.91,
+        "51": 20.09
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    },
+    {
+      "do_km": 500,
+      "cena": 42.0,
+      "ulgi": {
+        "37": 26.46,
+        "49": 21.42,
+        "51": 20.58
+      },
+      "potwierdzone": {
+        "zrodlo_url": "https://www.skm.pkp.pl/files/user-uploads/ms/1_marca_2026/Cennik_1_marca_2026_po_zm_1.pdf",
+        "data": "2026-10-12",
+        "status": "wg Gemini, niezweryfikowane niezależnie",
+        "tabela": "Tabela nr 1 (s. 15 PDF)"
+      }
+    }
+  ]
+}

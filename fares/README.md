@@ -192,7 +192,10 @@ używanego przez samą stronę flixbus.com) API:
 tak samo jak ceny lotów z Travelpayouts w `flights/`, wynik jest oznaczony jako
 `PriceType.ESTIMATE` ("szacunek"), NIE `OFFICIAL`, nawet gdy pochodzi z API. Żeby mimo to dało
 się odróżnić realną cenę z API od zgrubnego fallbacku po km, każdy wynik niesie w `breakdown`
-pole `"zrodlo"`: `"api_flixbus_live"` albo `"fallback_km"`.
+pole `"zrodlo"`: `"api_flixbus_live"` albo `"fallback_km"`. Wynik z `"fallback_km"` ma dodatkowo
+`"price_verified": False` (cena niepotwierdzona: UI i `demo.py` dopisują to samo co przy innych
+szacunkach, a wariant nie wygrywa „Najtańszej” z cenami potwierdzonymi); wynik z live API tej
+flagi nie ma.
 
 ### To API nie było testowane na żywo — przetestuj lokalnie
 

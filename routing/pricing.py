@@ -727,6 +727,9 @@ def price_flixbus_leg(leg: Leg) -> PricedLeg:
         currency=result.currency,
         price_type=result.price_type.value,
         notes=result.notes,
+        # breakdown niesie "zrodlo" (api_flixbus_live/fallback_km) i price_verified=False dla
+        # fallbacku km — bez tego UI i ranking nie odróżnią ceny z API od zgrubnego szacunku
+        breakdown=result.breakdown,
     )
 
 

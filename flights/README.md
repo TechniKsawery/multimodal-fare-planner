@@ -116,8 +116,8 @@ Dopłata za podręczny NIE jest doliczana do ceny biletu ani do ceny łącznej.
 **Weryfikacja danych bagażu podręcznego (2026-10-12):** `price_verified: true` oznacza
 sprawdzone na stronie przewoźnika wymiary, wagę i zasadę wliczenia (źródło i data w każdym wpisie).
 Dopłaty mają osobną flagę `doplata_potwierdzona`:
-- **Ryanair (FR)**: `true` — oficjalna tabela opłat podaje potwierdzone widełki (12.49–36.00 €/£ przy rezerwacji, 19.99–45.50 €/£ po rezerwacji / na lotnisku, 46.00–75.00 €/£ przy bramce; rozstrzygnięto relację z ogólnym zakresem 6–36 € z tabeli PL).
-- **Wizz Air (W6)**: `true` — oficjalna tabela opłat podaje potwierdzone widełki usługi WIZZ Priority (13.00–57.50 € online/telecentrum, 65.00–75.00 € na lotnisku; rozstrzygnięto pozycję 55.00–65.00 € jako osobną 'Cabin Baggage fee' na lotnisku/bramce dla bagażu kierowanego karnie do luku).
+- **Ryanair (FR)**: `false` (review: strona opłat nieczytelna bez skryptów, przedziały wg Gemini niepotwierdzone niezależnie) — oficjalna tabela opłat podaje potwierdzone widełki (12.49–36.00 €/£ przy rezerwacji, 19.99–45.50 €/£ po rezerwacji / na lotnisku, 46.00–75.00 €/£ przy bramce; rozstrzygnięto relację z ogólnym zakresem 6–36 € z tabeli PL).
+- **Wizz Air (W6)**: `false` (jw.) — oficjalna tabela opłat podaje potwierdzone widełki usługi WIZZ Priority (13.00–57.50 € online/telecentrum, 65.00–75.00 € na lotnisku; rozstrzygnięto pozycję 55.00–65.00 € jako osobną 'Cabin Baggage fee' na lotnisku/bramce dla bagażu kierowanego karnie do luku).
 - **Eurowings (EW)**: `false` — cena online podana jest wyłącznie jako cena minimalna „od 21 €” (rozstrzygnięto 18 € jako archiwalną stawkę marketingową oraz stawkę za bagaż rejestrowany 23 kg; lotnisko offline 45 €, przy bramce 60 €), brak publicznego górnego pułapu przedziału.
 - **easyJet (U2)**: `false` — cena online jest w pełni dynamiczna bez publicznego przedziału kwotowego (bramka: 300 zł / 70 € / 60 £).
 Każdy przewoźnik ma kwoty w jednej walucie (bez przeliczania); rozbieżności ze źródeł zostały rozstrzygnięte i opisane w polach `uwaga`.

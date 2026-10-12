@@ -215,7 +215,8 @@ def format_breakdown(info: dict) -> str:
     """Czytelny opis stanu bagażu podręcznego z breakdown["bagaz_podreczny"] (UI / demo)."""
     parts = [f"Bagaż podręczny: {_STATE_ICON.get(info['stan'], info['stan'])}."]
     if info["stan"] == CabinBaggageState.PAID.value and info["oplaty"]:
-        tag = "" if info.get("oplaty_potwierdzone") else " ORIENTACYJNA, NIEPOTWIERDZONA (cena dynamiczna)"
+        tag = (" (oficjalny PRZEDZIAŁ, konkretna cena zależy od trasy i daty)" if info.get("oplaty_potwierdzone")
+               else " ORIENTACYJNA, NIEPOTWIERDZONA (cena dynamiczna)")
         parts.append(f"Dopłata{tag} (waluta przewoźnika, bez przeliczenia, NIE wliczona w cenę łączną): "
                      + "; ".join(f["tekst"] for f in info["oplaty"]) + ".")
     if info["opis"]:

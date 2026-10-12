@@ -122,8 +122,8 @@
           "uwaga": "Mały bagaż pod fotel + duży podręczny 10 kg (Priority) wliczone w cenie taryfy."
         }
       },
-      "uwaga": "Dopłata za Priority & 2 Cabin Bags zależy od wybranej trasy i dat podróży. Rozbieżność 6–36 vs 12,49–36 rozstrzygnięta: w polskiej oficjalnej tabeli opłat oraz w regulaminie widnieje ogólny przedział 'Ryanair.com: €/£6 - €/£36' oraz 'Na lotnisku/ Lotnisko: €/£20 - €/£60'. W angielskiej oficjalnej tabeli opłat (Fees) rozbito to szczegółowo na etapy: At the Time of Booking 12.49–36.00 €/£, Post Booking/ Airport 19.99–45.50 €/£ oraz przy bramce (bagaż 10 kg odniesiony do luku) 46.00–75.00 €/£ (bagaż ponadwymiarowy przy bramce: 70.00–75.00 €/£). Obie formy pochodzą z oficjalnych dokumentów przewoźnika; oficjalny przedział jest potwierdzony w tabeli opłat.",
-      "doplata_potwierdzona": true
+      "uwaga": "Dopłata za Priority & 2 Cabin Bags zależy od wybranej trasy i dat podróży. Rozbieżność 6–36 vs 12,49–36 rozstrzygnięta: w polskiej oficjalnej tabeli opłat oraz w regulaminie widnieje ogólny przedział 'Ryanair.com: €/£6 - €/£36' oraz 'Na lotnisku/ Lotnisko: €/£20 - €/£60'. W angielskiej oficjalnej tabeli opłat (Fees) rozbito to szczegółowo na etapy: At the Time of Booking 12.49–36.00 €/£, Post Booking/ Airport 19.99–45.50 €/£ oraz przy bramce (bagaż 10 kg odniesiony do luku) 46.00–75.00 €/£ (bagaż ponadwymiarowy przy bramce: 70.00–75.00 €/£). Obie formy wg Gemini; review 2026-10-12: strona opłat Ryanair renderuje się skryptem i nie dała się odczytać, więc przedziału niezależnie nie potwierdzono (doplata_potwierdzona false do czasu ręcznej weryfikacji).",
+      "doplata_potwierdzona": false
     },
     "W6": {
       "nazwa": "Wizz Air",
@@ -185,8 +185,8 @@
           "nadbagaz_kg": "13.00–15.00 € / kg na lotnisku"
         }
       },
-      "uwaga": "Rozstrzygnięcie rozbieżności lotnisko 65–75 € vs bramka 55–65 €: w oficjalnej tabeli opłat Wizz Air (Wszystkie usługi i opłaty) są to dwie różne pozycje cennikowe. 65,00–75,00 € (w PLN: 296,31–341,89 zł) to dobrowolne dokupienie usługi 'WIZZ Priority | LOTNISKO' przy stanowisku odprawy, uprawniające do wniesienia walizki kabinowej na pokład. 55,00–65,00 € (w PLN: 250,72–296,31 zł) to pozycja 'Opłata za bagaż podręczny | LOTNISKO' (Cabin Baggage fee) w sekcji opłat bagażowych — karna opłata pobierana m.in. przy bramce, gdy pasażer stawi się bez WIZZ Priority z nadmiarowym bagażem (bagaż zostaje wówczas odebrany i umieszczony w luku, pkt 15.3.3 OWP). Zakup online/telecentrum wynosi 13,00–57,50 € (w PLN: 59,26–262,11 zł; na podstronie marketingowej opisywane jako 10–60 €). Przedziały są oficjalnie potwierdzone w tabeli opłat.",
-      "doplata_potwierdzona": true
+      "uwaga": "Rozstrzygnięcie rozbieżności lotnisko 65–75 € vs bramka 55–65 €: w oficjalnej tabeli opłat Wizz Air (Wszystkie usługi i opłaty) są to dwie różne pozycje cennikowe. 65,00–75,00 € (w PLN: 296,31–341,89 zł) to dobrowolne dokupienie usługi 'WIZZ Priority | LOTNISKO' przy stanowisku odprawy, uprawniające do wniesienia walizki kabinowej na pokład. 55,00–65,00 € (w PLN: 250,72–296,31 zł) to pozycja 'Opłata za bagaż podręczny | LOTNISKO' (Cabin Baggage fee) w sekcji opłat bagażowych — karna opłata pobierana m.in. przy bramce, gdy pasażer stawi się bez WIZZ Priority z nadmiarowym bagażem (bagaż zostaje wówczas odebrany i umieszczony w luku, pkt 15.3.3 OWP). Zakup online/telecentrum wynosi 13,00–57,50 € (w PLN: 59,26–262,11 zł; na podstronie marketingowej opisywane jako 10–60 €). Review 2026-10-12: strona opłat Wizz Air nie ujawnia tych pozycji bez skryptów, więc przedziałów niezależnie nie potwierdzono (doplata_potwierdzona false do czasu ręcznej weryfikacji); układ lotnisko 65–75 > bramka 55–65 wymaga sprawdzenia.",
+      "doplata_potwierdzona": false
     },
     "EW": {
       "nazwa": "Eurowings",

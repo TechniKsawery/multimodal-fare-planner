@@ -45,7 +45,7 @@ def test_eurowings_pola_od_w_swoich_walutach():
     info = get_cabin_baggage("EW")
     assert info.state is S.PAID
     by_cur = {(f.currency, f.is_from): f.min_amount for f in info.fees}
-    assert by_cur[("EUR", True)] == 18.0 and by_cur[("PLN", True)] == 89.0 and by_cur[("EUR", False)] == 60.0
+    assert by_cur == {("EUR", True): 18.0, ("EUR", False): 60.0}
 
 
 def test_lufthansa_zalezy_od_taryfy_to_nieznany():
@@ -109,3 +109,16 @@ def test_price_flight_leg_dodaje_stan_bagazu_i_nie_rusza_ceny(monkeypatch, linia
     assert priced.breakdown["bagaz_podreczny"]["stan"] == stan
     assert priced.amount == 200.0  # dopłata za podręczny nie wchodzi do ceny (bez przeliczania walut)
     assert priced.breakdown["cena_biletu"] == 200.0
+
+
+@pytest.mark.parametrize("code", ["FR", "W6", "EW", "U2"])
+def test_doplaty_tanich_linii_niepotwierdzone_i_jedna_waluta(code):
+    info = get_cabin_baggage(code)
+    assert info.price_verified and not info.fees_verified
+    assert len({f.currency for f in info.fees}) == 1
+    assert info.to_dict()["oplaty_potwierdzone"] is False
+    assert "NIEPOTWIERDZONA" in format_breakdown(info.to_dict())
+
+
+def test_lot_i_lufthansa_bez_dopłat_nie_maja_etykiety_niepotwierdzonej():
+    assert "NIEPOTWIERDZONA" not in format_breakdown(get_cabin_baggage("LO").to_dict())

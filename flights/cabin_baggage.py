@@ -54,7 +54,8 @@ class CabinBaggageInfo:
     fees: list[CabinFee] = field(default_factory=list)
     source: str | None = None
     verified_on: str | None = None
-    price_verified: bool = False
+    price_verified: bool = False  # dotyczy wymiarów/wagi i zasady wliczenia
+    fees_verified: bool = False  # dopłaty (widełki, dynamiczne) potwierdzone osobno
 
     def to_dict(self) -> dict:
         """Postać do PriceEstimate.breakdown (serializowalna; kwoty w oryginalnych walutach)."""
@@ -77,6 +78,7 @@ class CabinBaggageInfo:
             "zrodlo": self.source,
             "data_weryfikacji": self.verified_on,
             "price_verified": self.price_verified,
+            "oplaty_potwierdzone": self.fees_verified,
         }
 
 
@@ -159,6 +161,7 @@ def get_cabin_baggage(airline_code: str | None) -> CabinBaggageInfo:
         source=entry["zrodlo"],
         verified_on=entry["data_weryfikacji"],
         price_verified=True,
+        fees_verified=bool(entry.get("doplata_potwierdzona", False)),
     )
 
     if base == "zalezy_od_taryfy":
@@ -212,7 +215,8 @@ def format_breakdown(info: dict) -> str:
     """Czytelny opis stanu bagażu podręcznego z breakdown["bagaz_podreczny"] (UI / demo)."""
     parts = [f"Bagaż podręczny: {_STATE_ICON.get(info['stan'], info['stan'])}."]
     if info["stan"] == CabinBaggageState.PAID.value and info["oplaty"]:
-        parts.append("Dopłata (waluta przewoźnika, bez przeliczenia, NIE wliczona w cenę łączną): "
+        tag = "" if info.get("oplaty_potwierdzone") else " ORIENTACYJNA, NIEPOTWIERDZONA (cena dynamiczna)"
+        parts.append(f"Dopłata{tag} (waluta przewoźnika, bez przeliczenia, NIE wliczona w cenę łączną): "
                      + "; ".join(f["tekst"] for f in info["oplaty"]) + ".")
     if info["opis"]:
         parts.append(info["opis"])

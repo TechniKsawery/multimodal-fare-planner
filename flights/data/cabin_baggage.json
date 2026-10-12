@@ -1,5 +1,5 @@
 {
-  "_uwaga": "Zasady bagażu PODRĘCZNEGO per przewoźnik. Wpis ma price_verified true tylko gdy wymiary/waga/cena pochodzą ze strony oficjalnej przewoźnika (zrodlo + data_weryfikacji). Bagaż rejestrowany: osobny plik baggage_by_airline.json.",
+  "_uwaga": "Zasady bagażu PODRĘCZNEGO per przewoźnik. Wpis ma price_verified true tylko gdy wymiary/waga/cena pochodzą ze strony oficjalnej przewoźnika (zrodlo + data_weryfikacji). Bagaż rejestrowany: osobny plik baggage_by_airline.json. price_verified dotyczy wymiarów i wagi; dopłaty (widełki, dynamiczne) mają osobną flagę doplata_potwierdzona i do czasu potwierdzenia są tylko orientacyjne.",
   "stany": [
     "maly_tylko",
     "podreczny_platny",
@@ -105,24 +105,25 @@
         "doplata": {
           "waluta": "EUR",
           "rezerwacja_online_min": 12.49,
-          "rezerwacja_online_max": 36.00,
+          "rezerwacja_online_max": 36.0,
           "po_rezerwacji_lotnisko_min": 19.99,
-          "po_rezerwacji_lotnisko_max": 45.50,
-          "bramka_min": 46.00,
-          "bramka_max": 75.00
+          "po_rezerwacji_lotnisko_max": 45.5,
+          "bramka_min": 46.0,
+          "bramka_max": 75.0
         }
       },
       "taryfy": {
         "Basic (Value)": {
           "stan": "podreczny_platny",
-          "uwaga": "Tylko mały bagaż w cenie; duży podręczny 10 kg wymaga dokupienia usługi Priority & 2 Cabin Bags (12.49–36.00 €/£ przy rezerwacji)."
+          "uwaga": "Tylko mały bagaż w cenie; duży podręczny 10 kg wymaga dokupienia usługi Priority & 2 Cabin Bags (dopłata dynamiczna, niepotwierdzona)."
         },
         "Regular / Flexi Plus": {
           "stan": "podreczny_w_cenie",
           "uwaga": "Mały bagaż pod fotel + duży podręczny 10 kg (Priority) wliczone w cenie taryfy."
         }
       },
-      "uwaga": "Ceny dopłaty za Priority & 2 Cabin Bags są dynamiczne i zależą od trasy oraz terminu. Oficjalna tabela opłat podaje zakres 6–36 €/£ online (w cenniku pomocy/rezerwacji 12.49–36.00 €/£) oraz 20–60 €/£ na lotnisku (w cenniku pomocy 19.99–45.50 €/£ po rezerwacji). Opłata przy bramce za umieszczenie w luku: 46.00–75.00 €/£ (ponadwymiarowy: 70.00–75.00 €/£)."
+      "uwaga": "Dopłata za Priority & 2 Cabin Bags jest dynamiczna (zależy od trasy i terminu). Kwoty w polach (EUR) pochodzą z pomocy Ryanair; inne źródło podaje 6–36 online i 20–60 na lotnisku — rozbieżność NIEROZSTRZYGNIĘTA, więc dopłata jest niepotwierdzona.",
+      "doplata_potwierdzona": false
     },
     "W6": {
       "nazwa": "Wizz Air",
@@ -152,18 +153,18 @@
         "w_cenie": false,
         "doplata": {
           "waluta": "EUR",
-          "online_min": 13.00,
-          "online_max": 57.50,
-          "lotnisko_min": 65.00,
-          "lotnisko_max": 75.00,
-          "bramka_min": 55.00,
-          "bramka_max": 65.00
+          "online_min": 13.0,
+          "online_max": 57.5,
+          "lotnisko_min": 65.0,
+          "lotnisko_max": 75.0,
+          "bramka_min": 55.0,
+          "bramka_max": 65.0
         }
       },
       "taryfy": {
         "Basic": {
           "stan": "podreczny_platny",
-          "uwaga": "Tylko mały bagaż w cenie; duży podręczny (trolley) wyłącznie z dokupioną usługą WIZZ Priority (13.00–57.50 € online)."
+          "uwaga": "Tylko mały bagaż w cenie; duży podręczny (trolley) wyłącznie z dokupioną usługą WIZZ Priority (dopłata dynamiczna, niepotwierdzona)."
         },
         "WIZZ Go": {
           "stan": "podreczny_platny",
@@ -184,7 +185,8 @@
           "nadbagaz_kg": "13.00–15.00 € / kg na lotnisku"
         }
       },
-      "uwaga": "Zgłoszone 'różne ceny za różne wagi' w Wizz Air dotyczą bagażu rejestrowanego (10/20/26/32 kg), nie podręcznego. Duży podręczny (trolley do 10 kg) jest dostępny wyłącznie w usłudze WIZZ Priority (13.00–57.50 € online, 65.00–75.00 € na lotnisku) lub opłata przy bramce 55.00–65.00 €."
+      "uwaga": "Zgłoszone 'różne ceny za różne wagi' dotyczą bagażu rejestrowanego, nie podręcznego. Duży podręczny (trolley do 10 kg) tylko z usługą WIZZ Priority. Widełki dopłat (EUR) dynamiczne i NIEPOTWIERDZONE; w polach lotnisko (65–75) wychodzi drożej niż bramka (55–65), co wymaga sprawdzenia.",
+      "doplata_potwierdzona": false
     },
     "EW": {
       "nazwa": "Eurowings",
@@ -214,15 +216,14 @@
         "w_cenie": false,
         "doplata": {
           "waluta": "EUR",
-          "online_od_eur": 18.00,
-          "online_od_pln": 89.00,
-          "bramka_eur": 60.00
+          "online_od_eur": 18.0,
+          "bramka_eur": 60.0
         }
       },
       "taryfy": {
         "BASIC": {
           "stan": "podreczny_platny",
-          "uwaga": "W cenie tylko mały bagaż; duży podręczny (do 8 kg) płatny opcjonalnie od 18 € / 16 £ (w cenniku tras od 21 € / 89 PLN). Opłata przy bramce: 60 € / 51 £."
+          "uwaga": "W cenie tylko mały bagaż; duży podręczny (do 8 kg) płatny opcjonalnie (od 18 € online, przy bramce 60 €; kwoty niepotwierdzone)."
         },
         "SMART": {
           "stan": "podreczny_w_cenie",
@@ -233,7 +234,8 @@
           "uwaga": "Mały bagaż + 2 duże podręczne (po max 8 kg każdy) w cenie taryfy."
         }
       },
-      "uwaga": "W taryfie BASIC duży bagaż podręczny (55x40x23 cm, max 8 kg) można dokupić online od 18 € / 16 £ (lub od 21 € / 18 £ / 89 PLN wg tabeli tras). Na lotnisku przed bramką: 45 € / 190 PLN. W SMART wliczona 1 sztuka, w BIZclass 2 sztuki. Dopłata przy bramce (gate fee): 60 € / 254 PLN / £51-£53."
+      "uwaga": "W taryfie BASIC duży bagaż podręczny (55x40x23 cm, max 8 kg) można dokupić; kwoty w EUR (od 18 € online, 60 € przy bramce) są NIEPOTWIERDZONE — źródła podają też inne progi (m.in. 21 €), rozbieżność nierozstrzygnięta. W SMART wliczona 1 sztuka, w BIZclass 2 sztuki.",
+      "doplata_potwierdzona": false
     },
     "U2": {
       "nazwa": "easyJet",
@@ -264,20 +266,21 @@
         "doplata": {
           "waluta": "GBP",
           "online_od_gbp": 5.99,
-          "bramka_gbp": 60.00
+          "bramka_gbp": 60.0
         }
       },
       "taryfy": {
         "Standard": {
           "stan": "podreczny_platny",
-          "uwaga": "Mały bagaż pod fotel w cenie; duży podręczny (do 15 kg, ze Speedy Boarding) płatny online od 5.99 £ (cena dynamiczna zależna od trasy i popytu; na rynku UE od 7.99 €)."
+          "uwaga": "Mały bagaż pod fotel w cenie; duży podręczny (do 15 kg, ze Speedy Boarding) płatny online od 5.99 £ (cena dynamiczna, niepotwierdzona)."
         },
         "Inclusive Plus / easyJet Plus / miejsca Up Front & Extra Legroom": {
           "stan": "podreczny_w_cenie",
           "uwaga": "Mały bagaż pod fotel + duży podręczny (56x45x25 cm, max 15 kg) w cenie."
         }
       },
-      "uwaga": "Ceny dopłaty za duży podręczny online są dynamiczne i zależą od trasy, terminu i popytu (od 5.99 £ w UK, od 7.99 € w UE/DE). Zawiera opcję Speedy Boarding. Opłata przy bramce (boarding gate fee): 60 £ w UK / 70 € na rynku europejskim."
+      "uwaga": "Ceny dopłaty za duży podręczny są dynamiczne (zależą od trasy, terminu i popytu), w GBP: od 5.99 £ online, 60 £ przy bramce — NIEPOTWIERDZONE. Cennik w EUR na rynku UE może się różnić i nie jest w danych.",
+      "doplata_potwierdzona": false
     }
   }
 }

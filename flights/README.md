@@ -89,11 +89,12 @@ albo zasada zależna od taryfy, której nie znamy z ceny z cache). Wynik trafia 
 `breakdown["bagaz_podreczny"]` odcinka lotu i jest pokazywany w UI (`app.py`) i `demo.py`.
 Dopłata za podręczny NIE jest doliczana do ceny biletu ani do ceny łącznej.
 
-**Weryfikacja danych bagażu podręcznego (2026-10-12):** dane dla wszystkich przewoźników
-(Ryanair, Wizz Air, Eurowings, easyJet, LOT, Lufthansa) zostały zweryfikowane bezpośrednio
-na oficjalnych stronach przewoźników w przeglądarce. Szczegółowy wykaz źródeł, cytatów i decyzji
-znajduje się w pliku `raport-bagaz-verify.md`. Wszystkie wpisy mają `price_verified: true`
-oraz udokumentowane oficjalne URL-e.
+**Weryfikacja danych bagażu podręcznego (2026-10-12):** `price_verified: true` oznacza tylko
+sprawdzone na stronie przewoźnika wymiary, wagę i zasadę wliczenia (źródło i data w każdym wpisie).
+Dopłaty (widełki, ceny dynamiczne) mają osobną flagę `doplata_potwierdzona`; dla Ryanair, Wizz Air,
+Eurowings i easyJet jest `false`, więc UI pokazuje je jako „orientacyjne, niepotwierdzone”. Każdy
+przewoźnik ma kwoty w jednej walucie (bez mieszania EUR/GBP/PLN); rozbieżności między źródłami
+są opisane w polu `uwaga`, nie rozstrzygane zgadywaniem.
 
 Sprawdzone źródła bagażu rejestrowanego (stan na 2026-09-27):
 - Ryanair: https://www.moneyguideireland.com/ryanair-increased-baggage-allowance-of-20kg.html

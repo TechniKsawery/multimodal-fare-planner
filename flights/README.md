@@ -9,7 +9,25 @@ analogiczna do [`fares/`](../fares/README.md): `Segment` (tu: `FlightSegment`), 
 
 Używamy endpointu `GET https://api.travelpayouts.com/v1/prices/cheap` (`flights/travelpayouts.py`).
 Zwraca on najtańsze znalezione bilety (osobno dla lotów bezpośrednich, z 1 i z 2 przesiadkami)
-dla podanej relacji i miesiąca/dnia wylotu — wybieramy z nich najtańszy.
+dla podanej relacji i miesiąca/dnia wylotu.
+
+### Znaczenie kluczy "0"/"1"/"2" (lot bezpośredni = TYLKO klucz "0")
+
+W `data[<IATA>]` klucz to **liczba przesiadek**: `"0"` = lot bezpośredni, `"1"` = 1 przesiadka,
+`"2"` = 2 przesiadki. Moduł uznaje za lot bezpośredni wyłącznie wpis `"0"`; wpisy `"1"`/`"2"`
+ignoruje, nawet gdy są tańsze. Gdy `"0"` brakuje, `estimate_price` próbuje cache miesięczny, a na
+końcu zwraca zgrubny szacunek z etykietą "cena niepotwierdzona" (`breakdown["price_verified"]=False`)
+— nigdy bilet z przesiadkami.
+
+**Stan weryfikacji (uczciwie):** oficjalnej strony dokumentacji Travelpayouts nie dało się
+otworzyć z środowiska, w którym robiono tę zmianę (brak dostępu sieciowego do hostów
+`support.travelpayouts.com`/`travelpayouts.github.io`), więc brak cytatu z oficjalnych docs.
+Podstawy tej decyzji: (1) opis metody w kliencie Go ("returns the cheapest direct, as well as 1
+and 2 transfers") i opis w tym README od początku; (2) dane z żywych odpowiedzi — w pięciu
+sprawdzonych relacjach (WAW-DUS, KRK-BER, WRO-MUC, GDN-FRA, POZ-HAM) były wyłącznie klucze "1"/"2",
+bez "0", i czasy przelotu zbyt długie na loty bezpośrednie (160–380 min); gdyby klucz był
+numerem kolejnego wyniku, klucz "0" występowałby zawsze. Jeśli oficjalna dokumentacja mówi coś
+innego, popraw `DIRECT_KEY` w `flights/travelpayouts.py` i testy w `tests/test_flights.py`.
 
 **Dane pochodzą z cache Travelpayouts** (zgodnie z ich dokumentacją zalecają budowanie stron
 statycznych na tych danych) — ceny mogą być nieaktualne o kilka dni, dlatego każdy wynik jest
@@ -38,7 +56,8 @@ cały wariant lotu (`TravelpayoutsError` -> `SkippedVariant` w `routing/variants
 1. Cenę dla dokładnej daty (jak wyżej).
 2. Cenę z cache dla CAŁEGO miesiąca (API akceptuje `depart_date="YYYY-MM"`) — może nie trafiać
    dokładnie w wybrany dzień, ale to wciąż realna cena z cache dla tej relacji.
-3. Jeśli i to nie da wyniku: stały, bardzo zgrubny szacunek (`GENERIC_FLIGHT_FALLBACK_PLN` w
+3. Jeśli i to nie da wyniku (także gdy w cache są tylko loty z przesiadkami, klucze "1"/"2"):
+   stały, bardzo zgrubny szacunek oznaczony "cena niepotwierdzona" (`GENERIC_FLIGHT_FALLBACK_PLN` w
    `flights/calculator.py`) oparty na rzędzie wielkości typowych cen tanich linii na krótkich
    trasach PL-DE — NIE jest to cena dla konkretnej relacji.
    Kwota jest w ZŁOTYCH: dla segmentu w innej walucie (np. `currency="EUR"`) jest przeliczana
@@ -121,4 +140,4 @@ pytest tests/test_flights.py
 ```
 
 Testy mockują wywołanie Travelpayouts API (nie wymagają realnego tokena ani sieci) — sprawdzają
-logikę wyboru najtańszego wpisu, doliczanie kosztów dodatkowych i obsługę braku tokena/danych.
+wybór wyłącznie wpisu bezpośredniego (klucz "0", fixture'y z żywych danych pięciu relacji), doliczanie kosztów dodatkowych i obsługę braku tokena/danych.

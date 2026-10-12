@@ -246,7 +246,10 @@ mogą być nieaktualne o kilka dni) + bagaż + dojazd na lotnisko + transfer z l
 docelowego (osobne, konfigurowalne składniki). Wymaga darmowego tokena API w zmiennej
 środowiskowej `TRAVELPAYOUTS_TOKEN` — szczegóły konfiguracji i struktura są w
 [`flights/README.md`](flights/README.md). Każdy wynik oznaczony jako `PriceType.ESTIMATE`
-("szacunek"), tak jak w module `fares/`.
+("szacunek"), tak jak w module `fares/`. Jako lot bezpośredni liczy się tylko wpis z kluczem "0"
+(liczba przesiadek) w `/v1/prices/cheap`; gdy go brak, cena to zgrubny szacunek z dopiskiem
+"cena niepotwierdzona", a nie bilet z przesiadkami (szczegóły i stan weryfikacji dokumentacji w
+[`flights/README.md`](flights/README.md)).
 
 ```python
 from flights import FlightSegment, estimate_price

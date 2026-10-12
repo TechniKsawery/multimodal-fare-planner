@@ -16,17 +16,17 @@ SAMPLE_PAYLOAD = {
     "data": {
         "DUS": {
             "0": {
-                "price": 450.0,
-                "airline": "FR",
-                "flight_number": 123,
-                "departure_at": "2026-11-15T06:00:00Z",
+                "price": 300.0,
+                "airline": "W6",
+                "flight_number": 456,
+                "departure_at": "2026-11-15T10:00:00Z",
                 "return_at": None,
                 "expires_at": "2026-11-13T00:00:00Z",
             },
             "1": {
-                "price": 300.0,
-                "airline": "W6",
-                "flight_number": 456,
+                "price": 250.0,  # TAŃSZY, ale z przesiadką — nie wolno go wybrać jako bezpośredni
+                "airline": "LH",
+                "flight_number": 789,
                 "departure_at": "2026-11-15T10:00:00Z",
                 "return_at": None,
                 "expires_at": "2026-11-13T00:00:00Z",
@@ -37,11 +37,89 @@ SAMPLE_PAYLOAD = {
 }
 
 
-def test_cheapest_entry_wybiera_najnizsza_cene_a_przesiadki_sa_nieznane():
+def test_cheapest_entry_bierze_tylko_klucz_0_nawet_gdy_przesiadkowy_jest_tanszy():
     entry = cheapest_entry(SAMPLE_PAYLOAD, "DUS")
-    assert entry["price"] == 300.0
-    assert entry["transfers"] is None  # klucz "1" to numer wyniku, nie liczba przesiadek
+    assert entry["price"] == 300.0  # klucz "0" (bezpośredni), nie tańszy "1" (250, z przesiadką)
+    assert entry["transfers"] == 0
     assert entry["airline"] == "W6"
+
+
+# Dane z /v1/prices/cheap potwierdzone na żywo (klucz = liczba przesiadek; w tych odpowiedziach
+# NIE było klucza "0", więc nie ma w cache biletu bezpośredniego). duration_to w minutach.
+LIVE_ONLY_WITH_TRANSFERS = [
+    ("WAW", "DUS", "2", "MW", 744, 380),
+    ("KRK", "BER", "1", "FR", 563, 220),
+    ("WRO", "MUC", "1", "RR", 740, 260),
+    ("GDN", "FRA", "1", "FR", 807, 220),
+    ("POZ", "HAM", "1", "KL", 879, 160),
+]
+
+
+def _live_payload(dest, key, airline, price, duration):
+    return {
+        "success": True,
+        "data": {
+            dest: {
+                key: {
+                    "price": price,
+                    "airline": airline,
+                    "flight_number": 1,
+                    "departure_at": "2026-11-15T06:00:00Z",
+                    "return_at": None,
+                    "expires_at": "2026-11-13T00:00:00Z",
+                    "duration_to": duration,
+                }
+            }
+        },
+        "error": None,
+    }
+
+
+@pytest.mark.parametrize("origin,dest,key,airline,price,duration", LIVE_ONLY_WITH_TRANSFERS)
+def test_tylko_wpisy_z_przesiadkami_nie_daja_lotu_bezposredniego(
+    origin, dest, key, airline, price, duration
+):
+    payload = _live_payload(dest, key, airline, price, duration)
+    assert travelpayouts.cheapest_entry_or_none(payload, dest) is None
+    with pytest.raises(TravelpayoutsError):
+        cheapest_entry(payload, dest)
+
+
+@pytest.mark.parametrize("origin,dest,key,airline,price,duration", LIVE_ONLY_WITH_TRANSFERS)
+def test_estimate_price_bez_klucza_0_spada_na_szacunek_niepotwierdzony(
+    monkeypatch, origin, dest, key, airline, price, duration
+):
+    payload = _live_payload(dest, key, airline, price, duration)
+    monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: payload)
+    seg = FlightSegment(
+        origin=origin,
+        destination=dest,
+        depart_date="2026-11-15",
+        currency="PLN",
+        extras=ExtrasProfile(baggage_cost=0),
+    )
+    result = estimate_price(seg)
+
+    assert result.amount == calculator.GENERIC_FLIGHT_FALLBACK_PLN  # nie cena biletu z przesiadką
+    assert result.amount != price
+    assert result.breakdown["linia"] is None
+    assert result.breakdown["price_verified"] is False
+    assert "cena niepotwierdzona" in result.notes.lower()
+
+
+def test_wpis_bezposredni_obok_przesiadkowych_jest_zweryfikowany(monkeypatch):
+    payload = {
+        "success": True,
+        "data": {"BER": {"0": {"price": 400.0, "airline": "FR"}, "1": {"price": 563.0, "airline": "LH"}}},
+    }
+    monkeypatch.setattr(calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: payload)
+    seg = FlightSegment(
+        origin="KRK", destination="BER", depart_date="2026-11-15", extras=ExtrasProfile()
+    )
+    result = estimate_price(seg)
+    assert result.amount == 400.0
+    assert result.breakdown["przesiadki"] == 0
+    assert "price_verified" not in result.breakdown
 
 
 def test_cheapest_entry_brak_danych_dla_relacji():
@@ -74,7 +152,7 @@ def test_estimate_price_dolicza_wlasny_extras_profile(monkeypatch):
     assert result.price_type is PriceType.ESTIMATE
     assert result.amount == pytest.approx(300 + 100 + 30 + 20)
     assert result.breakdown["cena_biletu"] == 300
-    assert result.breakdown["przesiadki"] is None
+    assert result.breakdown["przesiadki"] == 0
     assert result.breakdown["bagaz"] == 100
     assert result.origin == "WAW"
     assert result.destination == "DUS"

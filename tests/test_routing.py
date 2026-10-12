@@ -1948,3 +1948,10 @@ def test_najmniej_przesiadek_bezpieczna_pomija_ryzykowne():
 def test_najmniej_przesiadek_poza_top_kategoriami():
     assert "najmniej_przesiadek" not in scoring.TOP_CATEGORY_KEYS
     assert "najmniej_przesiadek_bezpieczna" in scoring.SAFE_CATEGORY_KEYS
+
+
+def test_motis_time_uwzglednia_godzine_wyjazdu_w_czasie_lokalnym():
+    from routing.variants import RouteRequest
+
+    req = RouteRequest("a", "b", "A", "B", "2026-10-20", departure_time="14:30:00")
+    assert req.motis_time == "2026-10-20T14:30:00+02:00"

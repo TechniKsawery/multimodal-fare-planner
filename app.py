@@ -478,6 +478,12 @@ with st.form("search"):
         help="Domyślnie dziś+5 dni, żeby zawsze trafiać w okno rozkładu MOTIS - zmień ręcznie,"
         " jeśli szukasz innego dnia.",
     )
+    godzina = st.time_input(
+        "Najwcześniejsza godzina wyjazdu",
+        dt.time(6, 0),
+        step=dt.timedelta(minutes=15),
+        help="Czas lokalny miejsca startu (PL/DE). Domyślnie 06:00, jak dotychczas.",
+    )
     c1, c2 = st.columns(2)
     pkp = c1.selectbox("Ulga PKP", PKP_ULGI)
     bc = c2.selectbox("BahnCard", ["brak", "25", "50", "100"])
@@ -612,6 +618,7 @@ if submitted:
                 origin_label=origin_resolved["name"],
                 destination_label=dest_resolved["name"],
                 date=date.isoformat(),
+                departure_time=godzina.strftime("%H:%M:%S"),
                 discounts=profile,
             )
             # search() (routing/search_service.py, współdzielone z API w api/) nie przekazuje

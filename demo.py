@@ -196,6 +196,12 @@ def main() -> None:
     )
     parser.add_argument("--date", default=DEMO_DATE, help="dzień wyjazdu YYYY-MM-DD")
     parser.add_argument(
+        "--time",
+        dest="departure_time",
+        default="06:00",
+        help="najwcześniejsza godzina wyjazdu HH:MM (czas lokalny startu, domyślnie 06:00)",
+    )
+    parser.add_argument(
         "--age",
         type=int,
         default=None,
@@ -236,6 +242,8 @@ def main() -> None:
             args.origin,
             args.destination,
             args.date,
+            departure_time=args.departure_time if args.departure_time.count(":") == 2
+            else f"{args.departure_time}:00",
             discounts=DiscountProfile(age=args.age, child_with_guardian=args.child_with_guardian),
         )
     except MotisError as exc:

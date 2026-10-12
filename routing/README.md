@@ -166,12 +166,42 @@ Autobusy/tramwaje (`price_bus_leg()`): taryfa miejska tylko, gdy oba końce leż
 z `CITY_TARIFF_AREAS` (bez współrzędnych: nazwy dopasowywane jako CAŁE słowa, więc „Krakowskie
 Przedmieście" w Warszawie nie dostaje taryfy MPK Kraków — błąd S4), eezy.nrw tylko w NRW, a poza
 tym jawna wartość zastępcza `LOCAL_BUS_FLAT_PLN` (4,00 PLN, bez źródła) z `price_verified=False` i
-`breakdown["wartosc_zastepcza"]=True`. UWAGA: tu trafia każdy tryb MOTIS spoza RAIL/TRAIN, także
-`SUBURBAN` (SKM, S-Bahn), więc wartość zastępcza potrafi wycenić np. kilkudziesięciokilometrowy
-odcinek Szczecin → Angermünde albo transgraniczny Zgorzelec → Görlitz (oba widziane w teście na
-żywo PR #97). Ta kwota nie jest ceną: UI i `demo.py`
-pokazują ją jako „cena niepotwierdzona (wartość zastępcza, nie z cennika)”, a ranking „Najtańsza”
-nie stawia takiego wariantu przed wariantem z potwierdzoną ceną (niżej).
+`breakdown["wartosc_zastepcza"]=True`. UI i `demo.py` pokazują ją jako „cena niepotwierdzona
+(wartość zastępcza, nie z cennika)”, a ranking „Najtańsza” nie stawia takiego wariantu przed
+wariantem z potwierdzoną ceną (niżej).
+
+Ryczałt tylko dla krótkich odcinków (`LOCAL_BUS_MAX_KM`): płaskie 4,00 PLN ma sens wyłącznie dla
+jazdy w obrębie jednego biletu miejskiego. Próg (20 km, linia prosta, włącznie) to największy
+promień koła taryfy miejskiej w `CITY_TARIFF_AREAS` (Berlin 20 km, reszta miast 11-15 km), więc
+nie jest nową stawką ani liczbą spoza repo i rośnie razem z tą tabelą. Odcinek BUS/tramwaj od
+nieznanego operatora **dłuższy** niż próg idzie `price_long_unknown_local_leg()`: niepotwierdzony
+szacunek `GENERIC_FALLBACK_PLN_PER_KM` x km (`price_type="szacunek"`, `price_verified=False`,
+`breakdown["powod_szacunku"]="odcinek za długi na ryczałt lokalny"`, bez `wartosc_zastepcza`,
+nigdy `oficjalna_taryfa`; etykieta „cena niepotwierdzona”). Brak `distance_km` zostawia ryczałt.
+Powód: feed Ksaviego oznacza część kolei regionalnej jako `BUS` (np. RB66 Szczecin -> Angermünde,
+58,2 km, przewoźnik „Nahreisezug”, `motis_mode=BUS`), więc gałąź SUBURBAN jej nie łapie; nie
+wiemy, czy to pociąg, czy komunikacja zastępcza, i nie zgadujemy. `route_short_name` w stylu
+RB/RE/IRE/S/SKM (`is_train_like_line()`) jest tylko sygnałem pomocniczym do opisu
+(`breakdown["sygnal_linii"]`, dopisek w `notes`) i nie zmienia ani trybu, ani ceny. Taryfy miejskie,
+NRW (eezy.nrw), BVG i FlixBus wołają się PRZED tym progiem i działają bez zmian. Testy:
+`tests/test_long_local_leg_pricing.py`.
+
+Kolej podmiejska — tryb MOTIS `SUBURBAN` (SKM, S-Bahn): `motis_client.itinerary_to_legs` mapuje go
+na `LegMode.BUS` (jak każdy tryb spoza RAIL/TRAIN), ale to POCIĄG, więc `price_bus_leg()` wycenia go
+tak (`is_suburban_leg()`, `leg.extra["motis_mode"] == "SUBURBAN"`):
+1. taryfa miejska, gdy oba końce leżą w kole z `CITY_TARIFF_AREAS` — np. S-Bahn Berlin w kole BVG
+   dostaje bilet BVG AB/ABC z `fares/data/bvg_berlin.json` (bez zmian),
+2. eezy.nrw, gdy oba końce leżą w NRW (bez zmian),
+3. w przeciwnym razie `price_suburban_leg()`: **nie** ryczałt autobusowy, tylko jawnie
+   niepotwierdzony szacunek `GENERIC_FALLBACK_PLN_PER_KM` x km (`price_type="szacunek"`,
+   `breakdown["price_verified"]=False`, `breakdown["tryb_motis"]="SUBURBAN"`, w `notes` powód i
+   „cena niepotwierdzona”; brak `wartosc_zastepcza`). Dotyczy m.in. SKM Szczecin (np. Szczecin →
+   Angermünde, ok. 70 km), SKM Trójmiasto i S-Bahnów poza znanymi taryfami.
+Cen SKM i pozostałych kolei podmiejskich spoza powyższych taryf NIE ma w `fares/data/*` — kwota
+PLN/km jest orientacyjna, a odcinek nie wygrywa rankingu „Najtańsza” z wariantem o potwierdzonej
+cenie (`Itinerary.price_verified`, `scoring.pick_recommendations`). Znane ograniczenia: SUBURBAN
+nadal ma `LegMode.BUS` (w UI „autobus”), a S-Bahn Berlin poza kołem 20 km (np. Potsdam) nie ma
+mapy stref VBB, więc też jest niepotwierdzony. Testy: `tests/test_suburban_pricing.py`.
 
 Berlin (BVG/VBB): koło `CITY_TARIFF_AREAS[BVG_BERLIN]` (20 km) obejmuje też lotnisko BER, które
 leży w strefie C. Odcinek, który zaczyna się lub kończy na BER (`BER_AIRPORT_AREA`, 2,5 km wokół
@@ -280,7 +310,9 @@ pieszo z adresu → autobus/tramwaj miejski → pociągi → pieszo do adresu.
     `fares/ztm_lublin.py`, taryfa czasowa ZTM Lublin, strefa 1+2);
   - oba końce w NRW → `fares/vrr.py` (eezy.nrw, ta sama taryfa obejmuje bus/tramwaj/U-Bahn co
     pociągi regionalne VRR);
-  - reszta → wartość zastępcza `LOCAL_BUS_FLAT_PLN` z `price_verified=False` (patrz wyżej).
+  - reszta, do `LOCAL_BUS_MAX_KM` (20 km) → wartość zastępcza `LOCAL_BUS_FLAT_PLN` z
+    `price_verified=False` (patrz wyżej);
+  - reszta, powyżej `LOCAL_BUS_MAX_KM` → niepotwierdzony szacunek PLN/km (`price_long_unknown_local_leg`).
 
 `python demo.py --from "..." --to "..." --date YYYY-MM-DD`
 

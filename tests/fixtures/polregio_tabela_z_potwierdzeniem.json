@@ -1,0 +1,23 @@
+{
+  "_zrodlo_raportu": "FIXTURE TESTOWA, nie dane cenowe: sztuczna tabela do sprawdzenia ścieżki 'pasmo potwierdzone'. https://example.invalid/fixture",
+  "waluta": "PLN",
+  "klasa": 2,
+  "pasma_odleglosci_km": [
+    {
+      "do_km": 5,
+      "cena": 10.0,
+      "potwierdzone": {"zrodlo_url": "https://example.invalid/cennik.pdf", "data": "2026-10-12"}
+    },
+    {"do_km": 10, "cena": 20.0, "potwierdzone": null},
+    {
+      "do_km": 20,
+      "cena": 30.0,
+      "potwierdzone": {"zrodlo_url": "https://example.invalid/cennik.pdf", "data": ""}
+    },
+    {
+      "do_km": 40,
+      "cena": 40.0,
+      "potwierdzone": {"zrodlo_url": "brak", "data": "2026-10-12"}
+    }
+  ]
+}

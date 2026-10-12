@@ -181,14 +181,22 @@ przewoźników dalekobieżnych:
   TLK/IC, ale `price_type="szacunek"` i `breakdown["price_verified"]=False` — ceny EIC/EIP są w
   cenniku per relacja, których nie mamy)
 - nazwa zawierająca `"DB Fernverkehr"`/`"Deutsche Bahn"` → `Carrier.DB`
-- każdy inny przewoźnik (POLREGIO, DB Regio, S-Bahn, ODEG, ...) → taryfa zależy od MIEJSCA:
+- POLREGIO / Koleje Dolnośląskie / Koleje Śląskie, gdy OBA końce odcinka leżą w Polsce
+  (`infer_pl_regional_carrier()`, kraj wg współrzędnych, bez nich wg prefiksu datasetu) →
+  `Carrier.POLREGIO_PODSTAWOWA`: degresywna tabela odległościowa zamiast sztywnego 0,35 zł/km
+  (`fares/polregio.py`). Kwoty są **niepotwierdzone** w źródle pierwotnym, więc wynik to
+  `price_type="szacunek"` i `price_verified=False`, dopóki pasmo nie dostanie źródła i daty
+  (patrz fares/README.md). Odcinek transgraniczny albo bez ustalonego kraju tej tabeli nie dostaje.
+- każdy inny przewoźnik (DB Regio, S-Bahn, ODEG, a w Polsce Koleje Mazowieckie, ŁKA, SKM, ...) →
+  taryfa zależy od MIEJSCA:
   taryfa miejska, gdy oba końce leżą w obszarze miasta z `CITY_TARIFF_AREAS` (Berlin, Hamburg,
   Monachium, Kolonia — Verbundtarif obejmuje też S-Bahn/RE), a `Carrier.VRR` (eezy.nrw) **tylko
   gdy oba końce leżą w NRW** (`is_leg_in_nrw()`, konserwatywne prostokąty `_NRW_INNER_BOXES`).
   Wcześniej każda nazwa z `"regio"`/`"s-bahn"` szła do VRR z uzasadnieniem, że feed `derv` obejmuje
   tylko NRW — to nieprawda (`scripts/fetch_data.py` pobiera gtfs.de `rv_free`/`nv_free` dla całych
   Niemiec), a `"regio"` łapało też POLREGIO (błąd K2 z audytu).
-- wszystko inne → zgrubny fallback `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km),
+- wszystko inne (w tym Koleje Mazowieckie, ŁKA, SKM Trójmiasto, SKM Warszawa i RB66
+  Szczecin–Angermünde) → zgrubny fallback `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km),
   `price_type="szacunek"`, `breakdown["price_verified"]=False`, żeby jeden nierozpoznany
   przewoźnik nie wywalał całego wariantu, ale też nie udawał ceny z cennika.
 

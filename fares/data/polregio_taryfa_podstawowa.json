@@ -1,0 +1,163 @@
+{
+  "_zrodlo_raportu": "NIEZWERYFIKOWANE. Wartości przepisane z raportu researchera Gemini (gałąź gemini/skm-rb-taryfy, research/skm-rb-taryfy.md, sekcja 4.2), który jako źródło podaje POLREGIO, Tabele opłat Dział III Taryfy Przewozowej, Tabela nr 1 (bilety jednorazowe normalne, pociągi REGIO, Taryfa Podstawowa), obowiązującą od 15.12.2024: https://polregio.pl/media/25853/tabele-op%C5%82at-dzia%C5%82-iii-taryfy-przewozowej-od-15122024-r-ca%C5%82o%C5%9B%C4%87.pdf . Raport twierdzi, że KD (Cennik KD z 01.09.2026) i KŚ (C-KŚ z 14.12.2025) mają te same stawki bazowe.",
+  "_uwaga": "Żaden wiersz NIE został potwierdzony w źródle pierwotnym: domeny polregio.pl, kolejedolnoslaskie.pl i kolejeslaskie.pl są zablokowane polityką egress środowiska (403), a wyszukiwarka nie zwróciła tych kwot. Wiersz staje się potwierdzony dopiero po wpisaniu w jego polu 'potwierdzone' obiektu {zrodlo_url, data} (ISO) z faktycznego odczytu cennika. Sygnały nieaktualności: wyszukiwarka wskazuje cennik POLREGIO 'Załącznik 2 — bilety jednorazowe od 1.03.2026' (https://polregio.pl/media/28288/za%C5%82%C4%85cznik-2-bilety-jednorazowe-od-1032026-r.pdf), a w wielu województwach POLREGIO stosuje własne taryfy regionalne (Pomorska, Podlaska, Małopolska, Podkarpacka, Świętokrzyska), nie Podstawową. Odległość taryfowa to km po torach; wyszukiwarka ma tylko linię prostą (leg.distance_km), więc bywa zaniżona.",
+  "waluta": "PLN",
+  "klasa": 2,
+  "weryfikacja": {
+    "status": "niepotwierdzone",
+    "sprawdzono": "2026-10-12",
+    "wynik": "Brak dostępu do źródeł pierwotnych (403 egress); kwoty 6,10 / 25,90 / 29,70 zł nieodnalezione w wynikach wyszukiwania."
+  },
+  "pasma_odleglosci_km": [
+    {
+      "do_km": 5,
+      "cena": 6.1,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 10,
+      "cena": 6.7,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 15,
+      "cena": 7.9,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 20,
+      "cena": 9.8,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 25,
+      "cena": 11.8,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 30,
+      "cena": 12.7,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 35,
+      "cena": 14.7,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 40,
+      "cena": 16.2,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 47,
+      "cena": 18.2,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 53,
+      "cena": 20.5,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 59,
+      "cena": 22.0,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 67,
+      "cena": 23.0,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 73,
+      "cena": 23.9,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 80,
+      "cena": 25.9,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 90,
+      "cena": 27.9,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 100,
+      "cena": 29.7,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 120,
+      "cena": 33.7,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 140,
+      "cena": 36.1,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 160,
+      "cena": 38.7,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 180,
+      "cena": 40.5,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 200,
+      "cena": 42.2,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 240,
+      "cena": 44.2,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 280,
+      "cena": 46.3,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 320,
+      "cena": 48.2,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 360,
+      "cena": 49.1,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 400,
+      "cena": 51.0,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 500,
+      "cena": 53.2,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 600,
+      "cena": 55.7,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 700,
+      "cena": 58.1,
+      "potwierdzone": null
+    },
+    {
+      "do_km": 800,
+      "cena": 61.2,
+      "potwierdzone": null
+    }
+  ]
+}

@@ -25,6 +25,8 @@ class Carrier(str, Enum):
     HVV = "hvv"  # Hamburger Verkehrsverbund (Hamburg)
     MVV = "mvv"  # Münchner Verkehrsverbund (Monachium)
     VRS_KOLN = "vrs_koln"  # Verkehrsverbund Rhein-Sieg, obszar Kolonii (Rheinlandtarif)
+    POLREGIO_PODSTAWOWA = "polregio_taryfa_podstawowa"  # POLREGIO / Koleje Dolnośląskie / Koleje
+    # Śląskie: degresywna tabela odległościowa Taryfy Podstawowej (fares/polregio.py)
     INTERNATIONAL_PL_DE = "international_pl_de"  # bilet PL<->DE przekraczający granicę jednym
     # ciągłym odcinkiem kolejowym (np. Berlin-Warszawa-Express) — SZTYWNE kategorie cenowe
     # (Super Sparpreis Europa), nie tabela pasm jak krajowe kalkulatory PKP/DB. Zob. fares/international.py.

@@ -175,6 +175,41 @@ Polska–Niemcy* (ważny od 19.08.2026, tekst w `verification/zrodla-pdf/`, oryg
    flat 25% na całość — ale to nadal linia prosta do jednego stałego punktu granicy, nie realna
    geometria trasy kolejowej ani realny podział ceny biletu.
 
+## POLREGIO / KD / KŚ: degresywna tabela zamiast 0,35 zł/km (2026-10-12)
+
+`fares/polregio.py` + `fares/data/polregio_taryfa_podstawowa.json` zastępują sztywne
+`0.35 PLN/km` dla pociągów regionalnych POLREGIO, Kolei Dolnośląskich i Kolei Śląskich w Polsce
+tabelą pasm odległości (do 5 km, 6-10, ... do 800 km; 30 pasm). Taryfa jest silnie degresywna
+(w tabeli z raportu: ok. 1,22 zł/km na 5 km, ok. 0,30 zł/km na 100 km), więc liniowa stawka
+zaniżała krótkie trasy i zawyżała długie.
+
+**Status weryfikacji: NIEPOTWIERDZONE.** Kwoty pochodzą z raportu researchera Gemini
+(gałąź `gemini/skm-rb-taryfy`), a w sesji weryfikującej domeny przewoźników były zablokowane
+polityką egress (403), więc nie sprawdzono ich w cenniku. Szczegóły i wyniki sprawdzenia:
+`verification/taryfy-skm-rb-weryfikacja-2026-10-12.md`. Dlatego każdy wynik ma
+`price_type="szacunek"`, `breakdown["price_verified"]=False`, a wariant z takim odcinkiem nie
+wygrywa „Najtańszej" z ceną potwierdzoną.
+
+Jak potwierdzić pasmo: w pliku danych wpisz w jego polu `potwierdzone` obiekt
+`{"zrodlo_url": "https://...", "data": "YYYY-MM-DD"}` z faktycznego odczytu cennika. Dopiero
+wtedy (i tylko bez ulgi) wynik to `PriceType.OFFICIAL` z `price_verified=True` oraz
+`zrodlo_url`/`data_weryfikacji` w `breakdown`. Pasmo z pustą datą albo URL-em niebędącym
+adresem http jest traktowane jak niepotwierdzone (testy na fixture w `tests/fixtures/`).
+
+Znane ograniczenia (przy potwierdzaniu sprawdź):
+- POLREGIO w części województw stosuje własne taryfy regionalne (Pomorska, Podlaska,
+  Małopolska, Podkarpacka, Świętokrzyska), nie Podstawową; wyszukiwarka nie zna województwa.
+- wyszukiwarka wskazała cennik POLREGIO „Załącznik 2 — bilety jednorazowe od 1.03.2026"
+  (polregio.pl/media/28288), a raport opiera się na tabeli z 15.12.2024 — możliwa nieaktualność.
+- odległość taryfowa to km po torach, a `leg.distance_km` to linia prosta (zaniża pasmo).
+- ulga liczona procentem od ceny bazowej (kody z `pkp_intercity.json`), nie z tabel ulg POLREGIO.
+- ŁKA ma dodatkowo tańszą taryfę „Łódzkie Łączy", Koleje Mazowieckie i SKM Trójmiasto własne
+  tabele — nie są tu zamodelowane.
+
+**Nie wdrożone (do zrobienia, bo niepotwierdzone):** SKM Trójmiasto (tabela odległościowa
+Taryfy Pomorskiej), Koleje Mazowieckie (tabela odległościowa), Szczecin Gł. – Angermünde (RB66,
+taryfa VBB Teil E w EUR) i Szczecin – Tantow, warszawski ZTM w SKM/KM oraz ŁKA (patrz PR).
+
 ## FlixBus: realna cena z API zamiast szacunku po km (2026-09-26)
 
 Wcześniej FlixBus (jak każdy nierozpoznany autokar dalekobieżny) był wyceniany bardzo z grubsza

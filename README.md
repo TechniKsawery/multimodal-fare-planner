@@ -345,7 +345,7 @@ transporcie miejskim (np. VRR / Berlin AB / Kraków strefa I+II), wyliczając re
 
 Zniżka karty > 0% jest liczona tylko z polem źródła (`source_url` + `verified_date`); zniżka bez źródła
 = 0% + flaga niezweryfikowanej zniżki w wycenie (zniżki bez źródła w 6 miastach wyzerowano 2026-10-12;
-12 z nich przywrócono ze źródłem wg raportu `research/zrodla-znizek-kart.md`, 4 zostają 0% — patrz
+10 z nich przywrócono ze źródłem wg raportu `research/zrodla-znizek-kart.md`, 6 zostaje 0% — patrz
 `attractions/README.md`). Źródła strefy C (BER) w `fares/data/bvg_berlin.json` (`zrodlo_strefa_c_ber`:
 bvg.de i vbb.de, 2026-10-12). Wszystkie te źródła są wg Gemini, niezweryfikowane niezależnie.
 

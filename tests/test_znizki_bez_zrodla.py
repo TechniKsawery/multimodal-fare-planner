@@ -119,9 +119,8 @@ DATA_ZRODEL = "2026-10-12"
 # (źródło wg Gemini, niezweryfikowane niezależnie): atrakcja -> (karta, zniżka %, domena URL).
 PRZYWROCONE = {
     "berlin_fernsehturm": ("berlin_welcomecard", 25.0, "berlin-welcomecard.de"),
-    "berlin_olympiastadion": ("berlin_welcomecard", 25.0, "berlin-welcomecard.de"),
+    "berlin_olympiastadion": ("berlin_welcomecard", 22.7, "berlin-welcomecard.de"),  # 8,50 z 11,00 EUR
     "hamburg_speicherstadtmuseum": ("hamburg_card", 25.0, "speicherstadtmuseum.de"),
-    "hamburg_imm": ("hamburg_card", 22.0, "imm-hamburg.de"),
     "munchen_fcbayern_erlebniswelt": ("munchen_citytourcard", 8.0, "citytourcard-muenchen.com"),
     "munchen_residenz": ("munchen_citytourcard", 13.3, "citytourcard-muenchen.com"),
     "munchen_frauenkirche": ("munchen_citytourcard", 33.3, "citytourcard-muenchen.com"),
@@ -129,7 +128,6 @@ PRZYWROCONE = {
     "munchen_bavaria_filmstadt": ("munchen_citytourcard", 10.0, "citytourcard-muenchen.com"),
     "poznan_brama_poznania": ("poznan_city_card", 40.0, "karta.visitpoznan.pl"),
     "poznan_fotoplastykon": ("poznan_city_card", 100.0, "karta.visitpoznan.pl"),
-    "krakow_schindler_factory": ("krakow_card", 100.0, "krakow.travel"),
 }
 
 # Nadal 0% z flagą niezweryfikowanej zniżki: brak źródła albo nieprzeliczalne na %.
@@ -137,6 +135,8 @@ NADAL_ZERO_Z_FLAGA = {
     "berlin_museumsinsel": 25.0,  # Classic: raport nie potwierdza zniżki
     "munchen_schloss_nymphenburg": 10.0,  # cena bazowa (20 EUR) != cena z raportu (10 EUR)
     "lublin_zamek_muzeum": 20.0,  # brak źródła
+    "hamburg_imm": 22.0,  # cena bazowa w danych (17 EUR) != cennik (18 EUR)
+    "krakow_schindler_factory": 20.0,  # źródło opisuje inny produkt (Krakowska Karta Turystyczna)
 }
 
 # Wawel: źródło (krakow.travel) mówi, że Kraków Card go nie obejmuje -> jawne 0%, bez flagi.
@@ -206,6 +206,41 @@ def test_dane_nadal_zerowane_zniezki_licza_sie_jako_zero_z_flaga():
                 aid,
             )
             assert aid in ev.unverified_discount_attraction_ids, (card.id, aid)
+
+
+def test_dane_olympiastadion_procent_z_cen_zrodla_a_nie_deklarowane_25():
+    card = _karty()["berlin_welcomecard"]
+    attr = _atrakcje()["berlin_olympiastadion"]
+    assert attr.normal_price == 11.0
+    assert card.custom_discounts["berlin_olympiastadion"] == pytest.approx(
+        (11.0 - 8.5) / 11.0 * 100, abs=0.05
+    )
+    variant = next(v for v in card.variants if v.id == "bwc_48h_ab")
+    ev = evaluate_city_card_variant(card, variant, [attr])
+    assert ev.attractions_price_with_card == pytest.approx(8.50, abs=0.01)
+
+
+def test_dane_schindler_zero_z_flaga_we_wszystkich_wariantach_krakow_card():
+    # Źródło opisuje Krakowską Kartę Turystyczną; nasz wpis to Krakow City Pass -> produkt
+    # niepotwierdzony. Dotyczy też osobnego produktu krakow_museum_pass_student_3d.
+    card = _karty()["krakow_card"]
+    schindler = _atrakcje()["krakow_schindler_factory"]
+    assert "krakow_schindler_factory" not in card.custom_discounts
+    assert "krakow_museum_pass_student_3d" in {v.id for v in card.variants}
+    for variant in card.variants:
+        ev = evaluate_city_card_variant(card, variant, [schindler])
+        assert ev.attractions_price_with_card == ev.attractions_price_without_card, variant.id
+        assert ev.unverified_discount_attraction_ids == ["krakow_schindler_factory"], variant.id
+
+
+def test_dane_imm_zero_z_flaga_do_uzgodnienia_ceny_bazowej():
+    card = _karty()["hamburg_card"]
+    imm = _atrakcje()["hamburg_imm"]
+    assert imm.normal_price == 17.0  # cennik wg raportu: 18 EUR
+    assert "hamburg_imm" not in card.custom_discounts
+    ev = evaluate_city_card_variant(card, card.variants[0], [imm])
+    assert ev.attractions_price_with_card == ev.attractions_price_without_card
+    assert ev.unverified_discount_attraction_ids == ["hamburg_imm"]
 
 
 def test_dane_wawel_jawne_zero_ze_zrodlem_bez_flagi():

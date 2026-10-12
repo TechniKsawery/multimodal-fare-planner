@@ -207,16 +207,16 @@ def test_suggest_best_city_card_wybiera_oplacalny_wariant_ze_zrodlem(monkeypatch
 
 
 def test_berlin_znizki_ze_zrodlem_liczone_a_museumsinsel_classic_zostaje_zerem_z_flaga():
-    # Dane w repo (źródło wg raportu Gemini, 2026-10-12): Fernsehturm i Olympiastadion 25% ze
-    # źródłem; Museumsinsel dla wariantów Classic bez źródła zniżki -> 0% + flaga.
+    # Dane w repo (źródło wg raportu Gemini, 2026-10-12): Fernsehturm 25% i Olympiastadion 22,7%
+    # (8,50 z 11,00 EUR) ze źródłem; Museumsinsel dla wariantów Classic bez źródła zniżki -> 0% + flaga.
     evals = evaluate_city_cards("Berlin", _berlin_attrs_3(), estimated_transit_cost=19.0)
     assert evals
     for ev in evals:
         if ev.variant.id == "bwc_72h_museumsinsel":
             continue  # ten wariant ma 100% na Museumsinsel z definicji produktu
-        # bez karty: 20 + 11 + 24 = 55; z kartą: 0,75 * 31 + 24 = 47,25
+        # bez karty: 20 + 11 + 24 = 55; z kartą: 0,75 * 20 + 8,50 + 24 = 47,50
         assert ev.attractions_price_without_card == 55.0
-        assert ev.attractions_price_with_card == 47.25
+        assert abs(ev.attractions_price_with_card - 47.5) < 0.01
         assert ev.unverified_discount_attraction_ids == ["berlin_museumsinsel"]
         assert "niezweryfikowane" in ev.summary
 
@@ -488,11 +488,8 @@ def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
 
     hamburg_card = cards_by_id["hamburg_card"]
     assert all(v.price_verified for v in hamburg_card.variants)
-    # 25% (Speicherstadtmuseum) i 22% (IMM): zniżki ze źródłem (raport 2026-10-12)
-    assert hamburg_card.custom_discounts == {
-        "hamburg_speicherstadtmuseum": 25.0,
-        "hamburg_imm": 22.0,
-    }
+    # 25% Speicherstadtmuseum ze źródłem (raport 2026-10-12); IMM 0% + flaga (rozbieżna cena bazowa)
+    assert hamburg_card.custom_discounts == {"hamburg_speicherstadtmuseum": 25.0}
 
     munchen_card = cards_by_id["munchen_citytourcard"]
     assert all(v.price_verified for v in munchen_card.variants)

@@ -89,11 +89,13 @@ albo zasada zależna od taryfy, której nie znamy z ceny z cache). Wynik trafia 
 `breakdown["bagaz_podreczny"]` odcinka lotu i jest pokazywany w UI (`app.py`) i `demo.py`.
 Dopłata za podręczny NIE jest doliczana do ceny biletu ani do ceny łącznej.
 
-**Uwaga o pochodzeniu danych:** wpisy Wizz Air, Ryanair, Eurowings i easyJet wpisała zewnętrzna
-AI (Gemini) i NIE zostały jeszcze sprawdzone przez Claude; na tej gałęzi aplikacja traktuje je
-zgodnie z flagą `price_verified` w pliku. Nie scalać na `main` przed weryfikacją w źródłach.
+**Weryfikacja danych bagażu podręcznego (2026-10-12):** dane dla wszystkich przewoźników
+(Ryanair, Wizz Air, Eurowings, easyJet, LOT, Lufthansa) zostały zweryfikowane bezpośrednio
+na oficjalnych stronach przewoźników w przeglądarce. Szczegółowy wykaz źródeł, cytatów i decyzji
+znajduje się w pliku `raport-bagaz-verify.md`. Wszystkie wpisy mają `price_verified: true`
+oraz udokumentowane oficjalne URL-e.
 
-Sprawdzone źródła (stan na 2026-09-27):
+Sprawdzone źródła bagażu rejestrowanego (stan na 2026-09-27):
 - Ryanair: https://www.moneyguideireland.com/ryanair-increased-baggage-allowance-of-20kg.html
 - Wizz Air: https://www.sendmybag.com/airlines/wizz-air-baggage-allowance/
 - LOT: https://kolokwialnienaemigracji.pl/ile-kosztuje-bagaz-rejestrowany-w-lot-sprawdz-ceny-i-uniknij-doplat

@@ -1,6 +1,7 @@
 """Bardzo uproszczone przeliczanie walut do PLN — tylko do PORÓWNYWANIA wariantów.
 
-Kursy są SZTYWNYM PLACEHOLDEREM (nie z API kursowego) — patrz sekcja "Waluty" w routing/README.md.
+Kursy są STAŁE, wpisane ręcznie ze źródła (tabela A NBP, nie z API kursowego na żywo) — patrz sekcja
+"Waluty" w routing/README.md.
 Do rzeczywistej ceny każdego odcinka i tak używamy oryginalnej waluty (breakdown w PricedLeg),
 PLN-owa suma służy wyłącznie do rankingu "najtańsza" i scoringu "cena/godzina" między wariantami
 mieszającymi PLN i EUR.
@@ -30,8 +31,8 @@ def normalize_currency(currency: str) -> str:
     if code not in PLACEHOLDER_RATES_TO_PLN:
         raise UnsupportedCurrencyError(
             f"Nieobsługiwana waluta {currency!r} — obsługiwane: {', '.join(SUPPORTED_CURRENCIES)}. "
-            "Nie zgadujemy kursów; nowa waluta wymaga kursu ze źródła w common/currency.py "
-            "(PLACEHOLDER_RATES_TO_PLN)."
+            "Nie zgadujemy kursów; nowa waluta wymaga kursu ze źródła (np. tabela A NBP) "
+            "z datą weryfikacji w common/currency.py."
         )
     return code
 

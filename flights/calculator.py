@@ -53,7 +53,7 @@ def _fetch_ticket(segment: FlightSegment):
     in_segment_currency = (
         ""
         if segment.currency == "PLN"
-        else f" (= {fallback_price:.2f} {segment.currency} po placeholderowym kursie)"
+        else f" (= {fallback_price:.2f} {segment.currency} kurs NBP z 2026-10-09, szacunek)"
     )
     return (
         {
@@ -83,7 +83,7 @@ def _table_extras_in_currency(origin: str, destination: str, currency: str) -> E
             convert(table.destination_transfer_cost, table.currency, currency), 2
         ),
         currency=currency,
-        note=f"{table.note} Przeliczone z {table.currency} na {currency} kursem placeholderowym.",
+        note=f"{table.note} Przeliczone z {table.currency} na {currency} kursem NBP z 2026-10-09 (szacunek).",
     )
 
 

@@ -42,7 +42,7 @@ cały wariant lotu (`TravelpayoutsError` -> `SkippedVariant` w `routing/variants
    `flights/calculator.py`) oparty na rzędzie wielkości typowych cen tanich linii na krótkich
    trasach PL-DE — NIE jest to cena dla konkretnej relacji.
    Kwota jest w ZŁOTYCH: dla segmentu w innej walucie (np. `currency="EUR"`) jest przeliczana
-   placeholderowym kursem z `common/currency.py`, a notatka podaje obie kwoty. To samo dotyczy
+   kursem NBP z `common/currency.py` (szacunek do porównań), a notatka podaje obie kwoty. To samo dotyczy
    kosztów dodatkowych z tabeli `extras_placeholder.json` (PLN) przy segmencie w EUR. Waluta bez
    kursu (np. GBP) kończy się `UnsupportedCurrencyError` (podklasa `ValueError`) z listą
    obsługiwanych walut — kursów nie zgadujemy.

@@ -381,11 +381,14 @@ def evaluate_city_card_variant(
     currency = currencies.pop() if len(currencies) == 1 else variant.currency
     card_price = convert(variant.price, variant.currency, currency)
 
+    unverified: list[str] = []
     for a in attractions:
         base_price, _label, _source = best_price_for_attraction(a, profile)
         base_price = convert(base_price, a.currency, currency)
         price_without += base_price
         disc_pct = _calculate_attraction_discount_percent(card, variant, a)
+        if disc_pct == 0.0 and a.id not in card.custom_discounts:
+            unverified.append(a.id)
         discounted = base_price * (1.0 - (disc_pct / 100.0))
         price_with += max(0.0, discounted)
 
@@ -419,6 +422,12 @@ def evaluate_city_card_variant(
             f"do zwrotu kosztu karty."
         )
 
+    if unverified:
+        summary += (
+            f" Brak zapisanej zniżki karty dla: {', '.join(unverified)} — liczone jako 0% "
+            "(niezweryfikowane, karta może dawać zniżkę, której nie mamy w danych)."
+        )
+
     return CityCardEvaluation(
         card_name=card.name,
         variant=variant,
@@ -433,6 +442,7 @@ def evaluate_city_card_variant(
         currency=currency,
         is_recommended=is_recommended,
         summary=summary,
+        unverified_discount_attraction_ids=unverified,
     )
 
 

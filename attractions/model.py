@@ -154,3 +154,6 @@ class CityCardEvaluation:
     currency: str
     is_recommended: bool
     summary: str
+    # Atrakcje bez ZAPISANEJ zniżki karty: liczone jako 0% (nie zgadujemy), ale zniżka jest
+    # niezweryfikowana — karta mogłaby ją dawać, tylko nie mamy tego w danych ze źródłem.
+    unverified_discount_attraction_ids: list[str] = field(default_factory=list)

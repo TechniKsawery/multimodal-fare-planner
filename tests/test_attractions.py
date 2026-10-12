@@ -701,3 +701,25 @@ def test_kazda_zapisana_zniszka_karty_wskazuje_atrakcje_z_tego_samego_miasta():
         for attraction_id, percent in card.custom_discounts.items():
             assert 0.0 <= percent <= 100.0, (card.id, attraction_id)
             assert by_id[attraction_id].city == card.city, (card.id, attraction_id)
+
+
+def test_brak_zapisanej_znizki_karty_jest_zerem_z_flaga_niezweryfikowane():
+    from attractions.service import evaluate_city_cards, get_attractions
+
+    attr = next(a for a in get_attractions(city="krakow") if a.id == "krakow_katedra_wawelska")
+    evals = evaluate_city_cards("krakow", [attr])
+    assert evals
+    for ev in evals:
+        assert ev.attractions_price_with_card == ev.attractions_price_without_card
+        assert "krakow_katedra_wawelska" in ev.unverified_discount_attraction_ids
+        assert "niezweryfikowane" in ev.summary
+
+
+def test_komunikat_waluty_nie_mowi_o_placeholderze():
+    import pytest
+    from common.currency import UnsupportedCurrencyError, normalize_currency
+
+    with pytest.raises(UnsupportedCurrencyError) as exc:
+        normalize_currency("GBP")
+    assert "PLACEHOLDER" not in str(exc.value)
+    assert "EUR" in str(exc.value)

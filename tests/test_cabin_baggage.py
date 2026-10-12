@@ -23,7 +23,8 @@ def test_ryanair_platny_widelki_w_eur():
     info = get_cabin_baggage("FR")
     assert info.state is S.PAID
     f = _fees("FR")
-    assert (f["online przy rezerwacji"].min_amount, f["online przy rezerwacji"].max_amount) == (12.49, 36.00)
+    en = f["online przy rezerwacji, wg strony EN"]
+    assert (en.min_amount, en.max_amount) == (12.49, 36.00)
     assert {x.currency for x in info.fees} == {"EUR"}
     assert (f["przy bramce"].min_amount, f["przy bramce"].max_amount) == (46.00, 75.00)
 
@@ -31,7 +32,8 @@ def test_ryanair_platny_widelki_w_eur():
 def test_wizz_platny_widelki_w_eur():
     f = _fees("W6")
     assert get_cabin_baggage("W6").state is S.PAID
-    assert (f["online"].min_amount, f["online"].max_amount, f["online"].currency) == (13.00, 57.50, "EUR")
+    online = f["WIZZ Priority online / telecentrum"]
+    assert (online.min_amount, online.max_amount, online.currency) == (13.00, 57.50, "EUR")
 
 
 def test_easyjet_w_gbp_nie_przeliczane():
@@ -112,21 +114,54 @@ def test_price_flight_leg_dodaje_stan_bagazu_i_nie_rusza_ceny(monkeypatch, linia
 
 
 @pytest.mark.parametrize("code", ["FR", "W6", "EW", "U2"])
-def test_doplaty_tanich_linii_niepotwierdzone_i_jedna_waluta(code):
+def test_doplaty_tanich_linii_jedna_waluta(code):
     info = get_cabin_baggage(code)
-    assert info.price_verified and not info.fees_verified
+    assert info.price_verified
     assert len({f.currency for f in info.fees}) == 1
+
+
+@pytest.mark.parametrize("code", ["EW", "U2"])
+def test_eurowings_i_easyjet_zostaja_niepotwierdzone(code):
+    info = get_cabin_baggage(code)
+    assert not info.fees_verified
     assert info.to_dict()["oplaty_potwierdzone"] is False
     assert "NIEPOTWIERDZONA" in format_breakdown(info.to_dict())
 
 
+@pytest.mark.parametrize("code", ["FR", "W6"])
+def test_ryanair_i_wizz_maja_potwierdzony_oficjalny_przedzial(code):
+    info = get_cabin_baggage(code)
+    assert info.fees_verified and info.to_dict()["oplaty_potwierdzone"] is True
+    txt = format_breakdown(info.to_dict())
+    assert "oficjalny PRZEDZIAŁ" in txt and "NIEPOTWIERDZONA" not in txt
+    assert "nie cena konkretnego lotu" in txt
+    # każda pozycja to przedział min-max, nigdy pojedyncza kwota ani "od X"
+    assert info.fees and all(f.max_amount is not None and f.max_amount > f.min_amount and not f.is_from for f in info.fees)
+    pot = next(e for c, e in cb._DATA["przewoznicy"].items() if c == code)["doplata_potwierdzenie"]
+    assert pot["data"] == "2026-10-12" and pot["zrodla"] and all(u.startswith("https://") for u in pot["zrodla"])
+    assert "niezweryfikowane niezależnie" in pot["metoda"]
+
+
+def test_ryanair_zapisuje_oba_przedzialy_pl_i_en_i_wskazuje_rozbieznosc():
+    fees = {f.label: (f.min_amount, f.max_amount) for f in get_cabin_baggage("FR").fees}
+    assert fees["online przy rezerwacji, wg strony PL"] == (6.0, 36.0)
+    assert fees["online przy rezerwacji, wg strony EN"] == (12.49, 36.0)
+    assert fees["przy bramce"] == (46.0, 75.0)
+    desc = get_cabin_baggage("FR").description
+    assert "różnią się" in desc and "PL podaje 6–36" in desc and "EN 12,49–36" in desc
+
+
+def test_wizz_rozdziela_priority_na_lotnisku_od_kary_za_bagaz_do_luku():
+    info = get_cabin_baggage("W6")
+    fees = {f.label: (f.min_amount, f.max_amount) for f in info.fees}
+    assert fees["zakup WIZZ Priority na lotnisku"] == (65.0, 75.0)
+    assert fees["kara za bagaż podręczny wysłany do luku"] == (55.0, 65.0)
+    assert fees["WIZZ Priority online / telecentrum"] == (13.0, 57.5)
+    assert "zakup WIZZ Priority na lotnisku" in info.description and "kara za bagaż podręczny wysłany do luku" in info.description
+
+
 def test_lot_i_lufthansa_bez_dopłat_nie_maja_etykiety_niepotwierdzonej():
     assert "NIEPOTWIERDZONA" not in format_breakdown(get_cabin_baggage("LO").to_dict())
-
-
-def test_eurowings_i_easyjet_zostaja_niepotwierdzone():
-    for code in ("EW", "U2"):
-        assert not get_cabin_baggage(code).fees_verified
 
 
 def test_potwierdzony_przedzial_jest_nazwany_przedzialem(monkeypatch):

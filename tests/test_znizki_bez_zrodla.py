@@ -128,15 +128,30 @@ PRZYWROCONE = {
     "munchen_bavaria_filmstadt": ("munchen_citytourcard", 10.0, "citytourcard-muenchen.com"),
     "poznan_brama_poznania": ("poznan_city_card", 40.0, "karta.visitpoznan.pl"),
     "poznan_fotoplastykon": ("poznan_city_card", 100.0, "karta.visitpoznan.pl"),
+    # kontrola krzyżowa 2026-10-12 (research/zrodla-krzyzowa-kontrola.md, gałąź gemini/zrodla-krzyz)
+    "hamburg_imm": ("hamburg_card", 22.2, "imm-hamburg.de"),  # 14 z 18 EUR (normal_price poprawione z 17)
 }
 
-# Nadal 0% z flagą niezweryfikowanej zniżki: brak źródła albo nieprzeliczalne na %.
+# Jawne 0% BEZ flagi (znany brak zniżki wg kontroli krzyżowej 2026-10-12, źródło wg Gemini):
+# atrakcja -> karta. Wcześniej 0% z flagą niezweryfikowanej zniżki.
+JAWNE_ZERO_BEZ_FLAGI = {
+    "krakow_schindler_factory": "krakow_card",  # Krakow City Pass nie obejmuje Fabryki Schindlera
+    "berlin_museumsinsel": "berlin_welcomecard",  # Classic: brak zniżki
+    "lublin_zamek_muzeum": "lublin_trippass",  # Zamek nie honoruje TripPass
+}
+
+# Nadal 0% Z FLAGĄ niezweryfikowanej zniżki: atrakcja -> powód.
 NADAL_ZERO_Z_FLAGA = {
-    "berlin_museumsinsel": 25.0,  # Classic: raport nie potwierdza zniżki
-    "munchen_schloss_nymphenburg": 10.0,  # cena bazowa (20 EUR) != cena z raportu (10 EUR)
-    "lublin_zamek_muzeum": 20.0,  # brak źródła
-    "hamburg_imm": 22.0,  # cena bazowa w danych (17 EUR) != cennik (18 EUR)
-    "krakow_schindler_factory": 20.0,  # źródło opisuje inny produkt (Krakowska Karta Turystyczna)
+    # lato 10% (combo 20 EUR), zima 12,5% (combo 16 EUR); model nie ma cen sezonowych
+    "munchen_schloss_nymphenburg": "zniżka sezonowa",
+}
+
+# Stare (wyzerowane w #101) wartości zniżek z notatek kart; Zamek Lubelski miał zniżkę tylko na atrakcji.
+STARE_ZNIZKI_W_NOTATKACH = {
+    "berlin_museumsinsel": 25.0,
+    "munchen_schloss_nymphenburg": 10.0,
+    "hamburg_imm": 22.0,
+    "krakow_schindler_factory": 20.0,
 }
 
 # Wawel: źródło (krakow.travel) mówi, że Kraków Card go nie obejmuje -> jawne 0%, bez flagi.
@@ -193,19 +208,87 @@ def test_dane_przywrocone_znizki_licza_sie_bez_flagi():
         ), aid
 
 
+def test_dane_jawne_zera_licza_sie_jako_zero_bez_flagi_w_kazdym_wariancie():
+    karty, atrakcje = _karty(), _atrakcje()
+    for aid, card_id in JAWNE_ZERO_BEZ_FLAGI.items():
+        card, attr = karty[card_id], atrakcje[aid]
+        assert card.custom_discounts[aid] == 0.0, aid
+        assert aid not in card.custom_discount_sources, aid  # 0% nie wymaga źródła w mechanizmie
+        for variant in card.variants:
+            ev = evaluate_city_card_variant(card, variant, [attr])
+            if variant.id == "bwc_72h_museumsinsel":
+                continue  # wyjątek produktu: 100% na Museumsinsel
+            assert ev.attractions_price_with_card == ev.attractions_price_without_card, (aid, variant.id)
+            assert ev.unverified_discount_attraction_ids == [], (aid, variant.id)
+
+
+def test_dane_jawne_zera_maja_w_notatce_cytat_url_i_oznaczenie_wg_gemini():
+    raw = {c["id"]: c for c in json.loads((DATA / "city_cards.json").read_text(encoding="utf-8"))["karty"]}
+    for aid, card_id in JAWNE_ZERO_BEZ_FLAGI.items():
+        nota = raw[card_id]["_zrodla_znizek_2026_10_12"][aid]
+        assert nota["znizka_proc"] == 0.0 and nota["data"] == DATA_ZRODEL, aid
+        assert nota["url"].startswith("https://") and nota["cytat"], aid
+        assert "niezweryfikowane niezależnie" in nota["weryfikacja"] and "wg Gemini" in nota["weryfikacja"], aid
+
+
+def test_dane_schindler_zero_dla_wszystkich_wariantow_ale_z_zastrzezeniem_o_pakiecie_studenckim():
+    card = _karty()["krakow_card"]
+    assert "krakow_museum_pass_student_3d" in {v.id for v in card.variants}
+    raw = {c["id"]: c for c in json.loads((DATA / "city_cards.json").read_text(encoding="utf-8"))["karty"]}
+    nota = raw["krakow_card"]["_zrodla_znizek_2026_10_12"]["krakow_schindler_factory"]
+    assert "Krakow City Pass" in nota["wynik"] and "krakow_museum_pass_student_3d" in nota["uwaga"]
+    assert "What Is Not Included" in nota["cytat"]
+
+
+def test_dane_imm_cena_bazowa_18_i_zniezka_14_z_18():
+    card = _karty()["hamburg_card"]
+    imm = _atrakcje()["hamburg_imm"]
+    assert imm.normal_price == 18.0  # cennik imm-hamburg.de/preise-infos/ (wcześniej 17)
+    assert card.custom_discounts["hamburg_imm"] == 22.2
+    assert pytest.approx(22.2, abs=0.05) == (18.0 - 14.0) / 18.0 * 100
+    ev = evaluate_city_card_variant(card, card.variants[0], [imm])
+    assert ev.attractions_price_with_card == pytest.approx(14.0, abs=0.01)  # 14 EUR z Hamburg CARD
+    assert ev.unverified_discount_attraction_ids == []
+    assert card.custom_discount_sources["hamburg_imm"].verified_date == "2026-10-12"
+
+
+def test_dane_nymphenburg_zero_z_flaga_bo_zniezka_jest_sezonowa():
+    karty, atrakcje = _karty(), _atrakcje()
+    card, attr = karty["munchen_citytourcard"], atrakcje["munchen_schloss_nymphenburg"]
+    assert attr.normal_price == 20.0  # combo, cena letnia; model nie ma cen sezonowych
+    assert attr.id not in card.custom_discounts and attr.id not in card.custom_discount_sources
+    for variant in card.variants:
+        ev = evaluate_city_card_variant(card, variant, [attr])
+        assert ev.attractions_price_with_card == ev.attractions_price_without_card, variant.id
+        assert ev.unverified_discount_attraction_ids == [attr.id], variant.id
+    raw = {c["id"]: c for c in json.loads((DATA / "city_cards.json").read_text(encoding="utf-8"))["karty"]}
+    nota = raw["munchen_citytourcard"]["_zrodla_znizek_2026_10_12"][attr.id]
+    assert nota["znizka_proc"] == 0.0 and "z flagą" in nota["wynik"]
+    # opis sezonowości: lato 10% (20 EUR), zima 12,5% (16 EUR), wymóg modelu sezonowego
+    for fragment in ("10%", "20 EUR", "12,5%", "16 EUR", "modelu sezonowego"):
+        assert fragment in nota["uwaga"], fragment
+    assert "niezweryfikowane niezależnie" in nota["weryfikacja"]
+    assert pytest.approx(2 / 20 * 100) == 10.0 and pytest.approx(2 / 16 * 100) == 12.5
+
+
 def test_dane_nadal_zerowane_zniezki_licza_sie_jako_zero_z_flaga():
     karty, atrakcje = _karty(), _atrakcje()
     for aid in NADAL_ZERO_Z_FLAGA:
         attr = atrakcje[aid]
-        cards_city = [c for c in karty.values() if c.city == attr.city]
-        assert cards_city, aid
-        for card in cards_city:
+        for card in (c for c in karty.values() if c.city == attr.city):
             ev = evaluate_city_card_variant(card, card.variants[0], [attr])
-            assert ev.attractions_price_with_card == ev.attractions_price_without_card, (
-                card.id,
-                aid,
-            )
+            assert ev.attractions_price_with_card == ev.attractions_price_without_card, (card.id, aid)
             assert aid in ev.unverified_discount_attraction_ids, (card.id, aid)
+
+
+def test_dane_imm_ulgi_wg_gemini_13_i_38_oznaczone_jako_niezweryfikowane():
+    imm = _atrakcje()["hamburg_imm"]
+    assert imm.student_price.price == 13.0 and imm.family_price.price == 38.0
+    for gp in (imm.student_price, imm.family_price):
+        assert gp.source_url == "https://imm-hamburg.de/preise-infos/"
+        assert gp.verified_date == DATA_ZRODEL
+        assert gp.price_verified is False
+        assert "niezweryfikowane niezależnie" in gp.label
 
 
 def test_dane_olympiastadion_procent_z_cen_zrodla_a_nie_deklarowane_25():
@@ -218,29 +301,6 @@ def test_dane_olympiastadion_procent_z_cen_zrodla_a_nie_deklarowane_25():
     variant = next(v for v in card.variants if v.id == "bwc_48h_ab")
     ev = evaluate_city_card_variant(card, variant, [attr])
     assert ev.attractions_price_with_card == pytest.approx(8.50, abs=0.01)
-
-
-def test_dane_schindler_zero_z_flaga_we_wszystkich_wariantach_krakow_card():
-    # Źródło opisuje Krakowską Kartę Turystyczną; nasz wpis to Krakow City Pass -> produkt
-    # niepotwierdzony. Dotyczy też osobnego produktu krakow_museum_pass_student_3d.
-    card = _karty()["krakow_card"]
-    schindler = _atrakcje()["krakow_schindler_factory"]
-    assert "krakow_schindler_factory" not in card.custom_discounts
-    assert "krakow_museum_pass_student_3d" in {v.id for v in card.variants}
-    for variant in card.variants:
-        ev = evaluate_city_card_variant(card, variant, [schindler])
-        assert ev.attractions_price_with_card == ev.attractions_price_without_card, variant.id
-        assert ev.unverified_discount_attraction_ids == ["krakow_schindler_factory"], variant.id
-
-
-def test_dane_imm_zero_z_flaga_do_uzgodnienia_ceny_bazowej():
-    card = _karty()["hamburg_card"]
-    imm = _atrakcje()["hamburg_imm"]
-    assert imm.normal_price == 17.0  # cennik wg raportu: 18 EUR
-    assert "hamburg_imm" not in card.custom_discounts
-    ev = evaluate_city_card_variant(card, card.variants[0], [imm])
-    assert ev.attractions_price_with_card == ev.attractions_price_without_card
-    assert ev.unverified_discount_attraction_ids == ["hamburg_imm"]
 
 
 def test_dane_wawel_jawne_zero_ze_zrodlem_bez_flagi():
@@ -258,14 +318,13 @@ def test_dane_wawel_jawne_zero_ze_zrodlem_bez_flagi():
     assert "niezweryfikowane niezależnie" in nota["weryfikacja"]
 
 
-def test_dane_stara_wartosc_nadal_zerowanej_znizki_zostaje_w_notatce():
+def test_dane_stara_wartosc_zerowanej_znizki_zostaje_w_notatce():
     raw_cards = json.loads((DATA / "city_cards.json").read_text(encoding="utf-8"))["karty"]
     zapisane = {}
     for card in raw_cards:
         for aid, info in card.get("_zerowane_znizki_bez_zrodla_2026_10_12", {}).items():
             zapisane[aid] = info["stara_znizka_proc"]
-    custom_only = {aid: v for aid, v in NADAL_ZERO_Z_FLAGA.items() if aid != "lublin_zamek_muzeum"}
-    assert zapisane == custom_only
+    assert zapisane == STARE_ZNIZKI_W_NOTATKACH
     raw_attr = {
         a["id"]: a
         for a in json.loads((DATA / "attractions.json").read_text(encoding="utf-8"))["atrakcje"]

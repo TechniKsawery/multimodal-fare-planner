@@ -2,7 +2,7 @@
   "_zrodlo": "Oficjalne cenniki kart miejskich: Berlin WelcomeCard, RUHR.TOPCARD (następca WelcomeCard Ruhr w tym kalkulatorze), Kraków City Pass (Discover Cracow, następca krakowcard.com)",
   "_UWAGA_existence_verified": "2026-10-10: każda karta ma teraz existence_verified (+ existence_source_url + existence_verified_date) — get_city_cards()/kalkulator pokazują TYLKO karty z existence_verified=true. To osobna flaga od price_verified na wariancie: karta może istnieć na pewno, a mieć niepewną cenę (wtedy zostaje z adnotacją), ale karta, której istnienia/działania DZIŚ nie potwierdzono wprost u źródła (jak dawna WelcomeCard Ruhr — patrz usunięty wpis 'welcomecard_ruhr' i _UWAGA_zamiana niżej), nie trafia do użytkownika wcale. Wszystkie 3 karty poniżej mają existence_verified=true na podstawie weryfikacji na żywo opisanej w _UWAGA_weryfikacja i _UWAGA_zamiana.",
   "_data_aktualizacji": "2026-10-09",
-  "_UWAGA_zrodla_znizek_2026_10_12": "Zniżka karty na atrakcję > 0% jest liczona TYLKO ze źródłem: custom_discount_sources (karta, id atrakcji -> {source_url, verified_date}) albo card_discount_source na atrakcji. 2026-10-12 (PR #101): zniżki bez pola źródła wyzerowano; następnie, wg raportu research/zrodla-znizek-kart.md (gałąź gemini/zrodla-znizek, 2026-10-12), przywrócono tylko te jednoznacznie potwierdzone cytatem z URL i zgodną ceną bazową (Fernsehturm 25%, Olympiastadion 22,7% — policzone z cen źródła 8,50/11,00 EUR, Speicherstadtmuseum 25%, FC Bayern 8%, Residenz 13,3%, Frauenkirche 33,3%, SEA LIFE 20%, Bavaria Filmstadt 10%, Brama Poznania 40%, Fotoplastykon 100%). Cytaty i uwagi: pole _zrodla_znizek_2026_10_12 na karcie. WSZYSTKIE źródła wg Gemini, niezweryfikowane niezależnie (domeny operatorów niedostępne z chmury). Nadal 0% z flagą niezweryfikowanej zniżki: Museumsinsel (Classic; brak zniżki w źródle), Nymphenburg (cena bazowa 20 EUR vs 10 EUR w raporcie), IMM (cena bazowa 17 vs 18 EUR), Fabryka Schindlera (źródło opisuje Krakowską Kartę Turystyczną, u nas Krakow City Pass — produkt niepotwierdzony; dotyczy też wariantu krakow_museum_pass_student_3d), Zamek Lubelski (brak źródła). Wawel: jawne 0.0 bez flagi — znany brak zniżki (krakow.travel: 'Nie obejmuje zwiedzania Wawelu i Kopalni Soli Wieliczka.'). Stare wartości niepotwierdzonych zniżek zostają w _zerowane_znizki_bez_zrodla_2026_10_12 na karcie i w _UWAGA_zniezka_karty na atrakcji. Zniżki RUHR.TOPCARD zostały (źródło z _UWAGA_partnerzy przepisane do pól: ruhrtopcard.de/alle-ausflugsziele, 2026-10-09).",
+  "_UWAGA_zrodla_znizek_2026_10_12": "[ZAKTUALIZOWANE tą samą datą kontrolą krzyżową — zdanie 'Nadal 0% z flagą' poniżej jest HISTORYCZNE; stan aktualny w _UWAGA_kontrola_krzyzowa_2026_10_12: Schindler, Museumsinsel (Classic) i Zamek Lubelski to jawne 0% bez flagi, IMM 22,2% ma źródło, Nymphenburg zostaje 0% z flagą (zniżka sezonowa: lato 10%, zima 12,5%).] Zniżka karty na atrakcję > 0% jest liczona TYLKO ze źródłem: custom_discount_sources (karta, id atrakcji -> {source_url, verified_date}) albo card_discount_source na atrakcji. 2026-10-12 (PR #101): zniżki bez pola źródła wyzerowano; następnie, wg raportu research/zrodla-znizek-kart.md (gałąź gemini/zrodla-znizek, 2026-10-12), przywrócono tylko te jednoznacznie potwierdzone cytatem z URL i zgodną ceną bazową (Fernsehturm 25%, Olympiastadion 22,7% — policzone z cen źródła 8,50/11,00 EUR, Speicherstadtmuseum 25%, FC Bayern 8%, Residenz 13,3%, Frauenkirche 33,3%, SEA LIFE 20%, Bavaria Filmstadt 10%, Brama Poznania 40%, Fotoplastykon 100%). Cytaty i uwagi: pole _zrodla_znizek_2026_10_12 na karcie. WSZYSTKIE źródła wg Gemini, niezweryfikowane niezależnie (domeny operatorów niedostępne z chmury). Nadal 0% z flagą niezweryfikowanej zniżki: Museumsinsel (Classic; brak zniżki w źródle), Nymphenburg (cena bazowa 20 EUR vs 10 EUR w raporcie), IMM (cena bazowa 17 vs 18 EUR), Fabryka Schindlera (źródło opisuje Krakowską Kartę Turystyczną, u nas Krakow City Pass — produkt niepotwierdzony; dotyczy też wariantu krakow_museum_pass_student_3d), Zamek Lubelski (brak źródła). Wawel: jawne 0.0 bez flagi — znany brak zniżki (krakow.travel: 'Nie obejmuje zwiedzania Wawelu i Kopalni Soli Wieliczka.'). Stare wartości niepotwierdzonych zniżek zostają w _zerowane_znizki_bez_zrodla_2026_10_12 na karcie i w _UWAGA_zniezka_karty na atrakcji. Zniżki RUHR.TOPCARD zostały (źródło z _UWAGA_partnerzy przepisane do pól: ruhrtopcard.de/alle-ausflugsziele, 2026-10-09).",
   "_UWAGA_zniezki_wiek_status_2026_10_10": "Zweryfikowano NA ŻYWO, czy te 3 karty mają osobne ceny dla dzieci/uczniów-studentów/seniorów/rodzin (model CityCardVariant ma dziś tylko jedną cenę per wariant czasowy — to pytanie o to, czy brakuje pól, nie o ich wypełnienie): Berlin WelcomeCard (bvg.de) — NIE, jedna cena karty obejmuje 1 dorosłego + do 3 dzieci bezpłatnie ('Gültig für eine erwachsene Person und bis zu drei Kinder'), żadnych odrębnych cen student/senior. RUHR.TOPCARD (ruhrtopcard.de/card-kaufen) — jest TYLKO podział dorosły (70€) / dziecko (43€, bez podanego przedziału wieku), żadnej ulgi student/senior (poza niesprecyzowanym rabatem ADAC tylko w punktach sprzedaży ADAC). Kraków Card / Krakow City Pass (discovercracow.com) — NIE, jedna cena per wariant czasowy, bez podziału wiek/status (uwaga: istnieje osobny, niezależny produkt 'Krakow Museum Pass for Students' 28,57€, ale to nie jest ta karta). Wniosek: dla tych 3 kart brak dalszych pól do dodania — to jest POTWIERDZONY brak zróżnicowania cenowego, nie dziura w danych.",
   "_UWAGA_weryfikacja": "Berlin WelcomeCard: warianty AB/ABC (48h/72h/4dni/6dni) i 'Museumsinsel' potwierdzone DWOMA niezależnymi fetchami na bvg.de (oficjalny partner sprzedaży BVG) — price_verified: true na variantach. Warianty 'Basic' i 'All Inclusive' NIE są w tym pliku (niepotwierdzone, berlin-welcomecard.de blokuje automatyczny dostęp nawet przez web.archive.org). WelcomeCard Ruhr: zweryfikowano NA ŻYWO 2026-10-09 (welcomecard.ruhr) — panel rezerwacji dla wszystkich trzech wariantów (24/48/72h) pokazuje brak dostępnych terminów, żadna cena nie jest nigdzie wyświetlana na żywo, a 2 niezależne atrakcje (Veltins-Arena, Zeche Zollverein) na swoich stronach wymieniają jako partnera zniżkowego RUHR.TOPCARD, nie WelcomeCard Ruhr. Decyzja produktowa Ksaviego 2026-10-09: ZASTĄPIĆ 'welcomecard_ruhr' kartą 'ruhrtopcard' w tym pliku (usunięto starą kartę) — mimo że to inny produkt (roczny, bez transportu, nie 24/48/72h z transportem VRR), bo żywy jest tylko ten. Szczegóły w notatkach _UWAGA_zamiana i _UWAGA_partnerzy przy karcie 'ruhrtopcard' poniżej. Kraków Card: krakowcard.com teraz daje HTTP 301 redirect (potwierdzone przez web.archive.org, zrzut 2025-10-05) na discovercracow.com/tickets — to jest oficjalny następca produktu pod nazwą 'Krakow City Pass - Museums and Attractions + Transport'. Zweryfikowano NA ŻYWO 2026-10-09 na discovercracow.com: warianty 1 dzień 32,00 EUR, 2 dni 40,00 EUR, 3 dni 50,00 EUR; obejmuje wstęp do 20+ muzeów/atrakcji (m.in. Muzeum Czartoryskich z 'Damą z gronostajem', Kopiec Kościuszki, Muzeum Lotnictwa Polskiego) oraz darmowy nielimitowany transport publiczny na czas ważności karty. Ceny podane WYŁĄCZNIE w EUR (brak oficjalnego cennika w PLN) — zaktualizowano price + currency na EUR i price_verified: true dla wariantów 2 i 3 dni.",
   "karty": [
@@ -17,7 +17,8 @@
       "existence_verified_date": "2026-10-09",
       "custom_discounts": {
         "berlin_fernsehturm": 25.0,
-        "berlin_olympiastadion": 22.7
+        "berlin_olympiastadion": 22.7,
+        "berlin_museumsinsel": 0.0
       },
       "variants": [
         {
@@ -96,11 +97,13 @@
         },
         "berlin_museumsinsel": {
           "znizka_proc": 0.0,
-          "url": "https://www.berlin-welcomecard.de/de/partners-bwc-mi",
-          "wynik": "0% dla wariantów Classic (wariant bwc_72h_museumsinsel = 100% z definicji produktu)",
-          "cytat": "Freier Eintritt in die Museen der Museumsinsel mit Ihrer Berlin WelcomeCard Museumsinsel (dodatkowo https://www.berlin-welcomecard.de/de/partner/neues-museum: Freier Eintritt in die Dauerausstellung, nur mit der Berlin WelcomeCard Museumsinsel). Źródło nie podaje żadnej zniżki dla Classic — zostaje 0% z flagą niezweryfikowanej zniżki.",
+          "wynik": "jawne 0% BEZ flagi niezweryfikowanej dla wariantów Classic (48h AB, 72h AB, 48h ABC); wariant bwc_72h_museumsinsel = 100% z definicji produktu (wyjątek w kodzie)",
+          "url": "https://www.berlin-welcomecard.de/de/berlin-welcomecard-museumsinsel",
+          "url_partner": "https://www.berlin-welcomecard.de/de/partner/alte-nationalgalerie",
+          "cytat": "Eintritt frei für Alte Nationalgalerie, Altes Museum, Bode Museum, Neues Museum, Pergamonmuseum (Berlin WelcomeCard Museumsinsel) / Freier Eintritt in die Dauerausstellung, nur mit der Berlin WelcomeCard Museumsinsel / Freier Eintritt: Berlin WelcomeCard all inclusive. Berlin WelcomeCard Classic nie występuje na liście zniżek tego partnera.",
+          "uwaga": "Kontrola krzyżowa 2026-10-12 (B3): Classic nie daje żadnej zniżki na Museumsinsel (znany brak zniżki, nie luka w danych). Wstęp bezpłatny dają tylko 'Berlin WelcomeCard Museumsinsel' oraz 'Berlin WelcomeCard all inclusive' (tego wariantu nie mamy w katalogu).",
           "data": "2026-10-12",
-          "weryfikacja": "źródło wg Gemini (research/zrodla-znizek-kart.md, gałąź gemini/zrodla-znizek), niezweryfikowane niezależnie"
+          "weryfikacja": "źródło wg Gemini, niezweryfikowane niezależnie (research/zrodla-krzyzowa-kontrola.md, gałąź gemini/zrodla-krzyz); domeny operatorów zablokowane dla CCR"
         }
       }
     },
@@ -164,7 +167,8 @@
       "existence_verified_date": "2026-10-09",
       "custom_discounts": {
         "krakow_stadion_wisly": 0.0,
-        "krakow_wawel": 0.0
+        "krakow_wawel": 0.0,
+        "krakow_schindler_factory": 0.0
       },
       "variants": [
         {
@@ -215,12 +219,13 @@
       "_zrodla_znizek_2026_10_12": {
         "krakow_schindler_factory": {
           "znizka_proc": 0.0,
-          "wynik": "0% z flagą niezweryfikowanej zniżki — dopóki produkt nie zostanie potwierdzony",
-          "url": "https://krakow.travel/artykul/155/krakowska-karta-turystyczna",
-          "cytat": "Obejmuje wstęp do ok. 40 najważniejszych obiektów, w tym do galerii w Sukiennicach, Podziemi Rynku, kościoła Mariackiego i Fabryki Schindlera.",
-          "uwaga": "Źródło opisuje Krakowską Kartę Turystyczną (krakow.travel, ok. 40 obiektów, wstęp wliczony w cenę, wg raportu wymagana rezerwacja terminu). Nasz wpis karty to Krakow City Pass z discovercracow.com (20+ obiektów), a wariant krakow_museum_pass_student_3d to osobny produkt — dopasowanie produktów niepotwierdzone, więc 100% nie jest wpisane. Wpisanie 100% wymaga potwierdzenia, że nasza karta obejmuje Fabrykę Schindlera.",
+          "wynik": "jawne 0% BEZ flagi niezweryfikowanej — Krakow City Pass (discovercracow.com) NIE obejmuje Fabryki Schindlera",
+          "url": "https://discovercracow.com/tours-and-trips/krakow-city-pass-museums-and-attractions-transport-3-days/",
+          "url_lista_obiektow": "https://discovercracow.com/krakow-city-pass-smart-way-to-explore-krakow/",
+          "cytat": "What Is Not Included: ✖ Access to attractions not listed in the official pass description. Lista 'Attractions Included' (21 obiektów) nie zawiera Fabryki Schindlera; na stronie głównej operatora jest oferowana osobno jako 'Schindler Factory Tour'.",
+          "uwaga": "Kontrola krzyżowa 2026-10-12 (B4) rozstrzyga wcześniejszą wątpliwość: krakow.travel opisuje Krakowską Kartę Turystyczną (inny produkt, Schindler wliczony), a nasza karta to Krakow City Pass z discovercracow.com — ten produkt Schindlera nie obejmuje. Zastrzeżenie: kontrola dotyczy produktu Krakow City Pass; osobny wariant krakow_museum_pass_student_3d (price_verified false) nie był sprawdzany pod kątem Schindlera, a jawne 0% w custom_discounts działa na wszystkie warianty karty.",
           "data": "2026-10-12",
-          "weryfikacja": "źródło wg Gemini (research/zrodla-znizek-kart.md, gałąź gemini/zrodla-znizek), niezweryfikowane niezależnie"
+          "weryfikacja": "źródło wg Gemini, niezweryfikowane niezależnie (research/zrodla-krzyzowa-kontrola.md, gałąź gemini/zrodla-krzyz); domeny operatorów zablokowane dla CCR"
         },
         "krakow_wawel": {
           "znizka_proc": 0.0,
@@ -234,7 +239,7 @@
       "_zerowane_znizki_bez_zrodla_2026_10_12": {
         "krakow_schindler_factory": {
           "stara_znizka_proc": 20.0,
-          "powod": "dopasowanie produktu niepotwierdzone (źródło: Krakowska Karta Turystyczna z krakow.travel, nasz wpis: Krakow City Pass z discovercracow.com) — 0% z flagą"
+          "powod": "dopasowanie produktu niepotwierdzone (źródło: Krakowska Karta Turystyczna z krakow.travel, nasz wpis: Krakow City Pass z discovercracow.com) — 0% z flagą | 2026-10-12 kontrola krzyżowa: Krakow City Pass nie obejmuje Fabryki Schindlera -> jawne 0% bez flagi"
         }
       }
     },
@@ -245,7 +250,8 @@
       "description": "Karta turystyczna Hamburga, wariant 'Mit Nahverkehr' (z biletem HVV: bus, kolej, promy portowe) — ceny 1-5 dni zweryfikowane w przeglądarce 2026-10-09 (poprzednia wersja tego wpisu z produktami 'Green'/'Green Plus' była nieaktualna/niepotwierdzona u źródła i została zastąpiona). Wariant 'Ohne Nahverkehr' (bez transportu) NIE jest tu wpisany — strona podaje tylko cenę startową 'ab 4,50 €', pełna tabela nie udało się odczytać (przełącznik JS na stronie nie reagował).",
       "official_url": "https://www.hamburg-tourism.de/buchen/hamburg-card/",
       "custom_discounts": {
-        "hamburg_speicherstadtmuseum": 25.0
+        "hamburg_speicherstadtmuseum": 25.0,
+        "hamburg_imm": 22.2
       },
       "variants": [
         {
@@ -366,6 +372,10 @@
         "hamburg_speicherstadtmuseum": {
           "source_url": "https://speicherstadtmuseum.de/besucherinfos/oeffnungszeiten-preise.html",
           "verified_date": "2026-10-12"
+        },
+        "hamburg_imm": {
+          "source_url": "https://imm-hamburg.de/preise-infos/",
+          "verified_date": "2026-10-12"
         }
       },
       "_zrodla_znizek_2026_10_12": {
@@ -376,19 +386,20 @@
           "weryfikacja": "źródło wg Gemini (research/zrodla-znizek-kart.md, gałąź gemini/zrodla-znizek), niezweryfikowane niezależnie"
         },
         "hamburg_imm": {
-          "znizka_proc": 0.0,
-          "wynik": "0% z flagą niezweryfikowanej zniżki — do uzgodnienia ceny bazowej",
-          "url": "https://imm-hamburg.de/eintrittspreise/",
-          "cytat": "Erwachsene: 18,00 € (ab 18 Jahre) / Inhaber der Hamburg Card: 14,00 €",
-          "uwaga": "Cennik: 18,00 -> 14,00 EUR (22,2%), ale normal_price w naszych danych to 17,0 EUR. Przy 17 EUR kartowa cena 14,00 EUR dałaby 17,6%, a 22% da 13,26 EUR (zaniżenie ceny z kartą). Po uzgodnieniu ceny bazowej (zmiana normal_price na 18 EUR albo potwierdzenie 17 EUR) można wpisać zniżkę ze źródłem.",
+          "znizka_proc": 22.2,
+          "wynik": "22,2% ze źródłem; cena bazowa uzgodniona (normal_price 17 -> 18 EUR)",
+          "url": "https://imm-hamburg.de/preise-infos/",
+          "url_hamburg_card": "https://www.hamburg-travel.com/see-explore/culture-music/museums-galleries/international-maritime-museum/",
+          "cytat": "Erwachsene: 18,00 € (ab 18 Jahre) / Inhaber der Hamburg Card: 14,00 € (imm-hamburg.de); Hamburg CARD Benefit: Tickets 22% discount (hamburg-travel.com)",
+          "uwaga": "Kontrola krzyżowa 2026-10-12 (B1): cena normalna 18,00 EUR (nie 17), z Hamburg CARD 14,00 EUR -> (18-14)/18 = 22,2%; hamburg-travel.com podaje zaokrąglone 22%. Z 18 EUR daje to 14,00 EUR.",
           "data": "2026-10-12",
-          "weryfikacja": "źródło wg Gemini (research/zrodla-znizek-kart.md, gałąź gemini/zrodla-znizek), niezweryfikowane niezależnie"
+          "weryfikacja": "źródło wg Gemini, niezweryfikowane niezależnie (research/zrodla-krzyzowa-kontrola.md, gałąź gemini/zrodla-krzyz); domeny operatorów zablokowane dla CCR"
         }
       },
       "_zerowane_znizki_bez_zrodla_2026_10_12": {
         "hamburg_imm": {
           "stara_znizka_proc": 22.0,
-          "powod": "cena bazowa w danych (17,0 EUR) różni się od ceny w cenniku (18,00 EUR) — 0% z flagą do uzgodnienia ceny bazowej"
+          "powod": "cena bazowa w danych (17,0 EUR) różni się od ceny w cenniku (18,00 EUR) — 0% z flagą do uzgodnienia ceny bazowej | 2026-10-12 kontrola krzyżowa: normal_price poprawiono na 18 EUR, zniżka 22,2% przywrócona ze źródłem"
         }
       }
     },
@@ -809,7 +820,7 @@
       "_zerowane_znizki_bez_zrodla_2026_10_12": {
         "munchen_schloss_nymphenburg": {
           "stara_znizka_proc": 10.0,
-          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date)"
+          "powod": "brak pola źródła (custom_discount_sources: source_url + verified_date) | 2026-10-12 kontrola krzyżowa: zniżka potwierdzona (lato 10%, zima 12,5%), ale zależna od sezonu cennika, a model nie ma cen sezonowych -> 0% z flagą do czasu modelu sezonowego"
         }
       },
       "custom_discount_sources": {
@@ -867,11 +878,13 @@
         },
         "munchen_schloss_nymphenburg": {
           "znizka_proc": 0.0,
+          "wynik": "0% z flagą niezweryfikowanej zniżki — zniżka zależy od sezonu cennika, a model nie ma cen sezonowych",
           "url": "https://citytourcard-muenchen.com/de/partner/schloss-nymphenburg",
-          "wynik": "0% — nie przeliczono (cena bazowa w danych nie zgadza się z ceną z raportu)",
-          "cytat": "Dein Vorteil mit der CityTourCard München: 1€ Rabatt auf den regulären Eintrittspreis, 2€ auf Kombi-Tickets* / *gilt für das Kombi-Ticket \"Nymphenburg + Marstallmuseum\". Raport liczył 1 EUR / 10 EUR regularnego biletu = 10%, a nasz normal_price to 20 EUR (bilet combo: pałac + Marstallmuseum + Porzellanmuseum, cena letnia), więc przeliczenie na % nie jest pewne.",
+          "url_cennik": "https://www.schloss-nymphenburg.de/deutsch/tourist/eintritt.htm",
+          "cytat": "1€ Rabatt auf den regulären Eintrittspreis, 2€ auf Kombi-Tickets* / *gilt für das Kombi-Ticket 'Nymphenburg + Marstallmuseum' / *Einlösbar nur vor Ort (citytourcard-muenchen.com). Gesamtkarte 'Nymphenburg' Sommer (1. April-Mitte Oktober): 20,- Euro regulär; Winter (Mitte Oktober-31. März): 16,- Euro regulär; Schloss Nymphenburg 10,- Euro regulär (schloss-nymphenburg.de)",
+          "uwaga": "Kontrola krzyżowa 2026-10-12 (B2). CityTourCard daje 2 EUR na bilet combo 'Nymphenburg + Marstallmuseum' (oraz 1 EUR na bilet pojedynczy do pałacu — pozycji spoza katalogu, niemodelowanej). Cena combo zmienia się z sezonem: LATO (1 kwietnia – połowa października) combo 20 EUR -> 2 EUR = 10%; ZIMA (połowa października – 31 marca) combo 16 EUR (Parkburgen zamknięte) -> 2 EUR = 12,5%. Mamy połowę października, czyli zmianę sezonu cennika (dokładna data nie podana), a atrakcja ma jedną stałą cenę (normal_price 20 EUR, letnia) i jeden stały procent — żaden z nich nie jest prawdziwy przez cały rok. Dlatego wraca 0% z flagą niezweryfikowanej zniżki. Wpisanie 10% (lato) lub 12,5% (zima) wymaga modelu sezonowego (ceny i zniżki per sezon). Założenie Gemini: 'Kombi-Ticket Nymphenburg + Marstallmuseum' z CityTourCard to ten sam produkt co 'Gesamtkarte Nymphenburg' — cytat CityTourCard nie podaje ceny combo, cena pochodzi z cennika schloss-nymphenburg.de. Rabat tylko na miejscu.",
           "data": "2026-10-12",
-          "weryfikacja": "źródło wg Gemini (research/zrodla-znizek-kart.md, gałąź gemini/zrodla-znizek), niezweryfikowane niezależnie"
+          "weryfikacja": "źródło wg Gemini, niezweryfikowane niezależnie (research/zrodla-krzyzowa-kontrola.md, gałąź gemini/zrodla-krzyz); domeny operatorów zablokowane dla CCR"
         }
       }
     },
@@ -1068,7 +1081,9 @@
       "name": "Karta Turysty TripPass – Pakiet Lubelski",
       "description": "Następca dawnej Lubelskiej Karty Turysty (24h/72h z transportem i wstępami — nie znaleziono jej już w sprzedaży 2026-10-12). Obecny pakiet to wyłącznie zniżki/upominki u partnerów (restauracje, hotele, spacery z przewodnikiem, pamiątki), BEZ darmowych wstępów i BEZ transportu; żaden z partnerów nie jest atrakcją z naszego katalogu Lublina, więc kalkulator nie przypisuje jej zniżek. Cena niepotwierdzona jednoznacznie: lublin.eu podaje 'zawsze 5 zł' za pakiet, a trippass.pl pokazuje 0,00 zł za 365 dni (obie strony sprawdzone 2026-10-12).",
       "official_url": "https://lublin.eu/turystyka/niezbednik-turysty/karta-turysty/",
-      "custom_discounts": {},
+      "custom_discounts": {
+        "lublin_zamek_muzeum": 0.0
+      },
       "variants": [
         {
           "id": "lublin_trippass_365d",
@@ -1084,7 +1099,20 @@
       ],
       "existence_verified": true,
       "existence_source_url": "https://trippass.pl/szczegoly-pakietu?id=16263",
-      "existence_verified_date": "2026-10-12"
+      "existence_verified_date": "2026-10-12",
+      "_zrodla_znizek_2026_10_12": {
+        "lublin_zamek_muzeum": {
+          "znizka_proc": 0.0,
+          "wynik": "jawne 0% BEZ flagi niezweryfikowanej — TripPass (Pakiet Lubelski) nie daje zniżki na Zamek Lubelski, a Zamek nie honoruje karty",
+          "url": "https://trippass.pl/szczegoly-pakietu?id=16263",
+          "url_cennik": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
+          "cytat": "Pakiet Lubelski ... Darmowe wejścia: Wartość biletów: 0.00 zł (trippass.pl; lista zniżek tylko u podmiotów prywatnych: hotele, Szczupak LubLin, Martins City Tours). Oficjalny cennik zamek-lublin.pl wymienia wyłącznie ulgi ustawowe, Kartę Dużej Rodziny, Lubelską Kartę Seniora i EURO26 — TripPass nie występuje w wykazie honorowanych dokumentów.",
+          "uwaga": "Kontrola krzyżowa 2026-10-12 (B5): znany brak zniżki (muzeum państwowe bez porozumienia z operatorem TripPass).",
+          "data": "2026-10-12",
+          "weryfikacja": "źródło wg Gemini, niezweryfikowane niezależnie (research/zrodla-krzyzowa-kontrola.md, gałąź gemini/zrodla-krzyz); domeny operatorów zablokowane dla CCR"
+        }
+      }
     }
-  ]
+  ],
+  "_UWAGA_kontrola_krzyzowa_2026_10_12": "2026-10-12 (PR kontrola krzyżowa, raport research/zrodla-krzyzowa-kontrola.md, gałąź gemini/zrodla-krzyz; WSZYSTKO wg Gemini, niezweryfikowane niezależnie — domeny operatorów zablokowane dla CCR). Potwierdzone bez zmian: Fernsehturm 25%, Frauenkirche, Residenz, SEA LIFE, Brama Poznania 40%, Fotoplastykon 100%, Speicherstadtmuseum 25%. Jawne 0% BEZ flagi (znany brak zniżki, cytat w _zrodla_znizek_2026_10_12 karty): Fabryka Schindlera (Krakow City Pass jej nie obejmuje; zastrzeżenie o wariancie krakow_museum_pass_student_3d w nocie), Museumsinsel (Berlin WelcomeCard Classic), Zamek Lubelski (TripPass). Przywrócone ze źródłem: IMM Hamburg 22,2% (po poprawie normal_price 17 -> 18 EUR; 14 EUR z Hamburg CARD). Nymphenburg: nadal 0% Z FLAGĄ — zniżka sezonowa (lato 10% z combo 20 EUR, zima 12,5% z combo 16 EUR), co wymaga modelu sezonowego."
 }

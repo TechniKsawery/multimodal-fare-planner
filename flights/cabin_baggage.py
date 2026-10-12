@@ -83,11 +83,15 @@ class CabinBaggageInfo:
 
 
 _FEE_LABELS = {
-    "rezerwacja_online": "online przy rezerwacji",
+    "rezerwacja_online_pl": "online przy rezerwacji, wg strony PL",
+    "rezerwacja_online": "online przy rezerwacji, wg strony EN",
+    "po_rezerwacji_lotnisko": "po rezerwacji / na lotnisku, wg strony EN; PL podaje 20–60",
     "online": "online",
-    "po_rezerwacji_lotnisko": "po rezerwacji / na lotnisku",
     "lotnisko": "na lotnisku",
     "bramka": "przy bramce",
+    "priority_online": "WIZZ Priority online / telecentrum",
+    "priority_lotnisko": "zakup WIZZ Priority na lotnisku",
+    "kara_bagaz_do_luku": "kara za bagaż podręczny wysłany do luku",
 }
 
 
@@ -197,6 +201,7 @@ def get_cabin_baggage(airline_code: str | None) -> CabinBaggageInfo:
             description=(
                 f"{entry['nazwa']}: w taryfie podstawowej duży bagaż podręczny jest płatny.{small_txt}"
                 + (f" {higher}" if higher else "")
+                + (f" {entry['doplata_opis']}" if entry.get("doplata_opis") else "")
             ),
             fees=fees,
             **common,

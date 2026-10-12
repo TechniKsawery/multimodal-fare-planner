@@ -206,9 +206,10 @@ def test_suggest_best_city_card_wybiera_oplacalny_wariant_ze_zrodlem(monkeypatch
     assert best.net_savings > 0
 
 
-def test_berlin_znizki_ze_zrodlem_liczone_a_museumsinsel_classic_zostaje_zerem_z_flaga():
+def test_berlin_znizki_ze_zrodlem_liczone_a_museumsinsel_classic_to_jawne_zero_bez_flagi():
     # Dane w repo (źródło wg raportu Gemini, 2026-10-12): Fernsehturm 25% i Olympiastadion 22,7%
-    # (8,50 z 11,00 EUR) ze źródłem; Museumsinsel dla wariantów Classic bez źródła zniżki -> 0% + flaga.
+    # (8,50 z 11,00 EUR) ze źródłem; Museumsinsel dla wariantów Classic to jawne 0% (znany brak
+    # zniżki, kontrola krzyżowa 2026-10-12) -> bez flagi niezweryfikowanej zniżki.
     evals = evaluate_city_cards("Berlin", _berlin_attrs_3(), estimated_transit_cost=19.0)
     assert evals
     for ev in evals:
@@ -217,8 +218,8 @@ def test_berlin_znizki_ze_zrodlem_liczone_a_museumsinsel_classic_zostaje_zerem_z
         # bez karty: 20 + 11 + 24 = 55; z kartą: 0,75 * 20 + 8,50 + 24 = 47,50
         assert ev.attractions_price_without_card == 55.0
         assert abs(ev.attractions_price_with_card - 47.5) < 0.01
-        assert ev.unverified_discount_attraction_ids == ["berlin_museumsinsel"]
-        assert "niezweryfikowane" in ev.summary
+        assert ev.unverified_discount_attraction_ids == []
+        assert "niezweryfikowane" not in ev.summary
 
 
 def test_special_variant_discount_museumsinsel():
@@ -488,8 +489,8 @@ def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
 
     hamburg_card = cards_by_id["hamburg_card"]
     assert all(v.price_verified for v in hamburg_card.variants)
-    # 25% Speicherstadtmuseum ze źródłem (raport 2026-10-12); IMM 0% + flaga (rozbieżna cena bazowa)
-    assert hamburg_card.custom_discounts == {"hamburg_speicherstadtmuseum": 25.0}
+    # 25% Speicherstadtmuseum ze źródłem (raport 2026-10-12); IMM 22,2% (18 -> 14 EUR) po kontroli krzyżowej
+    assert hamburg_card.custom_discounts == {"hamburg_speicherstadtmuseum": 25.0, "hamburg_imm": 22.2}
 
     munchen_card = cards_by_id["munchen_citytourcard"]
     assert all(v.price_verified for v in munchen_card.variants)

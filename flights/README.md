@@ -116,11 +116,11 @@ Dopłata za podręczny NIE jest doliczana do ceny biletu ani do ceny łącznej.
 **Weryfikacja danych bagażu podręcznego (2026-10-12):** `price_verified: true` oznacza
 sprawdzone na stronie przewoźnika wymiary, wagę i zasadę wliczenia (źródło i data w każdym wpisie).
 Dopłaty mają osobną flagę `doplata_potwierdzona`:
-- **Ryanair (FR)**: `false` (review: strona opłat nieczytelna bez skryptów, przedziały wg Gemini niepotwierdzone niezależnie) — oficjalna tabela opłat podaje potwierdzone widełki (12.49–36.00 €/£ przy rezerwacji, 19.99–45.50 €/£ po rezerwacji / na lotnisku, 46.00–75.00 €/£ przy bramce; rozstrzygnięto relację z ogólnym zakresem 6–36 € z tabeli PL).
-- **Wizz Air (W6)**: `false` (jw.) — oficjalna tabela opłat podaje potwierdzone widełki usługi WIZZ Priority (13.00–57.50 € online/telecentrum, 65.00–75.00 € na lotnisku; rozstrzygnięto pozycję 55.00–65.00 € jako osobną 'Cabin Baggage fee' na lotnisku/bramce dla bagażu kierowanego karnie do luku).
+- **Ryanair (FR)**: `true` — **wyłącznie jako oficjalny przedział** (UI mówi „przedział”, nie cena lotu). Oficjalne strony PL i EN różnią się, więc zapisujemy oba przedziały: online przy rezerwacji PL **6–36** vs EN **12,49–36**; po rezerwacji / na lotnisku PL 20–60 vs EN 19,99–45,50 (zapisane EN, PL w etykiecie); przy bramce obie wersje 46–75 (€/£). Podstawa: dwa zgodne raporty Gemini z wyrenderowanej oficjalnej tabeli opłat (2026-10-12), **wg Gemini, niezweryfikowane niezależnie** (strona renderuje się skryptem). Szczegóły i cytaty: `doplata_potwierdzenie` w JSON-ie.
+- **Wizz Air (W6)**: `true` — jw. tylko jako oficjalny przedział. Trzy osobne pozycje cennika: WIZZ Priority online / telecentrum **13,00–57,50 €**; **65–75 €** = zakup WIZZ Priority na lotnisku; **55–65 €** = kara za bagaż podręczny wysłany do luku (Cabin Baggage fee).
 - **Eurowings (EW)**: `false` — cena online podana jest wyłącznie jako cena minimalna „od 21 €” (rozstrzygnięto 18 € jako archiwalną stawkę marketingową oraz stawkę za bagaż rejestrowany 23 kg; lotnisko offline 45 €, przy bramce 60 €), brak publicznego górnego pułapu przedziału.
 - **easyJet (U2)**: `false` — cena online jest w pełni dynamiczna bez publicznego przedziału kwotowego (bramka: 300 zł / 70 € / 60 £).
-Każdy przewoźnik ma kwoty w jednej walucie (bez przeliczania); rozbieżności ze źródeł zostały rozstrzygnięte i opisane w polach `uwaga`.
+Każdy przewoźnik ma kwoty w jednej walucie (bez przeliczania); rozbieżności ze źródeł są opisane w polach `uwaga` (Ryanair PL vs EN — zapisane obie, bez wybierania jednej).
 
 Sprawdzone źródła bagażu rejestrowanego (stan na 2026-09-27):
 - Ryanair: https://www.moneyguideireland.com/ryanair-increased-baggage-allowance-of-20kg.html

@@ -437,13 +437,6 @@ obywatelstwo = st.selectbox(
     " przysługują cudzoziemcowi wg zweryfikowanych źródeł (PKP ulga ustawowa, brak ulgi"
     " studenckiej w Niemczech).",
 )
-legitymacja_zagraniczna = st.selectbox(
-    "Legitymacja szkolna/studencka",
-    [False, True],
-    format_func=lambda z: "polska" if not z else "zagraniczna (wydana poza Polską)",
-    help="Nie zmienia ceny — przy zagranicznej legitymacji pokażemy ostrzeżenia o jej uznawaniu"
-    " w MPK/ZTM (Warszawa, Kraków, Poznań, Lublin, Wrocław).",
-)
 c_attr_profile1, c_attr_profile2 = st.columns(2)
 uczen_student = c_attr_profile1.checkbox(
     "Uczeń/student (legitymacja)",
@@ -453,15 +446,14 @@ senior_attrakcje = c_attr_profile2.checkbox(
     "Senior",
     help="Wpływa na cenę ATRAKCJI tam, gdzie operator ma potwierdzoną zniżkę senioralną.",
 )
-_kraj_legitymacji = None
-if uczen_student:
-    _kraj_legitymacji = st.selectbox(
-        "Kraj wydania legitymacji",
-        ["Nie podaję", "Polska", "Niemcy", "Inny kraj"],
-        help="Część atrakcji (np. Muzeum Powstania Warszawskiego) przyznaje zniżkę tylko "
-        "legitymacji wydanej w konkretnym kraju; bez wskazania kraju liczymy tylko zniżki "
-        "bez takiego ograniczenia.",
-    )
+_kraj_legitymacji = st.selectbox(
+    "Kraj wydania legitymacji szkolnej/studenckiej",
+    ["Nie podaję", "Polska", "Niemcy", "Inny kraj"],
+    help="Nie zmienia ceny biletów. Część atrakcji (np. Muzeum Powstania Warszawskiego) przyznaje "
+    "zniżkę tylko legitymacji wydanej w konkretnym kraju; bez wskazania kraju liczymy tylko "
+    "zniżki bez takiego ograniczenia. Przy legitymacji spoza Polski pokażemy też ostrzeżenia "
+    "o jej uznawaniu w MPK/ZTM (Warszawa, Kraków, Poznań, Lublin, Wrocław).",
+)
 _kod_kraju = {"Polska": "PL", "Niemcy": "DE"}.get(_kraj_legitymacji or "")
 attraction_profile = AttractionDiscountProfile(
     age=wiek,
@@ -604,7 +596,7 @@ if submitted:
         age=wiek,
         child_with_guardian=child_with_guardian,
         obywatelstwo=obywatelstwo,
-        legitymacja_zagraniczna=legitymacja_zagraniczna,
+        legitymacja_zagraniczna=_kraj_legitymacji in ("Niemcy", "Inny kraj"),
     )
     for ostrzezenie in foreigner_warnings_for(profile):
         st.warning(ostrzezenie)

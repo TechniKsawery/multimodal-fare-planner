@@ -115,7 +115,11 @@ def test_polregio_nie_dostaje_taryfy_vrr():
         minutes=70,
     )
     priced = pricing.price_rail_leg(leg, DiscountProfile())
-    _assert_unverified_estimate(priced)
+    # POLREGIO w Polsce ma teraz własną tabelę (fares/polregio.py): potwierdzona kwota pasma,
+    # ale pasmo z linii prostej, więc cena zostaje szacunkiem; w żadnym razie nie eezy.nrw/VRR.
+    assert priced.carrier is Carrier.POLREGIO_PODSTAWOWA
+    assert priced.carrier is not Carrier.VRR
+    assert priced.price_type == "szacunek"
     assert priced.currency == "PLN"
 
 

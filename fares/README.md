@@ -180,6 +180,54 @@ Polska–Niemcy* (ważny od 19.08.2026, tekst w `verification/zrodla-pdf/`, oryg
    flat 25% na całość — ale to nadal linia prosta do jednego stałego punktu granicy, nie realna
    geometria trasy kolejowej ani realny podział ceny biletu.
 
+## POLREGIO / KD / KŚ: degresywna tabela zamiast 0,35 zł/km (2026-10-12)
+
+`fares/polregio.py` + `fares/data/polregio_taryfa_podstawowa.json` zastępują sztywne
+`0.35 PLN/km` dla pociągów regionalnych POLREGIO, Kolei Dolnośląskich i Kolei Śląskich w Polsce
+tabelą pasm odległości (do 5 km, 6-10, ... do 800 km; 30 pasm). Taryfa jest silnie degresywna
+(ok. 1,22 zł/km na 5 km, ok. 0,30 zł/km na 100 km), więc liniowa stawka
+zaniżała krótkie trasy i zawyżała długie.
+
+**Status weryfikacji: wszystkie 30 pasm POTWIERDZONE** (Gemini, 2026-10-12, gałąź
+`gemini/taryfy-weryfikacja`) w Taryfie Przewozowej POLREGIO, tekst jednolity ze zm. 24 od
+1.09.2026, Dział III, Rozdz. 1, Tabela nr 1; Koleje Dolnośląskie (cennik od 1.09.2026) i Koleje
+Śląskie (TP-KŚ od 2.07.2026) mają te same stawki bazowe. Źródło i data są przy każdym paśmie w
+pliku danych (pole `potwierdzone`). W sesji, w której powstał kalkulator, domeny przewoźników były
+zablokowane (403 egress), więc potwierdzenie pochodzi z weryfikacji Gemini, nie z mojego odczytu.
+Szczegóły: `verification/taryfy-skm-rb-weryfikacja-2026-10-12.md`.
+
+**Co znaczy „potwierdzone”, a co zostaje szacunkiem.** Potwierdzona jest KWOTA pasma, ale
+`leg.distance_km` z MOTIS to linia prosta, nie km po torach, więc pasmo bywa zaniżone. Dlatego:
+- `breakdown["price_verified"]=True`, `zrodlo_url` i `data_weryfikacji` w `breakdown`,
+  `breakdown["odleglosc_taryfowa"]="linia prosta"` i opis (`notes`) z informacją o przybliżeniu,
+  ale `price_type="szacunek"`;
+- `PriceType.OFFICIAL` dopiero, gdy `Segment.distance_along_track=True` (km po torach); routing
+  tego dziś nie ustawia;
+- cena z ulgą (procent od ceny bazowej, nie tabela ulg POLREGIO) ma `price_verified=False`;
+- pasmo bez `potwierdzone` (albo z pustą datą / URL-em niebędącym adresem http) jest
+  niepotwierdzone (testy na fixture w `tests/fixtures/`).
+
+Znane ograniczenia:
+- POLREGIO w części województw stosuje własne taryfy regionalne (Pomorska, Podlaska,
+  Małopolska, Podkarpacka, Świętokrzyska), nie Podstawową; wyszukiwarka nie zna województwa.
+  Cennik POLREGIO „Załącznik 2 — bilety jednorazowe od 1.03.2026” to załącznik do taryfy
+  pomorskiej, nie do Podstawowej.
+- ŁKA ma dodatkowo tańszą taryfę „Łódzkie Łączy”, której tu nie ma.
+
+## Odcinki bez wyceny pociągiem (niewdrożone)
+
+- **Szczecin Główny – Angermünde (RB66).** W październiku 2026 RB66 nie kursuje na tym odcinku
+  (do 12.12.2026 komunikacja zastępcza autobusowa; potwierdzone w komunikatach przewoźników). Nie
+  wyceniamy go jako pociągu VBB (taryfa stykowa Teil E, EUR): odcinek z feedu to autobus
+  zastępczy, a do czasu zbadania jego ceny zostaje niepotwierdzony szacunek PLN/km
+  (`price_type="szacunek"`, `price_verified=False`). Taryfę VBB Teil E (Szczecin – Angermünde,
+  Szczecin – Tantow) można rozważyć dopiero, gdy pociąg wróci na trasę (od 13.12.2026) i kwoty
+  zostaną odczytane z broszury VBB.
+- **SKM Trójmiasto i Koleje Mazowieckie.** Nie wdrożone: dane źródłowe są sprzeczne (raport vs
+  wyszukiwanie: SKM tylko źródło wtórne, KM wiersze z cennika 2022 vs zmiany 1-6). Zostają przy
+  zgrubnym szacunku 0,35 zł/km do czasu rozstrzygnięcia na oficjalnych PDF-ach.
+- **ZTM Warszawa (SKM/KM) i ŁKA w Łodzi** — bilety czasowe, nie kilometrowe; nie ruszane.
+
 ## FlixBus: realna cena z API zamiast szacunku po km (2026-09-26)
 
 Wcześniej FlixBus (jak każdy nierozpoznany autokar dalekobieżny) był wyceniany bardzo z grubsza

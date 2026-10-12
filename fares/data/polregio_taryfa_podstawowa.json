@@ -1,0 +1,253 @@
+{
+  "_zrodlo_raportu": "ZWERYFIKOWANE 2026-10-12 w źródle pierwotnym: POLREGIO Taryfa Przewozowa (TPR) tekst jednolity ze zmianami 1-24 obowiązujący od 01.09.2026 r. (https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf), Dział III, Rozdział 1, Tabela nr 1 (s. 125 / s. 170 PDF). Wszystkie 30 pasm potwierdzone co do grosza. KD (Cennik KD od 01.09.2026, Tabela nr 1, https://kolejedolnoslaskie.pl/wp-content/uploads/2026/08/Cennik-KD_2026-09-01_tekst-jednolity.pdf) i KŚ (TP-KŚ ze zm. nr 3 od 02.07.2026, Dział IV Rozdz. 2 Tabela 1, https://www.kolejeslaskie.pl/app/uploads/2026/08/taryfa-2026_07_02-v4.pdf) stosują dokładnie te same stawki bazowe.",
+  "_uwaga": "Wszystkie 30 pasm zostało zweryfikowanych w oficjalnych cennikach przewoźników w dniu 2026-10-12. Wyjaśnienie: plik POLREGIO Załącznik 2 — bilety jednorazowe od 1.03.2026 (https://polregio.pl/media/28288/za%C5%82%C4%85cznik-2-bilety-jednorazowe-od-1032026-r.pdf) to załącznik do warunków oferty pozataryfowej Taryfa Pomorska (woj. pomorskie, wspólna z PKP SKM w Trójmieście), a nie ogólnopolska Taryfa Podstawowa. W ogólnopolskiej Taryfie Podstawowej POLREGIO stawki bazowe Tabeli nr 1 pozostają w mocy w tekście jednolitym od 1.09.2026 r. Odległość taryfowa to km po torach; leg.distance_km to linia prosta.",
+  "waluta": "PLN",
+  "klasa": 2,
+  "weryfikacja": {
+    "status": "potwierdzone",
+    "sprawdzono": "2026-10-12",
+    "wynik": "Wszystkie 30 pasm potwierdzone w Taryfie Przewozowej POLREGIO (TPR) od 01.09.2026 r. (tekst jednolity ze zm. 24, Tabela nr 1, s. 125/170 PDF) oraz w cennikach Kolei Dolnośląskich (od 01.09.2026) i Kolei Śląskich (od 02.07.2026)."
+  },
+  "pasma_odleglosci_km": [
+    {
+      "do_km": 5,
+      "cena": 6.1,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 10,
+      "cena": 6.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 15,
+      "cena": 7.9,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 20,
+      "cena": 9.8,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 25,
+      "cena": 11.8,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 30,
+      "cena": 12.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 35,
+      "cena": 14.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 40,
+      "cena": 16.2,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 47,
+      "cena": 18.2,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 53,
+      "cena": 20.5,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 59,
+      "cena": 22.0,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 67,
+      "cena": 23.0,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 73,
+      "cena": 23.9,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 80,
+      "cena": 25.9,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 90,
+      "cena": 27.9,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 100,
+      "cena": 29.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 120,
+      "cena": 33.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 140,
+      "cena": 36.1,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 160,
+      "cena": 38.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 180,
+      "cena": 40.5,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 200,
+      "cena": 42.2,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 240,
+      "cena": 44.2,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 280,
+      "cena": 46.3,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 320,
+      "cena": 48.2,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 360,
+      "cena": 49.1,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 400,
+      "cena": 51.0,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 500,
+      "cena": 53.2,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 600,
+      "cena": 55.7,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 700,
+      "cena": 58.1,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    },
+    {
+      "do_km": 800,
+      "cena": 61.2,
+      "potwierdzone": {
+        "zrodlo_url": "https://polregio.pl/media/29637/tekst-jednolity-tpr-zm-nr-24-ca%C5%82o%C5%9B%C4%87-od-01092026.pdf",
+        "data": "2026-10-12"
+      }
+    }
+  ]
+}

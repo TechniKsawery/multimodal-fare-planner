@@ -25,6 +25,8 @@ class Carrier(str, Enum):
     HVV = "hvv"  # Hamburger Verkehrsverbund (Hamburg)
     MVV = "mvv"  # Münchner Verkehrsverbund (Monachium)
     VRS_KOLN = "vrs_koln"  # Verkehrsverbund Rhein-Sieg, obszar Kolonii (Rheinlandtarif)
+    POLREGIO_PODSTAWOWA = "polregio_taryfa_podstawowa"  # POLREGIO / Koleje Dolnośląskie / Koleje
+    # Śląskie: degresywna tabela odległościowa Taryfy Podstawowej (fares/polregio.py)
     INTERNATIONAL_PL_DE = "international_pl_de"  # bilet PL<->DE przekraczający granicę jednym
     # ciągłym odcinkiem kolejowym (np. Berlin-Warszawa-Express) — SZTYWNE kategorie cenowe
     # (Super Sparpreis Europa), nie tabela pasm jak krajowe kalkulatory PKP/DB. Zob. fares/international.py.
@@ -172,6 +174,10 @@ class Segment:
     ride_duration_min: float | None = None  # wymagane dla ZTM Lublin (taryfa czasowa)
     discounts: DiscountProfile = field(default_factory=DiscountProfile)
     travel_date: str | None = None  # "YYYY-MM-DD"; wymagane dla FlixBus (ceny dynamiczne per data)
+    distance_along_track: bool = False
+    """Tylko Carrier.POLREGIO_PODSTAWOWA: czy distance_km to kilometry TARYFOWE (po torach), a nie
+    linia prosta. Domyślnie False — MOTIS daje linię prostą (leg.distance_km), która zaniża pasmo
+    taryfy, więc nawet potwierdzone pasmo daje wtedy PriceType.ESTIMATE (fares/polregio.py)."""
     german_portion_fraction: float | None = None
     """Tylko Carrier.INTERNATIONAL_PL_DE: szacowany udział (0-1) niemieckiego odcinka trasy w
     całym dystansie (linia prosta), używany do proporcjonalnego naliczenia rabatu BahnCard,

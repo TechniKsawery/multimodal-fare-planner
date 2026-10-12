@@ -428,6 +428,34 @@ def infer_rail_carrier(agency_name: str) -> Carrier | None:
     return None
 
 
+PL_REGIONAL_RAIL_KEYWORDS = (
+    "polregio",
+    "koleje dolnośląskie",
+    "koleje dolnoslaskie",
+    "koleje śląskie",
+    "koleje slaskie",
+)
+"""Przewoźnicy regionalni PL, którym przypisujemy degresywną tabelę Taryfy Podstawowej
+(fares/polregio.py): POLREGIO, Koleje Dolnośląskie, Koleje Śląskie (dopasowanie jako CAŁE słowa).
+Nie obejmuje Kolei Mazowieckich, ŁKA, SKM Trójmiasto ani SKM Warszawa — mają własne taryfy, których
+nie potwierdzono (patrz routing/README.md, sekcja o taryfach regionalnych)."""
+
+
+def infer_pl_regional_carrier(leg: Leg) -> Carrier | None:
+    """Carrier.POLREGIO_PODSTAWOWA, gdy przewoźnik to POLREGIO/KD/KŚ ORAZ oba końce odcinka leżą
+    w Polsce (_leg_endpoint_country); inaczej None. Odcinek transgraniczny albo bez ustalonego
+    kraju nie dostaje polskiej tabeli — idzie dalej starą ścieżką (szacunek niepotwierdzony)."""
+    name = leg.carrier_name.lower()
+    if not _matches_any_word(name, PL_REGIONAL_RAIL_KEYWORDS):
+        return None
+    if (
+        _leg_endpoint_country(leg, "origin") == "PL"
+        and _leg_endpoint_country(leg, "destination") == "PL"
+    ):
+        return Carrier.POLREGIO_PODSTAWOWA
+    return None
+
+
 PKP_PREMIUM_CATEGORIES = ("EIC", "EIP")
 """Kategorie PKP Intercity, których ceny w oficjalnym cenniku są ustalane per relacja, a nie wg
 pasm odległości TLK/IC z fares/data/pkp_intercity.json (patrz fares/README.md)."""
@@ -560,6 +588,8 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
         carrier: Carrier | None = Carrier.INTERNATIONAL_PL_DE
     else:
         carrier = name_carrier
+        if carrier is None:
+            carrier = infer_pl_regional_carrier(leg)
         if carrier is None:
             # Taryfa regionalna zależy od miejsca, nie od nazwy przewoźnika. MOTIS klasyfikuje
             # część S-Bahnów jako RAIL (nie BUS — patrz komentarz w price_bus_leg), więc

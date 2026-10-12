@@ -11,6 +11,7 @@ from . import (
     mpk_wroclaw,
     mvv,
     pkp,
+    polregio,
     vrr,
     ztm_lublin,
     ztm_poznan,
@@ -32,6 +33,7 @@ _CALCULATORS = {
     Carrier.HVV: hvv.estimate,
     Carrier.MVV: mvv.estimate,
     Carrier.VRS_KOLN: kvb.estimate,
+    Carrier.POLREGIO_PODSTAWOWA: polregio.estimate,
     Carrier.INTERNATIONAL_PL_DE: international.estimate,
 }
 

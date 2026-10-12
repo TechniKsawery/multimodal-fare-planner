@@ -206,20 +206,18 @@ def test_suggest_best_city_card_wybiera_oplacalny_wariant_ze_zrodlem(monkeypatch
     assert best.net_savings > 0
 
 
-def test_berlin_bez_zrodel_zniszek_zadna_karta_nie_jest_rekomendowana_i_jest_flaga():
-    # Dane w repo: 25% na Fernsehturm/Olympiastadion/Museumsinsel nie miało pola źródła -> 0%.
+def test_berlin_znizki_ze_zrodlem_liczone_a_museumsinsel_classic_zostaje_zerem_z_flaga():
+    # Dane w repo (źródło wg raportu Gemini, 2026-10-12): Fernsehturm i Olympiastadion 25% ze
+    # źródłem; Museumsinsel dla wariantów Classic bez źródła zniżki -> 0% + flaga.
     evals = evaluate_city_cards("Berlin", _berlin_attrs_3(), estimated_transit_cost=19.0)
     assert evals
     for ev in evals:
         if ev.variant.id == "bwc_72h_museumsinsel":
             continue  # ten wariant ma 100% na Museumsinsel z definicji produktu
-        assert ev.attractions_price_with_card == ev.attractions_price_without_card
-        assert not ev.is_recommended
-        assert set(ev.unverified_discount_attraction_ids) == {
-            "berlin_fernsehturm",
-            "berlin_olympiastadion",
-            "berlin_museumsinsel",
-        }
+        # bez karty: 20 + 11 + 24 = 55; z kartą: 0,75 * 31 + 24 = 47,25
+        assert ev.attractions_price_without_card == 55.0
+        assert ev.attractions_price_with_card == 47.25
+        assert ev.unverified_discount_attraction_ids == ["berlin_museumsinsel"]
         assert "niezweryfikowane" in ev.summary
 
 
@@ -470,9 +468,11 @@ def test_poznan_ma_fares_i_atrakcje_pelny_pakiet():
     assert "poznan_city_card" in card_ids
     poznan_card = next(c for c in get_all_city_cards() if c.id == "poznan_city_card")
     assert all(v.price_verified for v in poznan_card.variants)
-    # 40% na Bramę Poznania nie miało pola źródła -> wyzerowane (flaga niezweryfikowanej zniżki)
-    assert "poznan_brama_poznania" not in poznan_card.custom_discounts
-    assert _card_discount_percent("poznan_city_card", "poznan_brama_poznania") == 0.0
+    # Brama Poznania 40% i Fotoplastykon 100%: zniżki ze źródłem (karta.visitpoznan.pl, raport 2026-10-12)
+    assert poznan_card.custom_discounts == {"poznan_brama_poznania": 40.0, "poznan_fotoplastykon": 100.0}
+    assert set(poznan_card.custom_discount_sources) == set(poznan_card.custom_discounts)
+    assert _card_discount_percent("poznan_city_card", "poznan_brama_poznania") == 40.0
+    assert _card_discount_percent("poznan_city_card", "poznan_fotoplastykon") == 100.0
 
 
 def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
@@ -488,8 +488,11 @@ def test_nowe_karty_miejskie_maja_jasno_oznaczona_niepewnosc():
 
     hamburg_card = cards_by_id["hamburg_card"]
     assert all(v.price_verified for v in hamburg_card.variants)
-    # 25% (Speicherstadtmuseum) i 22% (IMM) nie miały pola źródła -> wyzerowane
-    assert hamburg_card.custom_discounts == {}
+    # 25% (Speicherstadtmuseum) i 22% (IMM): zniżki ze źródłem (raport 2026-10-12)
+    assert hamburg_card.custom_discounts == {
+        "hamburg_speicherstadtmuseum": 25.0,
+        "hamburg_imm": 22.0,
+    }
 
     munchen_card = cards_by_id["munchen_citytourcard"]
     assert all(v.price_verified for v in munchen_card.variants)

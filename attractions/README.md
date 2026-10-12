@@ -30,6 +30,17 @@ Moduł odpowiada za:
      (`_zerowane_znizki_bez_zrodla_2026_10_12` na karcie) i `attractions.json` (`_UWAGA_zniezka_karty`).
      Żeby zniżkę przywrócić: wpisz wartość w `custom_discounts` i URL + datę w `custom_discount_sources`
      (albo `default_card_discount_percent` + `card_discount_source`) — wpis bez źródła nadal da 0%.
+   - **Przywrócenie ze źródłem 2026-10-12** (raport `research/zrodla-znizek-kart.md`, gałąź
+     `gemini/zrodla-znizek`; źródła **wg Gemini, niezweryfikowane niezależnie** — domeny operatorów
+     niedostępne z chmury). Przywrócono 12 zniżek: Fernsehturm 25%, Olympiastadion 25%,
+     Speicherstadtmuseum 25%, IMM 22%, FC Bayern 8%, Residenz 13,3%, Frauenkirche 33,3%, SEA LIFE 20%,
+     Bavaria Filmstadt 10%, Brama Poznania 40%, Fotoplastykon 100%, Fabryka Schindlera 100% (w cenie
+     Kraków Card). Zniżki kwotowe (FC Bayern, Residenz, Frauenkirche) przeliczono na % tylko, gdy cena
+     bazowa z raportu zgadza się z `normal_price`. URL, data, cytat i uwagi każdej zniżki: pole
+     `_zrodla_znizek_2026_10_12` na karcie w `city_cards.json`. Nadal 0%: Museumsinsel (Classic, flaga),
+     Nymphenburg (cena bazowa 20 EUR w danych vs 10 EUR w raporcie, flaga), Zamek Lubelski (brak źródła,
+     flaga) oraz Wawel — źródło (krakow.travel) mówi wprost, że Kraków Card go nie obejmuje, więc to
+     jawne `0.0` bez flagi.
      Zniżki RUHR.TOPCARD zostały (źródło z notatki `_UWAGA_partnerzy` przepisane do pól).
 4. Zniżki z dowolnego tytułu (wiek/uczeń-student/senior), niezależnie od posiadania karty miejskiej: `best_price_for_attraction(attraction, DiscountProfile(...))` wybiera najtańszą potwierdzoną cenę spośród ceny standardowej i pól `child_price`/`student_price`/`senior_price`/`family_price` (typu `GroupPrice`: konkretna kwota + źródło + data, nigdy procent). Zniżki się nie sumują — bierzemy minimum.
 

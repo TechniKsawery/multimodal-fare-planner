@@ -8,10 +8,13 @@
   "as_of": "2026-10-06",
   "typ_ceny": "oficjalna_taryfa",
   "zrodlo_strefa_c_ber": {
-    "vbb_url": "",
-    "bvg_url": "",
-    "data_weryfikacji": "",
-    "uwaga": "Pole na oficjalne źródła tego, że lotnisko BER leży w strefie C (bilet ABC) — strony vbb.de i bvg.de. Zlecenie z 2026-10-12 wskazuje, że źródła sprawdzono tego dnia, ale dokładne URL-e nie zostały podane, a strony przewoźników są niedostępne ze środowiska chmurowego, więc pól NIE uzupełniono (nie zgadujemy adresów). Do wpisania: vbb_url, bvg_url (pełne https://, domeny vbb.de / bvg.de) i data_weryfikacji (YYYY-MM-DD). Ceny bez zmian — bilety_czasowe nietknięte."
+    "vbb_url": "https://www.vbb.de/tickets/einzelfahrausweise/",
+    "bvg_url": "https://www.bvg.de/de/touristen/verkehrsmittel-tarifbereiche",
+    "data_weryfikacji": "2026-10-12",
+    "bvg_cytat": "Tarifbereich C: Berliner Umfeld (ca. 15 km um das Land Berlin) einschließlich der Stadt Potsdam und Flughafen BER ... ABC: Gesamtes Gebiet inkl. Flughafen BER",
+    "vbb_cytat": "Wer ein Ticket für den Bereich Berlin AB besitzt und beispielsweise zum Flughafen BER muss, kann mit einem Anschlussticket für den Tarifbereich C dorthin fahren.",
+    "dodatkowe_url": ["https://www.bvg.de/de/touristen/an-und-abreise/flughafen-berlin-brandenburg", "https://www.vbb.de/pendlerinfos/weiterfahren-mit-der-bahn/"],
+    "uwaga": "Oficjalne źródła tego, że lotnisko BER leży w strefie C (bilet ABC) — vbb.de i bvg.de, data wg raportu research/zrodla-znizek-kart.md (gałąź gemini/zrodla-znizek). Źródło wg Gemini, niezweryfikowane niezależnie (domeny przewoźników niedostępne z chmury). Ceny (bilety_czasowe) bez zmian."
   },
   "bilety_czasowe": [
     {"wazny_min": 15, "normalny": 2.80, "ulgowy": 2.10, "strefa": "Kurzstrecke"},

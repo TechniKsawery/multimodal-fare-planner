@@ -113,25 +113,34 @@ def test_domyslna_znizka_atrakcji_ze_zrodlem_bez_zmian():
 
 MIASTA_ZEROWANIE = {"berlin", "krakow", "hamburg", "munchen", "poznan", "lublin"}
 
-# atrakcja -> zniżka sprzed zerowania 2026-10-12 (żadna nie miała pola źródła)
-WYZEROWANE = {
-    "berlin_museumsinsel": 25.0,
-    "berlin_fernsehturm": 25.0,
-    "berlin_olympiastadion": 25.0,
-    "krakow_wawel": 20.0,
-    "krakow_schindler_factory": 20.0,
-    "hamburg_speicherstadtmuseum": 25.0,
-    "hamburg_imm": 22.0,
-    "munchen_fcbayern_erlebniswelt": 8.0,
-    "munchen_residenz": 13.3,
-    "munchen_schloss_nymphenburg": 10.0,
-    "munchen_frauenkirche": 33.3,
-    "munchen_sealife": 20.0,
-    "munchen_bavaria_filmstadt": 10.0,
-    "poznan_brama_poznania": 40.0,
-    "poznan_fotoplastykon": 100.0,
-    "lublin_zamek_muzeum": 20.0,
+DATA_ZRODEL = "2026-10-12"
+
+# Zniżki wyzerowane w #101 i przywrócone ze źródłem wg raportu research/zrodla-znizek-kart.md
+# (źródło wg Gemini, niezweryfikowane niezależnie): atrakcja -> (karta, zniżka %, domena URL).
+PRZYWROCONE = {
+    "berlin_fernsehturm": ("berlin_welcomecard", 25.0, "berlin-welcomecard.de"),
+    "berlin_olympiastadion": ("berlin_welcomecard", 25.0, "berlin-welcomecard.de"),
+    "hamburg_speicherstadtmuseum": ("hamburg_card", 25.0, "speicherstadtmuseum.de"),
+    "hamburg_imm": ("hamburg_card", 22.0, "imm-hamburg.de"),
+    "munchen_fcbayern_erlebniswelt": ("munchen_citytourcard", 8.0, "citytourcard-muenchen.com"),
+    "munchen_residenz": ("munchen_citytourcard", 13.3, "citytourcard-muenchen.com"),
+    "munchen_frauenkirche": ("munchen_citytourcard", 33.3, "citytourcard-muenchen.com"),
+    "munchen_sealife": ("munchen_citytourcard", 20.0, "citytourcard-muenchen.com"),
+    "munchen_bavaria_filmstadt": ("munchen_citytourcard", 10.0, "citytourcard-muenchen.com"),
+    "poznan_brama_poznania": ("poznan_city_card", 40.0, "karta.visitpoznan.pl"),
+    "poznan_fotoplastykon": ("poznan_city_card", 100.0, "karta.visitpoznan.pl"),
+    "krakow_schindler_factory": ("krakow_card", 100.0, "krakow.travel"),
 }
+
+# Nadal 0% z flagą niezweryfikowanej zniżki: brak źródła albo nieprzeliczalne na %.
+NADAL_ZERO_Z_FLAGA = {
+    "berlin_museumsinsel": 25.0,  # Classic: raport nie potwierdza zniżki
+    "munchen_schloss_nymphenburg": 10.0,  # cena bazowa (20 EUR) != cena z raportu (10 EUR)
+    "lublin_zamek_muzeum": 20.0,  # brak źródła
+}
+
+# Wawel: źródło (krakow.travel) mówi, że Kraków Card go nie obejmuje -> jawne 0%, bez flagi.
+WAWEL_ZRODLO = "https://krakow.travel/artykul/155/krakowska-karta-turystyczna"
 
 
 def test_dane_kazda_zniezka_wieksza_od_zera_ma_kompletne_zrodlo():
@@ -150,12 +159,45 @@ def test_dane_zrodla_nie_wskazuja_zniezek_ktorych_nie_ma():
         assert set(card.custom_discount_sources) <= set(card.custom_discounts), card.id
 
 
-def test_dane_wyzerowane_zniezki_licza_sie_jako_zero_z_flaga():
-    cards = {c.id: c for c in get_all_city_cards() if c.city in MIASTA_ZEROWANIE}
-    by_id = {a.id: a for a in get_all_attractions()}
-    for aid in WYZEROWANE:
-        attr = by_id[aid]
-        cards_city = [c for c in cards.values() if c.city == attr.city]
+def _karty():
+    return {c.id: c for c in get_all_city_cards()}
+
+
+def _atrakcje():
+    return {a.id: a for a in get_all_attractions()}
+
+
+def test_dane_przywrocone_znizki_maja_zrodlo_url_i_date_z_raportu():
+    karty = _karty()
+    for aid, (card_id, pct, domena) in PRZYWROCONE.items():
+        card = karty[card_id]
+        assert card.custom_discounts[aid] == pct, aid
+        src = card.custom_discount_sources[aid]
+        assert src.is_complete, aid
+        assert re.fullmatch(rf"https://([a-z0-9-]+\.)*{re.escape(domena)}/\S+", src.source_url), (
+            aid,
+            src.source_url,
+        )
+        assert src.verified_date == DATA_ZRODEL, aid
+
+
+def test_dane_przywrocone_znizki_licza_sie_bez_flagi():
+    karty, atrakcje = _karty(), _atrakcje()
+    for aid, (card_id, pct, _) in PRZYWROCONE.items():
+        card, attr = karty[card_id], atrakcje[aid]
+        # pomijamy wariant specjalny Museumsinsel (nie dotyczy tych atrakcji)
+        ev = evaluate_city_card_variant(card, card.variants[0], [attr])
+        assert ev.unverified_discount_attraction_ids == [], aid
+        assert ev.attractions_price_with_card == pytest.approx(
+            attr.normal_price * (1 - pct / 100), abs=0.01
+        ), aid
+
+
+def test_dane_nadal_zerowane_zniezki_licza_sie_jako_zero_z_flaga():
+    karty, atrakcje = _karty(), _atrakcje()
+    for aid in NADAL_ZERO_Z_FLAGA:
+        attr = atrakcje[aid]
+        cards_city = [c for c in karty.values() if c.city == attr.city]
         assert cards_city, aid
         for card in cards_city:
             ev = evaluate_city_card_variant(card, card.variants[0], [attr])
@@ -166,21 +208,42 @@ def test_dane_wyzerowane_zniezki_licza_sie_jako_zero_z_flaga():
             assert aid in ev.unverified_discount_attraction_ids, (card.id, aid)
 
 
-def test_dane_stara_wartosc_wyzerowanej_znizki_zostaje_w_notatce():
+def test_dane_wawel_jawne_zero_ze_zrodlem_bez_flagi():
+    card = _karty()["krakow_card"]
+    wawel = _atrakcje()["krakow_wawel"]
+    assert card.custom_discounts["krakow_wawel"] == 0.0
+    for variant in card.variants:
+        ev = evaluate_city_card_variant(card, variant, [wawel])
+        assert ev.attractions_price_with_card == ev.attractions_price_without_card
+        assert ev.unverified_discount_attraction_ids == []
+    raw = json.loads((DATA / "city_cards.json").read_text(encoding="utf-8"))["karty"]
+    nota = next(c for c in raw if c["id"] == "krakow_card")["_zrodla_znizek_2026_10_12"]["krakow_wawel"]
+    assert nota["url"] == WAWEL_ZRODLO
+    assert "Nie obejmuje zwiedzania Wawelu" in nota["cytat"]
+    assert "niezweryfikowane niezależnie" in nota["weryfikacja"]
+
+
+def test_dane_stara_wartosc_nadal_zerowanej_znizki_zostaje_w_notatce():
     raw_cards = json.loads((DATA / "city_cards.json").read_text(encoding="utf-8"))["karty"]
     zapisane = {}
     for card in raw_cards:
         for aid, info in card.get("_zerowane_znizki_bez_zrodla_2026_10_12", {}).items():
             zapisane[aid] = info["stara_znizka_proc"]
-    custom_only = {aid: v for aid, v in WYZEROWANE.items() if aid != "lublin_zamek_muzeum"}
+    custom_only = {aid: v for aid, v in NADAL_ZERO_Z_FLAGA.items() if aid != "lublin_zamek_muzeum"}
     assert zapisane == custom_only
     raw_attr = {
         a["id"]: a
         for a in json.loads((DATA / "attractions.json").read_text(encoding="utf-8"))["atrakcje"]
     }
-    for aid in ("lublin_zamek_muzeum", "krakow_wawel", "berlin_fernsehturm"):
-        assert raw_attr[aid]["default_card_discount_percent"] == 0.0
-        assert "bez pola źródła" in raw_attr[aid]["_UWAGA_zniezka_karty"]
+    assert raw_attr["lublin_zamek_muzeum"]["default_card_discount_percent"] == 0.0
+    assert "bez pola źródła" in raw_attr["lublin_zamek_muzeum"]["_UWAGA_zniezka_karty"]
+
+
+def test_dane_zrodla_znizek_oznaczone_jako_niezweryfikowane_niezaleznie():
+    raw_cards = json.loads((DATA / "city_cards.json").read_text(encoding="utf-8"))["karty"]
+    for card in raw_cards:
+        for aid, nota in card.get("_zrodla_znizek_2026_10_12", {}).items():
+            assert "niezweryfikowane niezależnie" in nota["weryfikacja"], aid
 
 
 def test_dane_ruhr_topcard_zachowuje_znizki_ze_zrodlem():
@@ -209,18 +272,16 @@ def test_bvg_pole_zrodla_strefy_c_ber_istnieje_a_ceny_bez_zmian():
     assert ceny == {"Kurzstrecke": (2.80, 2.10), "AB": (4.00, 2.50), "ABC": (5.00, 3.50)}
 
 
-def test_bvg_zrodlo_strefy_c_ber_nie_jest_wymyslone():
-    """Pole może być puste (URL-i nie podano), ale wpisane musi być prawdziwym adresem https
-    z domeny vbb.de / bvg.de i mieć datę YYYY-MM-DD."""
+def test_bvg_zrodlo_strefy_c_ber_wpisane_z_domen_przewoznikow():
+    """URL-e z raportu (vbb.de / bvg.de) wpisane, https z właściwej domeny, data YYYY-MM-DD."""
     zrodlo = load("bvg_berlin.json")["zrodlo_strefa_c_ber"]
+    assert zrodlo["bvg_url"] == "https://www.bvg.de/de/touristen/verkehrsmittel-tarifbereiche"
+    assert zrodlo["vbb_url"] == "https://www.vbb.de/tickets/einzelfahrausweise/"
+    assert zrodlo["data_weryfikacji"] == "2026-10-12"
     for pole, domena in (("vbb_url", "vbb.de"), ("bvg_url", "bvg.de")):
-        url = zrodlo[pole]
-        if url:
-            assert re.fullmatch(rf"https://([a-z0-9-]+\.)*{re.escape(domena)}(/\S*)?", url), (
-                pole,
-                url,
-            )
-    if zrodlo["vbb_url"] or zrodlo["bvg_url"]:
-        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", zrodlo["data_weryfikacji"])
-    else:
-        assert zrodlo["data_weryfikacji"] == ""
+        assert re.fullmatch(
+            rf"https://([a-z0-9-]+\.)*{re.escape(domena)}(/\S*)?", zrodlo[pole]
+        ), (pole, zrodlo[pole])
+    for url in zrodlo["dodatkowe_url"]:
+        assert re.fullmatch(r"https://www\.(bvg|vbb)\.de/\S+", url), url
+    assert "niezweryfikowane niezależnie" in zrodlo["uwaga"]

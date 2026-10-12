@@ -206,7 +206,7 @@
       "normal_price": 11.0,
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
-      "_UWAGA_zniezka_karty": "2026-10-12: było 25% bez pola źródła (source_url + data weryfikacji) -> 0%, zniżka niezweryfikowana (flaga w wycenie karty). Przywrócenie wymaga ustawienia card_discount_source (source_url + verified_date) i wartości zniżki.",
+      "_UWAGA_zniezka_karty": "2026-10-12: zniżka karty przywrócona ze źródłem (custom_discount_sources karty, szczegóły i cytat w _zrodla_znizek_2026_10_12 karty); źródło wg Gemini, niezweryfikowane niezależnie.",
       "address": "Olympischer Platz 3, 14053 Berlin",
       "official_url": "https://olympiastadion.berlin/de/besichtigung/",
       "price_verified": true,
@@ -295,7 +295,7 @@
       "normal_price": 24.0,
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
-      "_UWAGA_zniezka_karty": "2026-10-12: było 25% bez pola źródła (source_url + data weryfikacji) -> 0%, zniżka niezweryfikowana (flaga w wycenie karty). Przywrócenie wymaga ustawienia card_discount_source (source_url + verified_date) i wartości zniżki.",
+      "_UWAGA_zniezka_karty": "2026-10-12: raport źródłowy nie potwierdza zniżki dla Berlin WelcomeCard Classic (wstęp bezpłatny tylko z wariantem Museumsinsel, który ma 100% z definicji) -> zostaje 0% z flagą niezweryfikowanej zniżki (źródło wg Gemini, niezweryfikowane niezależnie).",
       "address": "Bodestraße 1-3, 10178 Berlin",
       "official_url": "https://www.smb.museum/besuch-planen/preise-tickets/",
       "price_verified": true,
@@ -325,7 +325,7 @@
       "normal_price": 20.0,
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
-      "_UWAGA_zniezka_karty": "2026-10-12: było 25% bez pola źródła (source_url + data weryfikacji) -> 0%, zniżka niezweryfikowana (flaga w wycenie karty). Przywrócenie wymaga ustawienia card_discount_source (source_url + verified_date) i wartości zniżki.",
+      "_UWAGA_zniezka_karty": "2026-10-12: zniżka karty przywrócona ze źródłem (custom_discount_sources karty, szczegóły i cytat w _zrodla_znizek_2026_10_12 karty); źródło wg Gemini, niezweryfikowane niezależnie.",
       "address": "Panoramastraße 1A, 10178 Berlin",
       "official_url": "https://tv-turm.de/tickets/",
       "price_is_from": true,
@@ -402,7 +402,7 @@
       "normal_price": 57.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
-      "_UWAGA_zniezka_karty": "2026-10-12: było 20% bez pola źródła (source_url + data weryfikacji) -> 0%, zniżka niezweryfikowana (flaga w wycenie karty). Przywrócenie wymaga ustawienia card_discount_source (source_url + verified_date) i wartości zniżki.",
+      "_UWAGA_zniezka_karty": "2026-10-12: Kraków Card NIE obejmuje Wawelu (krakow.travel/artykul/155/krakowska-karta-turystyczna: 'Nie obejmuje zwiedzania Wawelu i Kopalni Soli Wieliczka.'; źródło wg Gemini, niezweryfikowane niezależnie) -> jawne 0% w custom_discounts karty, bez flagi niezweryfikowanej zniżki.",
       "address": "Wawel 5, 31-001 Kraków",
       "official_url": "https://wawel.krakow.pl",
       "price_verified": true,
@@ -451,7 +451,7 @@
       "normal_price": 60.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
-      "_UWAGA_zniezka_karty": "2026-10-12: było 20% bez pola źródła (source_url + data weryfikacji) -> 0%, zniżka niezweryfikowana (flaga w wycenie karty). Przywrócenie wymaga ustawienia card_discount_source (source_url + verified_date) i wartości zniżki.",
+      "_UWAGA_zniezka_karty": "2026-10-12: zniżka karty przywrócona ze źródłem (custom_discount_sources karty, szczegóły i cytat w _zrodla_znizek_2026_10_12 karty); źródło wg Gemini, niezweryfikowane niezależnie.",
       "address": "Lipowa 4, 30-702 Kraków",
       "official_url": "https://muzeumkrakowa.pl",
       "price_verified": true,
@@ -532,7 +532,7 @@
       "normal_price": 40.0,
       "currency": "PLN",
       "default_card_discount_percent": 0.0,
-      "_UWAGA_zniezka_karty": "2026-10-12: było 20% bez pola źródła (source_url + data weryfikacji) -> 0%, zniżka niezweryfikowana (flaga w wycenie karty). Przywrócenie wymaga ustawienia card_discount_source (source_url + verified_date) i wartości zniżki.",
+      "_UWAGA_zniezka_karty": "2026-10-12: było 20% bez pola źródła (source_url + verified_date) -> 0%, zniżka niezweryfikowana (flaga w wycenie karty). Raport research/zrodla-znizek-kart.md (Gemini): brak pozycji rabatowej dla karty miejskiej w cenniku zamek-lublin.pl/bilety/ ani wśród partnerów trippass.pl -> brak źródła, zostaje 0%.",
       "address": "Zamkowa 9, 20-117 Lublin",
       "official_url": "https://zamek-lublin.pl/wizyta/ceny-biletow/",
       "price_verified": true,
@@ -892,7 +892,8 @@
         "source_url": "https://www.imm-hamburg.de/international/en",
         "verified_date": "2026-10-11",
         "price_verified": true
-      }
+      },
+      "_UWAGA_zniezka_karty": "2026-10-12: zniżka 22% (Hamburg CARD) przywrócona na karcie wg cennika imm-hamburg.de (18,00 -> 14,00 EUR = 22,2%; źródło wg Gemini, niezweryfikowane niezależnie). UWAGA: normal_price w danych to 17,0 EUR, a nie 18,00 EUR z cennika — do sprawdzenia, czy cena bazowa jest aktualna."
     },
     {
       "id": "hamburg_elbphilharmonie_plaza",
@@ -1199,7 +1200,8 @@
         "verified_date": "2026-10-11",
         "price_verified": true,
         "max_age": 18
-      }
+      },
+      "_UWAGA_zniezka_karty": "2026-10-12: CityTourCard daje 1 EUR rabatu na bilet regularny i 2 EUR na bilet kombi 'Nymphenburg + Marstallmuseum' (citytourcard-muenchen.com/de/partner/schloss-nymphenburg; źródło wg Gemini). Raport liczył 10% z biletu 10 EUR, a normal_price tej atrakcji to 20 EUR (bilet combo z Porzellanmuseum, cena letnia) -> cena bazowa się nie zgadza, % nie przeliczono, zostaje 0% z flagą niezweryfikowanej zniżki."
     },
     {
       "id": "munchen_frauenkirche",

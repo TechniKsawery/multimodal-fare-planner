@@ -210,17 +210,12 @@ def test_city_cards_evaluate_endpoint():
     assert res.status_code == 200
     evals = res.json()
     assert len(evals) >= 4
-    # Zniżki 25% na te atrakcje nie mają pola źródła -> 0%, flaga niezweryfikowanej zniżki
-    # (poza wariantem Museumsinsel, który z definicji daje 100% na Wyspę Muzeów).
+    # Fernsehturm/Olympiastadion mają zniżkę ze źródłem; Museumsinsel dla Classic nie ma źródła
+    # zniżki -> flaga (poza wariantem Museumsinsel, który z definicji daje 100%).
     for e in evals:
         if e["variant"]["id"] == "bwc_72h_museumsinsel":
             continue
-        assert not e["is_recommended"]
-        assert set(e["unverified_discount_attraction_ids"]) == {
-            "berlin_fernsehturm",
-            "berlin_olympiastadion",
-            "berlin_museumsinsel",
-        }
+        assert e["unverified_discount_attraction_ids"] == ["berlin_museumsinsel"]
 
 
 def test_city_cards_evaluate_unknown_city_returns_400():

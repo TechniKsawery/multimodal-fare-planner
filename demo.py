@@ -30,6 +30,7 @@ from routing.demo_route import (
     VIA_HUB_STOPS,
 )
 from fares.model import DiscountProfile
+from routing.model import OTHER_DAY_SECTION_TITLE
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations, price_ranking_note
 from routing.variants import generate_variants, request_from_addresses
@@ -196,6 +197,24 @@ def format_itinerary(itinerary, age=None) -> str:
     return "\n".join(lines)
 
 
+def format_other_day_section(other_day, age=None) -> str:
+    """Sekcja "Najbliższe połączenia w innym dniu" (puste = ""): data i etykieta "to NIE jest
+    dzień zapytania" przy każdym wariancie; poza rekomendacjami i rankingami."""
+    if not other_day:
+        return ""
+    lines = [
+        f"=== {OTHER_DAY_SECTION_TITLE} ===",
+        "W dniu zapytania nic nie jedzie. Poniżej połączenia z INNYCH dni (to NIE jest dzień "
+        "zapytania, poza rankingami).",
+        "",
+    ]
+    for variant in other_day:
+        lines.append(f"- [{variant.label}] {variant.itinerary.variant_name}")
+        lines.append(format_itinerary(variant.itinerary, age))
+        lines.append("")
+    return "\n".join(lines)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Wyszukiwarka tras adres -> adres")
     parser.add_argument(
@@ -281,11 +300,13 @@ def main() -> None:
     # UWAGA: alternative_destination_stops (np. Essen Hbf z routing/demo_route.py) celowo NIE
     # jest tu przekazywane — dla wyszukiwania adres->adres podmieniłoby rzeczywisty adres
     # docelowy na sztywny dworzec, ucinając ostatni odcinek (pieszo/autobus/tramwaj) do adresu.
+    other_day: list = []
     built, skipped = generate_variants(
         request,
         rail_flight_rail_hubs=RAIL_FLIGHT_RAIL_HUBS,
         flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
         via_hub_stops=VIA_HUB_STOPS,
+        other_day_out=other_day,
     )
 
     print(f"Zbudowano {len(built)} wariant(y), pominięto {len(skipped)}.\n")
@@ -300,6 +321,10 @@ def main() -> None:
             if skipped
             else "Brak żadnego działającego wariantu — sprawdź, czy MOTIS jest uruchomiony."
         )
+        section = format_other_day_section(other_day, args.age)
+        if section:
+            print()
+            print(section)
         return
 
     recommendations = pick_recommendations(built)

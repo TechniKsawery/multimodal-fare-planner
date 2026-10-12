@@ -74,6 +74,10 @@ def find_route(payload: RouteSearchRequest) -> dict:
             "built": result.built,
             "skipped": result.skipped,
             "recommendations": result.recommendations,
+            # Tylko przy pustym wyniku, gdy MOTIS miał połączenia wyłącznie w innych dniach.
+            # Każdy element ma `date`, `days_offset` i `label` ("... to NIE jest dzień zapytania");
+            # nie ma ich w `built` ani w `recommendations`.
+            "other_day_variants": result.other_day,
         }
     )
 

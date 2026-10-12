@@ -25,7 +25,7 @@ from attractions import (
 from attractions import DiscountProfile as AttractionDiscountProfile
 from attractions import HeldDocument
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
-from ui_helpers import render_bezplatne_info
+from ui_helpers import render_bezplatne_info, render_other_day_section
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
 from fares.model import DiscountProfile
@@ -652,10 +652,11 @@ if submitted:
             # alternative_destination_stops — patrz komentarz tam / w demo.py (podmieniłoby
             # rzeczywisty adres docelowy na sztywny dworzec, ucinając ostatni odcinek do adresu).
             search_result = search(request)
-            built, skipped, recs = (
+            built, skipped, recs, other_day = (
                 search_result.built,
                 search_result.skipped,
                 search_result.recommendations,
+                search_result.other_day,
             )
     except MotisError as exc:
         st.error(f"Błąd MOTIS / geokodowania: {exc}")
@@ -674,6 +675,7 @@ if submitted:
         "built": built,
         "skipped": skipped,
         "recs": recs,
+        "other_day": other_day,
     }
 
 result = st.session_state.get("search_result")
@@ -685,6 +687,7 @@ if result is not None:
         result["skipped"],
         result["recs"],
     )
+    other_day = result.get("other_day", [])
 
     st.caption(
         f"{request.origin_label} → {request.destination_label}, {date}. "
@@ -700,6 +703,9 @@ if result is not None:
             + " ".join(f"{s.variant_name}: {s.reason}" for s in skipped)
             if skipped
             else "Brak działającego wariantu — sprawdź, czy MOTIS jest uruchomiony."
+        )
+        render_other_day_section(
+            other_day, lambda it: render_itinerary(it, wiek, bc if bc != "brak" else None)
         )
         st.stop()
     header_col, toggle_col = st.columns([3, 1])

@@ -8,11 +8,11 @@ patchujące generate_variants() wprost i zostaje bez zmian — to nie jest fasad
 pod inny frontend/klienta, tylko skrypt demonstracyjny.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .airports import discover_hubs
 from .demo_route import FLIGHT_REGIONAL_HUBS, VIA_HUB_STOPS
-from .model import Itinerary, SkippedVariant
+from .model import Itinerary, OtherDayVariant, SkippedVariant
 from .scoring import pick_recommendations
 from .variants import RouteRequest, generate_variants
 
@@ -23,6 +23,9 @@ class SearchResult:
     built: list[Itinerary]
     skipped: list[SkippedVariant]
     recommendations: dict[str, Itinerary]
+    # "Najbliższe połączenia w innym dniu": tylko przy pustym wyniku, gdy MOTIS miał połączenia
+    # wyłącznie w innych dniach niż zapytany. NIE są częścią `built` ani `recommendations`.
+    other_day: list[OtherDayVariant] = field(default_factory=list)
 
 
 def search(request: RouteRequest) -> SearchResult:
@@ -34,13 +37,19 @@ def search(request: RouteRequest) -> SearchResult:
     adres->adres podmieniłoby rzeczywisty adres docelowy na sztywny dworzec (patrz
     routing/demo_route.py::ALTERNATIVE_DESTINATION_STOPS i demo.py).
     """
+    other_day: list[OtherDayVariant] = []
     built, skipped = generate_variants(
         request,
         flight_regional_hubs=FLIGHT_REGIONAL_HUBS,
         via_hub_stops=VIA_HUB_STOPS,
         hub_discovery=lambda o, d, skip: discover_hubs(o, d, request.date, skip),
+        other_day_out=other_day,
     )
     recommendations = pick_recommendations(built) if built else {}
     return SearchResult(
-        request=request, built=built, skipped=skipped, recommendations=recommendations
+        request=request,
+        built=built,
+        skipped=skipped,
+        recommendations=recommendations,
+        other_day=other_day,
     )

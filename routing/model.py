@@ -166,3 +166,32 @@ class SkippedVariant:
 
     variant_name: str
     reason: str
+
+
+def _days_phrase(days_offset: int) -> str:
+    """"za 2 dni" / "1 dzień wcześniej" — odległość wariantu od dnia zapytania."""
+    n = abs(days_offset)
+    unit = "dzień" if n == 1 else "dni"
+    return f"za {n} {unit}" if days_offset > 0 else f"{n} {unit} wcześniej"
+
+
+OTHER_DAY_SECTION_TITLE = "Najbliższe połączenia w innym dniu"
+
+
+@dataclass
+class OtherDayVariant:
+    """Połączenie z INNEGO dnia niż zapytany — pokazywane tylko jako podpowiedź, gdy w dniu
+    zapytania nic nie jedzie (patrz routing/variants.py::build_rail_only_variants). To NIE jest
+    wariant głównego wyniku: nie wchodzi do `built` ani do rankingów "Najtańsza"/"Najszybsza"."""
+
+    itinerary: Itinerary
+    date: str  # "YYYY-MM-DD", dzień odjazdu tego połączenia (czas lokalny)
+    requested_date: str  # "YYYY-MM-DD", dzień, o który pytał użytkownik
+    days_offset: int  # date - requested_date w dniach (ujemne = wcześniej)
+    label: str = field(init=False, default="")
+
+    def __post_init__(self) -> None:
+        self.label = (
+            f"INNY DZIEŃ: {self.date} ({_days_phrase(self.days_offset)}, zapytano o "
+            f"{self.requested_date}) — to NIE jest dzień zapytania"
+        )

@@ -108,6 +108,11 @@ uvicorn api.main:app --reload
   }'
   ```
 
+  Gdy w dniu zapytania nic nie jedzie, a MOTIS ma połączenia tylko w innych dniach, odpowiedź ma
+  puste `built`/`recommendations` i listę `other_day_variants` (maks. 3 warianty, do 3 dni od
+  zapytanej daty; każdy z `date`, `days_offset` i `label` „… to NIE jest dzień zapytania”) —
+  patrz [`routing/README.md`](routing/README.md#najbliższe-połączenia-w-innym-dniu-pusty-wynik).
+
 - `GET /attractions` — katalog rekomendowanych miejsc i atrakcji (parametry opcjonalne: `city`, `category`).
 - `GET /city-cards` — karty miejskie dla danego miasta (parametr opcjonalny: `city`).
 - `POST /city-cards/evaluate` — kalkulator opłacalności kart miejskich dla wskazanych atrakcji i szacowanego kosztu transportu.
@@ -115,7 +120,7 @@ uvicorn api.main:app --reload
 Interaktywna dokumentacja (Swagger UI) pod `http://localhost:8000/docs` po starcie serwera.
 
 Testy (mockują MOTIS na poziomie `routing/variants.py`, nie wymagają działającego serwera):
-`pytest tests/test_api.py`.
+`pytest tests/test_api.py tests/test_other_day.py`.
 
 
 ### Ponowne uruchomienie (po pierwszym razie)

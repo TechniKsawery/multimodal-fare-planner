@@ -357,6 +357,32 @@ w PLN. Bilet z cache Travelpayouts jest pobierany od razu w walucie segmentu.
 `demo.py` wypisuje pominięte warianty z powodem, żeby było jasne, czego brakuje (tokena,
 działającego MOTIS, itp.), zamiast się wywalić.
 
+## Najbliższe połączenia w innym dniu (pusty wynik)
+
+MOTIS szuka od podanego czasu bez górnej granicy, a `build_rail_only_variants` odrzuca połączenia,
+które ruszają w innym dniu niż zapytany. Gdy MOTIS zwrócił połączenia, ale **wszystkie** w innym
+dniu (np. Kraków → Gorlice w sobotę 17.10, pociągi dopiero w poniedziałek 19.10), powód „N
+połączeń rusza w innym dniu” trafia do `skipped`, a obok niego powstaje osobna sekcja
+**„Najbliższe połączenia w innym dniu”** (`OtherDayVariant` w `model.py`):
+
+- **Kiedy:** tylko gdy główny wynik jest pusty (`built == []`) i zapytanie kolejowe
+  origin → destination nie miało żadnego połączenia w dniu zapytania. Jest połączenie w dniu
+  zapytania, wynik niepusty z innych źródeł (loty, inny dworzec) albo MOTIS nic nie zwrócił =
+  sekcji nie ma.
+- **Limit:** maks. `OTHER_DAY_MAX_VARIANTS = 3` wariantów (najbliższe wg odjazdu) i tylko z dni
+  odległych od zapytanej daty o najwyżej `OTHER_DAY_MAX_DAYS = 3`. Dalsze połączenia nie tworzą sekcji.
+- **Etykieta:** każdy wariant ma `date`, `days_offset` (w dniach) i `label` w rodzaju „INNY DZIEŃ:
+  2026-10-19 (za 2 dni, zapytano o 2026-10-17) — to NIE jest dzień zapytania”.
+- **Poza rankingami:** te warianty nie trafiają do `built`, więc nie wchodzą do „Najtańsza”/
+  „Najszybsza” ani żadnej innej rekomendacji (`recommendations` zostaje `{}`).
+- **Cena:** liczona tą samą drogą co zwykle (`_price_legs` + `build_itinerary`); wariant
+  niewykonalny (przesiadka poniżej minimum) jest pomijany jak w głównym wyniku.
+
+Gdzie widać: `SearchResult.other_day` (`search_service.py`), UI `app.py` (sekcja pod komunikatem
+o braku wariantu), `demo.py` (sekcja pod listą pominiętych), API `POST /route` →
+`other_day_variants` (lista `{itinerary, date, requested_date, days_offset, label}`, pusta, gdy
+sekcji nie ma). Testy: `tests/test_other_day.py` (fixtury: puste na dzień D, połączenia D+2).
+
 ## Adres → adres (Sesja 4c)
 
 `variants.request_from_addresses("Krakowskie Przedmieście 50, Lublin", "Bahnhofstraße, Gelsenkirchen", "2026-10-05")`

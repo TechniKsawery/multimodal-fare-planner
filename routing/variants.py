@@ -20,14 +20,14 @@ są odchudzane wspólnym dedup po sygnaturze trasy (sekwencja origin/destination
 """
 
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timedelta
+from datetime import date as date_cls, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from fares.model import DiscountProfile
 
 from . import motis_client, pricing
 from .currency import normalize_currency
-from .model import Itinerary, Leg, LegMode, SkippedVariant
+from .model import Itinerary, Leg, LegMode, OtherDayVariant, SkippedVariant
 from .motis_client import MotisError, StopRef
 from .scoring import build_itinerary
 from .transfers import (
@@ -147,6 +147,40 @@ def _departs_on_request_date(legs: list[Leg], request: RouteRequest) -> bool:
     return legs[0].depart.astimezone(LOCAL_TIMEZONE).date().isoformat() == request.date
 
 
+# Sekcja "Najbliższe połączenia w innym dniu" (patrz OtherDayVariant): maks. tyle wariantów i tylko
+# z dni odległych od zapytanej daty o nie więcej niż tyle dni — to podpowiedź, nie przeszukiwanie
+# kalendarza.
+OTHER_DAY_MAX_VARIANTS = 3
+OTHER_DAY_MAX_DAYS = 3
+
+
+def _other_day_variants(
+    request: RouteRequest, other_day_options: list[list[Leg]]
+) -> list[OtherDayVariant]:
+    """Do OTHER_DAY_MAX_VARIANTS najbliższych (wg odjazdu) wykonalnych połączeń z dni innych niż
+    zapytany, nie dalszych niż OTHER_DAY_MAX_DAYS dni od niego. Cena i wykonalność liczone tą samą
+    drogą co dla głównych wariantów (`_price_legs` + `build_itinerary`)."""
+    requested = date_cls.fromisoformat(request.date)
+    found: list[OtherDayVariant] = []
+    for legs in sorted(other_day_options, key=lambda ls: ls[0].depart):
+        day = legs[0].depart.astimezone(LOCAL_TIMEZONE).date()
+        offset = (day - requested).days
+        if offset == 0 or abs(offset) > OTHER_DAY_MAX_DAYS:
+            continue
+        transit = [l for l in legs if l.mode is not LegMode.WALK]
+        if not transit:  # sam spacer w innym dniu nie jest "połączeniem"
+            continue
+        modes_used = sorted({l.extra.get("motis_mode", "RAIL") for l in transit})
+        name = f"Tylko kolej ({'/'.join(modes_used).lower()}, {len(transit) - 1} przesiadki)"
+        candidate = build_itinerary(name, _price_legs(legs, request))
+        if candidate.is_infeasible:
+            continue
+        found.append(OtherDayVariant(candidate, day.isoformat(), request.date, offset))
+        if len(found) >= OTHER_DAY_MAX_VARIANTS:
+            break
+    return found
+
+
 def _legs_signature(legs: list[Leg]) -> tuple[tuple[str, str], ...]:
     """Sygnatura trasy (sekwencja origin/destination nazw odcinków) do dedup: ta sama fizyczna
     trasa znaleziona przez różne zapytania (główne + alternatywne huby/dworce) liczy się raz."""
@@ -154,14 +188,22 @@ def _legs_signature(legs: list[Leg]) -> tuple[tuple[str, str], ...]:
 
 
 def build_rail_only_variants(
-    request: RouteRequest, max_variants: int = 30, seen_signatures: set | None = None
+    request: RouteRequest,
+    max_variants: int = 30,
+    seen_signatures: set | None = None,
+    other_day_out: list[OtherDayVariant] | None = None,
 ) -> list[Itinerary]:
     """Do max_variants (domyślnie wszystkie z 30 zwróconych) wariantów kolejowych z JEDNEGO zapytania do MOTIS (różne itineraria,
     które silnik i tak zwraca — nie przeszukujemy innych hubów).
 
     seen_signatures: opcjonalny współdzielony zbiór sygnatur tras (patrz `_legs_signature`) —
     pozwala `generate_variants` odchudzać wyniki z alternatywnych hubów/dworców względem
-    już znalezionych tras, bez duplikatów. Zbiór jest modyfikowany w miejscu."""
+    już znalezionych tras, bez duplikatów. Zbiór jest modyfikowany w miejscu.
+
+    other_day_out: opcjonalna lista wyjściowa (modyfikowana w miejscu). Gdy MOTIS zwrócił
+    połączenia, ale WSZYSTKIE w innym dniu niż zapytany, trafiają tu najbliższe z nich (patrz
+    `_other_day_variants`); poza tym przypadkiem lista zostaje nietknięta. Te warianty NIE są
+    częścią zwracanego wyniku."""
     all_legs_options = motis_client.all_itineraries_as_legs(
         request.origin_stop_id, request.destination_stop_id, request.motis_time
     )
@@ -170,9 +212,11 @@ def build_rail_only_variants(
         seen_signatures = set()
     variants: list[Itinerary] = []
     other_day = infeasible = duplicates = 0
+    other_day_options: list[list[Leg]] = []
     for legs in sorted(all_legs_options, key=lambda ls: (ls[-1].arrive - ls[0].depart)):
         if not _departs_on_request_date(legs, request):
             other_day += 1
+            other_day_options.append(legs)
             continue
         signature = _legs_signature(legs)
         if signature in seen_signatures:
@@ -196,6 +240,9 @@ def build_rail_only_variants(
         if len(variants) >= max_variants:
             break
 
+    all_in_other_day = bool(all_legs_options) and other_day == len(all_legs_options)
+    if other_day_out is not None and all_in_other_day:
+        other_day_out.extend(_other_day_variants(request, other_day_options))
     if not variants and not duplicates:
         raise MotisError(_no_rail_reason(request, len(all_legs_options), other_day, infeasible))
     return variants
@@ -530,6 +577,7 @@ def generate_variants(
     alternative_origin_stops: list[AlternativeStop] | None = None,
     alternative_destination_stops: list[AlternativeStop] | None = None,
     hub_discovery=None,
+    other_day_out: list[OtherDayVariant] | None = None,
 ) -> tuple[list[Itinerary], list[SkippedVariant]]:
     """Generuje wszystkie warianty dla request + skonfigurowane huby/alternatywy. Warianty,
     których nie udało się zbudować (np. brak tokena Travelpayouts, MOTIS nie znalazł
@@ -548,13 +596,23 @@ def generate_variants(
     Wszystkie warianty kolejowe (główne zapytanie + via_hub_stops + alternatywne dworce) są
     odchudzane WSPÓLNYM dedup po trasie (patrz `_legs_signature`), więc ta sama fizyczna trasa
     znaleziona kilkoma drogami trafia do wyniku tylko raz.
+
+    other_day_out: opcjonalna lista wyjściowa (modyfikowana w miejscu) na sekcję "Najbliższe
+    połączenia w innym dniu". Wypełniana tylko, gdy wynik jest pusty (`built == []`), a zapytanie
+    kolejowe origin->destination zwróciło połączenia wyłącznie w innych dniach niż zapytany.
+    Te warianty nigdy nie trafiają do `built`, więc nie wchodzą do żadnego rankingu.
     """
     built: list[Itinerary] = []
     skipped: list[SkippedVariant] = []
     seen_rail_signatures: set = set()
+    rail_other_day: list[OtherDayVariant] = []
 
     try:
-        built.extend(build_rail_only_variants(request, seen_signatures=seen_rail_signatures))
+        built.extend(
+            build_rail_only_variants(
+                request, seen_signatures=seen_rail_signatures, other_day_out=rail_other_day
+            )
+        )
     except MotisError as exc:
         skipped.append(SkippedVariant("Tylko kolej", str(exc)))
 
@@ -652,4 +710,6 @@ def generate_variants(
         except (MotisError, TravelpayoutsError) as exc:
             skipped.append(SkippedVariant(label, str(exc)))
 
+    if other_day_out is not None and not built:
+        other_day_out.extend(rail_other_day)
     return built, skipped

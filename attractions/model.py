@@ -124,7 +124,8 @@ class CityCard:
     description: str
     official_url: str
     variants: list[CityCardVariant]
-    default_discount_percent: float = 25.0
+    # Zniżki na atrakcje tej karty: id atrakcji -> %. Atrakcja bez wpisu (tu ani w
+    # Attraction.default_card_discount_percent) nie dostaje żadnej zniżki — nie ma rabatu domyślnego.
     custom_discounts: dict[str, float] = field(default_factory=dict)
     # Czy POTWIERDZONO (u źródła, z datą), że karta w ogóle istnieje i działa DZIŚ —
     # niezależnie od tego, czy jej cena jest potwierdzona (price_verified na wariancie).
@@ -153,3 +154,6 @@ class CityCardEvaluation:
     currency: str
     is_recommended: bool
     summary: str
+    # Atrakcje bez ZAPISANEJ zniżki karty: liczone jako 0% (nie zgadujemy), ale zniżka jest
+    # niezweryfikowana — karta mogłaby ją dawać, tylko nie mamy tego w danych ze źródłem.
+    unverified_discount_attraction_ids: list[str] = field(default_factory=list)

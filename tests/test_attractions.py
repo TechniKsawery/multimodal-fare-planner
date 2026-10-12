@@ -624,3 +624,102 @@ def test_zamkniete_muzeum_nie_trafia_do_wynikow():
     assert "koln_wallraf_richartz" in {a.id for a in get_attractions(city="koln", include_closed=True)}
     # pozostałe muzea bez flagi zachowują się jak dotąd
     assert "koln_museum_ludwig" in {a.id for a in get_attractions(city="koln")}
+
+
+# --- Brak zgadywania zniżek kart (zasada źródeł z CONTRIBUTING.md) ---------------------------
+
+
+def _card(card_id):
+    return next(c for c in get_all_city_cards() if c.id == card_id)
+
+
+def _card_discount_percent(card_id, attraction_id):
+    """Zniżka karty na atrakcję wyliczona przez kalkulator, jako % (z cen przed/po karcie)."""
+    from attractions.service import evaluate_city_card_variant
+
+    card = _card(card_id)
+    attraction = next(a for a in get_all_attractions() if a.id == attraction_id)
+    ev = evaluate_city_card_variant(card, card.variants[0], [attraction])
+    without, with_card = ev.attractions_price_without_card, ev.attractions_price_with_card
+    return round(100.0 * (without - with_card) / without, 2)
+
+
+def test_karty_nie_maja_domyslnego_rabatu_calej_karty():
+    """Wcześniej atrakcja bez wpisu dostawała card.default_discount_percent (Kraków Card: 100%,
+    Berlin WelcomeCard: 25%) — czyste zgadywanie. Pole nie istnieje ani w modelu, ani w danych."""
+    import json
+    from pathlib import Path
+
+    import attractions
+
+    raw = json.loads(
+        (Path(attractions.__file__).parent / "data" / "city_cards.json").read_text(encoding="utf-8")
+    )
+    for card in raw["karty"]:
+        assert "default_discount_percent" not in card, card["id"]
+    for card in get_all_city_cards():
+        assert not hasattr(card, "default_discount_percent"), card.id
+
+
+def test_krakow_card_nie_daje_100_procent_na_katedre_wawelska():
+    # Katedra Wawelska nie jest w custom_discounts; zniżka Kraków Card nie jest potwierdzona
+    # u źródła (verification/zestawienie-atrakcje-karty-2026-10-10.md) -> 0%, nie 100%.
+    assert _card_discount_percent("krakow_card", "krakow_katedra_wawelska") == 0.0
+
+
+def test_berlin_welcomecard_nie_daje_25_procent_bez_zrodla_na_curry36_i_alte_foersterei():
+    assert _card_discount_percent("berlin_welcomecard", "berlin_curry36") == 0.0
+    assert _card_discount_percent("berlin_welcomecard", "berlin_alte_foersterei") == 0.0
+
+
+def test_zapisane_zniszki_dzialaja_jak_dotad():
+    assert _card_discount_percent("berlin_welcomecard", "berlin_fernsehturm") == 25.0
+    assert _card_discount_percent("krakow_card", "krakow_wawel") == 20.0
+    assert _card_discount_percent("ruhrtopcard", "essen_zeche_zollverein") == 100.0
+    assert _card_discount_percent("ruhrtopcard", "gelsenkirchen_veltins_arena") == 50.0
+
+
+def test_zoom_nie_jest_partnerem_ruhrtopcard_wiec_bez_zniszki():
+    # katalog partnerów RUHR.TOPCARD (city_cards.json::_UWAGA_partnerzy) nie zawiera ZOOM
+    assert _card_discount_percent("ruhrtopcard", "gelsenkirchen_zoom_erlebniswelt") == 0.0
+
+
+def test_atrakcja_bez_wpisu_nie_dostaje_zniszki_na_zadnej_karcie():
+    from attractions import CityCardVariant
+    from attractions.service import evaluate_city_card_variant
+
+    variant = CityCardVariant("v", "V", 24, 10.0, "EUR", False, "-", "d")
+    for card in get_all_city_cards():
+        attr = _attr(id="atrakcja_spoza_katalogu", normal_price=40.0)
+        ev = evaluate_city_card_variant(card, variant, [attr])
+        assert ev.attractions_price_with_card == ev.attractions_price_without_card == 40.0, card.id
+
+
+def test_kazda_zapisana_zniszka_karty_wskazuje_atrakcje_z_tego_samego_miasta():
+    by_id = {a.id: a for a in get_all_attractions()}
+    for card in get_all_city_cards():
+        for attraction_id, percent in card.custom_discounts.items():
+            assert 0.0 <= percent <= 100.0, (card.id, attraction_id)
+            assert by_id[attraction_id].city == card.city, (card.id, attraction_id)
+
+
+def test_brak_zapisanej_znizki_karty_jest_zerem_z_flaga_niezweryfikowane():
+    from attractions.service import evaluate_city_cards, get_attractions
+
+    attr = next(a for a in get_attractions(city="krakow") if a.id == "krakow_katedra_wawelska")
+    evals = evaluate_city_cards("krakow", [attr])
+    assert evals
+    for ev in evals:
+        assert ev.attractions_price_with_card == ev.attractions_price_without_card
+        assert "krakow_katedra_wawelska" in ev.unverified_discount_attraction_ids
+        assert "niezweryfikowane" in ev.summary
+
+
+def test_komunikat_waluty_nie_mowi_o_placeholderze():
+    import pytest
+    from common.currency import UnsupportedCurrencyError, normalize_currency
+
+    with pytest.raises(UnsupportedCurrencyError) as exc:
+        normalize_currency("GBP")
+    assert "PLACEHOLDER" not in str(exc.value)
+    assert "EUR" in str(exc.value)

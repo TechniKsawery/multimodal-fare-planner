@@ -13,6 +13,21 @@ def _dt(hour, minute=0, day=28):
     return datetime(2026, 9, day, hour, minute, tzinfo=UTC)
 
 
+ESSEN_HBF = (51.4514, 7.0139)
+ESSEN_RUETTENSCHEID = (51.4300, 7.0000)
+DORTMUND_HBF = (51.5178, 7.4593)
+
+
+def _coords(origin, destination):
+    """leg.extra ze współrzędnymi obu końców, tak jak ustawia je motis_client.itinerary_to_legs."""
+    return {
+        "origin_lat": origin[0],
+        "origin_lon": origin[1],
+        "destination_lat": destination[0],
+        "destination_lon": destination[1],
+    }
+
+
 def make_leg(
     mode,
     origin,
@@ -359,8 +374,12 @@ def test_infer_rail_carrier_db():
     assert pricing.infer_rail_carrier("DB Fernverkehr AG") is Carrier.DB
 
 
-def test_infer_rail_carrier_regionalny_niemiecki_jako_vrr():
-    assert pricing.infer_rail_carrier("S Bahn Berlin GmbH") is Carrier.VRR
+def test_infer_rail_carrier_regionalny_nie_jest_vrr_po_samej_nazwie():
+    # Błąd K2 z audytu: ten test utrwalał S-Bahn Berlin jako VRR (taryfa Zagłębia Ruhry), a
+    # słowo "regio" łapało też POLREGIO i każde DB Regio w Niemczech. Taryfę regionalną
+    # ustala price_rail_leg() geograficznie (eezy.nrw tylko w NRW), nie nazwa przewoźnika.
+    for nazwa in ("S Bahn Berlin GmbH", "DB Regio AG Nordost", "POLREGIO", "ODEG", "Abellio"):
+        assert pricing.infer_rail_carrier(nazwa) is None, nazwa
 
 
 def test_infer_rail_carrier_nieznany_zwraca_none():
@@ -424,7 +443,7 @@ def test_price_rail_leg_pkp_woła_fares(monkeypatch):
 
 def test_price_rail_leg_s_bahn_hamburg_uzywa_hvv_nie_vrr():
     # Regresja 2026-10-11: MOTIS klasyfikuje S-Bahn Hamburg jako RAIL (nie BUS), a nazwa
-    # przewoźnika "S-Bahn Hamburg" zawiera "s-bahn" z VRR_AREA_KEYWORDS — bez poprawki
+    # przewoźnika "S-Bahn Hamburg" zawierała "s-bahn" z (usuniętych) VRR_AREA_KEYWORDS — bez poprawki
     # infer_rail_carrier() łapał to jako Carrier.VRR i liczył taryfą eezy.nrw (Zagłębie
     # Ruhry) zamiast HVV. Realny test na żywym MOTIS: 4.10/1.50/0.00 EUR (HVV) vs błędne
     # 2.46 EUR (VRR) przed poprawką — patrz verification/.
@@ -487,10 +506,12 @@ def test_price_rail_leg_regionalny_nrw_bez_miasta_nadal_vrr():
         _dt(7),
         carrier="DB Regio AG NRW",
         distance_km=40,
+        extra=_coords(ESSEN_HBF, DORTMUND_HBF),
     )
     priced = pricing.price_rail_leg(leg, DiscountProfile())
     assert priced.currency == "EUR"
     assert priced.price_type == "oficjalna_taryfa"
+    assert priced.carrier is Carrier.VRR
 
     from fares.calculator import estimate_price as _estimate_price
     from fares.model import Carrier as _Carrier
@@ -583,6 +604,114 @@ def test_price_flight_leg_doklada_tylko_bagaz_bez_dojazdu_i_transferu(monkeypatc
     assert extras.baggage_cost == 150.0  # z tabeli WAW-DTM
     assert extras.airport_access_cost == 0.0  # NIE dokładamy — to już osobny leg kolejowy
     assert extras.destination_transfer_cost == 0.0
+
+
+def _flight_leg_waw_dtm():
+    return make_leg(
+        LegMode.FLIGHT,
+        "WAW",
+        "DTM",
+        _dt(6),
+        _dt(8),
+        extra={"origin_iata": "WAW", "destination_iata": "DTM", "depart_date": "2026-11-15"},
+    )
+
+
+def test_price_flight_leg_eur_przelicza_bagaz_z_tabeli_pln_na_eur(monkeypatch):
+    """Tabela flights/ trzyma bagaż w PLN (WAW-DTM: 150) — z flight_currency=EUR kwota musi
+    zostać przeliczona, a nie podpisana jako 150 EUR."""
+    from routing.currency import PLACEHOLDER_RATES_TO_PLN
+
+    captured = {}
+
+    def fake_estimate(segment):
+        captured["segment"] = segment
+        raise TravelpayoutsError("stop po sprawdzeniu extras")
+
+    monkeypatch.setattr(pricing, "flights_estimate_price", fake_estimate)
+    with pytest.raises(TravelpayoutsError):
+        pricing.price_flight_leg(_flight_leg_waw_dtm(), currency="EUR")
+
+    extras = captured["segment"].extras
+    assert extras.currency == "EUR"
+    assert extras.baggage_cost == pytest.approx(150.0 / PLACEHOLDER_RATES_TO_PLN["EUR"], abs=0.01)
+    assert extras.baggage_cost != 150.0
+
+
+def test_price_flight_leg_eur_przelicza_domyslny_szacunek_bagazu():
+    from routing.currency import PLACEHOLDER_RATES_TO_PLN
+
+    extras = pricing._flight_baggage_only_extras("XXX", "YYY", "EUR")  # relacja spoza tabeli
+    assert extras.currency == "EUR"
+    assert extras.baggage_cost == pytest.approx(
+        pricing.DEFAULT_BAGGAGE_ESTIMATE_PLN / PLACEHOLDER_RATES_TO_PLN["EUR"], abs=0.01
+    )
+    assert "150 PLN" in extras.note
+
+
+def test_price_flight_leg_eur_bez_ceny_w_cache_nie_podpisuje_pln_jako_eur(monkeypatch):
+    """Cały tor (routing -> flights) dla flight_currency=EUR bez ceny w cache Travelpayouts:
+    szacunek 350 PLN + bagaż 150 PLN muszą wyjść jako kwoty przeliczone na EUR."""
+    from flights import calculator
+    from routing.currency import PLACEHOLDER_RATES_TO_PLN
+
+    monkeypatch.setattr(
+        calculator.travelpayouts, "fetch_cheapest_price", lambda **kw: {"success": True, "data": {}}
+    )
+    priced = pricing.price_flight_leg(_flight_leg_waw_dtm(), currency="EUR")
+
+    rate = PLACEHOLDER_RATES_TO_PLN["EUR"]
+    assert priced.currency == "EUR"
+    assert priced.breakdown["cena_biletu"] == pytest.approx(350.0 / rate, abs=0.01)
+    assert priced.breakdown["bagaz"] == pytest.approx(150.0 / rate, abs=0.01)
+    assert priced.amount == pytest.approx(500.0 / rate, abs=0.02)
+
+
+def test_price_flight_leg_pln_zostawia_bagaz_z_tabeli_bez_zmian(monkeypatch):
+    extras = pricing._flight_baggage_only_extras("WAW", "DTM", "PLN")
+    assert extras.baggage_cost == 150.0
+
+
+def test_price_flight_leg_nieobslugiwana_waluta_podnosi_czytelny_blad(monkeypatch):
+    from routing.currency import UnsupportedCurrencyError
+
+    monkeypatch.setattr(
+        pricing,
+        "flights_estimate_price",
+        lambda segment: pytest.fail("wycena nie powinna ruszyć dla waluty bez kursu"),
+    )
+    with pytest.raises(UnsupportedCurrencyError, match="GBP"):
+        pricing.price_flight_leg(_flight_leg_waw_dtm(), currency="GBP")
+
+
+def test_route_request_odrzuca_nieobslugiwana_walute_i_normalizuje_kod():
+    from routing.currency import UnsupportedCurrencyError
+
+    kwargs = dict(
+        origin_stop_id="a", destination_stop_id="b", origin_label="A", destination_label="B",
+        date="2026-11-15",
+    )
+    with pytest.raises(UnsupportedCurrencyError):
+        variants.RouteRequest(**kwargs, flight_currency="GBP")
+    assert variants.RouteRequest(**kwargs, flight_currency="eur").flight_currency == "EUR"
+
+
+def test_currency_nieobslugiwana_waluta_ma_czytelny_komunikat():
+    from routing import currency
+
+    for call in (
+        lambda: currency.to_pln(10.0, "GBP"),
+        lambda: currency.convert(10.0, "EUR", "GBP"),
+        lambda: currency.convert(10.0, "GBP", "PLN"),
+        lambda: currency.normalize_currency("GBP"),
+    ):
+        with pytest.raises(currency.UnsupportedCurrencyError) as exc_info:
+            call()
+        assert "GBP" in str(exc_info.value)
+        assert "EUR, PLN" in str(exc_info.value)
+    # to nadal ValueError — dotychczasowe except ValueError działają
+    assert issubclass(currency.UnsupportedCurrencyError, ValueError)
+    assert currency.normalize_currency(" eur ") == "EUR"
 
 
 def test_price_flight_leg_nadpisuje_bagaz_realnym_cennikiem_linii(monkeypatch):
@@ -1370,7 +1499,7 @@ def test_tramwaj_vrr_wyceniany_eezy_nrw():
         _dt(6, 12),
         carrier="Ruhrbahn",
         distance_km=3.5,
-        extra={"motis_mode": "TRAM"},
+        extra={"motis_mode": "TRAM", **_coords(ESSEN_HBF, ESSEN_RUETTENSCHEID)},
     )
     priced = pricing.price_bus_leg(tram)
     assert priced.currency == "EUR"
@@ -1392,6 +1521,7 @@ def test_autobus_nieznanego_operatora_bez_dystansu_ryczalt():
     priced = pricing.price_bus_leg(leg)
     assert priced.amount == pricing.LOCAL_BUS_FLAT_PLN
     assert priced.price_type == "szacunek"
+    assert priced.breakdown["price_verified"] is False
 
 
 # --- przesiadki niewykonalne (poniżej absolutnego minimum) są odrzucane, ciasne = ryzykowne -----

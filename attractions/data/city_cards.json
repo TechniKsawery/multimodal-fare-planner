@@ -14,7 +14,6 @@
       "existence_verified": true,
       "existence_source_url": "https://www.bvg.de/de/touristen/welcomecard",
       "existence_verified_date": "2026-10-09",
-      "default_discount_percent": 25.0,
       "custom_discounts": {
         "berlin_museumsinsel": 25.0,
         "berlin_fernsehturm": 25.0,
@@ -76,7 +75,6 @@
       "existence_verified": true,
       "existence_source_url": "https://ruhrtopcard.de/card-kaufen",
       "existence_verified_date": "2026-10-09",
-      "default_discount_percent": 0.0,
       "_UWAGA_zamiana": "Zastępuje dawną 'welcomecard_ruhr' (usuniętą z tego pliku 2026-10-09) po tym, jak zweryfikowano na żywo, że 2 niezależne atrakcje (Veltins-Arena FAQ, Zeche Zollverein cennik) na swoich oficjalnych stronach wymieniają jako partnera zniżkowego RUHR.TOPCARD, a żadna nie wspomina WelcomeCard Ruhr — co zgadza się z tym, że welcomecard.ruhr nie pokazuje żadnych cen ani dostępnych terminów rezerwacji. Ceny karty (70 EUR dorosły / 43 EUR dziecko na sezon 2026, promocyjnie 60/33 EUR do 31.12.2025) potwierdzone NA ŻYWO na ruhrtopcard.de/card-kaufen i w komunikacie prasowym Ruhr Tourismus/RVR z 2026. Model danych ma dziś tylko jedną cenę karty (dorosły) — cena dziecka 43 EUR jest tu tylko informacyjnie w opisie, bo kalkulator nie liczy jeszcze mieszanych grup (patrz profil grupy w innym wątku).",
       "_UWAGA_partnerzy": "Zaktualizowano 2026-10-09 — dociągnięto brakujące 4 na podstawie oficjalnej wyszukiwarki partnerów ruhrtopcard.de/alle-ausflugsziele (nie zgadywanie, każdy wpis sprawdzony bezpośrednio w katalogu karty): (1) Veltins-Arena = wpis 'Arena-Tour auf Schalke', Halber Preis -> 50%. (2) Zeche Zollverein = wpis 'UNESCO-Welterbe Zollverein', Eintritt frei -> 100% (POPRAWKA: wcześniej zakładaliśmy nieznane/0%, okazało się że to darmowy wstęp, nie 50%). (3) Signal Iduna Park/BVB = wpis 'Tunnel zur Trainerbank und Rasenrand BORUSSEUM und Stadionspaziergang', Halber Preis -> 50% — UWAGA: ten wpis to konkretnie Borusseum+Stadionspaziergang (spacer bez przewodnika), NIEKONIECZNIE identyczny produkt co płatna 90-minutowa 'Stadiontour z przewodnikiem' za 18 EUR w naszych danych, więc zniżka może nie obejmować dokładnie tego wariantu. (4) Deutsches Fußballmuseum = wpis wprost 'Deutsches Fußballmuseum', Halber Preis -> 50%. (5) ZOOM Erlebniswelt Gelsenkirchen: sprawdzone wyszukiwaniem 'ZOOM', 'Erlebniswelt', 'Zoo' i 'Gelsenkirchen' w oficjalnym katalogu — NIE POJAWIA SIĘ w żadnym wyniku, czyli najprawdopodobniej NIE jest partnerem RUHR.TOPCARD. Zostaje bez wpisu w custom_discounts (dostaje domyślne 0%). Jeśli chcecie to ostatecznie przebić, trzeba zapytać bezpośrednio ZOOM Erlebniswelt (tel. +49 209 95450, info@zoom-erlebniswelt.de) albo Ruhr Tourismus GmbH — oficjalna wyszukiwarka może nie indeksować 100% partnerów.",
       "custom_discounts": {
@@ -108,7 +106,6 @@
       "existence_verified": true,
       "existence_source_url": "https://discovercracow.com/tickets/?category%5B1396%5D=1396",
       "existence_verified_date": "2026-10-09",
-      "default_discount_percent": 100.0,
       "custom_discounts": {
         "krakow_schindler_factory": 20.0,
         "krakow_wawel": 20.0,
@@ -167,7 +164,6 @@
       "name": "Hamburg CARD",
       "description": "Karta turystyczna Hamburga, wariant 'Mit Nahverkehr' (z biletem HVV: bus, kolej, promy portowe) — ceny 1-5 dni zweryfikowane w przeglądarce 2026-10-09 (poprzednia wersja tego wpisu z produktami 'Green'/'Green Plus' była nieaktualna/niepotwierdzona u źródła i została zastąpiona). Wariant 'Ohne Nahverkehr' (bez transportu) NIE jest tu wpisany — strona podaje tylko cenę startową 'ab 4,50 €', pełna tabela nie udało się odczytać (przełącznik JS na stronie nie reagował).",
       "official_url": "https://www.hamburg-tourism.de/buchen/hamburg-card/",
-      "default_discount_percent": 0.0,
       "custom_discounts": {
         "hamburg_speicherstadtmuseum": 25.0,
         "hamburg_imm": 22.0
@@ -294,7 +290,6 @@
       "name": "München CityTourCard",
       "description": "Oficjalna karta turystyczna Monachium (nie mylić z osobnym produktem 'München Card', niesprawdzonym w tym researchu): nielimitowany transport MVV w wybranej strefie (M / M-6 / M-12) + zniżki u 113 partnerów. Ceny i lista partnerów zweryfikowane w przeglądarce 2026-10-09 (automatyczny fetch pokazywał 0,00 € — strona doładowuje ceny przez JS). BMW Museum, Deutsches Museum, Tierpark Hellabrunn i Skylift Olympiapark (pod tą nazwą) NIE są partnerami — potwierdzone brakiem wpisu na oficjalnej liście partnerów, nie dopisywać im zniżek.",
       "official_url": "https://www.mvv-muenchen.de/tickets-abos-preise/citytourcard",
-      "default_discount_percent": 0.0,
       "custom_discounts": {
         "munchen_fcbayern_erlebniswelt": 8.0,
         "munchen_residenz": 13.3,
@@ -711,7 +706,6 @@
       "name": "KölnCard",
       "description": "Oficjalna karta turystyczna Kolonii (Köln Tourismus): bezpłatny transport publiczny KVB/VRS + zniżki do 50% u 'licznych partnerów'. Zweryfikowane w przeglądarce 2026-10-09: flyer PDF 'KölnCard 2026' (koelntourismus.de) vs VRS-Ticketshop (vrs-ticketshop.de) podają ROZBIEŻNE ceny dla Einzelkarte 48h i Gruppenkarte 24h (wartości 18€/19€ są zamienione miejscami między źródłami) — oba warianty oznaczone price_verified=false, dopóki nie zostanie to rozstrzygnięte bezpośrednio przy zakupie lub przez Köln Tourismus. Lista partnerów z nazwanymi atrakcjami i % zniżki NIE została znaleziona (ogólne 'Rabatt bis zu 50%' odsyła do papierowej mapy miasta, niedostępnej w tej sesji) — żadnych zniżek na konkretne atrakcje (Kölner Dom, Museum Ludwig, Wallraf-Richartz-Museum, Kölner Zoo, KölnTriangle, Schokoladenmuseum) nie potwierdzono.",
       "official_url": "https://www.koelntourismus.de/buchen/koelncard",
-      "default_discount_percent": 0.0,
       "custom_discounts": {},
       "variants": [
         {
@@ -769,7 +763,6 @@
       "name": "Warsaw Pass",
       "description": "UWAGA: to NIE jest oficjalna karta miejska Warszawy (nie istnieje taka prowadzona przez miasto/ZTM) — to komercyjny produkt OTA (sprzedawca: City Info, dystrybuowany przez GetYourGuide/Headout/Musement). NIE obejmuje transportu publicznego ZTM. Lista ok. 24 muzeów/atrakcji podana przez sprzedawcę zawiera co najmniej 2-3 nieaktualne pozycje (np. Muzeum Chopina zamknięte na remont) — żadnych % zniżek per atrakcja nie potwierdzono, nie są to darmowe wstępy z gwarancją.",
       "official_url": "https://www.getyourguide.com/warsaw-l910/warsaw-pass-t390318/",
-      "default_discount_percent": 0.0,
       "custom_discounts": {},
       "variants": [
         {
@@ -794,7 +787,6 @@
       "name": "Poznań City Card",
       "description": "Oficjalna karta turystyczna Poznania (visitpoznan.pl): bezpłatny wstęp do ok. 21 atrakcji i zniżki w ponad 50 innych. Jednorazowe użycie na każdą atrakcję. Pełna lista partnerów zweryfikowana na karta.visitpoznan.pl — tylko potwierdzone % wpisane poniżej.",
       "official_url": "https://visitpoznan.pl/en/poznan-city-card",
-      "default_discount_percent": 0.0,
       "custom_discounts": {
         "poznan_brama_poznania": 40.0,
         "poznan_fotoplastykon": 100.0
@@ -877,7 +869,6 @@
       "name": "Karta Turysty TripPass – Pakiet Lubelski",
       "description": "Następca dawnej Lubelskiej Karty Turysty (24h/72h z transportem i wstępami — nie znaleziono jej już w sprzedaży 2026-10-12). Obecny pakiet to wyłącznie zniżki/upominki u partnerów (restauracje, hotele, spacery z przewodnikiem, pamiątki), BEZ darmowych wstępów i BEZ transportu; żaden z partnerów nie jest atrakcją z naszego katalogu Lublina, więc kalkulator nie przypisuje jej zniżek. Cena niepotwierdzona jednoznacznie: lublin.eu podaje 'zawsze 5 zł' za pakiet, a trippass.pl pokazuje 0,00 zł za 365 dni (obie strony sprawdzone 2026-10-12).",
       "official_url": "https://lublin.eu/turystyka/niezbednik-turysty/karta-turysty/",
-      "default_discount_percent": 0.0,
       "custom_discounts": {},
       "variants": [
         {

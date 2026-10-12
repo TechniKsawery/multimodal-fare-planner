@@ -230,7 +230,6 @@ def get_all_city_cards() -> list[CityCard]:
                 description=item["description"],
                 official_url=item["official_url"],
                 variants=variants,
-                default_discount_percent=float(item.get("default_discount_percent", 25.0)),
                 custom_discounts=dict(item.get("custom_discounts", {})),
                 existence_verified=bool(item.get("existence_verified", False)),
                 existence_source_url=item.get("existence_source_url", ""),
@@ -350,10 +349,10 @@ def _calculate_attraction_discount_percent(
     if attraction.id in card.custom_discounts:
         return card.custom_discounts[attraction.id]
 
-    if attraction.default_card_discount_percent > 0:
-        return attraction.default_card_discount_percent
-
-    return card.default_discount_percent
+    # Zniżka tylko tam, gdzie jest ZAPISANA (custom_discounts karty albo
+    # default_card_discount_percent atrakcji). Brak wpisu = 0%: nie ma domyślnego rabatu "całej
+    # karty", bo to zgadywanie (np. 100% na Katedrę Wawelską, 25% na Curry 36 bez źródła).
+    return attraction.default_card_discount_percent
 
 
 def evaluate_city_card_variant(
@@ -382,11 +381,14 @@ def evaluate_city_card_variant(
     currency = currencies.pop() if len(currencies) == 1 else variant.currency
     card_price = convert(variant.price, variant.currency, currency)
 
+    unverified: list[str] = []
     for a in attractions:
         base_price, _label, _source = best_price_for_attraction(a, profile)
         base_price = convert(base_price, a.currency, currency)
         price_without += base_price
         disc_pct = _calculate_attraction_discount_percent(card, variant, a)
+        if disc_pct == 0.0 and a.id not in card.custom_discounts:
+            unverified.append(a.id)
         discounted = base_price * (1.0 - (disc_pct / 100.0))
         price_with += max(0.0, discounted)
 
@@ -420,6 +422,12 @@ def evaluate_city_card_variant(
             f"do zwrotu kosztu karty."
         )
 
+    if unverified:
+        summary += (
+            f" Brak zapisanej zniżki karty dla: {', '.join(unverified)} — liczone jako 0% "
+            "(niezweryfikowane, karta może dawać zniżkę, której nie mamy w danych)."
+        )
+
     return CityCardEvaluation(
         card_name=card.name,
         variant=variant,
@@ -434,6 +442,7 @@ def evaluate_city_card_variant(
         currency=currency,
         is_recommended=is_recommended,
         summary=summary,
+        unverified_discount_attraction_ids=unverified,
     )
 
 

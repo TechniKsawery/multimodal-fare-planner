@@ -9,6 +9,12 @@ stałego cennika: ceny są dynamiczne (yield management), więc nawet realna cen
 w czasie, nie "oficjalna taryfa" w rozumieniu tego, co OFFICIAL oznacza dla PKP/DB/VRR. Żeby mimo
 to dało się odróżnić realną cenę od zgrubnego fallbacku, breakdown["zrodlo"] jest zawsze
 "api_flixbus_live" albo "fallback_km".
+
+Fallback po km jest dodatkowo oznaczony breakdown["price_verified"] = False (ten sam klucz, co
+przy innych cenach niepotwierdzonych, patrz routing/pricing.py): to zgrubne 0,27 PLN/km, a nie
+cena z oferty, więc UI i demo.py dopisują "cena niepotwierdzona", a wariant z takim odcinkiem
+nie wygrywa rankingu "Najtańsza" z wariantem o potwierdzonej cenie. Cena z live API nie dostaje
+tej flagi — pozostaje bez zmian.
 """
 
 import re
@@ -58,6 +64,7 @@ def _fallback_estimate(segment: Segment, reason: str) -> PriceEstimate:
         price_type=PriceType.ESTIMATE,
         breakdown={
             "zrodlo": "fallback_km",
+            "price_verified": False,
             "pln_per_km": pln_per_km,
             "odleglosc_km": segment.distance_km,
         },

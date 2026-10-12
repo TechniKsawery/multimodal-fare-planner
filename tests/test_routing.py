@@ -1917,3 +1917,34 @@ def test_bus_miejski_zwraca_carrier_i_breakdown_dla_ui():
     assert priced.carrier is Carrier.ZTM_WARSZAWA
     assert priced.amount == 0.0
     assert priced.breakdown["typ_biletu"].startswith("bezpłatny")
+
+
+# --- "najmniej przesiadek": remis rozstrzyga czas, potem cena ---
+
+
+def test_najmniej_przesiadek_remis_rozstrzyga_krotszy_czas():
+    wolna = _itinerary("wolna", 50, 300, 1)
+    szybsza = _itinerary("szybsza", 200, 200, 1)
+    wiecej = _itinerary("wiecej przesiadek", 10, 100, 3)
+    recs = scoring.pick_recommendations([wolna, szybsza, wiecej])
+    assert recs["najmniej_przesiadek"] is szybsza
+
+
+def test_najmniej_przesiadek_remis_czasu_rozstrzyga_cena():
+    droga = _itinerary("droga", 200, 200, 1)
+    tansza = _itinerary("tansza", 100, 200, 1)
+    recs = scoring.pick_recommendations([droga, tansza])
+    assert recs["najmniej_przesiadek"] is tansza
+
+
+def test_najmniej_przesiadek_bezpieczna_pomija_ryzykowne():
+    ryzykowna = _itinerary_z_ryzykiem("ryzykowna", 100, 100, 0, num_risky=1)
+    bezpieczna = _itinerary_z_ryzykiem("bezpieczna", 100, 200, 2, num_risky=0)
+    recs = scoring.pick_recommendations([ryzykowna, bezpieczna])
+    assert recs["najmniej_przesiadek"] is ryzykowna
+    assert recs["najmniej_przesiadek_bezpieczna"] is bezpieczna
+
+
+def test_najmniej_przesiadek_poza_top_kategoriami():
+    assert "najmniej_przesiadek" not in scoring.TOP_CATEGORY_KEYS
+    assert "najmniej_przesiadek_bezpieczna" in scoring.SAFE_CATEGORY_KEYS

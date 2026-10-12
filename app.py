@@ -690,6 +690,10 @@ if result is not None:
             st.info(
                 "Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych."
             )
+        if key in ("najmniej_przesiadek", "najmniej_przesiadek_bezpieczna"):
+            st.caption(
+                "Najmniej przesiadek spośród wariantów zwróconych przez MOTIS; remis rozstrzyga krótszy czas, potem niższa cena."
+            )
         st.subheader(recs[key].variant_name)
         render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
 

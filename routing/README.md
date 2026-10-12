@@ -184,6 +184,15 @@ Gelsenkirchen (~16h) to ~96 min tolerancji; dla krótkiej trasy regionalnej (~1h
 (dolny próg). Wersja bezpieczna (`najszybsza_z_ulgami_bezpieczna`) liczy to samo na
 `safe_pool`, z tym samym fallbackiem co inne kategorie "_bezpieczna".
 
+## Scoring: "najmniej przesiadek"
+
+Wygrywa wariant z najmniejszą liczbą przesiadek (`Itinerary.num_transfers`, odcinki WALK nie
+liczą się). Remis rozstrzyga krótszy czas, potem niższa cena. Wybór jest spośród wariantów
+zwróconych przez MOTIS (i naszych wariantów hubowych) — nie szukamy tras, których silnik nie
+dał. Wersja bezpieczna (`najmniej_przesiadek_bezpieczna`) działa na `safe_pool` z tym samym
+fallbackiem co inne kategorie "_bezpieczna". Kategoria jest pod „Pokaż więcej”, nie w
+`TOP_CATEGORY_KEYS`. Nie zmienia żadnych cen.
+
 ## Waluty
 
 Ceny z `fares/` bywają w PLN (PKP) i EUR (DB, VRR/eezy.nrw), a `flights/` w walucie

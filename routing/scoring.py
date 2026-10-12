@@ -34,6 +34,7 @@ RECOMMENDATION_LABELS = {
     "najtansza_bezpieczna": "Najtańsza bezpieczna",
     "najlepszy_kompromis_bezpieczny": "Najlepszy kompromis (bezpieczny)",
     "najszybsza_z_ulgami_bezpieczna": "Najszybsza z ulgami (bezpieczna)",
+    "najmniej_przesiadek_bezpieczna": "Najmniej przesiadek (bezpieczna)",
 }
 
 SAFE_CATEGORY_KEYS = (
@@ -41,6 +42,7 @@ SAFE_CATEGORY_KEYS = (
     "najtansza_bezpieczna",
     "najlepszy_kompromis_bezpieczny",
     "najszybsza_z_ulgami_bezpieczna",
+    "najmniej_przesiadek_bezpieczna",
 )
 
 # Kategorie pokazywane od razu w UI (reszta pod "Pokaż więcej" — patrz app.py). Dwa ekstrema
@@ -154,7 +156,11 @@ def pick_recommendations(itineraries: list[Itinerary]) -> dict[str, Itinerary]:
     return {
         "najtansza": min(itineraries, key=lambda i: i.total_price_pln),
         "najszybsza": min(itineraries, key=lambda i: i.total_duration_min),
-        "najmniej_przesiadek": min(itineraries, key=lambda i: i.num_transfers),
+        # liczą się wszystkie przesiadki; remis: krótszy czas, potem niższa cena. Wybór jest
+        # spośród wariantów zwróconych przez MOTIS (nie szukamy tras, których MOTIS nie dał).
+        "najmniej_przesiadek": min(
+            itineraries, key=lambda i: (i.num_transfers, i.total_duration_min, i.total_price_pln)
+        ),
         "najlepszy_stosunek_ceny_do_czasu": min(itineraries, key=lambda i: i.value_score),
         "najlepszy_kompromis": min(itineraries, key=compromise_key),
         "najszybsza_z_ulgami": _fastest_within_tolerance(itineraries),
@@ -166,6 +172,15 @@ def pick_recommendations(itineraries: list[Itinerary]) -> dict[str, Itinerary]:
         ),
         "najlepszy_kompromis_bezpieczny": min(
             safe_pool, key=lambda i: (i.num_risky_transfers, safe_compromise_key(i))
+        ),
+        "najmniej_przesiadek_bezpieczna": min(
+            safe_pool,
+            key=lambda i: (
+                i.num_risky_transfers,
+                i.num_transfers,
+                i.total_duration_min,
+                i.total_price_pln,
+            ),
         ),
         "najszybsza_z_ulgami_bezpieczna": _fastest_within_tolerance(
             safe_pool, key=lambda i: (i.num_risky_transfers, i.total_price_pln)

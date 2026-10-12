@@ -1,9 +1,10 @@
 """Degresywna tabela Taryfy Podstawowej POLREGIO/KD/KŚ zamiast sztywnego 0,35 zł/km.
 
-Kwoty w fares/data/polregio_taryfa_podstawowa.json pochodzą z raportu researchera i NIE są
-potwierdzone w źródle pierwotnym (domeny przewoźników zablokowane w sesji weryfikującej), więc
-testy pilnują przede wszystkim, że wynik jest oznaczony jako niepotwierdzony, dopóki pasmo nie
-dostanie źródła i daty. Ścieżkę 'potwierdzone' sprawdza sztuczna fixture
+Wszystkie 30 pasm w fares/data/polregio_taryfa_podstawowa.json zostało potwierdzone przez Gemini
+w TPR POLREGIO od 1.09.2026 (źródło i data przy każdym paśmie). Potwierdzona jest KWOTA pasma;
+odległość z MOTIS to linia prosta, więc wynik ma price_verified=True, ale price_type "szacunek"
+z opisem przybliżenia, dopóki Segment.distance_along_track nie jest True (km po torach).
+Pasmo bez źródła/daty zostaje niepotwierdzone — to sprawdza sztuczna fixture
 tests/fixtures/polregio_tabela_z_potwierdzeniem.json (nie dane cenowe)."""
 
 import json
@@ -35,13 +36,14 @@ ESSEN_HBF = (51.4514, 7.0139)
 DORTMUND_HBF = (51.5178, 7.4593)
 
 
-def _segment(km, ulga="brak"):
+def _segment(km, ulga="brak", *, po_torach=False):
     return Segment(
         carrier=Carrier.POLREGIO_PODSTAWOWA,
         origin="A",
         destination="B",
         distance_km=km,
         discounts=DiscountProfile(pkp_ulga_kod=ulga),
+        distance_along_track=po_torach,
     )
 
 
@@ -87,15 +89,13 @@ def test_tabela_jest_rosnaca_i_degresywna_w_przeliczeniu_na_km():
     assert stawka_5 > 0.35 > stawka_100
 
 
-def test_zadne_pasmo_nie_jest_potwierdzone_bez_zrodla_i_daty():
-    """Pasmo może być 'potwierdzone' tylko z URL-em i datą ISO; dziś nie jest żadne."""
+def test_wszystkie_pasma_potwierdzone_ze_zrodlem_i_data():
+    assert TABLE["weryfikacja"]["status"] == "potwierdzone"
+    assert len(TABLE["pasma_odleglosci_km"]) == 30
     for b in TABLE["pasma_odleglosci_km"]:
-        c = b.get("potwierdzone")
-        if c is not None:
-            assert c["zrodlo_url"].startswith("http"), b
-            assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", c["data"]), b
-    assert TABLE["weryfikacja"]["status"] == "niepotwierdzone"
-    assert all(b.get("potwierdzone") is None for b in TABLE["pasma_odleglosci_km"])
+        c = b["potwierdzone"]
+        assert c["zrodlo_url"].startswith("https://"), b
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", c["data"]), b
 
 
 # --- kalkulator --------------------------------------------------------------------------
@@ -129,18 +129,32 @@ def test_brak_dystansu_to_blad():
         polregio.estimate(_segment(None))
 
 
-def test_wynik_z_danych_produkcyjnych_jest_niepotwierdzonym_szacunkiem():
+def test_wynik_z_potwierdzonego_pasma_ma_zrodlo_ale_zostaje_szacunkiem_dla_linii_prostej():
     est = polregio.estimate(_segment(77))
+    assert est.breakdown["price_verified"] is True
+    assert est.breakdown["zrodlo_url"].startswith("https://polregio.pl/")
+    assert est.breakdown["data_weryfikacji"] == "2026-10-12"
+    assert est.breakdown["odleglosc_taryfowa"] == "linia prosta"
     assert est.price_type is PriceType.ESTIMATE
-    assert est.breakdown["price_verified"] is False
-    assert "zrodlo_url" not in est.breakdown
-    assert "NIEPOTWIERDZONA" in est.notes
+    assert "linii prostej" in est.notes
+    assert "NIEPOTWIERDZONA" not in est.notes
 
 
-def test_ulga_procentem_od_ceny_bazowej_i_zawsze_niepotwierdzona():
-    est = polregio.estimate(_segment(77, "student_do_26_lat_doktorant_do_35_lat"))
+def test_km_po_torach_i_potwierdzone_pasmo_to_oficjalna_taryfa():
+    est = polregio.estimate(_segment(77, po_torach=True))
+    assert est.price_type is PriceType.OFFICIAL
+    assert est.breakdown["price_verified"] is True
+    assert est.breakdown["odleglosc_taryfowa"] == "po torach"
+    assert "linii prostej" not in est.notes
+
+
+def test_ulga_procentem_od_ceny_bazowej_i_nie_jest_odczytem_z_cennika():
+    est = polregio.estimate(_segment(77, "student_do_26_lat_doktorant_do_35_lat", po_torach=True))
     assert est.amount == pytest.approx(25.90 * 0.49, abs=0.01)
     assert est.breakdown["ulga_procent"] == 51
+    assert est.breakdown["price_verified"] is False
+    assert est.price_type is PriceType.ESTIMATE
+    assert "ulga" in est.breakdown["powod_szacunku"]
 
 
 def test_nieznany_kod_ulgi():
@@ -151,8 +165,8 @@ def test_nieznany_kod_ulgi():
 # --- ścieżka 'pasmo potwierdzone' (fixture) -----------------------------------------------
 
 
-def test_potwierdzone_pasmo_z_url_i_data_daje_oficjalna_taryfe():
-    est = polregio.estimate(_segment(3), table=FIXTURE)
+def test_potwierdzone_pasmo_z_url_i_data_po_torach_daje_oficjalna_taryfe():
+    est = polregio.estimate(_segment(3, po_torach=True), table=FIXTURE)
     assert est.amount == 10.0
     assert est.price_type is PriceType.OFFICIAL
     assert est.breakdown["price_verified"] is True
@@ -160,11 +174,19 @@ def test_potwierdzone_pasmo_z_url_i_data_daje_oficjalna_taryfe():
     assert est.breakdown["data_weryfikacji"] == "2026-10-12"
 
 
+def test_potwierdzone_pasmo_z_linii_prostej_to_szacunek_z_opisem_przyblizenia():
+    est = polregio.estimate(_segment(3), table=FIXTURE)
+    assert est.price_type is PriceType.ESTIMATE
+    assert est.breakdown["price_verified"] is True
+    assert "linii prostej" in est.notes
+
+
 def test_pasmo_bez_potwierdzenia_w_tej_samej_tabeli_zostaje_szacunkiem():
-    est = polregio.estimate(_segment(8), table=FIXTURE)
+    est = polregio.estimate(_segment(8, po_torach=True), table=FIXTURE)
     assert est.amount == 20.0
     assert est.price_type is PriceType.ESTIMATE
     assert est.breakdown["price_verified"] is False
+    assert "NIEPOTWIERDZONA" in est.notes
 
 
 @pytest.mark.parametrize("km", [15, 30])  # puste 'data' / URL nie jest adresem http
@@ -175,7 +197,9 @@ def test_potwierdzenie_bez_daty_albo_url_nie_liczy_sie(km):
 
 
 def test_potwierdzone_pasmo_z_ulga_juz_nie_jest_odczytem_z_cennika():
-    est = polregio.estimate(_segment(3, "dzieci_mlodziez_szkolna_do_24_lat"), table=FIXTURE)
+    est = polregio.estimate(
+        _segment(3, "dzieci_mlodziez_szkolna_do_24_lat", po_torach=True), table=FIXTURE
+    )
     assert est.amount == pytest.approx(6.30)
     assert est.breakdown["price_verified"] is False
 
@@ -192,9 +216,13 @@ def test_polregio_kd_ks_w_polsce_dostaja_tabele(przewoznik):
     assert priced.carrier is Carrier.POLREGIO_PODSTAWOWA
     assert priced.amount == 22.00  # pasmo 54-59 km
     assert priced.currency == "PLN"
+    # kwota pasma potwierdzona, ale odległość to linia prosta z MOTIS -> szacunek z opisem
     assert priced.price_type == "szacunek"
-    assert priced.breakdown["price_verified"] is False
-    assert priced.price_verified is False
+    assert priced.breakdown["price_verified"] is True
+    assert priced.price_verified is True
+    assert priced.breakdown["zrodlo_url"].startswith("https://polregio.pl/")
+    assert priced.breakdown["odleglosc_taryfowa"] == "linia prosta"
+    assert "linii prostej" in priced.notes
 
 
 def test_tabela_zastepuje_sztywne_035_na_krotkim_odcinku():

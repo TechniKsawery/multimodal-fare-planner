@@ -46,3 +46,15 @@ Sygnał niespójności raportu: VBB (tabela Berlin–Szczecin) podaje 15,90 EUR 
    dopiero, gdy RB66 realnie kursuje.
 5. ZTM Warszawa w SKM i ŁKA w Łodzi: bilety czasowe, nie kilometrowe; wymaga decyzji, czy model
    (odcinek → cena) ma wprowadzić taryfę czasową dla pociągów.
+
+## Aktualizacja (po weryfikacji Gemini, `gemini/taryfy-weryfikacja`, commit cc5ecae)
+
+- Gemini potwierdził wszystkie 30 pasm Taryfy Podstawowej POLREGIO (TPR od 1.09.2026, Tabela nr 1)
+  oraz zgodność stawek w KD i KŚ; kwoty pasm bez zmian względem raportu. Ja tych źródeł nie
+  odczytałem (domeny nadal zablokowane), więc status opiera się na weryfikacji Gemini.
+- Wyjaśnienie: Załącznik 2 od 1.03.2026 to załącznik do Taryfy Pomorskiej, nie do Podstawowej.
+- Potwierdzona jest kwota pasma, ale odległość to linia prosta, więc wynik to `szacunek`
+  z `price_verified=True` (patrz fares/README.md).
+- Szczecin Gł. – Angermünde: w październiku 2026 autobus zastępczy (RB66 nie kursuje do
+  12.12.2026) — nie wyceniamy jako pociągu VBB.
+- SKM Trójmiasto i KM: dane sprzeczne, nie wdrożone.

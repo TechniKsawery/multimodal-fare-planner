@@ -14,6 +14,10 @@ Moduł odpowiada za:
    - **Kraków Card** (Krakowska Karta Turystyczna)
    - Wyliczanie oszczędności netto: czy koszt karty zwraca się przy wybranych atrakcjach i darmowym transporcie miejskim.
    - Karta pojawia się w kalkulatorze i rekomendacji TYLKO gdy jej istnienie i działanie DZIŚ jest potwierdzone u źródła (`existence_verified` + URL + data w `city_cards.json`) — niepotwierdzona może być co najwyżej jej cena, nigdy sam fakt, że produkt nadal istnieje. `get_all_city_cards()` pokazuje też karty niepotwierdzone (do audytu danych); `get_city_cards()` i kalkulator — nie.
+   - Zniżka karty na atrakcję jest liczona TYLKO tam, gdzie jest zapisana: `custom_discounts` karty
+     (id atrakcji -> %) albo `default_card_discount_percent` atrakcji. Atrakcja bez wpisu dostaje 0%
+     — nie ma "domyślnego rabatu karty" (dawne `default_discount_percent` dawało np. 100% na Katedrę
+     Wawelską z Kraków Card, bo zgadywało). Nowy wpis dodawaj dopiero z potwierdzeniem u źródła.
 4. Zniżki z dowolnego tytułu (wiek/uczeń-student/senior), niezależnie od posiadania karty miejskiej: `best_price_for_attraction(attraction, DiscountProfile(...))` wybiera najtańszą potwierdzoną cenę spośród ceny standardowej i pól `child_price`/`student_price`/`senior_price`/`family_price` (typu `GroupPrice`: konkretna kwota + źródło + data, nigdy procent). Zniżki się nie sumują — bierzemy minimum.
 
 ## Użycie

@@ -1,6 +1,8 @@
 """Modele requestów i response'ów REST API (api/main.py)."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from common.currency import SUPPORTED_CURRENCIES, UnsupportedCurrencyError, normalize_currency
 
 
 class DiscountProfileIn(BaseModel):
@@ -42,10 +44,25 @@ class RouteSearchRequest(BaseModel):
         "06:00:00", description="Najwcześniejsza godzina wyjazdu brana pod uwagę"
     )
     discounts: DiscountProfileIn = Field(default_factory=DiscountProfileIn)
-    flight_currency: str = "PLN"
+    flight_currency: str = Field(
+        "PLN",
+        description=(
+            "Waluta wyceny lotów. Obsługiwane (mamy dla nich kurs): "
+            + ", ".join(SUPPORTED_CURRENCIES)
+        ),
+    )
     checked_baggage: bool = Field(
         True, description="True = bagaż rejestrowany (w cenie lotu, bufor po lądowaniu 90 min); False = tylko podręczny (60 min). Bufory to szacunek."
     )
+
+    @field_validator("flight_currency")
+    @classmethod
+    def _flight_currency_supported(cls, value: str) -> str:
+        """Nieobsługiwana waluta to błąd zapytania (422 z komunikatem), nie 500 z głębi wyceny."""
+        try:
+            return normalize_currency(value)
+        except UnsupportedCurrencyError as exc:
+            raise ValueError(str(exc)) from exc
 
 
 class CityCardEvaluateRequest(BaseModel):

@@ -321,6 +321,17 @@ PLACEHOLDEROWYM kursem w `currency.py` (nie z API kursowego) — każdy `PricedL
 zachowuje swoją oryginalną kwotę/walutę w `breakdown`/`amount`/`currency`, więc nic nie jest
 "zgubione", przeliczenie służy tylko do rankingu.
 
+Implementacja jest w `common/currency.py` (`routing/currency.py` tylko ją re-eksportuje).
+Obsługiwane są tylko waluty z kursem (dziś PLN i EUR); kursu nie zgadujemy. Inna waluta
+(np. `flight_currency=GBP`) to `UnsupportedCurrencyError` (podklasa `ValueError`) z listą
+obsługiwanych walut: `POST /route` odpowiada wtedy 422 z tym komunikatem (walidacja pola
+`flight_currency`), a `RouteRequest` odrzuca ją przy tworzeniu.
+
+Kwoty zapisane w złotych w `flights/` i `routing/pricing.py` (zgrubny szacunek biletu 350 PLN,
+bagaż z tabeli relacji i szacunek domyślny 150 PLN) są przy `flight_currency=EUR` przeliczane
+tym samym kursem, a nie tylko podpisywane nową walutą; notatka w wyniku podaje kwotę źródłową
+w PLN. Bilet z cache Travelpayouts jest pobierany od razu w walucie segmentu.
+
 ## Odporność na błędy
 
 `variants.generate_variants()` nigdy nie wywala całego demo z powodu jednego wariantu:

@@ -11,6 +11,7 @@ from flights.extras import get_baggage_by_airline
 from flights.extras import get_extras as flights_get_extras
 
 from .currency import convert as convert_currency
+from .currency import normalize_currency
 from .model import Leg, LegMode, PricedLeg
 from .motis_client import haversine_km
 
@@ -19,7 +20,8 @@ GENERIC_FALLBACK_PLN_PER_KM = 0.35
 (nieznana nazwa agencji z MOTIS) albo kalkulator odrzucił segment — patrz README.md."""
 
 DEFAULT_BAGGAGE_ESTIMATE_PLN = 150.0
-"""Szacunkowy koszt pierwszego bagażu rejestrowanego, gdy relacja nie ma wpisu w
+"""Szacunkowy koszt pierwszego bagażu rejestrowanego W ZŁOTYCH (dla lotu w innej walucie
+przeliczany kursem placeholderowym), gdy relacja nie ma wpisu w
 flights/data/extras_placeholder.json — typowa cena bagażu rejestrowanego do ok. 20 kg u
 tanich linii (Ryanair/Wizz Air) na trasach PL-DE, SZACUNEK, nie oficjalny cennik."""
 
@@ -34,13 +36,16 @@ def _flight_baggage_only_extras(origin: str, destination: str, currency: str) ->
     flights/ podwójnie liczyłoby ten sam koszt."""
     table_entry = flights_get_extras(origin, destination)
     if table_entry.baggage_cost:
+        # kwota z tabeli jest w JEJ walucie (PLN) — przeliczamy na walutę segmentu
         return ExtrasProfile(
-            baggage_cost=table_entry.baggage_cost,
+            baggage_cost=round(
+                convert_currency(table_entry.baggage_cost, table_entry.currency, currency), 2
+            ),
             currency=currency,
             note="Koszt bagażu z placeholderowej tabeli flights/ — nie oficjalny cennik przewoźnika.",
         )
     return ExtrasProfile(
-        baggage_cost=DEFAULT_BAGGAGE_ESTIMATE_PLN,
+        baggage_cost=round(convert_currency(DEFAULT_BAGGAGE_ESTIMATE_PLN, "PLN", currency), 2),
         currency=currency,
         note=(
             f"Brak danych o bagażu dla tej relacji w tabeli flights/ — szacunek domyślny "
@@ -623,6 +628,7 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
 def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
     if leg.mode is not LegMode.FLIGHT:
         raise ValueError(f"price_flight_leg wymaga LegMode.FLIGHT, dostał {leg.mode}")
+    currency = normalize_currency(currency)  # UnsupportedCurrencyError dla waluty bez kursu
 
     origin_iata = leg.extra["origin_iata"]
     destination_iata = leg.extra["destination_iata"]

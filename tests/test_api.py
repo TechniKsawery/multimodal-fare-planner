@@ -92,6 +92,52 @@ def test_route_endpoint_motis_error_zwraca_502(monkeypatch):
     assert "MOTIS nieosiągalny" in response.json()["detail"]
 
 
+def test_route_endpoint_nieobslugiwana_waluta_lotow_zwraca_422_a_nie_500(monkeypatch):
+    """flight_currency=GBP: wcześniej ValueError z routing/currency.py wylatywał jako HTTP 500."""
+
+    def must_not_be_called(*a, **k):
+        raise AssertionError("walidacja waluty powinna zadziałać przed geokodowaniem")
+
+    monkeypatch.setattr(variants.motis_client, "geocode", must_not_be_called)
+
+    response = client.post(
+        "/route",
+        json={"origin": "A", "destination": "B", "date": "2026-10-05", "flight_currency": "GBP"},
+    )
+
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert detail[0]["loc"] == ["body", "flight_currency"]
+    assert "GBP" in detail[0]["msg"]
+    assert "EUR, PLN" in detail[0]["msg"]
+
+
+def test_route_endpoint_przekazuje_walute_lotow_znormalizowana(monkeypatch):
+    captured = {}
+
+    def fake_request_from_addresses(origin_text, destination_text, date, **overrides):
+        captured.update(overrides)
+        return variants.RouteRequest(
+            origin_stop_id="a",
+            destination_stop_id="b",
+            origin_label="A",
+            destination_label="B",
+            date=date,
+            flight_currency=overrides["flight_currency"],
+        )
+
+    monkeypatch.setattr("api.main.request_from_addresses", fake_request_from_addresses)
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **k: [])
+
+    response = client.post(
+        "/route",
+        json={"origin": "A", "destination": "B", "date": "2026-10-05", "flight_currency": "eur"},
+    )
+
+    assert response.status_code == 200
+    assert captured["flight_currency"] == "EUR"
+
+
 def test_route_endpoint_przekazuje_discounts_do_wyceny(monkeypatch):
     """BahnCard/ulga PKP z requestu trafiają do DiscountProfile użytego przy wycenie — sprawdzamy
     to przez request_from_addresses (routing/variants.py), wołane z api/main.py."""

@@ -1,0 +1,124 @@
+{
+  "_uwaga": "Zasady bagażu PODRĘCZNEGO per przewoźnik. Wpis ma price_verified true tylko gdy wymiary/waga/cena pochodzą ze strony oficjalnej przewoźnika (zrodlo + data_weryfikacji). Pozostałe: oficjalna strona była niedostępna z naszego środowiska (blokada egress / robots), więc NIC nie jest zatwierdzone; pole do_potwierdzenia_* to tylko ściąga do ręcznego sprawdzenia, nie dane. Bagaż rejestrowany: osobny plik baggage_by_airline.json.",
+  "stany": [
+    "maly_tylko",
+    "podreczny_platny",
+    "podreczny_w_cenie"
+  ],
+  "przewoznicy": {
+    "LO": {
+      "nazwa": "LOT Polish Airlines",
+      "price_verified": true,
+      "data_weryfikacji": "2026-10-12",
+      "zrodlo": "https://www.lot.com/pl/en/journey/baggage/short-haul-baggage",
+      "taryfa": "Economy (krótki/średni zasięg; strona nie rozróżnia Saver/Classic/Flex)",
+      "stan_w_cenie_bazowej": "podreczny_w_cenie",
+      "maly": {
+        "wymiary_cm": [
+          40,
+          35,
+          12
+        ],
+        "waga_kg": 2
+      },
+      "podreczny": {
+        "wymiary_cm": [
+          55,
+          40,
+          23
+        ],
+        "suma_wymiarow_cm": 118,
+        "waga_kg": 8,
+        "w_cenie": true,
+        "doplata": null
+      }
+    },
+    "LH": {
+      "nazwa": "Lufthansa",
+      "price_verified": true,
+      "data_weryfikacji": "2026-10-12",
+      "zrodlo": "https://www.lufthansa.com/de/en/carry-on-baggage",
+      "taryfa": "Economy Basic vs Light/Comfort/Flex (krótki/średni zasięg)",
+      "stan_w_cenie_bazowej": "zalezy_od_taryfy",
+      "taryfy": {
+        "Economy Basic": {
+          "stan": "maly_tylko",
+          "maly": {
+            "wymiary_cm": [
+              40,
+              30,
+              15
+            ]
+          },
+          "podreczny": null,
+          "uwaga": "Brak bagażu podręcznego w cenie; wyjątek: Miles & More HON Circle/Senator i Star Alliance Gold."
+        },
+        "Economy Light/Comfort/Comfort Green/Flex": {
+          "stan": "podreczny_w_cenie",
+          "maly": {
+            "wymiary_cm": [
+              40,
+              30,
+              15
+            ]
+          },
+          "podreczny": {
+            "wymiary_cm": [
+              55,
+              40,
+              23
+            ],
+            "waga_kg": 8,
+            "w_cenie": true,
+            "doplata": null
+          }
+        }
+      },
+      "uwaga": "Strona nie podaje ceny dopłaty za podręczny w Basic; cena dopłaty niezweryfikowana (price_verified false dla dopłaty)."
+    },
+    "FR": {
+      "nazwa": "Ryanair",
+      "price_verified": false,
+      "weryfikacja": "nieosiagalne_z_srodowiska",
+      "zrodlo_oficjalne_do_sprawdzenia": "https://www.ryanair.com/gb/en/useful-info/help-centre/bag-policy",
+      "data_proby": "2026-10-12",
+      "cena_w_bazie": null,
+      "podreczny_platny": null,
+      "do_potwierdzenia_wg_wiedzy_ogolnej": "mały darmowy; większy (Priority, 10 kg) płatny; wymiary i ceny do sprawdzenia",
+      "uwaga": "Strona jest SPA, fetch zwrócił tylko metadane."
+    },
+    "W6": {
+      "nazwa": "Wizz Air",
+      "price_verified": false,
+      "weryfikacja": "nieosiagalne_z_srodowiska",
+      "zrodlo_oficjalne_do_sprawdzenia": "https://wizzair.com/en-gb/information-and-services/before-you-fly/baggage",
+      "data_proby": "2026-10-12",
+      "cena_w_bazie": null,
+      "podreczny_platny": null,
+      "do_potwierdzenia_wg_wiedzy_ogolnej": "mały darmowy; trolley płatny; wagi/ceny do sprawdzenia (zgłoszone przez Ksaviego: różne ceny za różne wagi)",
+      "uwaga": "robots.txt zabrania pobrania; proxy blokuje domenę."
+    },
+    "EW": {
+      "nazwa": "Eurowings",
+      "price_verified": false,
+      "weryfikacja": "nieosiagalne_z_srodowiska",
+      "zrodlo_oficjalne_do_sprawdzenia": "https://www.eurowings.com/en/information/baggage/hand-luggage.html",
+      "data_proby": "2026-10-12",
+      "cena_w_bazie": null,
+      "podreczny_platny": null,
+      "do_potwierdzenia_wg_wiedzy_ogolnej": "zasady zależą od taryfy (BASIC/SMART/BEST); do sprawdzenia",
+      "uwaga": "Proxy blokuje domenę."
+    },
+    "U2": {
+      "nazwa": "easyJet",
+      "price_verified": false,
+      "weryfikacja": "nieosiagalne_z_srodowiska",
+      "zrodlo_oficjalne_do_sprawdzenia": "https://www.easyjet.com/en/help/boarding-and-bags/cabin-bags",
+      "data_proby": "2026-10-12",
+      "cena_w_bazie": null,
+      "podreczny_platny": null,
+      "do_potwierdzenia_wg_wiedzy_ogolnej": "mały pod fotel w cenie; większy płatny/zależny od miejsca; do sprawdzenia",
+      "uwaga": "Proxy blokuje domenę."
+    }
+  }
+}

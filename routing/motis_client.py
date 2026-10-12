@@ -43,6 +43,93 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2 * r * math.asin(math.sqrt(a))
 
 
+def decode_polyline(points: str, precision: int = 6) -> list[tuple[float, float]]:
+    """Dekoduje Google encoded polyline (tak MOTIS koduje `legGeometry`) na listę (lat, lon).
+
+    `precision` pochodzi z odpowiedzi (MOTIS v2+/API v6: 6 cyfr po przecinku)."""
+    factor = 10.0**precision
+    coords: list[tuple[float, float]] = []
+    index = lat = lon = 0
+    while index < len(points):
+        deltas = []
+        for _ in range(2):
+            shift = result = 0
+            while True:
+                chunk = ord(points[index]) - 63
+                index += 1
+                result |= (chunk & 0x1F) << shift
+                shift += 5
+                if chunk < 0x20:
+                    break
+            deltas.append(~(result >> 1) if result & 1 else result >> 1)
+        lat += deltas[0]
+        lon += deltas[1]
+        coords.append((lat / factor, lon / factor))
+    return coords
+
+
+def _path_km(path: list[tuple[float, float]]) -> float:
+    return sum(haversine_km(*a, *b) for a, b in zip(path, path[1:], strict=False))
+
+
+# Etykiety źródła kilometrów po torach (trafiają do Segment.distance_source i breakdown ceny).
+TRACK_KM_GEOMETRY = "geometria odcinka z MOTIS (legGeometry)"
+TRACK_KM_STOPS = "suma odległości między przystankami pośrednimi z MOTIS (intermediateStops)"
+
+# Koniec geometrii musi leżeć blisko stacji końcowej odcinka; dalszy kształt to nie ta trasa.
+GEOMETRY_ENDPOINT_TOLERANCE_KM = 2.0
+
+
+def _geometry_path(raw: dict) -> list[tuple[float, float]] | None:
+    """Punkty `legGeometry` odcinka transitu albo None, gdy MOTIS nie dał użytecznego kształtu
+    (pusta polilinia przy detailedLegs=false, tylko 2 punkty = zwykła prosta, końce nie pasują)."""
+    geometry = raw.get("legGeometry") or {}
+    if not geometry.get("points"):
+        return None
+    path = decode_polyline(geometry["points"], geometry.get("precision") or 6)
+    if len(path) < 3:
+        return None
+    origin, destination = raw["from"], raw["to"]
+    if (
+        haversine_km(*path[0], origin["lat"], origin["lon"]) > GEOMETRY_ENDPOINT_TOLERANCE_KM
+        or haversine_km(*path[-1], destination["lat"], destination["lon"])
+        > GEOMETRY_ENDPOINT_TOLERANCE_KM
+    ):
+        return None
+    return path
+
+
+def _stops_path(raw: dict) -> list[tuple[float, float]] | None:
+    """from -> intermediateStops -> to jako łamana albo None (brak przystanków pośrednich albo
+    któryś bez współrzędnych)."""
+    stops = raw.get("intermediateStops") or []
+    if not stops:
+        return None
+    points = [raw["from"], *stops, raw["to"]]
+    if any(p.get("lat") is None or p.get("lon") is None for p in points):
+        return None
+    return [(p["lat"], p["lon"]) for p in points]
+
+
+def track_distance_km(raw: dict) -> tuple[float, str] | None:
+    """Długość odcinka transitu mierzona wzdłuż trasy pociągu (nie w linii prostej), z tego, co
+    MOTIS faktycznie zwraca: kształtu `legGeometry` albo łamanej przez `intermediateStops`.
+
+    Zwraca (km, etykieta źródła) albo None, gdy odpowiedź nie niesie nic ponad linię prostą.
+    MOTIS NIE zwraca `shape_dist_traveled` z GTFS. Obie metody to suma odcinków prostych (między
+    punktami kształtu / przystankami), więc są dolnym ograniczeniem długości toru, ale nie tak
+    zaniżonym jak jedna cięciwa początek-koniec. Przy obu wiarygodnych źródłach bierzemy
+    dłuższe (bliższe torom); bez żadnego współczynnika korygującego."""
+    candidates = []
+    for path, label in (
+        (_geometry_path(raw), TRACK_KM_GEOMETRY),
+        (_stops_path(raw), TRACK_KM_STOPS),
+    ):
+        if path:
+            candidates.append((_path_km(path), label))
+    return max(candidates, key=lambda c: c[0]) if candidates else None
+
+
 def _geocode_raw(text: str) -> list[dict]:
     """Surowa odpowiedź /api/v1/geocode (z polami type/id, jeśli MOTIS je zwraca)."""
     try:
@@ -261,21 +348,25 @@ def itinerary_to_legs(itinerary: dict) -> list[Leg]:
         )  # tramwaj/metro/autobus = transport lokalny; SUBURBAN (SKM, S-Bahn) też trafia do BUS,
         # ale wycenia go osobna ścieżka (pricing.is_suburban_leg), nie ryczałt autobusowy
         has_prev_transit = any(l.mode is not LegMode.WALK for l in legs)
+        extra = {
+            "motis_mode": raw["mode"],
+            "route_short_name": raw.get("routeShortName"),
+            "origin_stop_id": origin.get("stopId"),
+            "destination_stop_id": destination.get("stopId"),
+            "origin_lat": origin.get("lat"),
+            "origin_lon": origin.get("lon"),
+            "destination_lat": destination.get("lat"),
+            "destination_lon": destination.get("lon"),
+        }
+        track = track_distance_km(raw)
+        if track is not None:
+            extra["distance_along_track_km"], extra["distance_along_track_source"] = track
         legs.append(
             Leg(
                 mode=mode,
                 carrier_name=raw.get("agencyName") or raw.get("routeShortName") or "",
                 requires_walk=preceded_by_walk if has_prev_transit else False,
-                extra={
-                    "motis_mode": raw["mode"],
-                    "route_short_name": raw.get("routeShortName"),
-                    "origin_stop_id": origin.get("stopId"),
-                    "destination_stop_id": destination.get("stopId"),
-                    "origin_lat": origin.get("lat"),
-                    "origin_lon": origin.get("lon"),
-                    "destination_lat": destination.get("lat"),
-                    "destination_lon": destination.get("lon"),
-                },
+                extra=extra,
                 **common,
             )
         )

@@ -185,9 +185,14 @@ przewoźników dalekobieżnych:
   (`infer_pl_regional_carrier()`, kraj wg współrzędnych, bez nich wg prefiksu datasetu) →
   `Carrier.POLREGIO_PODSTAWOWA`: degresywna tabela odległościowa zamiast sztywnego 0,35 zł/km
   (`fares/polregio.py`). Kwoty pasm są potwierdzone (źródło i data w `breakdown`,
-  `price_verified=True`), ale `leg.distance_km` to linia prosta, nie km po torach, więc wynik
-  zostaje `price_type="szacunek"` z opisem przybliżenia (patrz fares/README.md). Odcinek
-  transgraniczny albo bez ustalonego kraju tej tabeli nie dostaje.
+  `price_verified=True`). `leg.distance_km` to zawsze linia prosta; pasmo wybieramy jednak z
+  km po torach, gdy MOTIS dał geometrię odcinka (`legGeometry`) albo przystanki pośrednie
+  (`intermediateStops`): `motis_client.track_distance_km()` zapisuje je w `leg.extra`
+  (`distance_along_track_km`, `distance_along_track_source`), a `price_rail_leg` przekazuje do
+  `Segment.distance_along_track`/`distance_source`. Wtedy (kwota pasma potwierdzona, bez ulgi)
+  `price_type="oficjalna_taryfa"`, a `breakdown["zrodlo_km"]` i `notes` mówią, skąd pochodzi
+  kilometr. Bez geometrii i przystanków zostaje linia prosta i `price_type="szacunek"` (patrz
+  fares/README.md). Odcinek transgraniczny albo bez ustalonego kraju tej tabeli nie dostaje.
 - każdy inny przewoźnik (DB Regio, S-Bahn, ODEG, a w Polsce Koleje Mazowieckie, ŁKA, SKM, ...) →
   taryfa zależy od MIEJSCA:
   taryfa miejska, gdy oba końce leżą w obszarze miasta z `CITY_TARIFF_AREAS` (Berlin, Hamburg,

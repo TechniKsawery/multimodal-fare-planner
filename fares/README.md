@@ -196,16 +196,34 @@ pliku danych (pole `potwierdzone`). W sesji, w której powstał kalkulator, dome
 zablokowane (403 egress), więc potwierdzenie pochodzi z weryfikacji Gemini, nie z mojego odczytu.
 Szczegóły: `verification/taryfy-skm-rb-weryfikacja-2026-10-12.md`.
 
-**Co znaczy „potwierdzone”, a co zostaje szacunkiem.** Potwierdzona jest KWOTA pasma, ale
-`leg.distance_km` z MOTIS to linia prosta, nie km po torach, więc pasmo bywa zaniżone. Dlatego:
-- `breakdown["price_verified"]=True`, `zrodlo_url` i `data_weryfikacji` w `breakdown`,
-  `breakdown["odleglosc_taryfowa"]="linia prosta"` i opis (`notes`) z informacją o przybliżeniu,
-  ale `price_type="szacunek"`;
-- `PriceType.OFFICIAL` dopiero, gdy `Segment.distance_along_track=True` (km po torach); routing
-  tego dziś nie ustawia;
-- cena z ulgą (procent od ceny bazowej, nie tabela ulg POLREGIO) ma `price_verified=False`;
+**Co znaczy „potwierdzone”, a co zostaje szacunkiem.** Potwierdzona jest KWOTA pasma, ale pasmo
+zależy od kilometrów taryfowych (po torach), a `leg.distance_km` z MOTIS to linia prosta, która je
+zaniża (Wrocław–Kłodzko: ok. 79 km prosto, ok. 84 km po stacjach — pasmo do 90 km zamiast do 80).
+Dlatego:
+- gdy odpowiedź MOTIS ma geometrię odcinka (`legGeometry`) albo przystanki pośrednie
+  (`intermediateStops`), routing liczy z nich km (`routing/motis_client.py::track_distance_km`,
+  dłuższy z dwóch kandydatów, bez żadnego współczynnika) i ustawia
+  `Segment.distance_along_track=True` oraz `Segment.distance_source`; wtedy
+  `breakdown["odleglosc_taryfowa"]="po torach"`, `breakdown["zrodlo_km"]` i `notes` podają
+  źródło kilometra, a przy potwierdzonym paśmie bez ulgi `price_type="oficjalna_taryfa"`.
+  Uwaga: to suma odcinków prostych między punktami kształtu/przystankami, czyli dolne
+  ograniczenie długości toru (bliższe prawdy niż cięciwa, ale nie pomiar taryfowy co do km);
+  MOTIS nie zwraca `shape_dist_traveled` z GTFS;
+- bez geometrii i przystanków (albo gdy kształt nie pasuje do stacji końcowych): linia prosta,
+  `breakdown["odleglosc_taryfowa"]="linia prosta"`, opis (`notes`) z informacją o przybliżeniu i
+  `price_type="szacunek"`;
+- `breakdown["price_verified"]=True`, `zrodlo_url` i `data_weryfikacji` w `breakdown` w obu
+  przypadkach, gdy pasmo ma potwierdzenie;
+- cena z ulgą (procent od ceny bazowej, nie tabela ulg POLREGIO) ma `price_verified=False` i
+  `price_type="szacunek"` także przy km po torach;
 - pasmo bez `potwierdzone` (albo z pustą datą / URL-em niebędącym adresem http) jest
   niepotwierdzone (testy na fixture w `tests/fixtures/`).
+
+Testy kilometrów po torach: `tests/test_track_distance.py` na syntetycznym fixture
+`tests/fixtures/motis_kd_wroclaw_klodzko.json` (schemat MOTIS v6, przybliżone współrzędne; to nie
+zapis prawdziwej odpowiedzi). Nie zweryfikowano w chmurze (mkuran.pl i MOTIS są niedostępne), czy GTFS `polish_trains`
+zawiera `shapes.txt` ani co `legGeometry` zawiera bez niego; dlatego liczymy też z przystanków
+pośrednich i podajemy w cenie, które źródło wygrało. Do sprawdzenia na żywym MOTIS.
 
 Znane ograniczenia:
 - POLREGIO w części województw stosuje własne taryfy regionalne (Pomorska, Podlaska,

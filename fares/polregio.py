@@ -4,8 +4,9 @@ degresywnej tabeli odległościowej (Taryfa Podstawowa) zamiast sztywnego PLN/km
 Dane: fares/data/polregio_taryfa_podstawowa.json. KAŻDE pasmo ma pole "potwierdzone": null albo
 {"zrodlo_url": ..., "data": "YYYY-MM-DD"}. Tylko pasmo z takim obiektem daje wynik
 breakdown["price_verified"]=True (bez ulgi) i zrodlo_url/data_weryfikacji w breakdown. Typ
-wyniku to PriceType.OFFICIAL tylko, gdy Segment.distance_along_track (km po torach); przy linii
-prostej z MOTIS zostaje PriceType.ESTIMATE z opisem przybliżenia. Stan: wszystkie 30 pasm
+wyniku to PriceType.OFFICIAL tylko, gdy Segment.distance_along_track (km po torach, ze źródłem w
+Segment.distance_source); przy linii prostej z MOTIS zostaje PriceType.ESTIMATE z opisem
+przybliżenia. Stan: wszystkie 30 pasm
 potwierdzone przez Gemini 2026-10-12 (TPR POLREGIO od 1.09.2026; patrz _zrodlo_raportu w pliku
 danych i verification/taryfy-skm-rb-weryfikacja-2026-10-12.md).
 """
@@ -70,6 +71,8 @@ def estimate(segment: Segment, table: dict | None = None) -> PriceEstimate:
         "price_verified": verified,
         "odleglosc_taryfowa": "po torach" if segment.distance_along_track else "linia prosta",
     }
+    if segment.distance_along_track and segment.distance_source:
+        breakdown["zrodlo_km"] = segment.distance_source
     if confirmation is not None:
         breakdown["zrodlo_url"] = confirmation["zrodlo_url"]
         breakdown["data_weryfikacji"] = confirmation["data"]
@@ -78,6 +81,8 @@ def estimate(segment: Segment, table: dict | None = None) -> PriceEstimate:
             f"2. klasa), kwota pasma do {band['do_km']} km potwierdzona: "
             f"{confirmation['zrodlo_url']} ({confirmation['data']})."
         )
+        if segment.distance_along_track and segment.distance_source:
+            notes += f" Kilometry po torach: {segment.distance_source}."
         if not segment.distance_along_track:
             notes += (
                 " Pasmo dobrane z odległości w linii prostej, nie z km po torach — cena "

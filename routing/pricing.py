@@ -609,12 +609,23 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
             "(taryfa eezy.nrw/VRR obowiązuje tylko w NRW, taryfy miejskie tylko w obrębie miasta).",
         )
 
+    distance_km, along_track, distance_source = leg.distance_km, False, None
+    if carrier is Carrier.POLREGIO_PODSTAWOWA:
+        # Pasmo taryfy POLREGIO/KD/KŚ liczy km po torach; gdy MOTIS dał geometrię albo przystanki
+        # pośrednie (motis_client.track_distance_km), wybieramy pasmo z nich zamiast z linii prostej.
+        track_km = leg.extra.get("distance_along_track_km")
+        if track_km is not None:
+            distance_km, along_track = track_km, True
+            distance_source = leg.extra.get("distance_along_track_source")
+
     try:
         segment = Segment(
             carrier=carrier,
             origin=leg.origin_name,
             destination=leg.destination_name,
-            distance_km=leg.distance_km,
+            distance_km=distance_km,
+            distance_along_track=along_track,
+            distance_source=distance_source,
             ride_duration_min=leg.duration_min,
             discounts=discounts,
             travel_date=leg.depart.date().isoformat(),

@@ -178,6 +178,10 @@ class Segment:
     """Tylko Carrier.POLREGIO_PODSTAWOWA: czy distance_km to kilometry TARYFOWE (po torach), a nie
     linia prosta. Domyślnie False — MOTIS daje linię prostą (leg.distance_km), która zaniża pasmo
     taryfy, więc nawet potwierdzone pasmo daje wtedy PriceType.ESTIMATE (fares/polregio.py)."""
+    distance_source: str | None = None
+    """Tylko Carrier.POLREGIO_PODSTAWOWA, gdy distance_along_track=True: skąd pochodzi kilometr
+    (np. geometria odcinka z MOTIS albo suma odległości między przystankami); trafia do
+    breakdown["zrodlo_km"] i do opisu ceny."""
     german_portion_fraction: float | None = None
     """Tylko Carrier.INTERNATIONAL_PL_DE: szacowany udział (0-1) niemieckiego odcinka trasy w
     całym dystansie (linia prosta), używany do proporcjonalnego naliczenia rabatu BahnCard,

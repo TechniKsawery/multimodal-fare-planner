@@ -1,0 +1,50 @@
+{
+  "_uwaga": "Fixture SYNTETYCZNY zgodny ze schematem MOTIS API v6 (Leg.intermediateStops, Leg.legGeometry); współrzędne przystanków i kształtu są przybliżone, to NIE zapis prawdziwej odpowiedzi MOTIS.",
+  "duration": 5400,
+  "legs": [
+    {
+      "mode": "REGIONAL_RAIL",
+      "from": {
+        "name": "Wrocław Główny",
+        "stopId": "pl_wroclaw_gl",
+        "lat": 51.0989,
+        "lon": 17.0362,
+        "departure": "2026-10-20T08:00:00Z"
+      },
+      "to": {
+        "name": "Kłodzko Główne",
+        "stopId": "pl_klodzko_gl",
+        "lat": 50.4337,
+        "lon": 16.6537,
+        "arrival": "2026-10-20T09:30:00Z"
+      },
+      "intermediateStops": [
+        {
+          "name": "Wrocław Mikołajów",
+          "lat": 51.0589,
+          "lon": 17.0347
+        },
+        {
+          "name": "Strzelin",
+          "lat": 50.7807,
+          "lon": 17.0669
+        },
+        {
+          "name": "Ząbkowice Śląskie",
+          "lat": 50.5897,
+          "lon": 16.81
+        }
+      ],
+      "legGeometry": {
+        "points": "gpym`Boyxn_@~bmAv|AfwzFg{\\frbHg_`@vewEfkjGvy{C~jiFfenD~dtBvn`Cva{D",
+        "precision": 6,
+        "length": 8
+      },
+      "duration": 5400,
+      "startTime": "2026-10-20T08:00:00Z",
+      "endTime": "2026-10-20T09:30:00Z",
+      "agencyName": "Koleje Dolnośląskie",
+      "routeShortName": "KD"
+    }
+  ]
+}

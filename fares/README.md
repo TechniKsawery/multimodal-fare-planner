@@ -38,7 +38,10 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 - **Kolej podmiejska poza znanymi taryfami (SKM Szczecin/Trójmiasto, S-Bahn spoza Berlina i NRW)**
   — `fares/` NIE ma dla niej modułu ani danych w `fares/data/*`. `routing/pricing.py` (tryb
   `SUBURBAN`, `price_suburban_leg`) wycenia ją jako niepotwierdzony szacunek PLN/km
-  (`price_verified=False`), a nie jako autobus za 4 PLN. Dodanie modułu wymaga cennika z URL źródła
+  (`price_verified=False`), a nie jako autobus za 4 PLN. To samo dotyczy odcinków, które feed
+  oznaczył jako `BUS`, ale są dłuższe niż 20 km (`LOCAL_BUS_MAX_KM`, np. RB66 Szczecin ->
+  Angermünde, 58 km: ok. 20 PLN, niepotwierdzone) — ryczałt 4 PLN zostaje tylko dla krótkich
+  odcinków lokalnych. Dodanie modułu wymaga cennika z URL źródła
   i datą weryfikacji (jak pozostałe pliki w `fares/data/`).
 - **FlixBus** (`fares/flixbus.py` + `fares/_flixbus_api.py`) — REALNA cena z publicznego
   (nieoficjalnego) API FlixBusa dla konkretnej daty przejazdu, z fallbackiem do zgrubnego

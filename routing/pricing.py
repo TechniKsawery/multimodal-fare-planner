@@ -681,6 +681,28 @@ breakdown["wartosc_zastepcza"]=True; wariant z takim odcinkiem nie wygrywa ranki
 z wariantem o potwierdzonej cenie (routing/scoring.py)."""
 
 
+LOCAL_BUS_MAX_KM = max(radius for _lat, _lon, radius in CITY_TARIFF_AREAS.values())
+"""Maksymalny dystans (km, linia prosta jak leg.distance_km, WŁĄCZNIE), do którego ryczałt
+LOCAL_BUS_FLAT_PLN w ogóle ma sens. Nie jest to stawka ani cena, tylko granica stosowalności
+placeholdera, wyprowadzona z danych w repo: to największy promień koła taryfy miejskiej w
+CITY_TARIFF_AREAS (dziś 20 km, Berlin; pozostałe miasta 11-15 km). Odcinek dłuższy niż promień
+największego obsługiwanego miasta nie jest typową jazdą w obrębie jednego biletu miejskiego,
+więc płaski ryczałt (liczony jak jeden bilet) zaniżałby jego koszt (RB66 Szczecin -> Angermünde,
+58,2 km, dostawał 4,00 PLN). Takie odcinki idą ścieżką szacunku PLN/km
+(price_long_unknown_local_leg). Próg jest związany z CITY_TARIFF_AREAS, więc dodanie większego
+miasta podnosi go automatycznie; brak distance_km nie jest dowodem, że odcinek jest długi —
+wtedy zostaje ryczałt (jawnie niepotwierdzony)."""
+
+LONG_LOCAL_LEG_REASON = "odcinek za długi na ryczałt lokalny"
+
+TRAIN_LINE_PATTERN = re.compile(
+    r"^(?:IRE|IR|RE|RB|RS|SKM|PKM|SKA|S)(?:\s*-?\d+[A-Za-z]?)?$", re.IGNORECASE
+)
+"""Oznaczenia linii kolejowych w routeShortName z MOTIS (RB66, RE1, IRE, S1, SKM, PKM...). Sygnał
+POMOCNICZY tylko do opisu odcinka (is_train_like_line); NIE zmienia trybu ani ceny — feed bywa
+niespójny (ten sam kod bywa autobusem zastępczym), więc cena i tak jest niepotwierdzona."""
+
+
 LONG_DISTANCE_COACH_KEYWORDS = ("flix", "regiojet", "blablabus")
 
 
@@ -733,6 +755,38 @@ def price_suburban_leg(leg: Leg) -> PricedLeg:
         "zweryfikowanej stawki w fares/data/*; to nie autobus, więc bez ryczałtu autobusowego.",
     )
     priced.breakdown["tryb_motis"] = SUBURBAN_MOTIS_MODE
+    return priced
+
+
+def is_train_like_line(leg: Leg) -> bool:
+    """Czy leg.extra["route_short_name"] wygląda na linię kolejową (RB, RE, IRE, S, SKM...).
+    Tylko sygnał pomocniczy do opisu — nie dowód, że to pociąg (może być komunikacja zastępcza)."""
+    return bool(TRAIN_LINE_PATTERN.match(str(leg.extra.get("route_short_name") or "").strip()))
+
+
+def price_long_unknown_local_leg(leg: Leg) -> PricedLeg:
+    """Odcinek oznaczony przez feed jako autobus/tramwaj, bez znanej taryfy, ale dłuższy niż
+    LOCAL_BUS_MAX_KM: NIE ryczałt lokalny, tylko niepotwierdzony szacunek PLN/km
+    (_fallback_priced_leg; price_type="szacunek", price_verified=False, bez wartosc_zastepcza).
+    Nie wiemy, czy to pociąg, czy komunikacja zastępcza, więc nie zgadujemy — linia typu RB/RE/S
+    (is_train_like_line) trafia tylko do opisu (notes, breakdown["sygnal_linii"])."""
+    priced = _fallback_priced_leg(
+        leg,
+        f"Nieznany operator '{leg.carrier_name}' poza obsługiwanymi miastami i NRW; odcinek "
+        f"{leg.distance_km:.0f} km jest dłuższy niż {LOCAL_BUS_MAX_KM:.0f} km, więc bez ryczałtu "
+        "lokalnego.",
+    )
+    priced.breakdown["powod_szacunku"] = LONG_LOCAL_LEG_REASON
+    priced.breakdown["prog_ryczaltu_km"] = LOCAL_BUS_MAX_KM
+    if is_train_like_line(leg):
+        route = str(leg.extra.get("route_short_name")).strip()
+        priced.breakdown["sygnal_linii"] = (
+            f"oznaczenie linii {route} wskazuje na pociąg (niepotwierdzone)"
+        )
+        priced.notes = (
+            f"{priced.notes} Oznaczenie linii {route} sugeruje pociąg, ale feed podaje autobus "
+            "— tryb niepotwierdzony."
+        )
     return priced
 
 
@@ -807,6 +861,9 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
 
     if is_suburban_leg(leg):
         return price_suburban_leg(leg)
+
+    if leg.distance_km is not None and leg.distance_km > LOCAL_BUS_MAX_KM:
+        return price_long_unknown_local_leg(leg)
 
     return PricedLeg(
         leg=leg,

@@ -95,8 +95,13 @@ def test_skm_trojmiasto_tez_niepotwierdzony_nie_ryczalt():
 
 
 def test_pozostale_tryby_lokalne_nadal_maja_ryczalt_bus_jako_wartosc_zastepcza():
-    leg = _suburban("Szczecin Główny", "Angermünde", SZCZECIN_GLOWNY, ANGERMUENDE, carrier="X")
+    # Krótki odcinek (poniżej LOCAL_BUS_MAX_KM); długie idą na szacunek PLN/km
+    # (tests/test_long_local_leg_pricing.py).
+    leg = _suburban(
+        "Szczecin Główny", "Szczecin Gumieńce", SZCZECIN_GLOWNY, (53.4150, 14.4900), carrier="X"
+    )
     leg.extra["motis_mode"] = "BUS"
+    assert leg.distance_km < pricing.LOCAL_BUS_MAX_KM
     priced = pricing.price_bus_leg(leg)
     assert priced.amount == pricing.LOCAL_BUS_FLAT_PLN
     assert priced.breakdown["wartosc_zastepcza"] is True

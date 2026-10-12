@@ -13,6 +13,21 @@ def _dt(hour, minute=0, day=28):
     return datetime(2026, 9, day, hour, minute, tzinfo=UTC)
 
 
+ESSEN_HBF = (51.4514, 7.0139)
+ESSEN_RUETTENSCHEID = (51.4300, 7.0000)
+DORTMUND_HBF = (51.5178, 7.4593)
+
+
+def _coords(origin, destination):
+    """leg.extra ze współrzędnymi obu końców, tak jak ustawia je motis_client.itinerary_to_legs."""
+    return {
+        "origin_lat": origin[0],
+        "origin_lon": origin[1],
+        "destination_lat": destination[0],
+        "destination_lon": destination[1],
+    }
+
+
 def make_leg(
     mode,
     origin,
@@ -359,8 +374,12 @@ def test_infer_rail_carrier_db():
     assert pricing.infer_rail_carrier("DB Fernverkehr AG") is Carrier.DB
 
 
-def test_infer_rail_carrier_regionalny_niemiecki_jako_vrr():
-    assert pricing.infer_rail_carrier("S Bahn Berlin GmbH") is Carrier.VRR
+def test_infer_rail_carrier_regionalny_nie_jest_vrr_po_samej_nazwie():
+    # Błąd K2 z audytu: ten test utrwalał S-Bahn Berlin jako VRR (taryfa Zagłębia Ruhry), a
+    # słowo "regio" łapało też POLREGIO i każde DB Regio w Niemczech. Taryfę regionalną
+    # ustala price_rail_leg() geograficznie (eezy.nrw tylko w NRW), nie nazwa przewoźnika.
+    for nazwa in ("S Bahn Berlin GmbH", "DB Regio AG Nordost", "POLREGIO", "ODEG", "Abellio"):
+        assert pricing.infer_rail_carrier(nazwa) is None, nazwa
 
 
 def test_infer_rail_carrier_nieznany_zwraca_none():
@@ -424,7 +443,7 @@ def test_price_rail_leg_pkp_woła_fares(monkeypatch):
 
 def test_price_rail_leg_s_bahn_hamburg_uzywa_hvv_nie_vrr():
     # Regresja 2026-10-11: MOTIS klasyfikuje S-Bahn Hamburg jako RAIL (nie BUS), a nazwa
-    # przewoźnika "S-Bahn Hamburg" zawiera "s-bahn" z VRR_AREA_KEYWORDS — bez poprawki
+    # przewoźnika "S-Bahn Hamburg" zawierała "s-bahn" z (usuniętych) VRR_AREA_KEYWORDS — bez poprawki
     # infer_rail_carrier() łapał to jako Carrier.VRR i liczył taryfą eezy.nrw (Zagłębie
     # Ruhry) zamiast HVV. Realny test na żywym MOTIS: 4.10/1.50/0.00 EUR (HVV) vs błędne
     # 2.46 EUR (VRR) przed poprawką — patrz verification/.
@@ -487,10 +506,12 @@ def test_price_rail_leg_regionalny_nrw_bez_miasta_nadal_vrr():
         _dt(7),
         carrier="DB Regio AG NRW",
         distance_km=40,
+        extra=_coords(ESSEN_HBF, DORTMUND_HBF),
     )
     priced = pricing.price_rail_leg(leg, DiscountProfile())
     assert priced.currency == "EUR"
     assert priced.price_type == "oficjalna_taryfa"
+    assert priced.carrier is Carrier.VRR
 
     from fares.calculator import estimate_price as _estimate_price
     from fares.model import Carrier as _Carrier
@@ -1366,7 +1387,7 @@ def test_tramwaj_vrr_wyceniany_eezy_nrw():
         _dt(6, 12),
         carrier="Ruhrbahn",
         distance_km=3.5,
-        extra={"motis_mode": "TRAM"},
+        extra={"motis_mode": "TRAM", **_coords(ESSEN_HBF, ESSEN_RUETTENSCHEID)},
     )
     priced = pricing.price_bus_leg(tram)
     assert priced.currency == "EUR"
@@ -1388,6 +1409,7 @@ def test_autobus_nieznanego_operatora_bez_dystansu_ryczalt():
     priced = pricing.price_bus_leg(leg)
     assert priced.amount == pricing.LOCAL_BUS_FLAT_PLN
     assert priced.price_type == "szacunek"
+    assert priced.breakdown["price_verified"] is False
 
 
 # --- przesiadki niewykonalne (poniżej absolutnego minimum) są odrzucane, ciasne = ryzykowne -----

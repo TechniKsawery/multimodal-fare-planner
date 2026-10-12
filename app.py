@@ -115,6 +115,8 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             price = f"{m:.0f} m" if m else ""
         else:
             price = f"{p.amount:.2f} {p.currency} ({p.price_type})"
+            if p.breakdown.get("price_verified") is False:
+                price += " — cena niepotwierdzona"
         rozbicie = ""
         zrodlo_bagazu = ""
         if leg.mode.value == "lot" and "cena_biletu" in p.breakdown:

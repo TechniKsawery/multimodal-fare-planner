@@ -138,20 +138,34 @@ kraju po którejś stronie (brak lat/lon i stopId, albo stacja w pasie przygrani
 14.0-14.9°E, gdzie skrzynki PL/DE nachodzą na siebie) → bezpiecznie `False` (leg idzie zwykłą,
 krajową ścieżką wyceny zamiast fałszywie alarmować).
 
-Dopiero dla odcinków KRAJOWYCH `pricing.infer_rail_carrier()` mapuje `agencyName` z MOTIS na
-przewoźnika z `fares/`:
-- `"PKP Intercity"` → `Carrier.PKP_INTERCITY`
+Granica PL/DE: skrzynki PL/DE nakładają się w pasie ok. 14.0-15.05°E (Görlitz leży na wschód od
+14.9°E, Szczecin na zachód od Odry) — tam kraj rozstrzyga przybliżona łamana granicy Odra-Nysa
+(`_PL_DE_BORDER_LINE`), z marginesem ok. 700 m, w którym nie zgadujemy (None). Odcinek
+transgraniczny przewoźnika innego niż PKP Intercity/DB (np. DB Regio Szczecin–Berlin, Koleje
+Dolnośląskie Wrocław–Görlitz) NIE dostaje taryfy międzynarodowej — moduły `fares/international*.py`
+opisują oferty PKP Intercity/DB — tylko niepotwierdzony szacunek.
+
+Dla odcinków KRAJOWYCH `pricing.infer_rail_carrier()` mapuje `agencyName` z MOTIS wyłącznie na
+przewoźników dalekobieżnych:
+- `"PKP Intercity"` → `Carrier.PKP_INTERCITY` (pociąg EIC/EIP po `routeShortName`: kwota z pasm
+  TLK/IC, ale `price_type="szacunek"` i `breakdown["price_verified"]=False` — ceny EIC/EIP są w
+  cenniku per relacja, których nie mamy)
 - nazwa zawierająca `"DB Fernverkehr"`/`"Deutsche Bahn"` → `Carrier.DB`
-- każdy inny niemiecki przewoźnik regionalny (S-Bahn, Abellio, National Express, **DB Regio**, ...) →
-  `Carrier.VRR` — **zweryfikowane jako poprawne** (nie uproszczenie do poprawienia): nasz
-  regionalny feed GTFS (dataset `derv`) obejmuje wyłącznie obszar VRR (Nadrenia
-  Północna-Westfalia), więc każdy taki przewoźnik w naszych danych fizycznie jeździ w obszarze
-  taryfowym VRR, a taryfa eezy.nrw w ogóle nie uznaje BahnCard (sprawdzone na vrr.de,
-  2026-09-29) — w przeciwieństwie do biletów DB. Zob. `infer_rail_carrier()` w
-  `routing/pricing.py` po pełne uzasadnienie.
-- nieznany przewoźnik (np. polskie koleje regionalne) → zgrubny fallback
-  `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km) zamiast błędu, żeby jeden nierozpoznany
-  przewoźnik nie wywalał całego wariantu.
+- każdy inny przewoźnik (POLREGIO, DB Regio, S-Bahn, ODEG, ...) → taryfa zależy od MIEJSCA:
+  taryfa miejska, gdy oba końce leżą w obszarze miasta z `CITY_TARIFF_AREAS` (Berlin, Hamburg,
+  Monachium, Kolonia — Verbundtarif obejmuje też S-Bahn/RE), a `Carrier.VRR` (eezy.nrw) **tylko
+  gdy oba końce leżą w NRW** (`is_leg_in_nrw()`, konserwatywne prostokąty `_NRW_INNER_BOXES`).
+  Wcześniej każda nazwa z `"regio"`/`"s-bahn"` szła do VRR z uzasadnieniem, że feed `derv` obejmuje
+  tylko NRW — to nieprawda (`scripts/fetch_data.py` pobiera gtfs.de `rv_free`/`nv_free` dla całych
+  Niemiec), a `"regio"` łapało też POLREGIO (błąd K2 z audytu).
+- wszystko inne → zgrubny fallback `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km),
+  `price_type="szacunek"`, `breakdown["price_verified"]=False`, żeby jeden nierozpoznany
+  przewoźnik nie wywalał całego wariantu, ale też nie udawał ceny z cennika.
+
+Autobusy/tramwaje (`price_bus_leg()`): taryfa miejska tylko, gdy oba końce leżą w obszarze miasta
+z `CITY_TARIFF_AREAS` (bez współrzędnych: nazwy dopasowywane jako CAŁE słowa, więc „Krakowskie
+Przedmieście" w Warszawie nie dostaje taryfy MPK Kraków — błąd S4), eezy.nrw tylko w NRW, a poza
+tym jawny placeholder `LOCAL_BUS_FLAT_PLN` z `price_verified=False`.
 
 `fares/` wymaga teraz `distance_km` dla WSZYSTKICH przewoźników (w tym VRR, taryfa eezy.nrw:
 Grundpreis + cena/km w linii prostej) — liczymy je z `lat`/`lon`, które MOTIS podaje dla

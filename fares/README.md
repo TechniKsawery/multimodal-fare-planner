@@ -22,6 +22,8 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 - **VRR** (`fares/vrr.py`) — taryfa eezy.nrw: cena = Grundpreis + cena za km (linii prostej),
   z sufitem cenowym. Obejmuje pociągi regionalne VRR ORAZ lokalny bus/tramwaj/U-Bahn w obszarze
   VRR (Zagłębie Rury/NRW) — to jedna, wspólna taryfa strefowa dla całego transportu VRR.
+  `routing/pricing.py` stosuje ją WYŁĄCZNIE do odcinków, których oba końce leżą w NRW
+  (`is_leg_in_nrw()`); poza NRW wynik jest niepotwierdzonym szacunkiem (`price_verified=False`).
   Zniżka: oficjalny Kindertarif (`DiscountProfile.vrr_dziecko=True`) — 50% rabatu dla dzieci
   6-14 lat, wliczając sufity cenowe (dzieci poniżej 6 lat jeżdżą bez biletu — nie modelowane).
 - **ZTM Lublin** (`fares/ztm_lublin.py`) — taryfa czasowa (bilety 15/40/90-minutowe, strefa 1+2):
@@ -34,11 +36,10 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
   do odczytu informacyjnego + zniżka dla osób z ciężką niepełnosprawnością), żeby domknąć "pełny
   pakiet" (transport+atrakcje) dla miast, którym dociągnęliśmy atrakcje ([[attractions/]]).
   Każdy kalkulator wciąż zawsze LICZY (jako cenę segmentu) najniższą/bazową strefę cenową (brak
-  mapowania przystanek->strefa) — patrz ograniczenia niżej. **NIEUŻYWANE jeszcze przez
-  `routing/pricing.py` w praktyce**: nasze GTFS dla Niemiec obejmuje tylko feed krajowy (FV) i
-  regionalny NRW/VRR, więc żaden przystanek w tych trzech miastach nie trafi tu dziś — słowa
-  kluczowe w `routing/pricing.py::HVV_KEYWORDS`/`MVV_KEYWORDS`/`VRS_KOLN_KEYWORDS` są na zapas,
-  na wypadek dociągnięcia regionalnego GTFS dla tych miast w przyszłości.
+  mapowania przystanek->strefa) — patrz ograniczenia niżej. `routing/pricing.py` wybiera je, gdy
+  oba końce odcinka leżą w obszarze miasta z `CITY_TARIFF_AREAS` (bez współrzędnych: nazwy jako
+  całe słowa, `HVV_KEYWORDS`/`MVV_KEYWORDS`/`VRS_KOLN_KEYWORDS`). GTFS gtfs.de (FV/RV/NV) obejmuje
+  całe Niemcy, a `docker-compose.de-full-city-gtfs.yml` dokłada pełne GTFS tych trzech miast.
   - **Zniżki/grupy osób zamodelowane (2026-10-10)**: Kindertarif 6-14 lat (`hvv_dziecko`/
     `mvv_dziecko`/`vrs_koln_dziecko`, dzieci do 6 lat jeżdżą bezpłatnie — poza zakresem pola, bo
     nie wymaga biletu) ORAZ bezpłatny przejazd dla osób z ciężką niepełnosprawnością

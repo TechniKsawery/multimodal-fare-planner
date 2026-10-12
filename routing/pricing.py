@@ -1,8 +1,10 @@
 """Wycena pojedynczego odcinka: dispatch do fares/ (kolej) albo flights/ (lot)."""
 
+import re
+
 from fares import estimate_price as fares_estimate_price
 from fares.international_pkp import estimate_pkp_offer, spi_range_for_segment
-from fares.model import Carrier, DiscountProfile, PriceEstimate, Segment
+from fares.model import Carrier, DiscountProfile, PriceEstimate, PriceType, Segment
 from flights import ExtrasProfile, FlightSegment
 from flights import estimate_price as flights_estimate_price
 from flights.extras import get_baggage_by_airline
@@ -47,53 +49,203 @@ def _flight_baggage_only_extras(origin: str, destination: str, currency: str) ->
     )
 
 
-VRR_AREA_KEYWORDS = ("s bahn", "s-bahn", "vrr", "national express", "abellio", "regio")
-"""Fragmenty agencyName traktowane jako przewoźnik w obszarze taryfowym VRR (Zagłębie Rury/NRW)."""
+ZTM_LUBLIN_KEYWORDS = ("lublin", "zditm", "ztm lublin")
+"""Nazwy (CAŁE słowa, patrz _matches_any_word) wskazujące na komunikację miejską ZTM Lublin.
 
-ZTM_LUBLIN_KEYWORDS = ("lublin", "zditm", "ztm_l")
-"""Fragmenty agencyName/nazw przystanków traktowane jako komunikacja miejska ZTM Lublin.
-
-Zwężone z samego "ztm" do "ztm_l": generyczne "ztm" dopasowywało się też do ZTM Warszawa/Poznań,
-które teraz mają własne kalkulatory — zob. city_carriers w price_bus_leg poniżej."""
+Używane TYLKO, gdy odcinek nie ma współrzędnych obu końców — wtedy o mieście decyduje
+geografia (CITY_TARIFF_AREAS), a nie nazwa (zob. _city_carrier_for_leg)."""
 
 ZTM_WARSZAWA_KEYWORDS = ("warszawa", "ztm warszawa", "wtp")
-MPK_KRAKOW_KEYWORDS = ("kraków", "krakow", "mpk kraków", "mpk krakow", "ztp kraków", "ztp krakow", "kmk")
-ZTM_POZNAN_KEYWORDS = ("poznań", "poznan", "ztm poznań", "ztm poznan", "mpk poznań", "mpk poznan")
+MPK_KRAKOW_KEYWORDS = ("kraków", "krakow", "krakowie", "ztp kraków", "ztp krakow", "kmk")
+ZTM_POZNAN_KEYWORDS = ("poznań", "poznan", "ztm poznań", "ztm poznan")
 MPK_WROCLAW_KEYWORDS = ("wrocław", "wroclaw", "mpk wrocław", "mpk wroclaw")
-BVG_BERLIN_KEYWORDS = ("berlin", "bvg", "vbb")
+BVG_BERLIN_KEYWORDS = ("berlin", "bvg")
 HVV_KEYWORDS = ("hamburg", "hvv")
 MVV_KEYWORDS = ("münchen", "muenchen", "munchen", "mvv")
-VRS_KOLN_KEYWORDS = ("köln", "koeln", "koln", "kvb", "vrs")
-"""HVV/MVV/VRS_KOLN: od wprowadzenia pełnego GTFS miejskiego dla Hamburga/Monachium/Kolonii
-(docker-compose.de-full-city-gtfs.yml) te słowa kluczowe są aktywnie używane — zarówno przez
-city_carriers w price_bus_leg (legi sklasyfikowane przez MOTIS jako BUS), jak i przez dopasowanie
-w price_rail_leg (legi S-Bahn/U-Bahn sklasyfikowane jako RAIL, które inaczej wpadłyby pod
-generyczne VRR_AREA_KEYWORDS "s-bahn"/"regio" i policzyłyby się błędnie taryfą eezy.nrw/Ruhry —
-zob. [[hvv-mvv-vrs-rail-leg-fare-gap]] w pamięci projektu, naprawione 2026-10-11)."""
+VRS_KOLN_KEYWORDS = ("köln", "koeln", "koln", "kvb")
+"""Słowa kluczowe miast: dopasowywane jako CAŁE słowa (granice słów Unicode), nie fragmenty —
+"Krakowskie Przedmieście" (ulica w Warszawie i w Lublinie) NIE pasuje do "krakow", "Berliner
+Straße" nie pasuje do "berlin", "Poznańska" nie pasuje do "poznań" (błąd S4 z audytu). Usunięte
+nazwy związków obejmujących wiele miast o różnych taryfach: "vbb" (cała Brandenburgia, np.
+Cottbus, Frankfurt (Oder)) i "vrs" (m.in. Bonn) — ich obecność w nazwie przewoźnika nie znaczy, że
+przejazd jest w Berlinie/Kolonii. Słowa kluczowe są TYLKO fallbackiem, gdy odcinek nie ma
+współrzędnych obu końców; normalnie decyduje CITY_TARIFF_AREAS."""
 
 
-PL_MOTIS_DATASETS = frozenset({"pl", "ztml"})
-"""Prefiksy datasetów MOTIS (patrz motis/config.yml, routing/README.md) obejmujące Polskę:
-'pl' (PKP, PolishTrainsGTFS) i 'ztml' (ZTM Lublin). UWAGA: prefiks datasetu to źródło FEEDU,
+CITY_TARIFF_AREAS: dict[Carrier, tuple[float, float, float]] = {
+    Carrier.ZTM_LUBLIN: (51.2465, 22.5684, 12.0),
+    Carrier.ZTM_WARSZAWA: (52.2297, 21.0122, 15.0),
+    Carrier.MPK_KRAKOW: (50.0614, 19.9366, 13.0),
+    Carrier.ZTM_POZNAN: (52.4064, 16.9252, 11.0),
+    Carrier.MPK_WROCLAW: (51.1079, 17.0385, 11.0),
+    Carrier.BVG_BERLIN: (52.5200, 13.4050, 20.0),
+    Carrier.HVV: (53.5511, 9.9937, 12.0),
+    Carrier.MVV: (48.1374, 11.5755, 11.0),
+    Carrier.VRS_KOLN: (50.9375, 6.9603, 12.0),
+}
+"""Obszar, w którym stosujemy taryfę miejską danego kalkulatora: (lat, lon) centrum miasta i
+promień w km. To PRZYBLIŻENIE granic miasta (koło zamiast granicy administracyjnej/strefy
+taryfowej), nie mapa stref — kalkulatory i tak liczą najniższą/miejską strefę (patrz
+fares/README.md). Odcinek dostaje taryfę miejską tylko, gdy OBA końce leżą w tym samym kole;
+w przeciwnym razie (np. podmiejski autobus) nie zgadujemy strefy i wynik jest oznaczony jako
+niepotwierdzony szacunek."""
+
+_CITY_KEYWORDS: tuple[tuple[tuple[str, ...], Carrier], ...] = (
+    (ZTM_LUBLIN_KEYWORDS, Carrier.ZTM_LUBLIN),
+    (ZTM_WARSZAWA_KEYWORDS, Carrier.ZTM_WARSZAWA),
+    (MPK_KRAKOW_KEYWORDS, Carrier.MPK_KRAKOW),
+    (ZTM_POZNAN_KEYWORDS, Carrier.ZTM_POZNAN),
+    (MPK_WROCLAW_KEYWORDS, Carrier.MPK_WROCLAW),
+    (BVG_BERLIN_KEYWORDS, Carrier.BVG_BERLIN),
+    (HVV_KEYWORDS, Carrier.HVV),
+    (MVV_KEYWORDS, Carrier.MVV),
+    (VRS_KOLN_KEYWORDS, Carrier.VRS_KOLN),
+)
+
+_DE_CITY_RAIL_CARRIERS = (Carrier.BVG_BERLIN, Carrier.HVV, Carrier.MVV, Carrier.VRS_KOLN)
+"""Związki, których taryfa obejmuje też S-Bahn/pociągi regionalne w obrębie miasta (Verbundtarif),
+więc stosujemy je również do odcinków, które MOTIS sklasyfikował jako RAIL."""
+
+
+def _matches_any_word(text: str, keywords: tuple[str, ...]) -> bool:
+    """Czy któreś słowo kluczowe występuje w tekście jako CAŁE słowo (nie fragment innego)."""
+    return any(re.search(rf"(?<!\w){re.escape(k)}(?!\w)", text) for k in keywords)
+
+
+def _leg_endpoints(leg: Leg) -> tuple[tuple[float, float], tuple[float, float]] | None:
+    """Współrzędne obu końców odcinka z leg.extra (ustawiane przez motis_client) albo None."""
+    coords = [leg.extra.get(k) for k in ("origin_lat", "origin_lon", "destination_lat", "destination_lon")]
+    if any(c is None for c in coords):
+        return None
+    o_lat, o_lon, d_lat, d_lon = coords
+    return (o_lat, o_lon), (d_lat, d_lon)
+
+
+def _city_carrier_for_leg(leg: Leg, carriers: tuple[Carrier, ...] | None = None) -> Carrier | None:
+    """Taryfa miejska dla odcinka: gdy znamy współrzędne obu końców — WYŁĄCZNIE geografia (oba
+    końce w tym samym obszarze z CITY_TARIFF_AREAS); bez współrzędnych — nazwy przewoźnika i
+    przystanków dopasowane jako całe słowa. None, gdy nie da się tego ustalić."""
+    allowed = carriers or tuple(CITY_TARIFF_AREAS)
+    endpoints = _leg_endpoints(leg)
+    if endpoints is not None:
+        for carrier in allowed:
+            lat, lon, radius_km = CITY_TARIFF_AREAS[carrier]
+            if all(haversine_km(p_lat, p_lon, lat, lon) <= radius_km for p_lat, p_lon in endpoints):
+                return carrier
+        return None
+    tekst = f"{leg.carrier_name} {leg.origin_name} {leg.destination_name}".lower()
+    for keywords, carrier in _CITY_KEYWORDS:
+        if carrier in allowed and _matches_any_word(tekst, keywords):
+            return carrier
+    return None
+
+
+_NRW_INNER_BOXES = (
+    # (lat_min, lat_max, lon_min, lon_max) — prostokąty CAŁKOWICIE wewnątrz NRW (z zapasem od
+    # granic z NL/BE, Dolną Saksonią, Hesją i Nadrenią-Palatynatem), więc konserwatywne:
+    {"lat_min": 50.95, "lat_max": 51.80, "lon_min": 6.40, "lon_max": 8.20},  # Ren-Ruhra, Düsseldorf, Wuppertal, Hamm
+    {"lat_min": 51.80, "lat_max": 52.05, "lon_min": 7.20, "lon_max": 8.90},  # Münster, Bielefeld, Gütersloh
+    {"lat_min": 51.50, "lat_max": 51.80, "lon_min": 8.20, "lon_max": 8.80},  # Paderborn, Lippstadt
+    {"lat_min": 50.65, "lat_max": 50.95, "lon_min": 6.60, "lon_max": 7.20},  # Kolonia, Bonn, Euskirchen
+    {"lat_min": 50.74, "lat_max": 50.83, "lon_min": 6.09, "lon_max": 6.60},  # Akwizgran, Düren
+)
+"""Obszar, w którym stosujemy taryfę eezy.nrw (fares/vrr.py). eezy.nrw to taryfa NRW — poza
+Nadrenią Północną-Westfalią jej użycie jest bezpodstawne (błąd K2 z audytu: S-Bahn Berlin,
+POLREGIO i DB Regio w całych Niemczech dostawały ceny Zagłębia Ruhry). Prostokąty są celowo
+wewnątrz granic landu: stacja przy granicy NRW (np. Siegen, Minden, Gronau) dostaje
+niepotwierdzony szacunek zamiast eezy.nrw — wolimy jawny brak pewności niż cudzą taryfę."""
+
+
+def _in_nrw(lat: float, lon: float) -> bool:
+    return any(
+        b["lat_min"] <= lat <= b["lat_max"] and b["lon_min"] <= lon <= b["lon_max"]
+        for b in _NRW_INNER_BOXES
+    )
+
+
+def is_leg_in_nrw(leg: Leg) -> bool:
+    """Czy OBA końce odcinka leżą w NRW (_NRW_INNER_BOXES). Bez współrzędnych: False — nie
+    zakładamy NRW tylko dlatego, że nie wiemy, gdzie jest przystanek."""
+    endpoints = _leg_endpoints(leg)
+    return endpoints is not None and all(_in_nrw(lat, lon) for lat, lon in endpoints)
+
+
+PL_MOTIS_DATASETS = frozenset({"pl", "ztml", "ztmw", "krka", "krkm", "krkt"})
+"""Prefiksy datasetów MOTIS (patrz motis/config*.yml, routing/README.md) obejmujące Polskę:
+'pl' (PKP, PolishTrainsGTFS), 'ztml' (ZTM Lublin), 'ztmw' (ZTM Warszawa), 'krka'/'krkm'/'krkt'
+(Kraków). UWAGA: prefiks datasetu to źródło FEEDU,
 NIE kraj przystanku — feed 'pl' (PolishTrainsGTFS) dla połączeń międzynarodowych (np. Berlin-
 Warszawa-Express) zawiera też przystanki fizycznie leżące w Niemczech pod prefiksem 'pl_'
 (publikuje je PKP jako część własnego rozkładu tego kursu). Dlatego is_cross_border_pl_de()
 NIE polega już na tym prefiksie jako głównym sygnale — patrz niżej."""
 
-DE_MOTIS_DATASETS = frozenset({"defv", "derv"})
-"""Prefiksy datasetów MOTIS obejmujące Niemcy: 'defv' (DB dalekobieżne) i 'derv' (regionalne NRW)."""
+DE_MOTIS_DATASETS = frozenset({"defv", "derv", "denv", "dehvv", "demvv", "devrs"})
+"""Prefiksy datasetów MOTIS obejmujące Niemcy: 'defv' (dalekobieżne), 'derv' (regionalne) i
+'denv' (lokalne) — wszystkie trzy z gtfs.de dla CAŁYCH Niemiec (scripts/fetch_data.py), nie
+tylko NRW — oraz miejskie 'dehvv'/'demvv'/'devrs' (Hamburg, Monachium, Kolonia)."""
 
 # Przybliżone, celowo szerokie (nachodzące na siebie w pasie przygranicznym) skrzynki
 # geograficzne — wystarczające, żeby odróżnić miasta odległe od granicy (Warszawa, Berlin,
-# Lublin, Gelsenkirchen, ...), zawodne tylko dla stacji leżących dosłownie przy granicy
-# (Rzepin, Frankfurt/Oder i okolice) — tam i tak żaden prosty podział nie jest w 100% pewny.
+# Lublin, Gelsenkirchen, ...). W pasie, gdzie skrzynki się nakładają (ok. 14.0-15.05°E),
+# rozstrzyga linia granicy _PL_DE_BORDER_LINE.
 _PL_BBOX = {"lat_min": 49.0, "lat_max": 54.9, "lon_min": 14.0, "lon_max": 24.2}
-_DE_BBOX = {"lat_min": 47.2, "lat_max": 55.1, "lon_min": 5.8, "lon_max": 14.9}
+_DE_BBOX = {"lat_min": 47.2, "lat_max": 55.1, "lon_min": 5.8, "lon_max": 15.05}
+"""lon_max 15.05 (było 14.9): Görlitz (ok. 14.98°E) i okolice leżą w Niemczech na wschód od
+14.9°E — stara skrzynka uznawała je za Polskę (błąd S3 z audytu)."""
+
+_PL_DE_BORDER_LINE = (
+    (50.87, 14.82),  # trójstyk PL/DE/CZ koło Zittau
+    (51.01, 14.94),  # Ostritz
+    (51.08, 14.96),
+    (51.15, 14.995),  # Görlitz/Zgorzelec (Nysa Łużycka)
+    (51.20, 15.01),
+    (51.27, 15.04),  # Zentendorf — najdalej na wschód wysunięty punkt Niemiec
+    (51.40, 14.96),
+    (51.47, 14.94),
+    (51.55, 14.725),  # Bad Muskau/Łęknica
+    (51.74, 14.655),  # Forst/Zasieki
+    (51.95, 14.72),  # Guben/Gubin
+    (52.07, 14.76),  # ujście Nysy do Odry
+    (52.15, 14.69),
+    (52.34, 14.557),  # Frankfurt (Oder)/Słubice
+    (52.58, 14.635),  # Kostrzyn/Küstrin-Kietz
+    (52.67, 14.45),
+    (52.75, 14.32),
+    (52.84, 14.14),
+    (53.05, 14.32),  # Schwedt
+    (53.20, 14.41),  # Gartz
+    (53.30, 14.40),  # granica schodzi z Odry na zachód od Szczecina
+    (53.45, 14.34),
+    (53.55, 14.27),
+    (53.70, 14.25),  # Zalew Szczeciński
+    (53.93, 14.226),  # Świnoujście/Ahlbeck
+)
+"""Przybliżony przebieg granicy PL/DE (Odra-Nysa) jako łamana (lat, lon) z południa na północ —
+punkty orientacyjne, NIE dokładna geometria granicy. Na danej szerokości: na zachód od linii
+Niemcy, na wschód Polska. Szczecin (ok. 14.55°E) leży na ZACHÓD od Odry, ale na wschód od
+granicy (ok. 14.35-14.40°E na tej szerokości) — dlatego to łamana, a nie stała długość."""
+
+_BORDER_MARGIN_DEG = 0.01
+"""Ok. 700 m: punkt bliżej łamanej niż ten margines (w długości geograficznej) uznajemy za
+nierozstrzygnięty (None) — łamana jest przybliżona, więc tuż przy rzece nie zgadujemy kraju."""
+
+
+def _border_lon_at(lat: float) -> float | None:
+    """Długość geograficzna granicy PL/DE na danej szerokości (interpolacja liniowa łamanej)."""
+    line = _PL_DE_BORDER_LINE
+    if not line[0][0] <= lat <= line[-1][0]:
+        return None
+    for (lat1, lon1), (lat2, lon2) in zip(line, line[1:]):
+        if lat1 <= lat <= lat2:
+            t = 0.0 if lat2 == lat1 else (lat - lat1) / (lat2 - lat1)
+            return lon1 + t * (lon2 - lon1)
+    return None
 
 
 def _country_from_latlon(lat: float | None, lon: float | None) -> str | None:
-    """Kraj przystanku wg współrzędnych (skrzynka geograficzna) — None, gdy brak lat/lon albo
-    punkt pasuje do obu/żadnej skrzynki (pas przygraniczny, ok. 14.0-14.9°E — tam nie zgadujemy)."""
+    """Kraj przystanku wg współrzędnych: skrzynki PL/DE, a w pasie, gdzie się nakładają —
+    strona łamanej granicy _PL_DE_BORDER_LINE. None, gdy brak lat/lon, punkt leży poza obiema
+    skrzynkami, poza zasięgiem łamanej (np. Czechy) albo bliżej granicy niż _BORDER_MARGIN_DEG."""
     if lat is None or lon is None:
         return None
     in_pl = (
@@ -108,6 +260,15 @@ def _country_from_latlon(lat: float | None, lon: float | None) -> str | None:
         return "PL"
     if in_de and not in_pl:
         return "DE"
+    if not (in_pl and in_de):
+        return None
+    border_lon = _border_lon_at(lat)
+    if border_lon is None:
+        return None
+    if lon < border_lon - _BORDER_MARGIN_DEG:
+        return "DE"
+    if lon > border_lon + _BORDER_MARGIN_DEG:
+        return "PL"
     return None
 
 
@@ -135,35 +296,54 @@ def _country_from_dataset(stop_id: str | None) -> str | None:
 def _leg_endpoint_country(leg: Leg, prefix: str) -> str | None:
     """Kraj jednego końca odcinka ('origin'/'destination') — najpierw wg współrzędnych
     (rozstrzyga poprawnie nawet gdy stacja w Niemczech jest opublikowana w polskim feedzie
-    GTFS dla kursu międzynarodowego), dopiero gdy lat/lon brak — wg prefiksu datasetu."""
+    GTFS dla kursu międzynarodowego), dopiero gdy lat/lon brak — wg prefiksu datasetu.
+    Gdy współrzędne są, ale kraj nierozstrzygnięty (tuż przy granicy), NIE wracamy do
+    prefiksu datasetu — ten mówi o źródle feedu, nie o kraju."""
     lat, lon = leg.extra.get(f"{prefix}_lat"), leg.extra.get(f"{prefix}_lon")
-    country = _country_from_latlon(lat, lon)
-    if country is not None:
-        return country
+    if lat is not None and lon is not None:
+        return _country_from_latlon(lat, lon)
     return _country_from_dataset(leg.extra.get(f"{prefix}_stop_id"))
 
 
 BORDER_CROSSING_PL_DE = {"lat": 52.3454, "lon": 14.5583}
-"""Przybliżony punkt granicy PL/DE (Rzepin/Frankfurt (Oder) — główne przejście na trasie
-Berlin-Warszawa-Express, dominującym korytarzu w naszych danych GTFS) używany WYŁĄCZNIE do
-szacowania jaka część trasy międzynarodowej leży po stronie niemieckiej (dla proporcjonalnego
-rabatu BahnCard, patrz fares/international.py). Dla realnych tras przez inne przejścia
-(Szczecin, Zgorzelec/Görlitz, Kudowa...) to przybliżenie będzie mniej dokładne — nie mamy
-danych geometrii realnej trasy kolejowej, tylko linię prostą między stacjami."""
+"""Przybliżony punkt granicy PL/DE na przejściu Frankfurt (Oder)/Słubice (trasa
+Berlin-Warszawa-Express). Zachowany dla zgodności; german_portion_fraction() wybiera teraz
+najbliższe przejście z BORDER_CROSSINGS_PL_DE."""
+
+BORDER_CROSSINGS_PL_DE = (
+    BORDER_CROSSING_PL_DE,  # Frankfurt (Oder)/Słubice
+    {"lat": 53.33, "lon": 14.40},  # Tantow/Szczecin-Gumieńce
+    {"lat": 51.15, "lon": 14.995},  # Görlitz/Zgorzelec
+    {"lat": 51.74, "lon": 14.655},  # Forst/Zasieki
+    {"lat": 51.95, "lon": 14.72},  # Guben/Gubin
+    {"lat": 52.58, "lon": 14.635},  # Küstrin-Kietz/Kostrzyn
+)
+"""Przybliżone punkty kolejowych przejść granicznych PL/DE (na łamanej _PL_DE_BORDER_LINE),
+używane WYŁĄCZNIE do szacowania, jaka część trasy międzynarodowej leży po stronie niemieckiej
+(proporcjonalny rabat BahnCard, patrz fares/international.py). Wybieramy przejście dające
+najkrótszą łamaną origin-przejście-destination — nie znamy geometrii realnej trasy kolejowej."""
 
 
 def german_portion_fraction(leg: Leg) -> float | None:
     """Szacowany udział (0-1) niemieckiego odcinka trasy międzynarodowej w całym dystansie
-    (linia prosta origin-border + border-destination), używany do proporcjonalnego naliczenia
-    rabatu BahnCard (oficjalnie dotyczy tylko niemieckiego odcinka). None, gdy brakuje
-    współrzędnych któregoś końca — wtedy fares/international.py nalicza rabat od całej ceny."""
-    o_lat, o_lon = leg.extra.get("origin_lat"), leg.extra.get("origin_lon")
-    d_lat, d_lon = leg.extra.get("destination_lat"), leg.extra.get("destination_lon")
-    if o_lat is None or o_lon is None or d_lat is None or d_lon is None:
+    (linia prosta origin-przejście + przejście-destination, przez najbliższe przejście z
+    BORDER_CROSSINGS_PL_DE), używany do proporcjonalnego naliczenia rabatu BahnCard (oficjalnie
+    dotyczy tylko niemieckiego odcinka). None, gdy brakuje współrzędnych któregoś końca — wtedy
+    fares/international.py nalicza rabat od całej ceny."""
+    endpoints = _leg_endpoints(leg)
+    if endpoints is None:
         return None
-    b_lat, b_lon = BORDER_CROSSING_PL_DE["lat"], BORDER_CROSSING_PL_DE["lon"]
-    dist_origin_border = haversine_km(o_lat, o_lon, b_lat, b_lon)
-    dist_border_dest = haversine_km(b_lat, b_lon, d_lat, d_lon)
+    (o_lat, o_lon), (d_lat, d_lon) = endpoints
+
+    def legs_via(crossing: dict) -> tuple[float, float]:
+        return (
+            haversine_km(o_lat, o_lon, crossing["lat"], crossing["lon"]),
+            haversine_km(crossing["lat"], crossing["lon"], d_lat, d_lon),
+        )
+
+    dist_origin_border, dist_border_dest = min(
+        (legs_via(c) for c in BORDER_CROSSINGS_PL_DE), key=sum
+    )
     total = dist_origin_border + dist_border_dest
     if total <= 0:
         return None
@@ -176,8 +356,8 @@ def is_cross_border_pl_de(leg: Leg) -> bool:
     """Czy ten odcinek kolejowy przekracza granicę PL/DE jednym ciągłym przejazdem (np.
     Berlin-Warszawa-Express) — wykryte GEOGRAFICZNIE (współrzędne stacji początkowej i
     końcowej), z prefiksem datasetu MOTIS jako fallbackiem gdy lat/lon niedostępne. Zwraca
-    False, gdy kraju któregoś końca nie da się ustalić (brak danych, albo stacja w pasie
-    przygranicznym) — bezpieczny wybór: leg trafia do zwykłej (krajowej) ścieżki wyceny
+    False, gdy kraju któregoś końca nie da się ustalić (brak danych, albo stacja tuż przy
+    granicy) — bezpieczny wybór: leg trafia do zwykłej (krajowej) ścieżki wyceny
     zamiast fałszywie alarmować."""
     origin_country = _leg_endpoint_country(leg, "origin")
     destination_country = _leg_endpoint_country(leg, "destination")
@@ -186,32 +366,47 @@ def is_cross_border_pl_de(leg: Leg) -> bool:
     return origin_country != destination_country
 
 
-def infer_rail_carrier(agency_name: str) -> Carrier | None:
-    """Zgrubne mapowanie agencyName z MOTIS na przewoźnika z modułu fares/.
+LONG_DISTANCE_RAIL_KEYWORDS = ("flix",)
+"""Przewoźnicy kolejowi spoza taryf związkowych (np. FlixTrain nie honoruje eezy.nrw) — nawet
+w NRW nie dostają taryfy VRR."""
 
-    To PRZYBLIŻENIE: każdy niemiecki regionalny przewoźnik poza DB Fernverkehr (S-Bahn,
-    Abellio, National Express, ...) jest tu traktowany jak VRR, choć w rzeczywistości różne
-    związki taryfowe (VRR, VRS, ...) obowiązują w różnych regionach Niemiec. W SZCZEGÓLNOŚCI
-    "DB Regio" (spółka DB, ale obsługująca pociągi regionalne) też trafia tutaj do VRR, a NIE
-    do Carrier.DB — to ZWERYFIKOWANE jako poprawne (nie błąd), z dwóch powodów: (1) nasz
-    regionalny feed GTFS (dataset 'derv', patrz routing/README.md) obejmuje WYŁĄCZNIE region
-    Nadrenii Północnej-Westfalii/VRR — każdy "DB Regio" w naszych danych fizycznie jeździ
-    wewnątrz obszaru taryfowego VRR, gdzie obowiązuje taryfa związkowa niezależnie od tego, kto
-    operuje pociągiem; (2) taryfa VRR/eezy.nrw (fares/vrr.py) w ogóle nie wspomina o BahnCard
-    (sprawdzone na vrr.de, 2026-09-29) — w przeciwieństwie do biletów DB (Flexpreis/Sparpreis),
-    które explicite opisują rabat BahnCard. Nie zmieniać bez nowych danych regionalnych spoza NRW.
-    """
+
+def infer_rail_carrier(agency_name: str) -> Carrier | None:
+    """Mapowanie agencyName z MOTIS na przewoźnika dalekobieżnego z modułu fares/ — TYLKO po
+    nazwie: PKP Intercity albo DB Fernverkehr. Każdy inny przewoźnik (POLREGIO, DB Regio,
+    S-Bahn, ODEG, Koleje Dolnośląskie, ...) zwraca None: taryfa regionalna zależy od MIEJSCA
+    przejazdu, nie od nazwy przewoźnika, więc rozstrzyga ją price_rail_leg() geograficznie
+    (taryfa miejska z CITY_TARIFF_AREAS, eezy.nrw tylko w NRW — is_leg_in_nrw()).
+
+    Wcześniej każda nazwa z "regio"/"s-bahn" trafiała do VRR (eezy.nrw) z uzasadnieniem, że
+    feed regionalny 'derv' obejmuje tylko NRW — to nieprawda: scripts/fetch_data.py pobiera
+    gtfs.de rv_free/nv_free dla CAŁYCH Niemiec, a "regio" łapało też POLREGIO (błąd K2)."""
     name = (agency_name or "").lower()
     if "pkp intercity" in name:
         return Carrier.PKP_INTERCITY
     if "db fernverkehr" in name or "deutsche bahn" in name or name.strip() == "db":
         return Carrier.DB
-    if any(k in name for k in VRR_AREA_KEYWORDS):
-        return Carrier.VRR
     return None
 
 
+PKP_PREMIUM_CATEGORIES = ("EIC", "EIP")
+"""Kategorie PKP Intercity, których ceny w oficjalnym cenniku są ustalane per relacja, a nie wg
+pasm odległości TLK/IC z fares/data/pkp_intercity.json (patrz fares/README.md)."""
+
+
+def is_pkp_premium_train(leg: Leg) -> bool:
+    """Czy odcinek to pociąg EIC/EIP (Express InterCity / Express InterCity Premium, Pendolino)
+    — po routeShortName z MOTIS (np. "EIC", "EIP 1234") albo nazwie przewoźnika."""
+    route = str(leg.extra.get("route_short_name") or "")
+    tekst = f"{route} {leg.carrier_name}"
+    return _matches_any_word(tekst.upper(), PKP_PREMIUM_CATEGORIES) or _matches_any_word(
+        tekst.lower(), ("express intercity", "pendolino")
+    )
+
+
 def _fallback_priced_leg(leg: Leg, reason: str) -> PricedLeg:
+    """Zgrubny szacunek PLN/km, gdy żaden moduł taryf nie obejmuje odcinka — zawsze
+    price_type="szacunek" i breakdown["price_verified"]=False (cena niepotwierdzona)."""
     distance_km = leg.distance_km or 0.0
     amount = round(GENERIC_FALLBACK_PLN_PER_KM * distance_km, 2)
     return PricedLeg(
@@ -219,7 +414,11 @@ def _fallback_priced_leg(leg: Leg, reason: str) -> PricedLeg:
         amount=amount,
         currency="PLN",
         price_type="szacunek",
-        notes=f"{reason} Zgrubny szacunek: {GENERIC_FALLBACK_PLN_PER_KM} PLN/km x {distance_km:.0f} km.",
+        notes=(
+            f"{reason} Zgrubny szacunek: {GENERIC_FALLBACK_PLN_PER_KM} PLN/km x {distance_km:.0f} km "
+            "— cena niepotwierdzona."
+        ),
+        breakdown={"price_verified": False, "powod_szacunku": reason},
     )
 
 
@@ -304,36 +503,42 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
     if leg.mode is not LegMode.RAIL:
         raise ValueError(f"price_rail_leg wymaga LegMode.RAIL, dostał {leg.mode}")
 
+    name_carrier = infer_rail_carrier(leg.carrier_name)
     if is_cross_border_pl_de(leg):
         # Jeden ciągły odcinek PL<->DE (np. Berlin-Warszawa-Express) NIE jest ani krajowym
         # biletem PKP, ani krajowym biletem DB — ma własne sztywne kategorie cenowe i własne
-        # (częściowe) zasady BahnCard. Wymuszamy Carrier.INTERNATIONAL_PL_DE PRZED
-        # infer_rail_carrier(), żeby nie policzyć go błędnie z krajowej tabeli pasm (patrz
-        # fares/international.py i [[international-pl-de-fare-gap]] w pamięci projektu).
+        # (częściowe) zasady BahnCard (patrz fares/international.py i
+        # [[international-pl-de-fare-gap]] w pamięci projektu). Te moduły opisują oferty PKP
+        # Intercity/DB; przejazd transgraniczny przewoźnikiem regionalnym (np. Szczecin-Berlin,
+        # Wrocław-Görlitz) nie ma u nas potwierdzonej taryfy, więc nie podstawiamy cudzej.
+        if name_carrier is None and leg.carrier_name.strip():
+            return _fallback_priced_leg(
+                leg,
+                f"Odcinek transgraniczny PL/DE przewoźnika '{leg.carrier_name}' — moduły taryf "
+                "międzynarodowych obejmują tylko oferty PKP Intercity/DB, brak potwierdzonej "
+                "taryfy dla tego przewoźnika.",
+            )
         carrier: Carrier | None = Carrier.INTERNATIONAL_PL_DE
     else:
-        carrier = infer_rail_carrier(leg.carrier_name)
-        if carrier in (None, Carrier.VRR):
-            # MOTIS klasyfikuje S-Bahn/U-Bahn w Hamburgu, Monachium i Kolonii jako RAIL (nie
-            # BUS — patrz komentarz w price_bus_leg), więc infer_rail_carrier() (który zna
-            # tylko nazwę przewoźnika, nie przystanki) łapie je generycznym dopasowaniem
-            # "s-bahn"/"regio" z VRR_AREA_KEYWORDS i liczy taryfą eezy.nrw (Zagłębie Ruhry) —
-            # błędną dla tych miast. Odkąd dataset 'defv' obejmuje też pełne GTFS miejskie dla
-            # Hamburga/Monachium/Kolonii (patrz docker-compose.de-full-city-gtfs.yml), trzeba
-            # tu sprawdzić to samo co city_carriers w price_bus_leg PRZED zaakceptowaniem
-            # ogólnego dopasowania VRR — stacja "Köln Hbf"/"Köln Messe/Deutz Bf" nie ma "köln"
-            # w nazwie przewoźnika ("DB Regio AG NRW"), więc patrzymy też na origin/destination.
-            tekst = f"{leg.carrier_name} {leg.origin_name} {leg.destination_name}".lower()
-            for keywords, city_carrier in (
-                (HVV_KEYWORDS, Carrier.HVV),
-                (MVV_KEYWORDS, Carrier.MVV),
-                (VRS_KOLN_KEYWORDS, Carrier.VRS_KOLN),
+        carrier = name_carrier
+        if carrier is None:
+            # Taryfa regionalna zależy od miejsca, nie od nazwy przewoźnika. MOTIS klasyfikuje
+            # część S-Bahnów jako RAIL (nie BUS — patrz komentarz w price_bus_leg), więc
+            # sprawdzamy te same taryfy miejskie co price_bus_leg (Verbundtarif obejmuje też
+            # S-Bahn/RE w obrębie miasta), a eezy.nrw (VRR) tylko dla odcinka w całości w NRW.
+            carrier = _city_carrier_for_leg(leg, _DE_CITY_RAIL_CARRIERS)
+            if (
+                carrier is None
+                and is_leg_in_nrw(leg)
+                and not any(k in leg.carrier_name.lower() for k in LONG_DISTANCE_RAIL_KEYWORDS)
             ):
-                if any(k in tekst for k in keywords):
-                    carrier = city_carrier
-                    break
+                carrier = Carrier.VRR
     if carrier is None:
-        return _fallback_priced_leg(leg, f"Brak modułu taryf dla przewoźnika '{leg.carrier_name}'.")
+        return _fallback_priced_leg(
+            leg,
+            f"Brak modułu taryf dla przewoźnika '{leg.carrier_name}' na tym odcinku "
+            "(taryfa eezy.nrw/VRR obowiązuje tylko w NRW, taryfy miejskie tylko w obrębie miasta).",
+        )
 
     try:
         segment = Segment(
@@ -341,6 +546,7 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
             origin=leg.origin_name,
             destination=leg.destination_name,
             distance_km=leg.distance_km,
+            ride_duration_min=leg.duration_min,
             discounts=discounts,
             travel_date=leg.depart.date().isoformat(),
             german_portion_fraction=(
@@ -354,13 +560,28 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
     except ValueError as exc:
         return _fallback_priced_leg(leg, f"Kalkulator {carrier.value} zwrócił błąd ({exc}).")
 
+    price_type = result.price_type.value
+    notes = result.notes
+    breakdown = result.breakdown
+    if carrier is Carrier.PKP_INTERCITY and is_pkp_premium_train(leg):
+        # Cennik w fares/data/pkp_intercity.json to pasma TLK/IC; EIC/EIP mają ceny per relacja
+        # (fares/README.md), których nie mamy. Kwota z pasm TLK/IC zostaje jako orientacyjny
+        # szacunek, ale NIE jako oficjalna taryfa tego pociągu (błąd S2 z audytu).
+        price_type = PriceType.ESTIMATE.value
+        breakdown = {**breakdown, "price_verified": False, "kategoria_pociagu": "EIC/EIP"}
+        notes = (
+            "Pociąg EIC/EIP: cena NIEPOTWIERDZONA — szacunek wg cennika TLK/IC (pasma odległości), "
+            "a EIC/EIP ma w cenniku PKP Intercity ceny ustalane per relacja, których nie mamy. "
+            f"{notes}"
+        )
+
     return PricedLeg(
         leg=leg,
         amount=result.amount,
         currency=result.currency,
-        price_type=result.price_type.value,
-        notes=result.notes,
-        breakdown=result.breakdown,
+        price_type=price_type,
+        notes=notes,
+        breakdown=breakdown,
         carrier=carrier,
     )
 
@@ -417,9 +638,10 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
 
 
 LOCAL_BUS_FLAT_PLN = 4.0
-"""PLACEHOLDER: ryczałt za jeden przejazd autobusem/tramwajem miejskim, używany TYLKO gdy
-lokalny operator nie jest rozpoznany przez żaden moduł taryf komunikacji miejskiej (patrz
-fares/ztm_lublin.py i fares/vrr.py) — np. transport miejski poza Lublinem i obszarem VRR."""
+"""PLACEHOLDER (NIE cena z cennika): ryczałt za jeden przejazd autobusem/tramwajem, używany
+TYLKO gdy lokalny operator nie jest objęty żadnym modułem taryf (odcinek poza obszarami
+CITY_TARIFF_AREAS i poza NRW). Wynik zawsze ma price_type="szacunek" i
+breakdown["price_verified"]=False."""
 
 
 LONG_DISTANCE_COACH_KEYWORDS = ("flix", "regiojet", "blablabus")
@@ -457,8 +679,9 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
     jest błąd do naprawy: HVV/MVV/Rheinlandtarif (VRS) to Verbundtarif obejmujący WSZYSTKIE
     lokalne środki transportu (S-Bahn, U-Bahn, tramwaj, autobus) w obrębie związku jedną,
     wspólną ceną zależną od strefy/relacji, niezależnie od operatora czy trybu — więc
-    dopasowanie po nazwie przystanku/miasta (city_carriers poniżej) i wycena z taryfy
-    związkowej jest poprawna, nawet gdy przewoźnik widoczny w danych to "DB Regio ..."."""
+    dopasowanie miasta (_city_carrier_for_leg: geograficznie po współrzędnych, a bez nich po
+    nazwach jako CAŁYCH słowach) i wycena z taryfy związkowej jest poprawna, nawet gdy
+    przewoźnik widoczny w danych to "DB Regio ..."."""
     discounts = discounts or DiscountProfile()
 
     is_coach = leg.extra.get("motis_mode") == "COACH" or any(
@@ -469,46 +692,32 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
             return price_flixbus_leg(leg)
         return _fallback_priced_leg(leg, "Autokar dalekobieżny — brak modułu taryf.")
 
-    tekst = f"{leg.carrier_name} {leg.origin_name} {leg.destination_name}".lower()
+    carrier = _city_carrier_for_leg(leg)
+    if carrier is not None:
+        try:
+            segment = Segment(
+                carrier=carrier,
+                origin=leg.origin_name,
+                destination=leg.destination_name,
+                ride_duration_min=leg.duration_min,
+                discounts=discounts,
+            )
+            result = fares_estimate_price(segment)
+            return PricedLeg(
+                leg=leg,
+                amount=result.amount,
+                currency=result.currency,
+                price_type=result.price_type.value,
+                notes=result.notes,
+                breakdown=result.breakdown,
+                carrier=carrier,
+            )
+        except ValueError as exc:
+            return _fallback_priced_leg(leg, f"Kalkulator {carrier.value} zwrócił błąd ({exc}).")
 
-    city_carriers = [
-        (ZTM_LUBLIN_KEYWORDS, Carrier.ZTM_LUBLIN),
-        (ZTM_WARSZAWA_KEYWORDS, Carrier.ZTM_WARSZAWA),
-        (MPK_KRAKOW_KEYWORDS, Carrier.MPK_KRAKOW),
-        (ZTM_POZNAN_KEYWORDS, Carrier.ZTM_POZNAN),
-        (MPK_WROCLAW_KEYWORDS, Carrier.MPK_WROCLAW),
-        (BVG_BERLIN_KEYWORDS, Carrier.BVG_BERLIN),
-        (HVV_KEYWORDS, Carrier.HVV),
-        (MVV_KEYWORDS, Carrier.MVV),
-        (VRS_KOLN_KEYWORDS, Carrier.VRS_KOLN),
-    ]
-    for keywords, carrier in city_carriers:
-        if any(k in tekst for k in keywords):
-            try:
-                segment = Segment(
-                    carrier=carrier,
-                    origin=leg.origin_name,
-                    destination=leg.destination_name,
-                    ride_duration_min=leg.duration_min,
-                    discounts=discounts,
-                )
-                result = fares_estimate_price(segment)
-                return PricedLeg(
-                    leg=leg,
-                    amount=result.amount,
-                    currency=result.currency,
-                    price_type=result.price_type.value,
-                    notes=result.notes,
-                    breakdown=result.breakdown,
-                    carrier=carrier,
-                )
-            except ValueError as exc:
-                return _fallback_priced_leg(leg, f"Kalkulator {carrier.value} zwrócił błąd ({exc}).")
-
-    # Cały niemiecki fragment sieci w tym silniku to NRW (Zagłębie Rury), więc lokalny
-    # autobus/tramwaj tu jest domyślnie traktowany jako obszar taryfowy VRR (eezy.nrw) —
-    # patrz VRR_AREA_KEYWORDS/infer_rail_carrier oraz fares/README.md.
-    if leg.distance_km is not None:
+    # eezy.nrw (VRR) obejmuje cały transport lokalny NRW, ale TYLKO NRW — dane GTFS (gtfs.de nv)
+    # obejmują całe Niemcy, więc nierozpoznany autobus/tramwaj poza NRW NIE dostaje tej taryfy.
+    if is_leg_in_nrw(leg) and leg.distance_km is not None:
         try:
             segment = Segment(
                 carrier=Carrier.VRR,
@@ -524,6 +733,8 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
                 currency=result.currency,
                 price_type=result.price_type.value,
                 notes=result.notes,
+                breakdown=result.breakdown,
+                carrier=Carrier.VRR,
             )
         except ValueError as exc:
             return _fallback_priced_leg(leg, f"Kalkulator VRR zwrócił błąd ({exc}).")
@@ -533,7 +744,11 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
         amount=LOCAL_BUS_FLAT_PLN,
         currency="PLN",
         price_type="szacunek",
-        notes="Ryczałt za przejazd komunikacją miejską (placeholder, nieznany operator lokalny).",
+        notes=(
+            f"Nieznany operator lokalny '{leg.carrier_name}' poza obsługiwanymi miastami i NRW — "
+            f"placeholder {LOCAL_BUS_FLAT_PLN:.2f} PLN, cena niepotwierdzona (nie z cennika)."
+        ),
+        breakdown={"price_verified": False, "powod_szacunku": "nieznany operator lokalny"},
     )
 
 

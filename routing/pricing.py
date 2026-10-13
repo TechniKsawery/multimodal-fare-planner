@@ -113,6 +113,12 @@ _DE_CITY_RAIL_CARRIERS = (Carrier.BVG_BERLIN, Carrier.HVV, Carrier.MVV, Carrier.
 więc stosujemy je również do odcinków, które MOTIS sklasyfikował jako RAIL."""
 
 
+ZVON_GORLITZ_AREA = (51.152, 14.998, 9.0)
+"""Obszar EuropastadtTarif ZVON: (lat, lon) środka Görlitz–Zgorzelec i promień w km, przybliżenie
+(koło) obszaru z zvon.de: Görlitz, Zgorzelec, Hagenwerder, Tauchritz, Ludwigsdorf, Ober-Neundorf.
+Poza CITY_TARIFF_AREAS celowo: taryfa dotyczy tylko linii agencji ZVON (patrz
+_is_zvon_europastadt_leg), a nie każdego autobusu w kole (np. zastępczy trilex/DLB)."""
+
 BER_AIRPORT_AREA = (52.3644, 13.5108, 2.5)
 """Lotnisko BER: (lat, lon) stacji Flughafen BER (Terminal 1-2) i promień w km. BER leży poza
 granicą Berlina, w strefie C taryfy VBB (fares/data/bvg_berlin.json::_uwaga: "ABC (z lotniskiem
@@ -164,6 +170,18 @@ def _city_carrier_for_leg(leg: Leg, carriers: tuple[Carrier, ...] | None = None)
         if carrier in allowed and _matches_any_word(tekst, keywords):
             return carrier
     return None
+
+
+def _is_zvon_europastadt_leg(leg: Leg) -> bool:
+    """Autobus/tramwaj agencji ZVON, którego OBA końce leżą w obszarze EuropastadtTarif. Bez
+    współrzędnych nie zgadujemy (None -> False): nazwa agencji sama nie mówi, czy to Stadtverkehr."""
+    if "zvon" not in leg.carrier_name.lower():
+        return False
+    endpoints = _leg_endpoints(leg)
+    if endpoints is None:
+        return False
+    lat, lon, radius_km = ZVON_GORLITZ_AREA
+    return all(haversine_km(p_lat, p_lon, lat, lon) <= radius_km for p_lat, p_lon in endpoints)
 
 
 def _bvg_tariff_zone(leg: Leg) -> str | None:
@@ -1132,6 +1150,24 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
         if "flix" in leg.carrier_name.lower():
             return price_flixbus_leg(leg)
         return _fallback_priced_leg(leg, "Autokar dalekobieżny — brak modułu taryf.")
+
+    if _is_zvon_europastadt_leg(leg):
+        segment = Segment(
+            carrier=Carrier.ZVON_GORLITZ,
+            origin=leg.origin_name,
+            destination=leg.destination_name,
+            discounts=discounts,
+        )
+        result = fares_estimate_price(segment)
+        return PricedLeg(
+            leg=leg,
+            amount=result.amount,
+            currency=result.currency,
+            price_type=result.price_type.value,
+            notes=result.notes,
+            breakdown=result.breakdown,
+            carrier=Carrier.ZVON_GORLITZ,
+        )
 
     local_carrier = infer_pl_local_rail_carrier(leg)
     if local_carrier is not None:

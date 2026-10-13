@@ -40,6 +40,8 @@ class Carrier(str, Enum):
     # Segment.distance_along_track)
     KOLEJE_MAZOWIECKIE = "koleje_mazowieckie"  # Koleje Mazowieckie: Tabela nr 1 taryfy TP-KM
     # (27 pasm odległościowych, bilet jednorazowy normalny), fares/koleje_mazowieckie.py
+    ZVON_GORLITZ = "zvon_gorlitz"  # ZVON, EuropastadtTarif Görlitz–Zgorzelec: Einzelfahrt
+    # 2,00/1,50 EUR (ulga tylko uczniowie do 15. urodzin), fares/zvon_gorlitz.py
     KD_ZGORZELEC_GORLITZ = "kd_zgorzelec_gorlitz"  # pociąg Kolei Dolnośląskich na odcinku
     # granicznym Zgorzelec - Görlitz: przejazd bezpłatny, fares/kd_zgorzelec_gorlitz.py
 

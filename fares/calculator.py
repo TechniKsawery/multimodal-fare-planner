@@ -21,6 +21,7 @@ from . import (
     ztm_lublin,
     ztm_poznan,
     ztm_warszawa,
+    zvon_gorlitz,
 )
 from .model import Carrier, PriceEstimate, Segment
 
@@ -43,6 +44,7 @@ _CALCULATORS = {
     Carrier.LKA_LODZ: lka_lodz.estimate,
     Carrier.KOLEJE_MALOPOLSKIE: koleje_malopolskie.estimate,
     Carrier.KOLEJE_MAZOWIECKIE: koleje_mazowieckie.estimate,
+    Carrier.ZVON_GORLITZ: zvon_gorlitz.estimate,
     Carrier.KD_ZGORZELEC_GORLITZ: kd_zgorzelec_gorlitz.estimate,
     Carrier.INTERNATIONAL_PL_DE: international.estimate,
 }

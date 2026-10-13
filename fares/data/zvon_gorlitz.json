@@ -1,0 +1,27 @@
+{
+  "_zrodlo": "ZVON (Zweckverband Verkehrsverbund Oberlausitz-Niederschlesien), strona EuropastadtTicket / EuropastadtTarif: https://www.zvon.de/de/grenzueberschreitende-fahrten/europastadttarif — Einzelfahrt normal 2,00 EUR, ermäßigt 1,50 EUR. Treść strony odczytana i wklejona przez Ksaviego 2026-10-13 (to jest weryfikacja Ksaviego; chmura nie ma dostępu do zvon.de).",
+  "_zrodlo_ermaessigung": "Ta sama strona ZVON, sekcja 'Ermäßigung': 'Nur Schüler bis zum 15. Geburtstag können mit einem ermäßigten Einzelfahrschein fahren.' Ulga na bilet jednorazowy dotyczy WYŁĄCZNIE uczniów do 15. urodzin; studenci i starsi uczniowie jej nie mają (ermäßigte Wochen-/Monatskarte to osobne produkty okresowe, nie wdrożone). Odczyt 2026-10-13.",
+  "_zrodlo_geltungsbereich": "Ta sama strona ZVON, sekcja 'Gültigkeit': obszar Europastadt Görlitz–Zgorzelec wraz z Hagenwerder, Tauchritz, Ludwigsdorf i Ober-Neundorf; w Zgorzelcu tylko na liniach Stadtverkehr; ważność Einzelfahrschein 60 minut od skasowania. Odczyt 2026-10-13.",
+  "_uwaga": "Kod wycenia KAŻDY odcinek autobusu/tramwaju ZVON w obszarze osobnym biletem Einzelfahrt (jak pozostałe taryfy lokalne w projekcie) - przesiadka w ciągu 60 min na jednym bilecie jest liczona drugi raz (zawyżenie). Obszar w kodzie (routing/pricing.py::ZVON_GORLITZ_AREA) to przybliżone koło, nie mapa stref. Nie rozstrzygamy z danych GTFS, czy linia po stronie polskiej należy do Stadtverkehr.",
+  "_nie_wdrozone": {
+    "4er_karte": {"normalny": 7.00, "ermaessigt": 5.00, "uwaga": "ważna tylko w pojazdach GVB (Görlitzer Verkehrsbetriebe); udokumentowane, nie wdrożone"},
+    "tagesticket_1_5_osob": {"ceny_eur": [5.00, 12.00], "kategoria": "Ticket im Stadtverkehr", "uwaga": "strona nie opisuje, która kwota to który wariant; nie wdrożone"},
+    "17_uhr_abendkarte": 3.00,
+    "wochenkarte": {"normalny": 15.50, "ermaessigt": 12.00},
+    "monatskarte": {"normalny": 52.00, "ermaessigt": 38.00},
+    "abo_monatskarte": {"normalny": 41.00, "ermaessigt": 34.10},
+    "schuelergruppe_ermaessigt": 1.00
+  },
+  "waluta": "EUR",
+  "einzelfahrt": {
+    "normalny": 2.00,
+    "ermaessigt": 1.50,
+    "wazny_min": 60
+  },
+  "ermaessigt_wiek_ponizej": 15,
+  "weryfikacja": {
+    "status": "zweryfikowane przez Ksaviego na zvon.de (2026-10-13)",
+    "data": "2026-10-13",
+    "url": "https://www.zvon.de/de/grenzueberschreitende-fahrten/europastadttarif"
+  }
+}

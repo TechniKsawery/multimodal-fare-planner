@@ -56,10 +56,31 @@ def test_cena_stala_5_zl_oficjalna():
     assert r.breakdown["obowiazuje_od"] == "2024-10-01"
 
 
-def test_url_regulaminu_oznaczony_do_uzupelnienia():
+PDF_URL = "https://kolejedolnoslaskie.pl/wp-content/uploads/2025/10/R_Bilet-graniczny-Polska-Niemcy_2024-10-01.pdf"
+STRONA_URL = "https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/"
+
+
+def test_url_zrodla_uzupelnione():
     r = estimate_price(_seg())
-    assert r.breakdown["zrodlo_url"] is None
-    assert r.breakdown["zrodlo_url_do_uzupelnienia"] is True
+    assert r.breakdown["zrodlo_url"] == PDF_URL
+    assert r.breakdown["zrodlo_url_strony"] == STRONA_URL
+    assert "zrodlo_url_do_uzupelnienia" not in r.breakdown
+
+
+def test_fakty_z_regulaminu_w_breakdown():
+    b = estimate_price(_seg()).breakdown
+    assert b["okaziciel"] is True
+    assert b["max_osob_na_blankiecie"] == 6
+    assert b["bagaz_rower_pies_bezplatnie"] is True
+    assert b["przedsprzedaz_dni"] == 30
+    assert b["dzieci_gratis_niejednoznaczne"] is True
+
+
+def test_komunikat_bilet_graniczny_jest_dodatkiem_do_biletu_krajowego():
+    r = estimate_price(_seg())
+    assert r.breakdown["dodatek_do_biletu_krajowego"] is True
+    assert "DODATKIEM do biletu krajowego KD do stacji Zasieki" in r.notes
+    assert "bilet krajowy KD do Zasieki + 5,00 zł" in r.notes
 
 
 @pytest.mark.parametrize("age", [None, 6, 7, 15, 20, 26, 40, 70])
@@ -77,7 +98,8 @@ def test_ulgi_innych_taryf_nie_obnizaja_ceny(flag):
 def test_dzieci_ponizej_6_lat_gratis(age):
     r = estimate_price(_seg(age=age))
     assert (r.amount, r.currency, r.price_type) == (0.0, "PLN", PriceType.OFFICIAL)
-    assert "bezpłatnie" in r.notes
+    assert "bezpłatnie" in r.notes and "niejednoznaczna" in r.notes
+    assert r.breakdown["dzieci_gratis_niejednoznaczne"] is True
 
 
 def test_json_zgodny_z_regulaminem():
@@ -88,7 +110,13 @@ def test_json_zgodny_z_regulaminem():
     assert data["dzieci_gratis_wiek_ponizej"] == 6
     assert data["obowiazuje_od"] == "2024-10-01"
     assert data["weryfikacja"]["data_odczytu"] == "2026-10-13"
-    assert data["weryfikacja"]["url"] is None and data["weryfikacja"]["url_do_uzupelnienia"]
+    assert data["weryfikacja"]["url"] == PDF_URL
+    assert data["weryfikacja"]["url_strony"] == STRONA_URL
+    assert data["_zrodlo"].count(PDF_URL) == 1 and STRONA_URL in data["_zrodlo"]
+    assert (data["okaziciel"], data["max_osob_na_blankiecie"]) == (True, 6)
+    assert data["bagaz_rower_pies_bezplatnie"] is True and data["przedsprzedaz_dni"] == 30
+    assert data["dzieci_gratis_niejednoznaczne"] is True
+    assert "oprócz biletu krajowego do Zasieki" in data["dodatek_do_biletu_krajowego"]["zrodlo"]
 
 
 def test_zly_przewoznik_rzuca_blad():
@@ -150,6 +178,15 @@ def test_inny_przewoznik_dluzszy_i_czastkowy_odcinek_nie_pasuja():
         assert pricing.is_bilet_graniczny_zasieki_forst(leg) is False
         priced = pricing.price_rail_leg(leg, DiscountProfile())
         assert priced.carrier is not Carrier.BILET_GRANICZNY_ZASIEKI_FORST
+
+
+def test_dluzsza_trasa_nie_dostaje_samych_5_zl():
+    """Wrocław/Legnica - Forst = bilet krajowy KD do Zasieki + 5 zł; kod nie zgaduje krajowego
+    biletu, więc dłuższy odcinek nie może dostać samych 5,00 zł jako oficjalnej ceny."""
+    leg = _leg("Legnica", "Forst (Lausitz)", (51.2, 16.16), FORST, carrier="Koleje Dolnośląskie")
+    priced = pricing.price_rail_leg(leg, DiscountProfile())
+    assert priced.carrier is not Carrier.BILET_GRANICZNY_ZASIEKI_FORST
+    assert priced.amount != 5.0 or priced.breakdown.get("price_verified") is False
 
 
 def test_pociag_zgorzelec_gorlitz_nadal_0_zl():

@@ -1,17 +1,26 @@
 {
-  "_zrodlo": "Regulamin sprzedaży i honorowania biletu granicznego Polska-Niemcy (Zasieki - Forst), PDF; cena 5,00 zł: str. 1 §2 ust. 1; brak ulg ustawowych: §5 ust. 2; obowiązuje od 2024-10-01. Treść regulaminu odczytana przez właściciela projektu 2026-10-13; chmura nie ma dostępu do strony przewoźnika. URL pliku PDF NIE jest znany - do uzupełnienia (weryfikacja: weryfikacja.url = null).",
+  "_zrodlo": "Regulamin sprzedaży i honorowania biletu granicznego Polska-Niemcy (Zasieki - Forst), PDF: https://kolejedolnoslaskie.pl/wp-content/uploads/2025/10/R_Bilet-graniczny-Polska-Niemcy_2024-10-01.pdf ; strona oferty: https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/ . Cena 5,00 zł: str. 1 §2 ust. 1; okaziciel, do 6 osób na blankiecie: §1 ust. 2; dzieci do 6 lat: §2 ust. 2; rower/bagaż/pies: §2 ust. 3; przedsprzedaż: §3 ust. 1; brak ulg ustawowych: §5 ust. 2; obowiązuje od 2024-10-01. Treść regulaminu i strony odczytana przez właściciela projektu 2026-10-13; chmura nie ma dostępu do strony przewoźnika.",
   "_uwaga": "Jeden bilet w jedną stronę ważny na odcinku KD Zasieki - Zasieki(Gr) oraz DB Regio Zasieki(Gr) - Forst. Kod wycenia tylko odcinek, w którym końcami są Zasieki i Forst (oba kierunki); odcinki cząstkowe (np. samo Zasieki - Zasieki(Gr)) i dłuższe przejazdy (np. Wrocław - Forst) NIE są objęte tym wpisem. Przejazd tam i z powrotem to dwa bilety.",
   "waluta": "PLN",
   "cena": 5.0,
   "kierunek": "w jedną stronę",
+  "dodatek_do_biletu_krajowego": {
+    "tresc": "Bilet graniczny jest DODATKIEM do biletu krajowego KD do stacji Zasieki; cena całej trasy z dalszym początkiem (np. Wrocław, Legnica) = bilet krajowy KD do Zasieki + 5,00 zł.",
+    "zrodlo": "strona KD (oferty przygraniczne): \"oprócz biletu krajowego do Zasieki\"; https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/"
+  },
+  "okaziciel": true,
+  "max_osob_na_blankiecie": 6,
+  "bagaz_rower_pies_bezplatnie": true,
+  "przedsprzedaz_dni": 30,
   "dzieci_gratis_wiek_ponizej": 6,
-  "dzieci_gratis_uwaga": "Regulamin: dzieci 'do 6 lat' przejeżdżają bezpłatnie. Czy 6-latek jeszcze jedzie za darmo, nie jest rozstrzygnięte w danych od właściciela; przyjęto ostrożnie wiek < 6 (6-latek płaci 5,00 zł). Do sprawdzenia w regulaminie.",
+  "dzieci_gratis_niejednoznaczne": true,
+  "dzieci_gratis_uwaga": "Regulamin §2 ust. 2: dzieci 'do 6 lat' przejeżdżają bezpłatnie (100% ulgi). Granica wieku jest niejednoznaczna (czy 6-latek jeszcze jedzie za darmo); przyjęto ostrożnie wiek < 6 (6-latek płaci 5,00 zł) i oznaczono flagą dzieci_gratis_niejednoznaczne.",
   "ulgi_ustawowe": "brak (§5 ust. 2): uczniowie i studenci płacą pełną cenę",
   "obowiazuje_od": "2024-10-01",
   "weryfikacja": {
-    "status": "potwierdzone: regulamin (PDF), odczyt właściciela projektu; URL do uzupełnienia",
+    "status": "potwierdzone: regulamin (PDF) i strona KD, odczyt właściciela projektu",
     "data_odczytu": "2026-10-13",
-    "url": null,
-    "url_do_uzupelnienia": true
+    "url": "https://kolejedolnoslaskie.pl/wp-content/uploads/2025/10/R_Bilet-graniczny-Polska-Niemcy_2024-10-01.pdf",
+    "url_strony": "https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/"
   }
 }

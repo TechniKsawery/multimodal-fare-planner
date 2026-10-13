@@ -303,9 +303,14 @@ niż „wg Gemini, niezweryfikowane niezależnie” kwoty wracają do `price_ver
   `fares/data/bilet_graniczny_zasieki_forst.json`, `Carrier.BILET_GRANICZNY_ZASIEKI_FORST`): stała
   cena 5,00 zł w jedną stronę (regulamin PDF, str. 1 §2 ust. 1), ważny na KD Zasieki - Zasieki(Gr)
   i DB Regio Zasieki(Gr) - Forst, obowiązuje od 2024-10-01. Brak ulg ustawowych (§5 ust. 2):
-  uczniowie i studenci płacą pełną cenę; dzieci do 6 lat bezpłatnie (przyjęto wiek < 6, granicę
-  6-latka sprawdzić w regulaminie). Odczyt regulaminu 2026-10-13, **URL pliku PDF do uzupełnienia**
-  (`weryfikacja.url = null`, `zrodlo_url_do_uzupelnienia` w breakdown). Wycenia tylko odcinek
+  uczniowie i studenci płacą pełną cenę. Z regulaminu: bilet na okaziciela, do 6 osób na blankiecie
+  (§1 ust. 2); rower, bagaż i pies bezpłatnie (§2 ust. 3); przedsprzedaż 30 dni (§3 ust. 1); dzieci
+  „do 6 lat" bezpłatnie (§2 ust. 2) — granica wieku niejednoznaczna, przyjęto wiek < 6 (flaga
+  `dzieci_gratis_niejednoznaczne`). Bilet jest **dodatkiem** do biletu krajowego KD do Zasieki
+  (strona KD: „oprócz biletu krajowego do Zasieki"): cena trasy z Wrocławia/Legnicy = bilet krajowy
+  + 5,00 zł; komunikat w `notes`/`breakdown["dodatek_do_biletu_krajowego"]`. Źródła: regulamin
+  https://kolejedolnoslaskie.pl/wp-content/uploads/2025/10/R_Bilet-graniczny-Polska-Niemcy_2024-10-01.pdf
+  i https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/ (odczyt 2026-10-13). Wycenia tylko odcinek
   pociągowy (KD lub DB Regio) z Zasieki do Forst w obie strony; odcinki cząstkowe, autobus
   zastępczy i dłuższe przejazdy idą dalej starą ścieżką (bez zgadywania ceny).
 - **Koleje Małopolskie** (`fares/koleje_malopolskie.py`, `fares/data/koleje_malopolskie.json`,

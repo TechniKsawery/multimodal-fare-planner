@@ -22,6 +22,7 @@ from routing.model import (
     TransferWarning,
 )
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
+from tests.test_price_status_ui import open_details
 
 ROOT = Path(__file__).resolve().parent.parent
 PL = TRANSLATIONS["pl"]
@@ -52,7 +53,7 @@ def test_polski_domyslny_i_zapasowy():
     assert t("form.submit", lang="de") == "Suchen"
     assert t("form.submit", lang="xx") == "Szukaj"  # nieznany język -> polski
     assert t("klucz.ktorego.nie.ma") == "klucz.ktorego.nie.ma"
-    assert t("res.show_more", lang="en", n=3) == "Show more (3)"
+    assert t("list.hint", lang="en", shown=3, total=5).startswith("All routes found: 3 of 5")
 
 
 def test_tlumaczenia_etykiet_domenowych_pokrywaja_slowniki():
@@ -151,12 +152,13 @@ def test_aplikacja_w_kazdym_jezyku_wyszukuje_i_renderuje_wyniki(mocked_backend, 
     assert not at.exception, at.exception
     assert t("res.recommendations", lang=lang) in [h.value for h in at.header]
     assert t("res.all_variants", lang=lang) in [h.value for h in at.header]
+    open_details(at)
     near_miss = t("transfer.near_miss", lang=lang, station="Katowice", shortfall="5", gap="5", required="10")
     # Streamlit zamienia początkowe emoji komunikatu na ikonę, więc w .value go już nie ma
     assert near_miss.removeprefix("🟡 ") in [i.value for i in at.info]
     assert t("price.unverified_total", lang=lang) in [c.value for c in at.caption]
     # ceny odcinków nie zależą od języka
-    rows = at.dataframe[0].value
+    rows = at.dataframe[1].value
     assert t("col.price", lang=lang) in rows.columns
     prices = list(rows[t("col.price", lang=lang)])
     assert prices[0].startswith("40.00 PLN") and prices[1].startswith("60.00 PLN")

@@ -19,6 +19,7 @@ from routing import airports, motis_client, search_service, variants
 from routing.model import Itinerary, Leg, LegMode, OtherDayVariant, PricedLeg, SkippedVariant
 from routing.scoring import build_itinerary, pick_recommendations, price_ranking_note
 from routing.transfers import check_transfer
+from tests.test_price_status_ui import open_details
 
 ROOT = Path(__file__).resolve().parent.parent
 PL = TRANSLATIONS["pl"]
@@ -553,6 +554,7 @@ def test_aplikacja_pokazuje_pominiete_przesiadki_i_ostrzezenia_w_jezyku(
     at.run()
     at.button[0].click().run()
     assert not at.exception, at.exception
+    open_details(at)
 
     # ostrzeżenia dla cudzoziemców (st.warning) i ryzykowna przesiadka
     warnings = [w.value for w in at.warning]
@@ -565,8 +567,10 @@ def test_aplikacja_pokazuje_pominiete_przesiadki_i_ostrzezenia_w_jezyku(
         assert not any(re.search(r"przesiadk|Tylko \d+ min", w) for w in warnings)
 
     # sekcja pominiętych: nazwy i powody w wybranym języku
-    skipped_box = next(e for e in at.expander if e.label == t("res.skipped", lang=lang))
-    text = " ".join(m.value for m in skipped_box.markdown)
+    # (widoczna sekcja z nagłówkiem, nie zwinięty expander)
+    assert t("res.skipped", lang=lang) in [h.value for h in at.subheader]
+    assert t("res.skipped", lang=lang) not in [e.label for e in at.expander]
+    text = " ".join(m.value for m in at.markdown if m.value.startswith("- **"))
     assert tm(Msg("variant.via", via="Poznań Główny"), lang) in text
     assert tm(Msg("variant.unconfirmed_flights", n=2), lang) in text
     assert "WAW→DUS, WMI→DUS" in text
@@ -581,7 +585,7 @@ def test_aplikacja_pokazuje_pominiete_przesiadki_i_ostrzezenia_w_jezyku(
     assert tm(transport_mode_name("REGIONAL_RAIL"), lang) in joined
 
     # tabela: typ ceny przetłumaczony, odcinek bez ceny opisany po ludzku
-    rows = at.dataframe[0].value
+    rows = at.dataframe[1].value  # [0] to lista wariantów
     prices = list(rows[t("col.price", lang=lang)])
     # status ceny jest tylko w kolumnie "Status ceny", nie w nawiasie przy kwocie
     assert "(" not in prices[0].split(" — ")[0]

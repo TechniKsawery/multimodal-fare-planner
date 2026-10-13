@@ -8,7 +8,7 @@ import streamlit as st
 
 from fares.eligibility_info import eligibility_for, explain_ticket
 from fares.model import PriceType
-from i18n import t, tm
+from i18n import label_or, t, tm
 from routing.model import LegMode
 
 
@@ -238,15 +238,71 @@ def cheapest_variant_cards(built) -> tuple[object | None, object | None]:
     return confirmed, estimate
 
 
-def _variant_card(it, title: str, tag: str | None = None) -> None:
+SELECTED_KEY = "selected_variant"  # indeks wariantu w st.session_state["search_result"]["built"]
+SORT_OPTIONS = ("price", "time", "transfers")
+
+
+def route_summary(it) -> str:
+    """Skrót przystanków: "Lublin → Warszawa Wschodnia → Gdańsk Główny" (początek, miejsca zmiany
+    odcinka i koniec; kolejne powtórzenia tej samej nazwy są zwijane)."""
+    names = [it.legs[0].leg.origin_name] + [p.leg.destination_name for p in it.legs]
+    stops = [n for i, n in enumerate(names) if i == 0 or n != names[i - 1]]
+    return " → ".join(stops)
+
+
+def carriers_summary(it) -> str:
+    """Przewoźnicy odcinków w kolejności jazdy (bez powtórzeń); gdy odcinek nie ma przewoźnika,
+    jego rodzaj transportu. Odcinki piesze są pomijane."""
+    seen: list[str] = []
+    for p in it.legs:
+        if p.leg.mode is LegMode.WALK:
+            continue
+        name = p.leg.carrier_name or label_or("mode", p.leg.mode.value, p.leg.mode.value)
+        if name not in seen:
+            seen.append(name)
+    return ", ".join(seen)
+
+
+def time_span(it) -> str:
+    """"06:00 → 14:10" (z "+1" przy przyjeździe w kolejnym dniu)."""
+    first, last = it.legs[0].leg.depart, it.legs[-1].leg.arrive
+    days = (last.date() - first.date()).days
+    return f"{first:%H:%M} → {last:%H:%M}" + (f" +{days}" if days > 0 else "")
+
+
+def variant_index(built, it) -> int:
+    return next(i for i, x in enumerate(built) if x is it)
+
+
+def _sort_key(sort: str):
+    if sort == "time":
+        return lambda it: (it.total_duration_min, it.total_price_pln)
+    if sort == "transfers":
+        return lambda it: (it.num_transfers, it.total_duration_min, it.total_price_pln)
+    # cena: warianty bez pełnej ceny (brak / częściowa) na końcu, nie na początku jako "0 zł"
+    return lambda it: (it.price_status != "pelna", it.total_price_pln, it.total_duration_min)
+
+
+def variant_list(built, sort: str = "price", only_confirmed: bool = False) -> list[int]:
+    """Indeksy WSZYSTKICH zbudowanych wariantów w kolejności sortowania; filtr "tylko potwierdzone"
+    zostawia warianty, dla których is_price_confirmed. Sortowanie stabilne."""
+    idx = [i for i, it in enumerate(built) if not only_confirmed or is_price_confirmed(it)]
+    key = _sort_key(sort)
+    return sorted(idx, key=lambda i: key(built[i]))
+
+
+def select_variant(index: int) -> None:
+    st.session_state[SELECTED_KEY] = index
+
+
+def _variant_card(built, it, title: str, tag: str | None = None, key: str = "card") -> None:
     with st.container(border=True):
         st.markdown(f"**{title}**")
         if tag:
             st.markdown(f":orange-badge[{tag}]")
-        st.subheader(tm(it.variant_name))
-        st.markdown(f"**{variant_price_text(it)}**")
-        status = itinerary_price_status(it)
-        st.badge(status_label(status), color=_STATUS_BADGE_COLOR[status])
+        st.subheader(route_summary(it))
+        st.caption(f"{tm(it.variant_name)} • {carriers_summary(it)}")
+        st.markdown(f"🕒 {time_span(it)}")
         st.caption(
             t(
                 "cards.meta",
@@ -254,23 +310,80 @@ def _variant_card(it, title: str, tag: str | None = None) -> None:
                 transfers=it.num_transfers,
             )
         )
+        st.markdown(f"**{variant_price_text(it)}**")
+        status = itinerary_price_status(it)
+        st.badge(status_label(status), color=_STATUS_BADGE_COLOR[status])
+        st.button(
+            t("cards.details"),
+            key=f"show_{key}",
+            on_click=select_variant,
+            args=(variant_index(built, it),),
+        )
 
 
 def render_variant_cards(built) -> None:
-    """Na górze wyników: dwie karty obok siebie albo jedna, gdy to ten sam wariant."""
+    """Na górze wyników: dwie karty obok siebie albo jedna, gdy to ten sam wariant. Przycisk
+    "Pokaż szczegóły" wybiera wariant (SELECTED_KEY); sam wynik wyszukiwania zostaje w session_state."""
     confirmed, estimate = cheapest_variant_cards(built)
     if confirmed is None and estimate is None:
         st.info(t("cards.none"))
         return
     if estimate is None:
-        _variant_card(confirmed, t("cards.confirmed"))
+        _variant_card(built, confirmed, t("cards.confirmed"), key="confirmed")
         return
     if confirmed is None:
         st.info(t("cards.no_confirmed"))
-        _variant_card(estimate, t("cards.estimate"), t("cards.estimate_tag"))
+        _variant_card(built, estimate, t("cards.estimate"), t("cards.estimate_tag"), key="estimate")
         return
     left, right = st.columns(2)
     with left:
-        _variant_card(confirmed, t("cards.confirmed"))
+        _variant_card(built, confirmed, t("cards.confirmed"), key="confirmed")
     with right:
-        _variant_card(estimate, t("cards.estimate"), t("cards.estimate_tag"))
+        _variant_card(built, estimate, t("cards.estimate"), t("cards.estimate_tag"), key="estimate")
+
+
+def _variant_row(it) -> dict:
+    status = itinerary_price_status(it)
+    return {
+        t("list.col.variant"): ("⚠️ " if it.is_risky else "") + tm(it.variant_name),
+        t("col.route"): route_summary(it),
+        t("metric.time"): f"{it.total_duration_min / 60:.1f} h",
+        t("metric.transfers"): it.num_transfers,
+        t("list.col.price"): variant_price_text(it),
+        t("col.price_status"): status_cell(status),
+    }
+
+
+def _on_row_select(table_key: str, order: list[int]) -> None:
+    rows = st.session_state[table_key].selection.rows
+    if rows:
+        select_variant(order[rows[0]])
+
+
+def render_variant_list(built) -> None:
+    """Pełna lista wszystkich wariantów (potwierdzone, szacunki, loty) z sortowaniem i filtrem
+    "tylko potwierdzone". Zaznaczenie wiersza wybiera wariant do podglądu szczegółów."""
+    st.header(t("res.all_variants"))
+    c_sort, c_filter = st.columns([2, 1])
+    sort = c_sort.selectbox(
+        t("list.sort"),
+        SORT_OPTIONS,
+        format_func=lambda k: t(f"list.sort_{k}"),
+        key="w_variant_sort",
+    )
+    only_confirmed = c_filter.checkbox(t("list.only_confirmed"), key="w_only_confirmed")
+    order = variant_list(built, sort, only_confirmed)
+    if not order:
+        st.info(t("list.empty"))
+        return
+    st.caption(t("list.hint", shown=len(order), total=len(built)))
+    # klucz zależy od sortowania i filtra: po zmianie kolejności stare zaznaczenie wiersza traci sens
+    table_key = f"variant_table_{sort}_{int(only_confirmed)}"
+    st.dataframe(
+        [_variant_row(built[i]) for i in order],
+        width="stretch",
+        hide_index=True,
+        on_select=lambda: _on_row_select(table_key, order),
+        selection_mode="single-row",
+        key=table_key,
+    )

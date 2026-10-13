@@ -14,18 +14,34 @@ import streamlit as st
 from attractions import (
     CATEGORY_LABELS,
     AttractionCategory,
+    HeldDocument,
     best_price_for_attraction,
-    price_from_note,
     evaluate_city_cards,
     get_attractions,
     get_city_cards,
     normalize_city,
+    price_from_note,
     suggest_best_city_card,
 )
 from attractions import DiscountProfile as AttractionDiscountProfile
-from attractions import HeldDocument
-from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
+from demo import DEFAULT_FROM, DEFAULT_TO
+from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
+from fares.model import DiscountProfile
+from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
+from i18n import DEFAULT_LANG, LANGUAGES, exc_text, label_or, t, tm
+from routing import motis_client
+from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
+from routing.model import LegMode
+from routing.motis_client import MotisError
+from routing.scoring import (
+    RECOMMENDATION_LABELS,
+    SAFE_CATEGORY_KEYS,
+    price_ranking_note,
+)
+from routing.search_service import search
+from routing.variants import RouteRequest
 from ui_helpers import (
+    SELECTED_KEY,
     format_verified_date,
     leg_price_status,
     leg_source,
@@ -33,25 +49,10 @@ from ui_helpers import (
     render_other_day_section,
     render_price_summary,
     render_variant_cards,
+    render_variant_list,
     set_html_lang,
     status_cell,
-    variant_price_text,
 )
-from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
-from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
-from fares.model import DiscountProfile
-from i18n import DEFAULT_LANG, LANGUAGES, exc_text, label_or, t, tm
-from routing import motis_client
-from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
-from routing.motis_client import MotisError
-from routing.scoring import (
-    RECOMMENDATION_LABELS,
-    SAFE_CATEGORY_KEYS,
-    TOP_CATEGORY_KEYS,
-    price_ranking_note,
-)
-from routing.search_service import search
-from routing.variants import RouteRequest
 
 with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
     PKP_ULGI = list(json.load(fh)["ulgi_procent"])
@@ -120,13 +121,6 @@ def _is_near_miss(warning) -> bool:
     return 0 < shortfall <= NEAR_MISS_MARGIN_MINUTES
 
 
-def _is_near_miss_itinerary(it) -> bool:
-    """True, gdy wariant jest ryzykowny WYŁĄCZNIE przez przesiadki tuż poniżej progu — nie przez
-    próg oblany z dużym zapasem."""
-    risky = [w for w in it.transfer_warnings if not w.infeasible]
-    return bool(risky) and all(_is_near_miss(w) for w in risky)
-
-
 def _unverified_label(p) -> str:
     """Tłumaczona wersja PricedLeg.unverified_label (routing/model.py) — te same warunki, sam
     tekst z i18n; sama wycena nie jest tu ruszana."""
@@ -137,6 +131,11 @@ def _unverified_label(p) -> str:
     if p.breakdown.get("wartosc_zastepcza"):
         return t("price.unverified_fallback")
     return t("price.unverified")
+
+
+def render_foreigner_warnings(warnings) -> None:
+    for ostrzezenie in warnings:
+        st.warning(tm(ostrzezenie))
 
 
 def rec_label(key: str) -> str:
@@ -233,6 +232,11 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 t("col.alt_offer"): alternatywa,
             }
         )
+    if not any(p.leg.mode is LegMode.FLIGHT for p in it.legs):
+        # rozbicie ceny lotu i cennik bagażu mają sens tylko przy locie — bez lotu to puste kolumny
+        for col in (t("col.flight_breakdown"), t("col.baggage_tariff")):
+            for row in rows:
+                row.pop(col, None)
     st.dataframe(
         rows,
         width="stretch",
@@ -671,8 +675,7 @@ if submitted:
         obywatelstwo=obywatelstwo,
         legitymacja_zagraniczna=_kraj_legitymacji in ("DE", "other"),
     )
-    for ostrzezenie in foreigner_warnings_for(profile):
-        st.warning(tm(ostrzezenie))
+    foreigner_warnings = foreigner_warnings_for(profile)
     try:
         with st.spinner(t("search.spinner")):
             request = RouteRequest(
@@ -700,9 +703,11 @@ if submitted:
                 search_result.other_day,
             )
     except MotisError as exc:
+        render_foreigner_warnings(foreigner_warnings)
         st.error(t("err.motis", exc=tm(exc_text(exc))))
         st.stop()
     except Exception as exc:  # np. MOTIS nieuruchomiony
+        render_foreigner_warnings(foreigner_warnings)
         st.error(t("err.search", exc=exc))
         st.stop()
 
@@ -710,6 +715,7 @@ if submitted:
     # (np. checkbox "Pokaż więcej") wywołują kolejny rerun Streamlita, w którym `submitted` jest
     # znów False — bez zapamiętania wyniku cały ten blok by się nie wykonał i wyszukiwanie
     # "znikało by" przy każdej takiej interakcji.
+    st.session_state.pop(SELECTED_KEY, None)
     st.session_state["search_result"] = {
         "request": request,
         "date": date,
@@ -717,6 +723,7 @@ if submitted:
         "skipped": skipped,
         "recs": recs,
         "other_day": other_day,
+        "foreigner_warnings": foreigner_warnings,
     }
 
 result = st.session_state.get("search_result")
@@ -729,6 +736,7 @@ if result is not None:
         result["recs"],
     )
     other_day = result.get("other_day", [])
+    render_foreigner_warnings(result.get("foreigner_warnings", []))
 
     st.caption(
         t(
@@ -741,9 +749,10 @@ if result is not None:
         )
     )
     if skipped:
-        with st.expander(t("res.skipped")):
-            for s in skipped:
-                st.write(f"**{tm(s.variant_name)}**: {tm(s.reason)}")
+        # widoczna sekcja, nie zwinięty tekst: użytkownik ma zobaczyć, czego nie pokazujemy i dlaczego
+        st.subheader(t("res.skipped"))
+        for s in skipped:
+            st.markdown(f"- **{tm(s.variant_name)}**: {tm(s.reason)}")
     if not built:
         st.error(
             t(
@@ -758,12 +767,18 @@ if result is not None:
         )
         st.stop()
     render_variant_cards(built)
-    header_col, toggle_col = st.columns([3, 1])
-    with header_col:
-        st.header(t("res.recommendations"))
-    more_keys = [key for key in RECOMMENDATION_LABELS if key not in TOP_CATEGORY_KEYS]
-    with toggle_col:
-        pokaz_wiecej = st.checkbox(t("res.show_more", n=len(more_keys)), value=False, key="w_show_more")
+    render_variant_list(built)
+
+    # Wybór (karta albo wiersz listy) siedzi w session_state obok wyniku wyszukiwania, więc zmiana
+    # wyboru, sortowania czy filtra nie kasuje wyników.
+    selected = st.session_state.get(SELECTED_KEY)
+    if selected is not None and selected < len(built):
+        st.header(t("details.title", name=tm(built[selected].variant_name)))
+        render_itinerary(built[selected], wiek, bc if bc != "brak" else None)
+    else:
+        st.caption(t("details.none"))
+
+    st.header(t("res.recommendations"))
 
     # Ten sam wariant potrafi wygrać w kilku kategoriach naraz (np. "Najszybsza" i "Najlepszy
     # kompromis" mogą wskazać dokładnie tę samą trasę, jeśli akurat jest jednocześnie
@@ -782,40 +797,20 @@ if result is not None:
         if key in SAFE_CATEGORY_KEYS and recs[key].is_safe_fallback:
             st.info(t("res.no_safe"))
         price_note = price_ranking_note(key, recs[key], built)
-        if price_note:
+        if price_note is not None and price_note.key == "rank.skipped_cheaper":
+            # tańszy wariant bez potwierdzonej ceny jest normalnie na liście i na karcie szacunku
+            st.caption(t("rank.cheaper_in_list"))
+        elif price_note:
             st.info(tm(price_note))
         if key in ("najmniej_przesiadek", "najmniej_przesiadek_bezpieczna"):
             st.caption(t("res.fewest_transfers_note"))
         st.subheader(tm(recs[key].variant_name))
         render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
 
-    visible_keys = list(RECOMMENDATION_LABELS) if pokaz_wiecej else list(TOP_CATEGORY_KEYS)
-    tabs = st.tabs([rec_label(key) for key in visible_keys])
-    for tab, key in zip(tabs, visible_keys):
+    tabs = st.tabs([rec_label(key) for key in RECOMMENDATION_LABELS])
+    for tab, key in zip(tabs, RECOMMENDATION_LABELS):
         with tab:
             render_recommendation_tab(key)
-
-    st.header(t("res.all_variants"))
-    for it in built:
-        if it.is_risky and _is_near_miss_itinerary(it):
-            risk_suffix = t("res.risk_near")
-        elif it.is_risky:
-            risk_suffix = t("res.risk_risky")
-        else:
-            risk_suffix = ""
-        price_text = variant_price_text(it)
-        with st.expander(
-            t(
-                "res.variant_header",
-                name=tm(it.variant_name),
-                hours=f"{it.total_duration_min / 60:.1f}",
-                price=price_text,
-                unverified="" if it.price_verified else t("price.unverified_suffix"),
-                transfers=it.num_transfers,
-                risk=risk_suffix,
-            )
-        ):
-            render_itinerary(it, wiek, bc if bc != "brak" else None)
 
     render_attractions_and_city_cards(
         request.destination_label,

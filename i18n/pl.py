@@ -9,7 +9,7 @@ TEXTS = {
     "no": "Nie",
     # --- metryki i ceny ---
     "metric.time": "Czas podróży",
-    "metric.price": "Cena łączna",
+    "metric.price": "Twoja cena łączna",
     "metric.transfers": "Przesiadki",
     "metric.price_from": "od {price} PLN",
     "metric.price_exact": "{price} PLN",
@@ -219,6 +219,18 @@ TEXTS = {
     "rec.najlepszy_kompromis_bezpieczny": "Najlepszy kompromis (bezpieczny)",
     "rec.najszybsza_z_ulgami_bezpieczna": "Najszybsza z ulgami (bezpieczna)",
     "rec.najmniej_przesiadek_bezpieczna": "Najmniej przesiadek (bezpieczna)",
+    # --- status ceny, źródło, data weryfikacji (ekran wyniku) ---
+    "badge.official": "OFICJALNA TARYFA",
+    "badge.estimate": "SZACUNEK",
+    "badge.no_price": "BRAK CENY",
+    "badge.explain_official": "Cena z oficjalnego cennika przewoźnika.",
+    "badge.explain_estimate": "Cena orientacyjna lub dynamiczna — rzeczywisty koszt zależy od momentu zakupu u przewoźnika.",
+    "badge.explain_no_price": "Co najmniej jeden odcinek nie ma oficjalnego cennika w bazie — kwota jest niepełna albo zastępcza. Przed wyjazdem sprawdź cenę u przewoźnika.",
+    "col.price_status": "Status ceny",
+    "col.source": "Źródło cennika",
+    "col.verified": "Zweryfikowano",
+    "source.none": "brak danych",
+    "source.coverage": "Źródło i data weryfikacji dostępne dla {n} z {total} odcinków z ceną.",
     # --- teksty generowane przez kod domenowy (warianty, powody pominięcia, przesiadki, ostrzeżenia) ---
     "tmode.rail": "kolej",
     "tmode.highspeed_rail": "kolej dużych prędkości",

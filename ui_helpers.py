@@ -1,11 +1,15 @@
 """Fragmenty UI Streamlit wydzielone z app.py, żeby dało się je testować bez uruchamiania całej aplikacji."""
 
 import json
+from datetime import date
+from urllib.parse import urlparse
 
 import streamlit as st
 
 from fares.eligibility_info import eligibility_for, explain_ticket
+from fares.model import PriceType
 from i18n import t, tm
+from routing.model import LegMode
 
 
 def html_lang_script(lang: str) -> str:
@@ -97,3 +101,110 @@ def render_other_day_section(other_day, render_itinerary) -> None:
         ):
             st.error(tm(variant.label))
             render_itinerary(it)
+
+
+# --- status ceny, źródło i data weryfikacji (ekran wyniku, research/ui-projekt.md §2, §6) ---
+# Tylko prezentacja: statusy wynikają z pól, które model już ma (PricedLeg.price_known /
+# price_verified / price_type / breakdown), nic nie jest przeliczane ani zgadywane.
+
+PRICE_OFFICIAL = "OFFICIAL"
+PRICE_ESTIMATE = "ESTIMATE"
+PRICE_NO_PRICE = "NO_PRICE"
+_STATUS_RANK = {PRICE_OFFICIAL: 0, PRICE_ESTIMATE: 1, PRICE_NO_PRICE: 2}
+_STATUS_KEY = {PRICE_OFFICIAL: "official", PRICE_ESTIMATE: "estimate", PRICE_NO_PRICE: "no_price"}
+_STATUS_EMOJI = {PRICE_OFFICIAL: "🟢", PRICE_ESTIMATE: "🟡", PRICE_NO_PRICE: "⚪"}
+_STATUS_BADGE_COLOR = {PRICE_OFFICIAL: "green", PRICE_ESTIMATE: "orange", PRICE_NO_PRICE: "gray"}
+
+
+def leg_price_status(p) -> str | None:
+    """Status ceny odcinka; None dla odcinka pieszego (nie ma ceny).
+
+    NO_PRICE: kwoty nie znamy albo jest to wartość zastępcza (breakdown["wartosc_zastepcza"]).
+    ESTIMATE: kwota znana, ale nie jest sztywną taryfą — przedział (zakres_cen), price_type
+    "szacunek" albo cena niepotwierdzona. OFFICIAL: wyłącznie price_type "oficjalna_taryfa" ORAZ
+    price_verified; przy wątpliwości status jest słabszy, nigdy mocniejszy."""
+    if p.leg.mode is LegMode.WALK:
+        return None
+    if not p.price_known or p.breakdown.get("wartosc_zastepcza"):
+        return PRICE_NO_PRICE
+    if p.breakdown.get("zakres_cen"):
+        return PRICE_ESTIMATE
+    if p.price_verified and p.price_type == PriceType.OFFICIAL.value:
+        return PRICE_OFFICIAL
+    return PRICE_ESTIMATE
+
+
+def itinerary_price_status(it) -> str:
+    """Status ceny łącznej = najsłabszy status odcinków z ceną; wariant bez żadnej ceny albo z
+    ceną częściową (Itinerary.price_status) to NO_PRICE."""
+    if it.price_status != "pelna":
+        return PRICE_NO_PRICE
+    statuses = [s for s in (leg_price_status(p) for p in it.legs) if s]
+    if it.total_price_pln_high is not None:
+        statuses.append(PRICE_ESTIMATE)
+    return max(statuses, key=_STATUS_RANK.__getitem__, default=PRICE_NO_PRICE)
+
+
+def status_label(status: str) -> str:
+    return t(f"badge.{_STATUS_KEY[status]}")
+
+
+def status_cell(status: str | None) -> str:
+    """Tekst statusu do komórki tabeli (emoji + etykieta, żeby nie polegać na samym kolorze)."""
+    return f"{_STATUS_EMOJI[status]} {status_label(status)}" if status else ""
+
+
+def leg_source(p) -> tuple[str | None, str | None]:
+    """(URL źródła cennika, data weryfikacji ISO) z breakdown odcinka; None, gdy moduł taryfy
+    tego nie podaje (dziś: tylko część kalkulatorów, zob. opis PR). Nie zgadujemy źródła."""
+    b = p.breakdown
+    url = next((v for v in (b.get("zrodlo_url"), b.get("zrodlo")) if str(v or "").startswith("http")), None)
+    return url, b.get("data_weryfikacji") or b.get("data_odczytu")
+
+
+def source_host(url: str) -> str:
+    host = urlparse(url).netloc
+    return host.removeprefix("www.") or url
+
+
+def format_verified_date(iso: str | None) -> str:
+    if not iso:
+        return t("source.none")
+    try:
+        return date.fromisoformat(iso).strftime("%d.%m.%Y")
+    except ValueError:
+        return iso
+
+
+def itinerary_verification(it) -> tuple[list[str], str | None, int, int]:
+    """(hosty źródeł, NAJSTARSZA data weryfikacji ISO, odcinki ze źródłem i datą, odcinki z ceną).
+    Najstarsza data, bo cała trasa jest tak aktualna jak jej najmniej świeży odcinek."""
+    hosts, dates, covered, priced = [], [], 0, 0
+    for p in it.legs:
+        if leg_price_status(p) is None or not p.price_known:
+            continue
+        priced += 1
+        url, day = leg_source(p)
+        if url and day:
+            covered += 1
+        if url and source_host(url) not in hosts:
+            hosts.append(source_host(url))
+        if day:
+            dates.append(day)
+    return hosts, (min(dates) if dates else None), covered, priced
+
+
+def render_price_summary(it) -> None:
+    """Pod metrykami ekranu wyniku: badge statusu ceny łącznej, jedno zdanie wyjaśnienia oraz
+    źródło i data weryfikacji (z zastrzeżeniem, ile odcinków ma takie dane)."""
+    status = itinerary_price_status(it)
+    st.badge(status_label(status), color=_STATUS_BADGE_COLOR[status])
+    st.caption(t(f"badge.explain_{_STATUS_KEY[status]}"))
+    hosts, oldest, covered, priced = itinerary_verification(it)
+    if priced:
+        st.caption(
+            f"{t('col.source')}: {', '.join(hosts) or t('source.none')} • "
+            f"{t('col.verified')}: {format_verified_date(oldest)}"
+        )
+        if covered < priced:
+            st.caption(t("source.coverage", n=covered, total=priced))

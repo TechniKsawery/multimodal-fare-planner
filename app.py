@@ -26,9 +26,14 @@ from attractions import DiscountProfile as AttractionDiscountProfile
 from attractions import HeldDocument
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
 from ui_helpers import (
+    format_verified_date,
+    leg_price_status,
+    leg_source,
     render_bezplatne_info,
     render_other_day_section,
+    render_price_summary,
     set_html_lang,
+    status_cell,
     variant_price_text,
 )
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
@@ -158,6 +163,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
     else:
         c2.metric(t("metric.price"), t("metric.price_exact", price=f"{it.total_price_pln:.2f}"))
     c3.metric(t("metric.transfers"), it.num_transfers)
+    render_price_summary(it)
     if status != "pelna":
         st.caption(t("price.unknown_total"))
     elif not it.price_verified:
@@ -204,6 +210,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
         if alt:
             zrodlo_oferty = t("alt.db") if alt["zrodlo"] == "db" else t("alt.pkp")
             alternatywa = f"{alt['cena']:.2f} {alt['waluta']} ({zrodlo_oferty})"
+        src_url, src_date = leg_source(p)
         rows.append(
             {
                 t("col.mode"): label_or("mode", leg.mode.value, leg.mode.value),
@@ -216,13 +223,25 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 t("col.hours"): f"{leg.depart:%H:%M}–{leg.arrive:%H:%M} ({leg.duration_min:.0f} min)",
                 t("col.carrier"): leg.carrier_name or "",
                 t("col.price"): price,
+                t("col.price_status"): status_cell(leg_price_status(p)),
+                t("col.source"): src_url or "",
+                t("col.verified"): format_verified_date(src_date) if leg_price_status(p) else "",
                 t("col.flight_breakdown"): rozbicie,
                 t("col.baggage_tariff"): zrodlo_bagazu,
                 t("col.cabin_baggage"): bagaz_podreczny,
                 t("col.alt_offer"): alternatywa,
             }
         )
-    st.dataframe(rows, width="stretch", hide_index=True)
+    st.dataframe(
+        rows,
+        width="stretch",
+        hide_index=True,
+        column_config={
+            t("col.source"): st.column_config.LinkColumn(
+                t("col.source"), display_text=r"https?://(?:www\.)?([^/]+)"
+            )
+        },
+    )
     render_bezplatne_info(it)
     if it.is_risky:
         for w in it.transfer_warnings:

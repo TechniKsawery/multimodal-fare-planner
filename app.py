@@ -32,6 +32,7 @@ from ui_helpers import (
     render_bezplatne_info,
     render_other_day_section,
     render_price_summary,
+    render_variant_cards,
     set_html_lang,
     status_cell,
     variant_price_text,
@@ -176,7 +177,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             price = f"{m:.0f} m" if m else ""
         else:
             price = (
-                f"{p.amount:.2f} {p.currency} ({label_or('ptype', p.price_type, p.price_type)})"
+                f"{p.amount:.2f} {p.currency}"
                 if p.price_known
                 else t("price.leg_none")
             )
@@ -756,6 +757,7 @@ if result is not None:
             other_day, lambda it: render_itinerary(it, wiek, bc if bc != "brak" else None)
         )
         st.stop()
+    render_variant_cards(built)
     header_col, toggle_col = st.columns([3, 1])
     with header_col:
         st.header(t("res.recommendations"))

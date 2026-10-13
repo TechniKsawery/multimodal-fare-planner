@@ -583,7 +583,9 @@ def test_aplikacja_pokazuje_pominiete_przesiadki_i_ostrzezenia_w_jezyku(
     # tabela: typ ceny przetłumaczony, odcinek bez ceny opisany po ludzku
     rows = at.dataframe[0].value
     prices = list(rows[t("col.price", lang=lang)])
-    assert t("ptype.oficjalna_taryfa", lang=lang) in prices[0]
+    # status ceny jest tylko w kolumnie "Status ceny", nie w nawiasie przy kwocie
+    assert "(" not in prices[0].split(" — ")[0]
+    assert t("ptype.oficjalna_taryfa", lang=lang) not in prices[0]
     assert t("price.unknown_leg", lang=lang) in prices[1]
 
 

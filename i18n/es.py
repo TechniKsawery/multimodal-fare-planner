@@ -221,6 +221,12 @@ TEXTS = {
     "col.verified": "Verificado el",
     "source.none": "sin datos",
     "source.coverage": "Fuente y fecha de verificación disponibles para {n} de {total} tramos con precio.",
+    "cards.confirmed": "Más barata confirmada",
+    "cards.estimate": "Más barata según estimación",
+    "cards.estimate_tag": "estimación, no confirmada",
+    "cards.meta": "{hours} h • transbordos: {transfers}",
+    "cards.none": "Ninguna opción tiene un precio completo, así que no indicamos la más barata.",
+    "cards.no_confirmed": "Ninguna opción tiene un precio totalmente confirmado: abajo solo la más barata según estimación.",
     # --- teksty generowane przez kod domenowy (warianty, powody pominięcia, przesiadki, ostrzeżenia) ---
     "tmode.rail": "tren",
     "tmode.highspeed_rail": "tren de alta velocidad",

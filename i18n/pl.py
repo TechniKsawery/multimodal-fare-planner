@@ -231,6 +231,12 @@ TEXTS = {
     "col.verified": "Zweryfikowano",
     "source.none": "brak danych",
     "source.coverage": "Źródło i data weryfikacji dostępne dla {n} z {total} odcinków z ceną.",
+    "cards.confirmed": "Najtańsza potwierdzona",
+    "cards.estimate": "Najtańsza wg szacunku",
+    "cards.estimate_tag": "szacunek, niepotwierdzona",
+    "cards.meta": "{hours} h • przesiadek: {transfers}",
+    "cards.none": "Żaden wariant nie ma pełnej ceny, więc nie wskazujemy najtańszego.",
+    "cards.no_confirmed": "Żaden wariant nie ma w całości potwierdzonej ceny — poniżej tylko najtańsza wg szacunku.",
     # --- teksty generowane przez kod domenowy (warianty, powody pominięcia, przesiadki, ostrzeżenia) ---
     "tmode.rail": "kolej",
     "tmode.highspeed_rail": "kolej dużych prędkości",

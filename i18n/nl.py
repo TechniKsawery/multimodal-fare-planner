@@ -221,6 +221,12 @@ TEXTS = {
     "col.verified": "Geverifieerd op",
     "source.none": "geen gegevens",
     "source.coverage": "Bron en controledatum beschikbaar voor {n} van {total} trajecten met prijs.",
+    "cards.confirmed": "Goedkoopste bevestigde",
+    "cards.estimate": "Goedkoopste volgens schatting",
+    "cards.estimate_tag": "schatting, onbevestigd",
+    "cards.meta": "{hours} u • overstappen: {transfers}",
+    "cards.none": "Geen enkele optie heeft een volledige prijs, dus we noemen geen goedkoopste.",
+    "cards.no_confirmed": "Geen enkele optie heeft een volledig bevestigde prijs – hieronder alleen de goedkoopste volgens schatting.",
     # --- teksty generowane przez kod domenowy (warianty, powody pominięcia, przesiadki, ostrzeżenia) ---
     "tmode.rail": "trein",
     "tmode.highspeed_rail": "hogesnelheidstrein",

@@ -18,7 +18,9 @@ from ui_helpers import (
     PRICE_ESTIMATE,
     PRICE_NO_PRICE,
     PRICE_OFFICIAL,
+    cheapest_variant_cards,
     format_verified_date,
+    is_price_confirmed,
     itinerary_price_status,
     itinerary_verification,
     leg_price_status,
@@ -194,5 +196,88 @@ def test_ekran_wyniku_pokazuje_status_zrodlo_i_date(mocked_backend, monkeypatch,
     assert status_col[1].endswith(t("badge.no_price", lang=lang))
     assert list(rows[t("col.verified", lang=lang)])[0] == "10.10.2026"
     assert list(rows[t("col.verified", lang=lang)])[1] == t("source.none", lang=lang)
-    # typ ceny w kolumnie ceny jest tłumaczony (ptype.*, #124), nie surowym kodem modelu
-    assert not any("oficjalna_taryfa" in v for v in rows[t("col.price", lang=lang)])
+    # status ceny tylko w osobnej kolumnie: kwota bez typu ceny w nawiasie
+    assert not any("oficjalna_taryfa" in v or "(" in v.split(" — ")[0] for v in rows[t("col.price", lang=lang)])
+
+
+# --- karty wariantów: najtańsza potwierdzona / najtańsza wg szacunku -------------------------------
+
+
+def _named(name, *legs, high=None):
+    it = _itinerary(*legs, high=high)
+    it.variant_name = name
+    return it
+
+
+def _szacunek(amount):
+    return _priced("szacunek", amount, price_verified=False)
+
+
+def _brak():
+    return _priced("szacunek", 0.0, cena_nieznana=True)
+
+
+def test_ta_sama_najtansza_to_jedna_karta():
+    a = _named("A", _priced(amount=30.0))
+    b = _named("B", _priced(amount=50.0))
+    assert cheapest_variant_cards([b, a]) == (a, None)
+
+
+def test_tansza_niepotwierdzona_daje_dwie_karty():
+    potw = _named("potw", _priced(amount=80.0))
+    szac = _named("szac", _szacunek(40.0))
+    assert cheapest_variant_cards([potw, szac]) == (potw, szac)
+
+
+def test_brak_ceny_i_cena_czesciowa_nie_wygrywaja():
+    brak = _named("brak", _brak())
+    czesc = _named("czesc", _priced(amount=10.0), _brak())
+    pelny = _named("pelny", _szacunek(70.0))
+    assert cheapest_variant_cards([brak, czesc, pelny]) == (None, pelny)
+    assert cheapest_variant_cards([brak, czesc]) == (None, None)
+
+
+def test_przedzial_cen_nie_jest_potwierdzony_ale_liczy_sie_jako_szacunek():
+    zakres = _named("zakres", _priced(amount=20.0), high=35.0)
+    assert not is_price_confirmed(zakres)
+    assert cheapest_variant_cards([zakres]) == (None, zakres)
+
+
+def test_odcinek_pieszy_nie_blokuje_potwierdzenia():
+    it = _named("z pieszym", _priced(amount=25.0), _priced(amount=0.0, mode=LegMode.WALK, price_verified=False))
+    assert is_price_confirmed(it)
+
+
+def test_remis_ceny_rozstrzyga_krotszy_czas():
+    wolny = _named("wolny", _priced(amount=30.0))
+    szybki = _named("szybki", _priced(amount=30.0))
+    szybki.total_duration_min = 60.0
+    assert cheapest_variant_cards([wolny, szybki])[0] is szybki
+
+
+@pytest.fixture
+def two_variants_backend(mocked_backend, monkeypatch):
+    potw = _named("Potwierdzony", _priced(amount=80.0))
+    szac = _named("Szacunkowy", _szacunek(40.0))
+
+    def fake_search(request):
+        built = [potw, szac]
+        return search_service.SearchResult(
+            request=request, built=built, skipped=[], recommendations=pick_recommendations(built)
+        )
+
+    monkeypatch.setattr(search_service, "search", fake_search)
+
+
+@pytest.mark.parametrize("lang", list(LANGUAGES))
+def test_ekran_wyniku_ma_dwie_karty_wariantow(two_variants_backend, monkeypatch, lang):
+    monkeypatch.setattr(i18n, "current_lang", lambda: lang)
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
+    at.session_state["lang"] = lang
+    at.run()
+    at.button[0].click().run()
+    assert not at.exception, at.exception
+    text = " ".join(m.value for m in at.markdown)
+    assert t("cards.confirmed", lang=lang) in text
+    assert t("cards.estimate", lang=lang) in text
+    assert f":orange-badge[{t('cards.estimate_tag', lang=lang)}]" in text

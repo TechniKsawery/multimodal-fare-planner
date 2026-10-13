@@ -221,6 +221,12 @@ TEXTS = {
     "col.verified": "Verified on",
     "source.none": "no data",
     "source.coverage": "Source and verification date available for {n} of {total} priced legs.",
+    "cards.confirmed": "Cheapest confirmed",
+    "cards.estimate": "Cheapest by estimate",
+    "cards.estimate_tag": "estimate, unconfirmed",
+    "cards.meta": "{hours} h • transfers: {transfers}",
+    "cards.none": "No option has a complete price, so we do not pick a cheapest one.",
+    "cards.no_confirmed": "No option has a fully confirmed price — only the cheapest by estimate is shown below.",
     # --- teksty generowane przez kod domenowy (warianty, powody pominięcia, przesiadki, ostrzeżenia) ---
     "tmode.rail": "rail",
     "tmode.highspeed_rail": "high-speed rail",

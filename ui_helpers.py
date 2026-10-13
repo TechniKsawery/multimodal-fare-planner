@@ -208,3 +208,69 @@ def render_price_summary(it) -> None:
         )
         if covered < priced:
             st.caption(t("source.coverage", n=covered, total=priced))
+
+
+# --- karty wariantów: najtańsza potwierdzona / najtańsza wg szacunku (research/ui-projekt.md, etap 2) ---
+# Tylko prezentacja: wybór wśród już policzonych wariantów, bez zmian w cenach i taryfach.
+
+
+def is_price_confirmed(it) -> bool:
+    """Wszystkie odcinki płatne mają znaną i potwierdzoną cenę (PricedLeg.price_verified), a cena
+    łączna jest jedną kwotą, nie przedziałem. Brak ceny i cena częściowa nigdy nie są potwierdzone."""
+    if it.price_status != "pelna" or it.total_price_pln_high is not None:
+        return False
+    return all(p.price_verified for p in it.legs if p.leg.mode is not LegMode.WALK)
+
+
+def _cheapest_key(it) -> tuple[float, float]:
+    return it.total_price_pln, it.total_duration_min  # remis ceny rozstrzyga krótszy czas
+
+
+def cheapest_variant_cards(built) -> tuple[object | None, object | None]:
+    """(najtańsza potwierdzona, najtańsza wg szacunku). Wariant z "brak ceny" lub "ceną częściową"
+    nie wygrywa żadnej kategorii. Szacunek liczy się od dolnej granicy przedziału. Gdy oba wskazują
+    ten sam wariant, zwraca go jako potwierdzoną, a szacunek jako None (jedna karta)."""
+    full = [it for it in built if it.price_status == "pelna"]
+    confirmed = min((it for it in full if is_price_confirmed(it)), key=_cheapest_key, default=None)
+    estimate = min(full, key=_cheapest_key, default=None)
+    if confirmed is not None and estimate is not None and confirmed is estimate:
+        estimate = None
+    return confirmed, estimate
+
+
+def _variant_card(it, title: str, tag: str | None = None) -> None:
+    with st.container(border=True):
+        st.markdown(f"**{title}**")
+        if tag:
+            st.markdown(f":orange-badge[{tag}]")
+        st.subheader(tm(it.variant_name))
+        st.markdown(f"**{variant_price_text(it)}**")
+        status = itinerary_price_status(it)
+        st.badge(status_label(status), color=_STATUS_BADGE_COLOR[status])
+        st.caption(
+            t(
+                "cards.meta",
+                hours=f"{it.total_duration_min / 60:.1f}",
+                transfers=it.num_transfers,
+            )
+        )
+
+
+def render_variant_cards(built) -> None:
+    """Na górze wyników: dwie karty obok siebie albo jedna, gdy to ten sam wariant."""
+    confirmed, estimate = cheapest_variant_cards(built)
+    if confirmed is None and estimate is None:
+        st.info(t("cards.none"))
+        return
+    if estimate is None:
+        _variant_card(confirmed, t("cards.confirmed"))
+        return
+    if confirmed is None:
+        st.info(t("cards.no_confirmed"))
+        _variant_card(estimate, t("cards.estimate"), t("cards.estimate_tag"))
+        return
+    left, right = st.columns(2)
+    with left:
+        _variant_card(confirmed, t("cards.confirmed"))
+    with right:
+        _variant_card(estimate, t("cards.estimate"), t("cards.estimate_tag"))

@@ -224,7 +224,11 @@ przewoźników dalekobieżnych:
   linia prosta. Kwoty „wg Gemini, niezweryfikowane niezależnie” → `price_type="szacunek"`,
   `price_verified=False`. KMŁ nie trafia do `PL_REGIONAL_RAIL_KEYWORDS` (POLREGIO bez zmian).
   Testy: `tests/test_koleje_malopolskie_tariff.py`.
-- wszystko inne (w tym Koleje Mazowieckie, SKM Trójmiasto/ŁKA/SKM Warszawa
+- **Koleje Mazowieckie** (`KMZ_KEYWORDS`: „Koleje Mazowieckie” albo skrót KM, bez WKD; pociąg RAIL
+  albo SUBURBAN) → `Carrier.KOLEJE_MAZOWIECKIE` (Tabela nr 1 TP-KM, 27 pasm, zweryfikowana
+  2026-10-13; `fares/koleje_mazowieckie.py`). Wyjątek lotniskowy Płudy - Lotnisko Chopina zostaje
+  na biletach ZTM. Km po torach jak dla KMŁ. Powyżej 520 km: szacunek PLN/km.
+- wszystko inne (w tym SKM Trójmiasto/ŁKA/SKM Warszawa
   poza swoimi obszarami i autobus zastępczy
   RB66 Szczecin–Angermünde, który nie jest wyceniany jak pociąg VBB) → zgrubny fallback `GENERIC_FALLBACK_PLN_PER_KM` (0.35 PLN/km),
   `price_type="szacunek"`, `breakdown["price_verified"]=False`, żeby jeden nierozpoznany

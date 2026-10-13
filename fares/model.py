@@ -38,6 +38,8 @@ class Carrier(str, Enum):
     KOLEJE_MALOPOLSKIE = "koleje_malopolskie"  # Koleje Małopolskie: Tabela nr 1 taryfy TP-KMŁ
     # (30 pasm odległościowych, bilet jednorazowy normalny), fares/koleje_malopolskie.py (też używa
     # Segment.distance_along_track)
+    KOLEJE_MAZOWIECKIE = "koleje_mazowieckie"  # Koleje Mazowieckie: Tabela nr 1 taryfy TP-KM
+    # (27 pasm odległościowych, bilet jednorazowy normalny), fares/koleje_mazowieckie.py
 
 
 @dataclass
@@ -183,13 +185,14 @@ class Segment:
     discounts: DiscountProfile = field(default_factory=DiscountProfile)
     travel_date: str | None = None  # "YYYY-MM-DD"; wymagane dla FlixBus (ceny dynamiczne per data)
     distance_along_track: bool = False
-    """Tylko Carrier.POLREGIO_PODSTAWOWA (oraz Carrier.SKM_TROJMIASTO i Carrier.KOLEJE_MALOPOLSKIE —
-    fares/skm_trojmiasto.py, fares/koleje_malopolskie.py): czy
+    """Tylko Carrier.POLREGIO_PODSTAWOWA (oraz Carrier.SKM_TROJMIASTO, Carrier.KOLEJE_MALOPOLSKIE i
+    Carrier.KOLEJE_MAZOWIECKIE — fares/skm_trojmiasto.py, fares/koleje_malopolskie.py,
+    fares/koleje_mazowieckie.py): czy
     distance_km to kilometry TARYFOWE (po torach), a nie linia prosta. Domyślnie False — MOTIS daje
     linię prostą (leg.distance_km), która zaniża pasmo taryfy, więc nawet potwierdzone pasmo daje
     wtedy PriceType.ESTIMATE (fares/polregio.py)."""
     distance_source: str | None = None
-    """Tylko Carrier.POLREGIO_PODSTAWOWA i Carrier.KOLEJE_MALOPOLSKIE, gdy distance_along_track=True:
+    """Tylko Carrier.POLREGIO_PODSTAWOWA, KOLEJE_MALOPOLSKIE i KOLEJE_MAZOWIECKIE, gdy distance_along_track=True:
     skąd pochodzi kilometr
     (np. geometria odcinka z MOTIS albo suma odległości między przystankami); trafia do
     breakdown["zrodlo_km"] i do opisu ceny."""

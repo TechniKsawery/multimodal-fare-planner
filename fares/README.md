@@ -242,9 +242,8 @@ Znane ograniczenia:
   (`price_type="szacunek"`, `price_verified=False`). Taryfę VBB Teil E (Szczecin – Angermünde,
   Szczecin – Tantow) można rozważyć dopiero, gdy pociąg wróci na trasę (od 13.12.2026) i kwoty
   zostaną odczytane z broszury VBB.
-- **Koleje Mazowieckie.** Nie wdrożone: tabela z raportu Gemini ma niespójny wiersz 31-40 km
-  (15,30 zł w raporcie `skm-km-tabele` vs 15,60 zł w raporcie `ztm-lka-regio`). Zostają przy
-  zgrubnym szacunku 0,35 zł/km (wyjątek: linia lotniskowa Płudy - Lotnisko Chopina, niżej).
+- **Koleje Mazowieckie.** Wdrożone osobno (Tabela nr 1 TP-KM, 27 pasm, potwierdzona 2026-10-13),
+  patrz sekcja niżej. Wyjątek: linia lotniskowa Płudy - Lotnisko Chopina nadal na biletach ZTM.
 - SKM Trójmiasto, SKM Warszawa, ŁKA w Łodzi i Koleje Małopolskie (Tabela nr 1 TP-KMŁ): wdrożone,
   patrz niżej.
 
@@ -319,8 +318,23 @@ niż „wg Gemini, niezweryfikowane niezależnie” kwoty wracają do `price_ver
   (rozkład K71), której w Tabeli nr 1 nie ma (patrz
   `verification/koleje-malopolskie-weryfikacja-2026-10-12.md`); wcześniejsza notatka o drugiej,
   regionalnej tabeli („Taryfa Małopolska”) nie jest tym raportem rozstrzygnięta. **Koleje
-  Mazowieckie i inni przewoźnicy nie są ruszani** (POLREGIO w Małopolsce dalej dostaje Taryfę
+  Mazowieckie i inni przewoźnicy nie są tu ruszani** (POLREGIO w Małopolsce dalej dostaje Taryfę
   Podstawową). Testy: `tests/test_koleje_malopolskie_tariff.py`.
+
+### Koleje Mazowieckie (Tabela nr 1 TP-KM, 2026-10-13)
+
+`fares/koleje_mazowieckie.py`, `fares/data/koleje_mazowieckie.json`, `Carrier.KOLEJE_MAZOWIECKIE`:
+bilet jednorazowy wg taryfy normalnej, 2. klasa, 27 pasm (do 5 km … 481–520 km), kwoty brutto
+(brutto = netto + PTU, oba w danych). Źródło: oficjalny PDF „Załącznik do TP-KM z uwzględnieniem
+zmian nr 1–6”, s. 13, Tabela nr 1
+(https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf).
+**Tabelę potwierdził właściciel projektu w PDF 2026-10-13** → `price_verified=True`
+(`PriceType.OFFICIAL` tylko z km po torach, `leg.extra["distance_along_track_km"]`; linia prosta →
+`ESTIMATE` z opisem przybliżenia). Baza: uchwała Zarządu KM 268/Z/2022 (w życie 1.07.2022), zmiana
+nr 6 od 1.01.2025 tabeli cen nie zmienia (wg briefu, niezależnie nieodczytane). To rozstrzyga
+dawny spór 15,30 vs 15,60 zł dla 31–40 km: oficjalna tabela ma **15,30 zł**. Nie modelujemy ulg,
+biletów okresowych/czasowych; powyżej 520 km brak pasma → niepotwierdzony szacunek PLN/km. WKD to
+inny przewoźnik i tej tabeli nie dostaje. Testy: `tests/test_koleje_mazowieckie_tariff.py`.
 
 Ograniczenia (wspólne): obszary to koła, nie granice (`routing/pricing.py`: `SKM_TROJMIASTO_AREA`
 20 km wokół Sopotu, `LKA_LODZ_AREA` 9 km wokół centrum Łodzi, SKM Warszawa/lotnisko: koło ZTM

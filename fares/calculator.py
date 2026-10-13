@@ -7,6 +7,7 @@ from . import (
     hvv,
     international,
     koleje_malopolskie,
+    koleje_mazowieckie,
     kvb,
     lka_lodz,
     mpk_krakow,
@@ -40,6 +41,7 @@ _CALCULATORS = {
     Carrier.SKM_TROJMIASTO: skm_trojmiasto.estimate,
     Carrier.LKA_LODZ: lka_lodz.estimate,
     Carrier.KOLEJE_MALOPOLSKIE: koleje_malopolskie.estimate,
+    Carrier.KOLEJE_MAZOWIECKIE: koleje_mazowieckie.estimate,
     Carrier.INTERNATIONAL_PL_DE: international.estimate,
 }
 

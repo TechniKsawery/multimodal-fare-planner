@@ -267,7 +267,7 @@ def test_polregio_w_niemczech_nie_dostaje_polskiej_tabeli():
 
 @pytest.mark.parametrize(
     "przewoznik",
-    ["Koleje Mazowieckie", "Łódzka Kolej Aglomeracyjna", "SKM Trójmiasto", "Jakiś Nieznany"],
+    ["Łódzka Kolej Aglomeracyjna", "SKM Trójmiasto", "Jakiś Nieznany"],
 )
 def test_pozostali_przewoznicy_polscy_dalej_zgrubny_szacunek(przewoznik):
     leg = _leg(przewoznik, LUBLIN_GLOWNY, DEBLIN, distance_km=57.0)

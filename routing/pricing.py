@@ -138,7 +138,9 @@ def _matches_any_word(text: str, keywords: tuple[str, ...]) -> bool:
 
 def _leg_endpoints(leg: Leg) -> tuple[tuple[float, float], tuple[float, float]] | None:
     """Współrzędne obu końców odcinka z leg.extra (ustawiane przez motis_client) albo None."""
-    coords = [leg.extra.get(k) for k in ("origin_lat", "origin_lon", "destination_lat", "destination_lon")]
+    coords = [
+        leg.extra.get(k) for k in ("origin_lat", "origin_lon", "destination_lat", "destination_lon")
+    ]
     if any(c is None for c in coords):
         return None
     o_lat, o_lon, d_lat, d_lon = coords
@@ -182,10 +184,25 @@ def _bvg_tariff_zone(leg: Leg) -> str | None:
 _NRW_INNER_BOXES = (
     # (lat_min, lat_max, lon_min, lon_max) — prostokąty CAŁKOWICIE wewnątrz NRW (z zapasem od
     # granic z NL/BE, Dolną Saksonią, Hesją i Nadrenią-Palatynatem), więc konserwatywne:
-    {"lat_min": 50.95, "lat_max": 51.80, "lon_min": 6.40, "lon_max": 8.20},  # Ren-Ruhra, Düsseldorf, Wuppertal, Hamm
-    {"lat_min": 51.80, "lat_max": 52.05, "lon_min": 7.20, "lon_max": 8.90},  # Münster, Bielefeld, Gütersloh
+    {
+        "lat_min": 50.95,
+        "lat_max": 51.80,
+        "lon_min": 6.40,
+        "lon_max": 8.20,
+    },  # Ren-Ruhra, Düsseldorf, Wuppertal, Hamm
+    {
+        "lat_min": 51.80,
+        "lat_max": 52.05,
+        "lon_min": 7.20,
+        "lon_max": 8.90,
+    },  # Münster, Bielefeld, Gütersloh
     {"lat_min": 51.50, "lat_max": 51.80, "lon_min": 8.20, "lon_max": 8.80},  # Paderborn, Lippstadt
-    {"lat_min": 50.65, "lat_max": 50.95, "lon_min": 6.60, "lon_max": 7.20},  # Kolonia, Bonn, Euskirchen
+    {
+        "lat_min": 50.65,
+        "lat_max": 50.95,
+        "lon_min": 6.60,
+        "lon_max": 7.20,
+    },  # Kolonia, Bonn, Euskirchen
     {"lat_min": 50.74, "lat_max": 50.83, "lon_min": 6.09, "lon_max": 6.60},  # Akwizgran, Düren
 )
 """Obszar, w którym stosujemy taryfę eezy.nrw (fares/vrr.py). eezy.nrw to taryfa NRW — poza
@@ -437,7 +454,7 @@ PL_REGIONAL_RAIL_KEYWORDS = (
 )
 """Przewoźnicy regionalni PL, którym przypisujemy degresywną tabelę Taryfy Podstawowej
 (fares/polregio.py): POLREGIO, Koleje Dolnośląskie, Koleje Śląskie (dopasowanie jako CAŁE słowa).
-Nie obejmuje Kolei Mazowieckich (tabela niespójna, niewdrożona), Kolei Małopolskich (własna taryfa
+Nie obejmuje Kolei Mazowieckich (własna taryfa TP-KM, KMZ_KEYWORDS), Kolei Małopolskich (własna taryfa
 TP-KMŁ, osobna ścieżka KML_KEYWORDS w infer_pl_local_rail_carrier()), ŁKA, SKM Trójmiasto ani
 SKM Warszawa — te mają osobne ścieżki w infer_pl_local_rail_carrier() (patrz routing/README.md,
 sekcja o taryfach regionalnych)."""
@@ -462,6 +479,9 @@ SKM_KEYWORDS = ("skm", "szybka kolej miejska")
 SKM_TROJMIASTO_NAME_KEYWORDS = ("trójmieście", "trojmiescie", "trójmiasto", "trojmiasto")
 LKA_KEYWORDS = ("łka", "lka", "łódzka kolej aglomeracyjna", "lodzka kolej aglomeracyjna")
 KM_WKD_KEYWORDS = ("koleje mazowieckie", "km", "wkd", "warszawska kolej dojazdowa")
+KMZ_KEYWORDS = ("koleje mazowieckie", "km")
+"""Koleje Mazowieckie (CAŁE słowa): pełna nazwa albo skrót KM. WKD ("km_wkd" wyżej) to inny przewoźnik
+i tabeli TP-KM nie dostaje."""
 KML_KEYWORDS = ("koleje małopolskie", "koleje malopolskie", "kmł", "kml")
 """Nazwy przewoźników (CAŁE słowa, małe litery) dla lokalnych taryf kolejowych. "skm" samo nie mówi,
 które SKM (Warszawa, Trójmiasto, Szczecin) — o mieście decyduje geografia (obszary niżej)."""
@@ -510,6 +530,15 @@ def _is_koleje_malopolskie(leg: Leg) -> bool:
     return leg.mode is LegMode.RAIL or leg.extra.get("motis_mode") == "SUBURBAN"
 
 
+def _is_koleje_mazowieckie(leg: Leg) -> bool:
+    """Czy przewoźnik odcinka to Koleje Mazowieckie (nazwa lub skrót KM, bez WKD), a odcinek to
+    pociąg (LegMode.RAIL albo SUBURBAN), nie autobus."""
+    name = " ".join(leg.carrier_name.lower().split())
+    if not _matches_any_word(name, KMZ_KEYWORDS) or _matches_any_word(name, ("wkd",)):
+        return False
+    return leg.mode is LegMode.RAIL or leg.extra.get("motis_mode") == "SUBURBAN"
+
+
 def _touches_krakow_airport(leg: Leg) -> bool:
     stops = (leg.origin_name.lower(), leg.destination_name.lower())
     return any(k in stop for stop in stops for k in KML_AIRPORT_KEYWORDS)
@@ -535,11 +564,17 @@ def infer_pl_local_rail_carrier(leg: Leg) -> Carrier | None:
       czasowy ZTM jako cena odcinka),
     - Koleje Małopolskie: pociąg KMŁ (nazwa przewoźnika) poza stacją Kraków Lotnisko ->
       Carrier.KOLEJE_MALOPOLSKIE (Tabela nr 1 TP-KMŁ, 30 pasm),
-    - KM: tylko linia lotniskowa Płudy - Lotnisko Chopina -> Carrier.ZTM_WARSZAWA. Reszta KM i WKD
-      NIE honoruje biletów czasowych ZTM (patrz price_bus_leg), więc zwraca None."""
+    - KM: linia lotniskowa Płudy - Lotnisko Chopina -> Carrier.ZTM_WARSZAWA; reszta pociągów
+      Kolei Mazowieckich -> Carrier.KOLEJE_MAZOWIECKIE (Tabela nr 1 TP-KM, 27 pasm). WKD NIE
+      honoruje biletów czasowych ZTM (patrz price_bus_leg) i nie ma tabeli, więc zwraca None."""
     name = leg.carrier_name.lower()
     if _is_koleje_malopolskie(leg):
         return None if _touches_krakow_airport(leg) else Carrier.KOLEJE_MALOPOLSKIE
+    if _is_koleje_mazowieckie(leg) and not (
+        is_warsaw_airport_line(leg)
+        and _city_carrier_for_leg(leg, (Carrier.ZTM_WARSZAWA,)) is Carrier.ZTM_WARSZAWA
+    ):
+        return Carrier.KOLEJE_MAZOWIECKIE
     if _matches_any_word(name, SKM_KEYWORDS):
         in_trojmiasto = _leg_in_area(leg, SKM_TROJMIASTO_AREA)
         if in_trojmiasto or (
@@ -865,7 +900,9 @@ def price_flight_leg(leg: Leg, currency: str = "PLN") -> PricedLeg:
         _flight_baggage_only_extras(origin_iata, destination_iata, currency)
         if checked_baggage
         else ExtrasProfile(
-            baggage_cost=0.0, currency=currency, note="Tylko bagaż podręczny: bez opłaty za rejestrowany."
+            baggage_cost=0.0,
+            currency=currency,
+            note="Tylko bagaż podręczny: bez opłaty za rejestrowany.",
         )
     )
     segment = FlightSegment(

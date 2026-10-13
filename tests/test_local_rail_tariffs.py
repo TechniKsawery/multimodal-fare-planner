@@ -3,9 +3,9 @@
 2026-10-12 (research/skm-km-tabele.md, research/ztm-lka-regio.md) i mają status "wg Gemini,
 niezweryfikowane niezależnie" — domeny przewoźników są z chmury zablokowane.
 
-NIE wdrożone celowo: Koleje Mazowieckie (tabela ma niespójny wiersz 31-40 km: 15,30 zł vs 15,60 zł).
-Testy pilnują, że te odcinki dalej idą zgrubnym szacunkiem PLN/km. Koleje Małopolskie mają osobny
-moduł i testy: tests/test_koleje_malopolskie_tariff.py.
+Koleje Małopolskie i Koleje Mazowieckie mają osobne moduły i testy:
+tests/test_koleje_malopolskie_tariff.py, tests/test_koleje_mazowieckie_tariff.py. WKD nie ma tabeli
+i nie honoruje biletów ZTM: idzie zgrubnym szacunkiem PLN/km.
 
 Współrzędne przybliżone (ok. 0,01°) — rozróżniają miejsca, nie są danymi cenowymi."""
 
@@ -426,10 +426,8 @@ def test_skm_trojmiasto_nie_dostaje_biletu_ztm_warszawa():
 # --- KM i WKD: bilety czasowe ZTM nie są honorowane --------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "przewoznik", ["Koleje Mazowieckie", "KM", "WKD", "Warszawska Kolej Dojazdowa"]
-)
-def test_km_i_wkd_w_warszawie_w_trybie_suburban_nie_dostaja_biletu_ztm(przewoznik):
+@pytest.mark.parametrize("przewoznik", ["WKD", "Warszawska Kolej Dojazdowa"])
+def test_wkd_w_warszawie_w_trybie_suburban_nie_dostaje_biletu_ztm(przewoznik):
     leg = _leg(
         przewoznik,
         "Warszawa Wschodnia",
@@ -447,17 +445,19 @@ def test_km_i_wkd_w_warszawie_w_trybie_suburban_nie_dostaja_biletu_ztm(przewozni
     assert priced.amount == round(pricing.GENERIC_FALLBACK_PLN_PER_KM * leg.distance_km, 2)
 
 
-def test_km_w_trybie_rail_w_warszawie_nie_dostaje_biletu_ztm():
+@pytest.mark.parametrize("tryb", ["rail", "suburban"])
+def test_km_w_warszawie_nie_dostaje_biletu_ztm_tylko_tabele_km(tryb):
     leg = _leg(
         "Koleje Mazowieckie",
         "Warszawa Wschodnia",
         "Warszawa Zachodnia",
         WARSZAWA_WSCHODNIA,
         WARSZAWA_ZACHODNIA,
+        mode=LegMode.RAIL if tryb == "rail" else LegMode.BUS,
+        motis_mode="SUBURBAN" if tryb == "suburban" else None,
     )
-    priced = pricing.price_rail_leg(leg, DiscountProfile())
-    assert priced.carrier is None
-    assert priced.price_verified is False
+    priced = pricing.price_leg(leg, DiscountProfile())
+    assert priced.carrier is Carrier.KOLEJE_MAZOWIECKIE
 
 
 @pytest.mark.parametrize(
@@ -497,19 +497,8 @@ def test_wyjatek_lotniskowy_dotyczy_tylko_pary_pludy_lotnisko():
         WARSZAWA_PLUDY,
         WARSZAWA_WSCHODNIA,
     )
-    assert pricing.infer_pl_local_rail_carrier(leg) is None
+    assert pricing.infer_pl_local_rail_carrier(leg) is Carrier.KOLEJE_MAZOWIECKIE
     assert not pricing.is_warsaw_airport_line(leg)
-
-
-def test_koleje_mazowieckie_poza_warszawa_dalej_zgrubny_szacunek_nie_tabela_km():
-    # Tabela KM niewdrożona (niespójny wiersz 31-40 km): Warszawa -> Radom = 0,35 zł/km.
-    leg = _leg(
-        "Koleje Mazowieckie", "Warszawa Zachodnia", "Radom", WARSZAWA_ZACHODNIA, (51.4027, 21.1471)
-    )
-    priced = pricing.price_rail_leg(leg, DiscountProfile())
-    assert priced.carrier is None
-    assert priced.price_verified is False
-    assert priced.amount == round(pricing.GENERIC_FALLBACK_PLN_PER_KM * leg.distance_km, 2)
 
 
 def test_koleje_malopolskie_maja_osobna_sciezke_nie_zgrubny_szacunek():
@@ -520,13 +509,6 @@ def test_koleje_malopolskie_maja_osobna_sciezke_nie_zgrubny_szacunek():
     assert pricing.infer_pl_regional_carrier(leg) is None
     assert pricing.infer_pl_local_rail_carrier(leg) is Carrier.KOLEJE_MALOPOLSKIE
     assert not pricing._is_km_or_wkd(leg)
-
-
-def test_nie_ma_kalkulatora_ani_danych_km_mazowieckich():
-    nazwy = {c.name for c in Carrier}
-    assert not any("MAZOWIECK" in n for n in nazwy)
-    pliki = {p.name for p in (Path(__file__).parent.parent / "fares" / "data").glob("*.json")}
-    assert not any(re.search(r"(^km_|^km\.|mazowieck)", n) for n in pliki)
 
 
 # --- ŁKA w Łodzi ------------------------------------------------------------------------------

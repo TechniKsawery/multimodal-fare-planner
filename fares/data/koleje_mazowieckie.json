@@ -1,0 +1,376 @@
+{
+  "_zrodlo": "Koleje Mazowieckie – KM sp. z o.o., Załącznik do Taryfy przewozowej Kolei Mazowieckich-KM (TP-KM) z uwzględnieniem zmian nr 1–6, Tabela nr 1 (s. 13 PDF): https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+  "_status_weryfikacji": "Tabela nr 1 (27 pasm) przepisana z wiadomości właściciela projektu z 2026-10-13, który potwierdził ją w oficjalnym PDF (price_verified=true). Chmura nie otwiera domen przewoźników, więc sam PDF nie był czytany przez wdrażającego.",
+  "_uwaga": "Tylko Tabela nr 1: bilet jednorazowy wg taryfy normalnej, klasa 2. Kwoty brutto w zł (brutto = netto + PTU). Ulgi, bilety okresowe i czasowe NIE są modelowane. Powyżej 520 km brak pasma (błąd -> szacunek zastępczy w routingu). Baza: uchwała Zarządu KM nr 268/Z/2022 z 15.06.2022 (w życie 1.07.2022); zmiana nr 6 od 1.01.2025 nie zmienia tabeli cen (wg briefu koordynatora, nie odczytane z PDF przez wdrażającego).",
+  "waluta": "PLN",
+  "klasa": 2,
+  "as_of": "2026-10-13",
+  "obowiazuje_od": "2022-07-01",
+  "obowiazuje_od_status": "data wejścia w życie uchwały bazowej 268/Z/2022; zmiana nr 6 (od 2025-01-01) nie zmienia tabeli cen (wg briefu, niezależnie nieodczytane)",
+  "typ_ceny": "oficjalna_taryfa",
+  "zrodlo": {
+    "url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+    "dokument": "Załącznik do TP-KM z uwzględnieniem zmian nr 1–6, Tabela nr 1, s. 13",
+    "cytat": "Tabela nr 1 — opłaty za bilety wg taryfy normalnej, klasa 2, bilety jednorazowe (brutto, PTU, netto)",
+    "data_weryfikacji": "2026-10-13",
+    "status": "potwierdzone przez właściciela projektu w oficjalnym PDF"
+  },
+  "weryfikacja": {
+    "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+    "sprawdzono": "2026-10-13",
+    "wynik": "27 pasm potwierdzone przez właściciela projektu w oficjalnym PDF TP-KM (s. 13)."
+  },
+  "pasma_odleglosci_km": [
+    {
+      "zakres": "do 5",
+      "do_km": 5,
+      "cena": 4.2,
+      "ptu": 0.31,
+      "netto": 3.89,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "6–10",
+      "do_km": 10,
+      "cena": 7.5,
+      "ptu": 0.56,
+      "netto": 6.94,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "11–15",
+      "do_km": 15,
+      "cena": 8.8,
+      "ptu": 0.65,
+      "netto": 8.15,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "16–20",
+      "do_km": 20,
+      "cena": 10.4,
+      "ptu": 0.77,
+      "netto": 9.63,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "21–30",
+      "do_km": 30,
+      "cena": 13.6,
+      "ptu": 1.01,
+      "netto": 12.59,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "31–40",
+      "do_km": 40,
+      "cena": 15.3,
+      "ptu": 1.13,
+      "netto": 14.17,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "41–50",
+      "do_km": 50,
+      "cena": 17.9,
+      "ptu": 1.33,
+      "netto": 16.57,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "51–60",
+      "do_km": 60,
+      "cena": 19.7,
+      "ptu": 1.46,
+      "netto": 18.24,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "61–70",
+      "do_km": 70,
+      "cena": 21.8,
+      "ptu": 1.61,
+      "netto": 20.19,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "71–80",
+      "do_km": 80,
+      "cena": 24.2,
+      "ptu": 1.79,
+      "netto": 22.41,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "81–90",
+      "do_km": 90,
+      "cena": 26.5,
+      "ptu": 1.96,
+      "netto": 24.54,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "91–100",
+      "do_km": 100,
+      "cena": 28.9,
+      "ptu": 2.14,
+      "netto": 26.76,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "101–120",
+      "do_km": 120,
+      "cena": 31.8,
+      "ptu": 2.36,
+      "netto": 29.44,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "121–140",
+      "do_km": 140,
+      "cena": 33.9,
+      "ptu": 2.51,
+      "netto": 31.39,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "141–160",
+      "do_km": 160,
+      "cena": 36.5,
+      "ptu": 2.7,
+      "netto": 33.8,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "161–180",
+      "do_km": 180,
+      "cena": 38.5,
+      "ptu": 2.85,
+      "netto": 35.65,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "181–200",
+      "do_km": 200,
+      "cena": 41.4,
+      "ptu": 3.07,
+      "netto": 38.33,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "201–220",
+      "do_km": 220,
+      "cena": 44.2,
+      "ptu": 3.27,
+      "netto": 40.93,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "221–240",
+      "do_km": 240,
+      "cena": 45.6,
+      "ptu": 3.38,
+      "netto": 42.22,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "241–260",
+      "do_km": 260,
+      "cena": 47.0,
+      "ptu": 3.48,
+      "netto": 43.52,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "261–280",
+      "do_km": 280,
+      "cena": 49.7,
+      "ptu": 3.68,
+      "netto": 46.02,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "281–320",
+      "do_km": 320,
+      "cena": 51.2,
+      "ptu": 3.79,
+      "netto": 47.41,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "321–360",
+      "do_km": 360,
+      "cena": 52.3,
+      "ptu": 3.87,
+      "netto": 48.43,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "361–400",
+      "do_km": 400,
+      "cena": 54.1,
+      "ptu": 4.01,
+      "netto": 50.09,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "401–440",
+      "do_km": 440,
+      "cena": 55.6,
+      "ptu": 4.12,
+      "netto": 51.48,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "441–480",
+      "do_km": 480,
+      "cena": 56.7,
+      "ptu": 4.2,
+      "netto": 52.5,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    },
+    {
+      "zakres": "481–520",
+      "do_km": 520,
+      "cena": 58.9,
+      "ptu": 4.36,
+      "netto": 54.54,
+      "potwierdzone": {
+        "zrodlo_url": "https://www.mazowieckie.com.pl/sites/default/files/Za%C5%82%C4%85cznik%20do%20Taryfy%20przewozowej%20Kolei%20Mazowieckich-KM%20%28TP-KM%29%20z%20uwzgl.%20Zmian%20nr%201-6_0.pdf",
+        "data": "2026-10-13",
+        "status": "potwierdzone przez właściciela projektu w oficjalnym PDF",
+        "tabela": "Tabela nr 1 (s. 13 PDF)"
+      }
+    }
+  ]
+}

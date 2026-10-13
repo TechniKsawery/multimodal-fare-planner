@@ -6,7 +6,7 @@ gemini/km-malopolskie) i mają status "wg Gemini, niezweryfikowane niezależnie"
 są z chmury zablokowane. Raport nie podaje daty wejścia w życie (w danych: null). Dlatego
 price_verified=False i PriceType.ESTIMATE, dopóki w danych nie zmieni się status pasma na inny.
 
-Koleje Mazowieckie i inni przewoźnicy NIE są tu ruszani (testy pilnują braku konfliktu z POLREGIO).
+Koleje Mazowieckie mają osobny moduł i testy (tests/test_koleje_mazowieckie_tariff.py); tu tylko brak konfliktu.
 """
 
 import json
@@ -390,12 +390,9 @@ def test_km_koleje_mazowieckie_nie_jest_mylone_z_kml_ani_odwrotnie():
     assert not pricing._is_koleje_malopolskie(km)
 
 
-def test_koleje_mazowieckie_dalej_zgrubny_szacunek_nie_tabela_kml():
+def test_koleje_mazowieckie_nie_dostaja_tabeli_kml():
     leg = _leg("Koleje Mazowieckie", "Warszawa Zachodnia", "Radom", WARSZAWA_ZACHODNIA, RADOM)
-    priced = pricing.price_rail_leg(leg, DiscountProfile())
-    assert priced.carrier is None
-    assert priced.price_verified is False
-    assert priced.amount == round(pricing.GENERIC_FALLBACK_PLN_PER_KM * leg.distance_km, 2)
+    assert pricing.infer_pl_local_rail_carrier(leg) is Carrier.KOLEJE_MAZOWIECKIE
 
 
 def test_kml_w_trybie_suburban_dostaje_tabele_a_autobus_kml_nie():

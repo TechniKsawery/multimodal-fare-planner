@@ -3,27 +3,40 @@
 import json
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 from fares.eligibility_info import eligibility_for, explain_ticket
 from i18n import t
 
 
 def html_lang_script(lang: str) -> str:
-    """Mały skrypt ustawiający <html lang> strony nadrzędnej (Streamlit domyślnie deklaruje "en")."""
+    """Skrypt dla strony nadrzędnej: ustawia <html lang> (Streamlit domyślnie deklaruje "en") oraz
+    translate="no" na <html> i <body> i <meta name="google" content="notranslate"> w <head>.
+
+    Idempotentny - jest wykonywany w każdym przebiegu aplikacji.
+    """
     return (
         "<script>"
-        f"window.parent.document.documentElement.lang = {json.dumps(lang)};"
+        "(function(){"
+        "var d=window.parent.document,h=d.documentElement;"
+        f"h.lang={json.dumps(lang)};"
+        "h.setAttribute('translate','no');"
+        "if(d.body){d.body.setAttribute('translate','no');}"
+        "if(!d.head.querySelector('meta[name=\"google\"][content=\"notranslate\"]')){"
+        "var m=d.createElement('meta');m.name='google';m.content='notranslate';d.head.appendChild(m);"
+        "}"
+        "})();"
         "</script>"
     )
 
 
 def set_html_lang(lang: str) -> None:
-    """Ustawia lang elementu <html> zgodnie z językiem UI, żeby Chrome nie proponował tłumaczenia.
+    """Ustawia lang/translate="no"/meta notranslate dokumentu nadrzędnego, żeby Chrome nie proponował
+    tłumaczenia.
 
     Skrypt jest renderowany w każdym przebiegu, więc zmiana języka działa bez przeładowania strony.
+    Dzieje się to dopiero po starcie frontendu Streamlita - zob. opis ograniczeń w README/PR.
     """
-    components.html(html_lang_script(lang), height=0)
+    st.iframe(html_lang_script(lang), height=1)
 
 
 def render_bezplatne_info(it) -> None:

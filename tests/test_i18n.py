@@ -181,7 +181,18 @@ def test_html_lang_script_ustawia_lang_dokumentu_nadrzednego():
 
     for lang in LANGUAGES:
         js = html_lang_script(lang)
-        assert f'window.parent.document.documentElement.lang = "{lang}"' in js
+        assert f'h.lang="{lang}"' in js
+        assert "window.parent.document" in js
+
+
+def test_html_lang_script_wylacza_tlumaczenie_chrome():
+    from ui_helpers import html_lang_script
+
+    for lang in LANGUAGES:
+        js = html_lang_script(lang)
+        assert "h.setAttribute('translate','no')" in js
+        assert "d.body.setAttribute('translate','no')" in js
+        assert "m.name='google'" in js and "m.content='notranslate'" in js
 
 
 def test_aplikacja_renderuje_skrypt_lang_i_aktualizuje_go_po_zmianie_jezyka(mocked_backend):
@@ -195,3 +206,11 @@ def test_aplikacja_renderuje_skrypt_lang_i_aktualizuje_go_po_zmianie_jezyka(mock
     at.radio[0].set_value("de").run()
     assert not at.exception
     assert [e.proto.srcdoc for e in at.get("iframe")] == [html_lang_script("de")]
+    # Świeża sesja na każdy język (zmiana języka w jednej sesji zmienia etykiety innych widżetów,
+    # czego AppTest nie obsługuje), żeby skrypt został sprawdzony dla wszystkich 6 języków.
+    for lang in LANGUAGES:
+        at = _app()
+        at.session_state["lang"] = lang
+        at.run()
+        assert not at.exception
+        assert [e.proto.srcdoc for e in at.get("iframe")] == [html_lang_script(lang)]

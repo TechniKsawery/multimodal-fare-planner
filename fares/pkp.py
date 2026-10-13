@@ -34,17 +34,24 @@ def estimate(segment: Segment) -> PriceEstimate:
     ulga_procent = ulgi[ulga_kod]
     amount = round(base * (1 - ulga_procent / 100), 2)
 
+    breakdown = {
+        "cena_bazowa": base,
+        "ulga_kod": ulga_kod,
+        "ulga_procent": ulga_procent,
+        "klasa": _TABLE["klasa"],
+        "zrodlo_url": _TABLE["zrodlo_url_cennik"],
+    }
+    if ulga_procent:
+        breakdown["zrodlo_ulgi_url"] = _TABLE["zrodlo_url_ulgi"]
+    if _TABLE.get("data_weryfikacji"):  # puste, dopóki nikt nie porówna pasm z PDF-em
+        breakdown["data_weryfikacji"] = _TABLE["data_weryfikacji"]
+
     return PriceEstimate(
         carrier=Carrier.PKP_INTERCITY,
         amount=amount,
         currency=_TABLE["waluta"],
         price_type=PriceType.OFFICIAL,
-        breakdown={
-            "cena_bazowa": base,
-            "ulga_kod": ulga_kod,
-            "ulga_procent": ulga_procent,
-            "klasa": _TABLE["klasa"],
-        },
+        breakdown=breakdown,
         notes=(
             "Cena bazowa i ulga z oficjalnego cennika/tabeli ulg PKP Intercity dla TLK/IC "
             "2. klasy — patrz pole _zrodlo w fares/data/pkp_intercity.json. Nie obejmuje "

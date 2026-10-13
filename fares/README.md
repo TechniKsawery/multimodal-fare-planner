@@ -100,6 +100,11 @@ bo tabela pasm jest interpolacją).
 
 ### Ważne ograniczenia (nawet tam, gdzie dane są "oficjalne")
 
+- **PKP Intercity — źródło w wyniku**: `breakdown["zrodlo_url"]` (cennik) i, przy ulgach,
+  `breakdown["zrodlo_ulgi_url"]` pochodzą z `pkp_intercity.json`. **Data weryfikacji jest pusta**
+  (`data_weryfikacji: null`): repo nie zapisuje, kiedy pasma porównano z PDF-em (23.07.2026 to data
+  wejścia cennika w życie, nie weryfikacji). Po sprawdzeniu pasm wpisz tam datę - kalkulator przekaże
+  ją do UI. Odcinki EIC/EIP źródła cennika TLK/IC nie dostają.
 - **PKP Intercity**: tabela obejmuje tylko pociągi **TLK/IC**. Ceny **EIC/EIP** w oficjalnym
   cenniku są ustalane **per konkretna relacja** (setki wierszy tabeli stacja→stacja), a nie wg
   prostych pasm odległości — nie są tu zaimplementowane. Realna cena rynkowa (z promocjami,

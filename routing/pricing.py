@@ -977,6 +977,11 @@ def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
         # (fares/README.md), których nie mamy. Kwota z pasm TLK/IC zostaje jako orientacyjny
         # szacunek, ale NIE jako oficjalna taryfa tego pociągu (błąd S2 z audytu).
         price_type = PriceType.ESTIMATE.value
+        breakdown = {
+            k: v
+            for k, v in breakdown.items()
+            if k not in ("zrodlo_url", "zrodlo_ulgi_url", "data_weryfikacji")
+        }  # cennik TLK/IC nie jest źródłem ceny EIC/EIP
         breakdown = {**breakdown, "price_verified": False, "kategoria_pociagu": "EIC/EIP"}
         notes = (
             "Pociąg EIC/EIP: cena NIEPOTWIERDZONA — szacunek wg cennika TLK/IC (pasma odległości), "

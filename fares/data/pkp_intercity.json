@@ -1,5 +1,9 @@
 {
   "_zrodlo": "Oficjalny cennik PKP Intercity (ceny bazowe biletów jednorazowych 2. klasy, pociągi TLK/IC) — https://www.intercity.pl/pl/dokumenty/Przepisy%20i%20taryfy/Cennik_uslug_przewozowych_PKP_Intercity_tekst_ujednolicony_obowiazuje_od_23.07.2026_r.pdf (tekst ujednolicony obowiązujący od 23.07.2026) oraz oficjalna tabela ulg ustawowych — https://www.intercity.pl/pl/dokumenty/Przepisy%20i%20taryfy/Ulgi%20ustawowe/Tabele_ulg_ustawowych_11-02-2026.pdf (wg stanu na 11.02.2026), kolumna 'posp. TLK, IC'.",
+  "zrodlo_url_cennik": "https://www.intercity.pl/pl/dokumenty/Przepisy%20i%20taryfy/Cennik_uslug_przewozowych_PKP_Intercity_tekst_ujednolicony_obowiazuje_od_23.07.2026_r.pdf",
+  "zrodlo_url_ulgi": "https://www.intercity.pl/pl/dokumenty/Przepisy%20i%20taryfy/Ulgi%20ustawowe/Tabele_ulg_ustawowych_11-02-2026.pdf",
+  "data_weryfikacji": null,
+  "_uwaga_data_weryfikacji": "BRAK w repo: nie ma zapisu, kiedy ktokolwiek porównał kwoty pasm z PDF-em cennika (23.07.2026 to data wejścia w życie cennika, a 11.02.2026 stan tabeli ulg - NIE daty weryfikacji). Pole zostaje null, dopóki ktoś nie sprawdzi pasm w źródle i nie wpisze daty (YYYY-MM-DD) - kalkulator przekaże ją wtedy do breakdown['data_weryfikacji'] i UI ją pokaże. Nie zgadujemy.",
   "_uwaga": "Tabela pasm i ulgi to dane OFICJALNE dla pociągów TLK/IC. NIE obejmuje cen EIC/EIP (te są ustalane per relacja, nie wg pasm odległości — patrz README) ani promocji/ofert specjalnych. 'Cena bazowa' to maksymalna cena bez ulg/promocji, dokładna cena rynkowa może być niższa (oferty specjalne, KOLEO, itp).",
   "waluta": "PLN",
   "klasa": 2,

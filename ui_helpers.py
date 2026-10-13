@@ -1,9 +1,29 @@
 """Fragmenty UI Streamlit wydzielone z app.py, żeby dało się je testować bez uruchamiania całej aplikacji."""
 
+import json
+
 import streamlit as st
+import streamlit.components.v1 as components
 
 from fares.eligibility_info import eligibility_for, explain_ticket
-from routing.model import OTHER_DAY_SECTION_TITLE
+from i18n import t
+
+
+def html_lang_script(lang: str) -> str:
+    """Mały skrypt ustawiający <html lang> strony nadrzędnej (Streamlit domyślnie deklaruje "en")."""
+    return (
+        "<script>"
+        f"window.parent.document.documentElement.lang = {json.dumps(lang)};"
+        "</script>"
+    )
+
+
+def set_html_lang(lang: str) -> None:
+    """Ustawia lang elementu <html> zgodnie z językiem UI, żeby Chrome nie proponował tłumaczenia.
+
+    Skrypt jest renderowany w każdym przebiegu, więc zmiana języka działa bez przeładowania strony.
+    """
+    components.html(html_lang_script(lang), height=0)
 
 
 def render_bezplatne_info(it) -> None:
@@ -17,13 +37,13 @@ def render_bezplatne_info(it) -> None:
         if info:
             seen[info[0]] = info
     if seen:
-        with st.expander("Kto jedzie bezpłatnie / ulgowo w miastach na trasie"):
+        with st.expander(t("free_info.title")):
             for miasto, bezplatne, ulgowe, zrodlo in seen.values():
-                st.markdown(f"**{miasto}** ([źródło]({zrodlo}))")
-                st.markdown("- Bezpłatnie: " + "; ".join(bezplatne))
+                st.markdown(f"**{miasto}** ([{t('free_info.source')}]({zrodlo}))")
+                st.markdown(t("free_info.free", items="; ".join(bezplatne)))
                 if ulgowe:
-                    st.markdown("- Ulgowo (50%): " + "; ".join(ulgowe))
-            st.caption("Zaznacz odpowiedni tytuł w formularzu, żeby cena go uwzględniła.")
+                    st.markdown(t("free_info.reduced", items="; ".join(ulgowe)))
+            st.caption(t("free_info.caption"))
 
 
 def render_other_day_section(other_day, render_itinerary) -> None:
@@ -32,16 +52,19 @@ def render_other_day_section(other_day, render_itinerary) -> None:
     pustej listy. `render_itinerary` to funkcja rysująca wariant (app.py::render_itinerary)."""
     if not other_day:
         return
-    st.header(OTHER_DAY_SECTION_TITLE)
-    st.warning(
-        "W dniu zapytania nic nie jedzie. Poniżej połączenia z INNYCH dni — to NIE jest dzień "
-        "zapytania i nie biorą udziału w rankingach „Najtańsza”/„Najszybsza”."
-    )
+    st.header(t("other_day.title"))
+    st.warning(t("other_day.warning"))
     for variant in other_day:
         it = variant.itinerary
         with st.expander(
-            f"{variant.date} — {it.variant_name}, {it.total_duration_min / 60:.1f} h, "
-            f"{it.total_price_pln:.0f} PLN, przesiadek: {it.num_transfers}"
+            t(
+                "other_day.expander",
+                date=variant.date,
+                name=it.variant_name,
+                hours=f"{it.total_duration_min / 60:.1f}",
+                price=f"{it.total_price_pln:.0f}",
+                transfers=it.num_transfers,
+            )
         ):
             st.error(variant.label)
             render_itinerary(it)

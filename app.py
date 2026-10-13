@@ -25,10 +25,11 @@ from attractions import (
 from attractions import DiscountProfile as AttractionDiscountProfile
 from attractions import HeldDocument
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
-from ui_helpers import render_bezplatne_info, render_other_day_section
+from ui_helpers import render_bezplatne_info, render_other_day_section, set_html_lang
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
 from fares.model import DiscountProfile
+from i18n import DEFAULT_LANG, LANGUAGES, label_or, t
 from routing import motis_client
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
@@ -44,8 +45,22 @@ from routing.variants import RouteRequest
 with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
     PKP_ULGI = list(json.load(fh)["ulgi_procent"])
 
-st.set_page_config(page_title="Multimodalna wyszukiwarka", layout="wide")
-st.title("Multimodalna wyszukiwarka tras")
+# set_page_config musi być pierwszym poleceniem st.*, więc tytuł karty czyta język z poprzedniego
+# przebiegu (po zmianie języka Streamlit robi rerun, w którym st.session_state["lang"] już jest).
+st.set_page_config(
+    page_title=t("app.page_title", lang=st.session_state.get("lang", DEFAULT_LANG)),
+    layout="wide",
+)
+st.radio(
+    "Język / Language",
+    options=list(LANGUAGES),
+    format_func=LANGUAGES.get,
+    key="lang",
+    horizontal=True,
+    label_visibility="collapsed",
+)
+set_html_lang(st.session_state["lang"])
+st.title(t("app.title"))
 
 # Czysto kosmetyczne rozróżnienie w UI (nie wpływa na progi z routing/transfers.py ani na
 # scoring/kategoryzację "bezpieczna"): przesiadka, której brakuje do progu bezpieczeństwa
@@ -101,23 +116,34 @@ def _is_near_miss_itinerary(it) -> bool:
     return bool(risky) and all(_is_near_miss(w) for w in risky)
 
 
+def _unverified_label(p) -> str:
+    """Tłumaczona wersja PricedLeg.unverified_label (routing/model.py) — te same warunki, sam
+    tekst z i18n; sama wycena nie jest tu ruszana."""
+    if p.price_verified:
+        return ""
+    if p.breakdown.get("wartosc_zastepcza"):
+        return t("price.unverified_fallback")
+    return t("price.unverified")
+
+
+def rec_label(key: str) -> str:
+    return label_or("rec", key, RECOMMENDATION_LABELS[key])
+
+
 def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
     c1, c2, c3 = st.columns(3)
-    c1.metric("Czas podróży", f"{it.total_duration_min / 60:.1f} h")
+    c1.metric(t("metric.time"), f"{it.total_duration_min / 60:.1f} h")
     if it.total_price_pln_high is not None:
         c2.metric(
-            "Cena łączna",
-            f"od {it.total_price_pln:.2f} PLN",
-            help=f"Górna granica (PKP SPI poziom V albo cennik regularny): {it.total_price_pln_high:.2f} PLN",
+            t("metric.price"),
+            t("metric.price_from", price=f"{it.total_price_pln:.2f}"),
+            help=t("metric.price_high_help", price=f"{it.total_price_pln_high:.2f}"),
         )
     else:
-        c2.metric("Cena łączna", f"{it.total_price_pln:.2f} PLN")
-    c3.metric("Przesiadki", it.num_transfers)
+        c2.metric(t("metric.price"), t("metric.price_exact", price=f"{it.total_price_pln:.2f}"))
+    c3.metric(t("metric.transfers"), it.num_transfers)
     if not it.price_verified:
-        st.caption(
-            "⚠️ Cena łączna niepotwierdzona: zawiera odcinki bez potwierdzonej taryfy (szacunek "
-            "albo wartość zastępcza) — porównuj ostrożnie."
-        )
+        st.caption(t("price.unverified_total"))
     rows = []
     for p in it.legs:
         leg = p.leg
@@ -127,45 +153,51 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
         else:
             price = f"{p.amount:.2f} {p.currency} ({p.price_type})"
             if p.unverified_label:
-                price += f" — {p.unverified_label}"
+                price += f" — {_unverified_label(p)}"
         rozbicie = ""
         zrodlo_bagazu = ""
         bagaz_podreczny = ""
         if leg.mode.value == "lot" and "bagaz_podreczny" in p.breakdown:
             bagaz_podreczny = format_cabin_breakdown(p.breakdown["bagaz_podreczny"])
         if leg.mode.value == "lot" and "cena_biletu" in p.breakdown:
-            rozbicie = (
-                f"bilet {p.breakdown['cena_biletu']:.2f} "
-                f"+ bagaż {p.breakdown.get('bagaz', 0):.2f} {p.currency}"
+            rozbicie = t(
+                "leg.flight_breakdown",
+                ticket=f"{p.breakdown['cena_biletu']:.2f}",
+                bag=f"{p.breakdown.get('bagaz', 0):.2f}",
+                cur=p.currency,
             )
             zrodlo_bagazu = p.breakdown.get("bagaz_zrodlo", "")
         zakres = p.breakdown.get("zakres_cen")
         if zakres:
-            price += (
-                f" | szacunek: od {zakres['od']:.2f} ({zakres['od_zrodlo']}) "
-                f"do {zakres['do']:.2f} ({zakres['do_zrodlo']}) {zakres['waluta']}"
+            price += t(
+                "price.range",
+                lo=f"{zakres['od']:.2f}",
+                lo_src=zakres["od_zrodlo"],
+                hi=f"{zakres['do']:.2f}",
+                hi_src=zakres["do_zrodlo"],
+                cur=zakres["waluta"],
             )
         alt = p.breakdown.get("alternatywna_oferta")
         alternatywa = ""
         if alt:
-            zrodlo_oferty = "DB Super Sparpreis Europa" if alt["zrodlo"] == "db" else "PKP Oferta Polska-Niemcy"
+            zrodlo_oferty = t("alt.db") if alt["zrodlo"] == "db" else t("alt.pkp")
             alternatywa = f"{alt['cena']:.2f} {alt['waluta']} ({zrodlo_oferty})"
         rows.append(
             {
-                "Środek": leg.mode.value,
-                "Połączenie": (
+                t("col.mode"): label_or("mode", leg.mode.value, leg.mode.value),
+                t("col.line"): (
                     leg.extra.get("route_short_name") or ""
                     if leg.mode.value in ("kolej", "autobus")
                     else ""
                 ),
-                "Trasa": f"{leg.origin_name} → {leg.destination_name}",
-                "Godziny": f"{leg.depart:%H:%M}–{leg.arrive:%H:%M} ({leg.duration_min:.0f} min)",
-                "Przewoźnik": leg.carrier_name or "",
-                "Cena / dystans": price,
-                "Rozbicie ceny lotu": rozbicie,
-                "Cennik bagażu": zrodlo_bagazu,
-                "Bagaż podręczny": bagaz_podreczny,
-                "Alternatywna oferta (PL-DE)": alternatywa,
+                t("col.route"): f"{leg.origin_name} → {leg.destination_name}",
+                t("col.hours"): f"{leg.depart:%H:%M}–{leg.arrive:%H:%M} ({leg.duration_min:.0f} min)",
+                t("col.carrier"): leg.carrier_name or "",
+                t("col.price"): price,
+                t("col.flight_breakdown"): rozbicie,
+                t("col.baggage_tariff"): zrodlo_bagazu,
+                t("col.cabin_baggage"): bagaz_podreczny,
+                t("col.alt_offer"): alternatywa,
             }
         )
     st.dataframe(rows, width="stretch", hide_index=True)
@@ -178,19 +210,21 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                 stacja = it.legs[w.after_leg_index].leg.destination_name
                 shortfall = w.minimum_required_minutes - w.gap_minutes
                 st.info(
-                    f"🟡 Prawie bezpieczna przesiadka w {stacja} — brakuje {shortfall:.0f} min "
-                    f"do progu bezpieczeństwa ({w.gap_minutes:.0f} z wymaganych "
-                    f"{w.minimum_required_minutes:.0f} min)."
+                    t(
+                        "transfer.near_miss",
+                        station=stacja,
+                        shortfall=f"{shortfall:.0f}",
+                        gap=f"{w.gap_minutes:.0f}",
+                        required=f"{w.minimum_required_minutes:.0f}",
+                    )
                 )
             else:
-                st.warning(f"Ryzykowna przesiadka: {w.reason}")
+                st.warning(t("transfer.risky", reason=w.reason))
     else:
-        st.success("Przesiadki: bezpieczne (wg przyjętych minimów)")
+        st.success(t("transfer.safe"))
 
     if db_distance_km(it) <= 0:
-        st.caption(
-            "💳 Ten wariant nie zawiera odcinka DB (kolej niemiecka) — BahnCard nie ma tu zastosowania."
-        )
+        st.caption(t("bc.no_db"))
     else:
         suggestions = suggest_bahncard_for_itinerary(
             it, age=wiek, existing_bahncard=posiadana_bahncard
@@ -202,10 +236,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             else:
                 st.caption(f"💳 {best.opis}")
         elif posiadana_bahncard:
-            st.caption(
-                f"💳 Masz już BahnCard {posiadana_bahncard} — cena w tabeli wyżej już ją uwzględnia; "
-                f"żadna inna karta nie da tu lepszego rabatu."
-            )
+            st.caption(t("bc.already", card=posiadana_bahncard))
 
 
 def render_attractions_and_city_cards(
@@ -221,34 +252,27 @@ def render_attractions_and_city_cards(
     if not norm_city:
         return
 
-    city_names = {
-        "gelsenkirchen": "Gelsenkirchen & Zagłębie Ruhry",
-        "berlin": "Berlin",
-        "krakow": "Kraków",
-        "lublin": "Lublin",
-        "warszawa": "Warszawa",
-    }
-    display_city = city_names.get(norm_city, norm_city.capitalize())
+    known_cities = ("gelsenkirchen", "berlin", "krakow", "lublin", "warszawa")
+    display_city = t(f"city.{norm_city}") if norm_city in known_cities else norm_city.capitalize()
 
     st.markdown("---")
-    st.header(f"🏛️ Miejsca warte odwiedzenia i zniżki: {display_city}")
-    st.caption(
-        "Wybierz interesujące Cię kategorie miejsc (np. stadiony sportowe, zabytki) "
-        "i sprawdź, czy dedykowana Karta Miejska (City Card) pozwoli Ci zaoszczędzić na wstępach i komunikacji."
-    )
+    st.header(t("attr.header", city=display_city))
+    st.caption(t("attr.intro"))
 
     all_city_attrs = get_attractions(city=norm_city)
     if not all_city_attrs:
-        st.info(f"Brak skatalogowanych atrakcji dla: {display_city}.")
+        st.info(t("attr.none", city=display_city))
         return
 
     # Filtrowanie kategorii
     cat_options = ["Wszystkie"] + [cat.value for cat in AttractionCategory]
-    cat_labels = {"Wszystkie": "Wszystkie kategorie"}
-    cat_labels.update({cat.value: CATEGORY_LABELS[cat] for cat in AttractionCategory})
+    cat_labels = {"Wszystkie": t("attr.all_categories")}
+    cat_labels.update(
+        {cat.value: label_or("cat", cat.value, CATEGORY_LABELS[cat]) for cat in AttractionCategory}
+    )
 
     selected_cat = st.selectbox(
-        "Filtruj wg kategorii",
+        t("attr.filter"),
         options=cat_options,
         format_func=lambda c: cat_labels.get(c, c),
         key="attr_cat_filter",
@@ -264,47 +288,44 @@ def render_attractions_and_city_cards(
     attr_names = [a.name for a in all_city_attrs]
     default_selected = [a.name for a in all_city_attrs if a.highlight]
 
-    st.subheader("Zaplanuj wizytę")
-    st.caption(
-        "Kilka osób korzysta z tego samego demo? Podaj swoją nazwę profilu, by zapisać "
-        "zaznaczenia pod sobą i wrócić do nich później, bez nadpisywania cudzych wyborów."
-    )
+    st.subheader(t("attr.plan"))
+    st.caption(t("attr.profile_hint"))
     profile_col, save_col, load_col = st.columns([3, 1, 1])
     with profile_col:
         profile_name = st.text_input(
-            "Twój profil",
+            t("profile.label"),
             key="profile_name",
-            placeholder="np. Kasia",
+            placeholder=t("profile.placeholder"),
         )
     with save_col:
         st.markdown("<div style='height: 1.6em'></div>", unsafe_allow_html=True)
         if st.button(
-            "💾 Zapisz",
+            t("profile.save"),
             key="save_profile_btn",
             disabled=not profile_name.strip(),
-            help="Zapisuje bieżące zaznaczenia dla tego miasta pod podaną nazwą profilu.",
+            help=t("profile.save_help"),
         ):
             _save_profile_selection(
                 profile_name, norm_city, st.session_state.get("chosen_attractions", default_selected)
             )
-            st.success(f"Zapisano zaznaczenia dla {display_city} w profilu „{profile_name.strip()}”.")
+            st.success(t("profile.saved", city=display_city, name=profile_name.strip()))
     with load_col:
         st.markdown("<div style='height: 1.6em'></div>", unsafe_allow_html=True)
         if st.button(
-            "📂 Wczytaj",
+            t("profile.load"),
             key="load_profile_btn",
             disabled=not profile_name.strip(),
-            help="Wczytuje wcześniej zapisane zaznaczenia dla tego miasta z tego profilu.",
+            help=t("profile.load_help"),
         ):
             saved = _load_profile(profile_name).get(norm_city, [])
             st.session_state["chosen_attractions"] = [n for n in saved if n in attr_names]
             if saved:
-                st.success(f"Wczytano zaznaczenia dla {display_city} z profilu „{profile_name.strip()}”.")
+                st.success(t("profile.loaded", city=display_city, name=profile_name.strip()))
             else:
-                st.info(f"Profil „{profile_name.strip()}” nie ma jeszcze zapisanych zaznaczeń dla {display_city}.")
+                st.info(t("profile.empty", city=display_city, name=profile_name.strip()))
 
     chosen_names = st.multiselect(
-        "Zaznacz miejsca, które planujesz odwiedzić (posłużą do kalkulacji opłacalności karty):",
+        t("attr.choose"),
         options=attr_names,
         default=default_selected,
         key="chosen_attractions",
@@ -314,15 +335,15 @@ def render_attractions_and_city_cards(
     # Kalkulator City Card
     cards = get_city_cards(norm_city)
     if cards:
-        st.subheader("💳 Analiza opłacalności Karty Miejskiej")
+        st.subheader(t("card.header"))
         default_transit_cost = 15.0 if all_city_attrs[0].currency == "EUR" else 25.0
         transit_cost = st.number_input(
-            f"Szacowany wydatek na komunikację miejską bez karty ({all_city_attrs[0].currency})",
+            t("card.transit_cost", cur=all_city_attrs[0].currency),
             min_value=0.0,
             value=default_transit_cost,
             step=5.0,
             key="transit_est_cost",
-            help="Jeśli karta miejska zawiera nielimitowany transport, ten koszt odpada i staje się Twoją oszczędnością.",
+            help=t("card.transit_help"),
         )
 
         best_eval = suggest_best_city_card(
@@ -332,12 +353,9 @@ def render_attractions_and_city_cards(
             profile=attraction_profile,
         )
         if best_eval and best_eval.is_recommended:
-            st.success(f"🎉 **Rekomendacja:** {best_eval.summary}")
+            st.success(t("card.recommendation", summary=best_eval.summary))
         elif chosen_objects:
-            st.info(
-                f"ℹ️ Przy obecnie wybranych {len(chosen_objects)} atrakcjach zakup karty miejskiej nie jest jeszcze optymalny. "
-                "Poniżej znajdziesz porównanie wszystkich dostępnych wariantów."
-            )
+            st.info(t("card.not_optimal", n=len(chosen_objects)))
 
         evals = evaluate_city_cards(
             norm_city,
@@ -350,25 +368,25 @@ def render_attractions_and_city_cards(
             for ev in evals:
                 card_rows.append(
                     {
-                        "Karta / Wariant": ev.variant.name,
-                        "Cena karty": f"{ev.card_price:.2f} {ev.currency}"
-                        + ("" if ev.variant.price_verified else " (niepotwierdzona)"),
-                        "Ważność": f"{ev.variant.duration_hours}h",
-                        "Darmowy transport": "Tak" if ev.variant.includes_public_transit else "Nie",
-                        "Koszt bez karty": f"{ev.total_cost_without_card:.2f} {ev.currency}",
-                        "Koszt z kartą": f"{ev.total_cost_with_card:.2f} {ev.currency}",
-                        "Bilans": (
-                            f"+{ev.net_savings:.2f} {ev.currency} (zysk)"
+                        t("card.col.name"): ev.variant.name,
+                        t("card.col.price"): f"{ev.card_price:.2f} {ev.currency}"
+                        + ("" if ev.variant.price_verified else t("card.unverified")),
+                        t("card.col.valid"): f"{ev.variant.duration_hours}h",
+                        t("card.col.transit"): t("yes") if ev.variant.includes_public_transit else t("no"),
+                        t("card.col.without"): f"{ev.total_cost_without_card:.2f} {ev.currency}",
+                        t("card.col.with"): f"{ev.total_cost_with_card:.2f} {ev.currency}",
+                        t("card.col.balance"): (
+                            t("card.gain", amount=f"{ev.net_savings:.2f}", cur=ev.currency)
                             if ev.net_savings > 0
                             else f"{ev.net_savings:.2f} {ev.currency}"
                         ),
-                        "Rekomendowana": "✅ Tak" if ev.is_recommended else "❌ Nie",
+                        t("card.col.recommended"): t("card.rec_yes") if ev.is_recommended else t("card.rec_no"),
                     }
                 )
             st.dataframe(card_rows, width="stretch", hide_index=True)
 
     # Prezentacja listy atrakcji w wybranej kategorii
-    st.subheader(f"Miejsca w kategorii: {cat_labels.get(selected_cat, selected_cat)}")
+    st.subheader(t("attr.in_category", category=cat_labels.get(selected_cat, selected_cat)))
     cols = st.columns(2)
     for idx, attr in enumerate(filtered_attrs):
         col = cols[idx % 2]
@@ -377,33 +395,34 @@ def render_attractions_and_city_cards(
                 attr, attraction_profile
             )
             price_text = (
-                f"{price_val:.2f} {attr.currency}" if price_val > 0 else "Wstęp bezpłatny"
+                f"{price_val:.2f} {attr.currency}" if price_val > 0 else t("attr.free")
             )
             if attr.price_is_from:
-                price_text = f"od {price_text}"
+                price_text = t("attr.from_prefix", text=price_text)
             if price_source is not None:
                 price_text += f" ({price_label})"
                 if not price_source.price_verified:
-                    price_text += " (cena niepotwierdzona)"
+                    price_text += t("price.unverified_suffix")
             elif not attr.price_verified:
-                price_text += " (cena niepotwierdzona)"
+                price_text += t("price.unverified_suffix")
             if attr.price_is_from:
                 price_text += f" — {price_from_note(attr)}"
             discount_note = (
-                f" • zniżka z kartą: do {attr.default_card_discount_percent:.0f}%"
+                t("attr.card_discount", pct=f"{attr.default_card_discount_percent:.0f}")
                 if attr.default_card_discount_percent > 0
                 else ""
             )
             with st.container(border=True):
                 st.markdown(f"**{attr.name}**")
                 st.caption(
-                    f"{CATEGORY_LABELS.get(attr.category, attr.category.value)} • {price_text}{discount_note}"
+                    f"{label_or('cat', attr.category.value, CATEGORY_LABELS.get(attr.category, attr.category.value))}"
+                    f" • {price_text}{discount_note}"
                 )
                 st.write(attr.description)
                 if attr.address:
                     st.caption(f"📍 {attr.address}")
                 if attr.official_url:
-                    st.markdown(f"[Strona oficjalna]({attr.official_url})")
+                    st.markdown(f"[{t('attr.official')}]({attr.official_url})")
 
 
 def address_picker(label: str, default_text: str, state_key: str):
@@ -411,18 +430,18 @@ def address_picker(label: str, default_text: str, state_key: str):
     na ślepo — literówka w mieście/ulicy dotąd potrafiła po cichu trafić w zły punkt)."""
     query = st.text_input(label, value=default_text, key=f"{state_key}_query")
     if len(query.strip()) < 3:
-        st.caption("Wpisz co najmniej 3 znaki, żeby zobaczyć podpowiedzi.")
+        st.caption(t("addr.min_chars"))
         return None
     try:
         suggestions = motis_client.geocode_suggestions(query)
     except MotisError as exc:
-        st.caption(f"Podpowiedzi niedostępne: {exc}")
+        st.caption(t("addr.unavailable", exc=exc))
         return None
     if not suggestions:
-        st.caption("Brak dopasowań — sprawdź pisownię albo dodaj nazwę miasta.")
+        st.caption(t("addr.no_match"))
         return None
     idx = st.selectbox(
-        f"Wybierz dokładny adres ({label.lower()})",
+        t("addr.pick", label=label.lower()),
         options=list(range(len(suggestions))),
         format_func=lambda i: suggestions[i]["name"],
         key=f"{state_key}_choice",
@@ -431,47 +450,40 @@ def address_picker(label: str, default_text: str, state_key: str):
 
 
 wiek = st.number_input(
-    "Wiek pasażera",
+    t("age.label"),
     min_value=0,
     max_value=120,
     value=30,
     step=1,
-    help="Używany tylko do PODPOWIEDZI zniżek zależnych od wieku (VRR Kindertarif 6-14 lat, "
-    "ZTM Lublin ulgowy). Checkboxy niżej możesz zawsze nadpisać ręcznie — np. dorosły "
-    "uczeń/student ma bilet ulgowy niezależnie od wieku, a wiek sam z siebie nie daje "
-    "pełnego obrazu uprawnień.",
+    help=t("age.help"),
+    key="w_wiek",
 )
 obywatelstwo = st.selectbox(
-    "Obywatelstwo",
+    t("citizen.label"),
     [None, "PL", "UE", "poza_UE"],
-    format_func=lambda o: {
-        None: "nie podano",
-        "PL": "Polska",
-        "UE": "inny kraj UE/EOG",
-        "poza_UE": "poza UE/EOG",
-    }[o],
-    help="Nie zmienia ceny — po wyszukaniu pokażemy ostrzeżenia, czy zaznaczone ulgi realnie"
-    " przysługują cudzoziemcowi wg zweryfikowanych źródeł (PKP ulga ustawowa, brak ulgi"
-    " studenckiej w Niemczech).",
+    format_func=lambda o: t("citizen.none") if o is None else t(f"citizen.{o}"),
+    help=t("citizen.help"),
+    key="w_obywatelstwo",
 )
 c_attr_profile1, c_attr_profile2 = st.columns(2)
 uczen_student = c_attr_profile1.checkbox(
-    "Uczeń/student (legitymacja)",
-    help="Wpływa na cenę ATRAKCJI (nie biletów transportu) tam, gdzie operator ma potwierdzoną zniżkę uczniowską/studencką, np. ZOOM Erlebniswelt czy Deutsches Fußballmuseum.",
+    t("student.label"),
+    help=t("student.help"),
+    key="w_uczen_student",
 )
 senior_attrakcje = c_attr_profile2.checkbox(
-    "Senior",
-    help="Wpływa na cenę ATRAKCJI tam, gdzie operator ma potwierdzoną zniżkę senioralną.",
+    t("senior.label"),
+    help=t("senior.help"),
+    key="w_senior",
 )
 _kraj_legitymacji = st.selectbox(
-    "Kraj wydania legitymacji szkolnej/studenckiej",
-    ["Nie podaję", "Polska", "Niemcy", "Inny kraj"],
-    help="Nie zmienia ceny biletów. Część atrakcji (np. Muzeum Powstania Warszawskiego) przyznaje "
-    "zniżkę tylko legitymacji wydanej w konkretnym kraju; bez wskazania kraju liczymy tylko "
-    "zniżki bez takiego ograniczenia. Przy legitymacji spoza Polski pokażemy też ostrzeżenia "
-    "o jej uznawaniu w MPK/ZTM (Warszawa, Kraków, Poznań, Lublin, Wrocław).",
+    t("idcountry.label"),
+    ["none", "PL", "DE", "other"],
+    format_func=lambda k: t(f"idcountry.{k}"),
+    help=t("idcountry.help"),
+    key="w_kraj_legitymacji",
 )
-_kod_kraju = {"Polska": "PL", "Niemcy": "DE"}.get(_kraj_legitymacji or "")
+_kod_kraju = {"PL": "PL", "DE": "DE"}.get(_kraj_legitymacji)
 attraction_profile = AttractionDiscountProfile(
     age=wiek,
     is_student=uczen_student,
@@ -481,131 +493,116 @@ attraction_profile = AttractionDiscountProfile(
     ),
 )
 
-st.subheader("Skąd i dokąd")
+st.subheader(t("section.route"))
 c_origin, c_dest = st.columns(2)
 with c_origin:
-    origin_resolved = address_picker("Skąd (adres)", DEFAULT_FROM, "origin")
+    origin_resolved = address_picker(t("addr.origin"), DEFAULT_FROM, "origin")
 with c_dest:
-    dest_resolved = address_picker("Dokąd (adres)", DEFAULT_TO, "dest")
+    dest_resolved = address_picker(t("addr.dest"), DEFAULT_TO, "dest")
 
+# Widgety z domyślną wartością zależną od wieku (value=wiek < 18 itd.) są celowo BEZ key=: zmiana
+# wieku ma je nadal przestawiać na nową podpowiedź, jak dotąd. Ceną jest to, że ręczne
+# nadpisanie takiego checkboxa przepada przy zmianie języka (zmienia się jego etykieta).
 with st.form("search"):
     date = st.date_input(
-        "Data",
+        t("form.date"),
         dt.date.today() + dt.timedelta(days=5),
-        help="Domyślnie dziś+5 dni, żeby zawsze trafiać w okno rozkładu MOTIS - zmień ręcznie,"
-        " jeśli szukasz innego dnia.",
+        help=t("form.date_help"),
+        key="w_date",
     )
     godzina = st.time_input(
-        "Najwcześniejsza godzina wyjazdu",
+        t("form.time"),
         dt.time(6, 0),
         step=dt.timedelta(minutes=15),
-        help="Czas lokalny miejsca startu (PL/DE). Domyślnie 06:00, jak dotychczas.",
+        help=t("form.time_help"),
+        key="w_time",
     )
     bagaz_rejestrowany = st.checkbox(
-        "Bagaż rejestrowany (loty)",
+        t("form.baggage"),
         value=True,
-        help=(
-            "Zaznaczone: cena lotu zawiera bagaż rejestrowany, a po lądowaniu liczymy 90 min "
-            "do kolei. Odznaczone: tylko bagaż podręczny, 60 min. Bufory to szacunek, nie "
-            "wytyczne przewoźników."
-        ),
+        help=t("form.baggage_help"),
+        key="w_bagaz",
     )
     c1, c2 = st.columns(2)
-    pkp = c1.selectbox("Ulga PKP", PKP_ULGI)
-    bc = c2.selectbox("BahnCard", ["brak", "25", "50", "100"])
+    pkp = c1.selectbox(
+        t("form.pkp"), PKP_ULGI, format_func=lambda k: label_or("pkp", k, k), key="w_pkp"
+    )
+    bc = c2.selectbox(
+        t("form.bahncard"),
+        ["brak", "25", "50", "100"],
+        format_func=lambda k: t(f"bc.{k}"),
+        key="w_bc",
+    )
     c3, c4 = st.columns(2)
     ztm_ulgowy = c3.checkbox(
-        "Bilet ulgowy ZTM Lublin",
+        t("form.ztm_lublin"),
         value=wiek < 18,
-        help="Podpowiedź wg wieku (<18 lat) — zaznacz też ręcznie, jeśli masz ulgę z innego "
-        "tytułu (uczeń, student, senior, niepełnosprawność), niezależnie od wieku.",
+        help=t("form.ztm_lublin_help"),
     )
     vrr_dziecko = c4.checkbox(
-        "Taryfa dziecięca VRR (Kindertarif)",
+        t("form.vrr"),
         value=6 <= wiek <= 14,
-        help="Oficjalna zniżka VRR: 50% dla dzieci 6-14 lat, ściśle wg wieku.",
+        help=t("form.vrr_help"),
     )
     child_with_guardian = False
     if 6 <= wiek <= 14:
         child_with_guardian = st.checkbox(
-            "Dziecko (6-14 lat) podróżuje z opiekunem (15+)",
+            t("form.guardian"),
             value=False,
-            help="Dotyczy TYLKO biletu DB na odcinku PL-DE: dziecko z opiekunem jedzie "
-            "bezpłatnie (bahn.de); bez zaznaczenia liczone jako podróżujące samodzielnie "
-            "(-50% tylko na niemiecki odcinek trasy). Oferta PKP nie rozróżnia opiekuna.",
+            help=t("form.guardian_help"),
         )
-    st.caption("Taryfa dziecięca (Kindertarif, 6-14 lat) w innych miastach niemieckich")
+    st.caption(t("form.kinder_other"))
     k1, k2, k3 = st.columns(3)
-    hvv_dziecko = k1.checkbox("Hamburg (HVV)", value=6 <= wiek <= 14)
-    mvv_dziecko = k2.checkbox("Monachium (MVV)", value=6 <= wiek <= 14)
-    vrs_koln_dziecko = k3.checkbox("Kolonia (VRS)", value=6 <= wiek <= 14)
-    st.caption("Bilety ulgowe w innych miastach (50% — zaznacz, jeśli dotyczy)")
+    hvv_dziecko = k1.checkbox(t("form.hamburg"), value=6 <= wiek <= 14)
+    mvv_dziecko = k2.checkbox(t("form.munich"), value=6 <= wiek <= 14)
+    vrs_koln_dziecko = k3.checkbox(t("form.cologne"), value=6 <= wiek <= 14)
+    st.caption(t("form.reduced_other"))
     u1, u2, u3, u4, u5 = st.columns(5)
-    ztm_warszawa_ulgowy = u1.checkbox("Warszawa", value=wiek < 18)
-    mpk_krakow_ulgowy = u2.checkbox("Kraków", value=wiek < 18)
-    ztm_poznan_ulgowy = u3.checkbox("Poznań", value=wiek < 18)
-    mpk_wroclaw_ulgowy = u4.checkbox("Wrocław", value=wiek < 18)
-    bvg_berlin_ulgowy = u5.checkbox("Berlin", value=wiek < 18)
-    st.caption(
-        "Przejazdy bezpłatne (100%, inna kategoria niż ulgowy — ma priorytet nad checkboxem "
-        "ulgowy tego miasta wyżej, jeśli zaznaczone)"
-    )
+    ztm_warszawa_ulgowy = u1.checkbox(t("city.warszawa"), value=wiek < 18)
+    mpk_krakow_ulgowy = u2.checkbox(t("city.krakow"), value=wiek < 18)
+    ztm_poznan_ulgowy = u3.checkbox(t("city.poznan"), value=wiek < 18)
+    mpk_wroclaw_ulgowy = u4.checkbox(t("city.wroclaw"), value=wiek < 18)
+    bvg_berlin_ulgowy = u5.checkbox(t("city.berlin"), value=wiek < 18)
+    st.caption(t("form.free_caption"))
     b1, b2, b3, b4, b5, b6 = st.columns(6)
     ztm_warszawa_bezplatny = b1.checkbox(
-        "Warszawa: uczeń/senior 70+/niepełnosprawność znaczna",
+        t("free.warszawa"),
         value=wiek >= 70,
-        help="Karta Ucznia (tylko szkoła podstawowa, NIE ponadpodstawowa); osoby 70+ (bez wymogu"
-        " zamieszkania); niepełnosprawność ZNACZNA 26+ (UWAGA: 'umiarkowana' to tylko ulgowy"
-        " 50%, nie ta kategoria).",
+        help=t("free.warszawa_help"),
     )
     mpk_krakow_bezplatny = b2.checkbox(
-        "Kraków: uczeń/senior 70+/niepełnosprawność znaczna",
+        t("free.krakow"),
         value=wiek >= 70,
-        help="Uczniowie podstawówek z Krakowa/Metropolii (NIE ponadpodstawowe); osoby 70+ (bez"
-        " wymogu zamieszkania); niepełnosprawność ZNACZNA, lub UMIARKOWANA tylko przy symbolach"
-        " 04-O/05-R/10-N/01-U (inaczej to tylko ulgowy 50%).",
+        help=t("free.krakow_help"),
     )
     mpk_wroclaw_bezplatny = b3.checkbox(
-        "Wrocław: uczeń/dziecko/senior",
+        t("free.wroclaw"),
         value=wiek <= 7 or wiek <= 21 or wiek >= 65,
-        help="Jedna kategoria 100% w naszych danych obejmuje kilka tytułów potwierdzonych na"
-        " wroclaw.pl: uczniowie szkół podstawowych/ponadpodstawowych do 21 lat, dzieci do 7 lat"
-        " i seniorzy 65+ (bez wymogu zamieszkania we Wrocławiu). Inne potwierdzone tytuły z tej"
-        " samej kategorii (niepełnosprawność, rodziny wielodzietne itd.) zaznacz też tutaj,"
-        " niezależnie od wieku.",
+        help=t("free.wroclaw_help"),
     )
     ztm_lublin_bezplatny = b4.checkbox(
-        "Lublin: uczeń podstawówki/dziecko do 7 lat/senior 65+",
+        t("free.lublin"),
         value=wiek >= 65 or wiek <= 14,
-        help="Bezpłatnie: uczniowie szkół podstawowych w Lublinie (legitymacja), dzieci do 30.09"
-        " roku ukończenia 7 lat i osoby 65+. Ponadpodstawowe i policealne do 24 lat to ulgowy"
-        " 50%, nie bezpłatny. Zweryfikowano 2026-10-13 (zdtm.lublin.eu).",
+        help=t("free.lublin_help"),
     )
     ztm_poznan_bezplatny = b5.checkbox(
-        "Poznań: senior 70+/niepełnosprawność znaczna",
+        t("free.poznan"),
         value=wiek >= 70,
-        help="W Poznaniu NIE ma bezpłatnego dla zwykłych uczniów (tylko ulgowy 50%), ale JEST dla"
-        " osób 70+ (bez wymogu zamieszkania) i niepełnosprawności znacznej/I grupy — bez dolnej"
-        " granicy wieku 26 lat, inaczej niż w Warszawie/Krakowie.",
+        help=t("free.poznan_help"),
     )
     bvg_berlin_schwerbehindert = b6.checkbox(
-        "Berlin: Schwerbehindertenausweis + Wertmarke",
-        help="Bezpłatne w Berlinie TYLKO z legitymacją niepełnosprawności (Merkzeichen G/aG/H/Bl)"
-        " ORAZ osobno wykupioną Wertmarke (ok. 104 EUR/rok) — samo orzeczenie (nawet GdB 50) nie"
-        " wystarcza. Nie zaznaczaj bez obu dokumentów naraz. Brak w Berlinie ulgi wiekowej dla"
-        " seniorów (65+ to płatny abonament VBB-Abo 65plus, nie modelowany tutaj).",
+        t("free.berlin"),
+        help=t("free.berlin_help"),
     )
     schwerbehinderte_wertmarke_de = st.checkbox(
-        "Bezpłatny przejazd — ciężka niepełnosprawność z Wertmarke (Niemcy)",
-        help="§ 228 SGB IX: osoby z Merkzeichen G/aG/H/Bl/Gl i ważną Wertmarke w legitymacji "
-        "jeżdżą bezpłatnie lokalnym transportem w całych Niemczech. Obsłużone tu dla Hamburga "
-        "(HVV), Monachium (MVV) i Kolonii (VRS) — nie wpływa na inne miasta/przewoźników.",
+        t("free.de_wertmarke"),
+        help=t("free.de_wertmarke_help"),
     )
-    submitted = st.form_submit_button("Szukaj")
+    submitted = st.form_submit_button(t("form.submit"))
 
 if submitted:
     if origin_resolved is None or dest_resolved is None:
-        st.error("Wybierz dokładny adres z podpowiedzi (skąd i dokąd) przed wyszukiwaniem.")
+        st.error(t("err.pick_address"))
         st.stop()
     profile = DiscountProfile(
         pkp_ulga_kod=pkp,
@@ -630,12 +627,12 @@ if submitted:
         age=wiek,
         child_with_guardian=child_with_guardian,
         obywatelstwo=obywatelstwo,
-        legitymacja_zagraniczna=_kraj_legitymacji in ("Niemcy", "Inny kraj"),
+        legitymacja_zagraniczna=_kraj_legitymacji in ("DE", "other"),
     )
     for ostrzezenie in foreigner_warnings_for(profile):
         st.warning(ostrzezenie)
     try:
-        with st.spinner("Szukam połączeń..."):
+        with st.spinner(t("search.spinner")):
             request = RouteRequest(
                 origin_stop_id=motis_client.coords_place(
                     origin_resolved["lat"], origin_resolved["lon"]
@@ -661,10 +658,10 @@ if submitted:
                 search_result.other_day,
             )
     except MotisError as exc:
-        st.error(f"Błąd MOTIS / geokodowania: {exc}")
+        st.error(t("err.motis", exc=exc))
         st.stop()
     except Exception as exc:  # np. MOTIS nieuruchomiony
-        st.error(f"Nie udało się wyszukać (czy MOTIS działa na localhost:8080?): {exc}")
+        st.error(t("err.search", exc=exc))
         st.stop()
 
     # Wynik ląduje w session_state, a nie w zwykłej zmiennej lokalnej: widgety POZA formularzem
@@ -692,19 +689,24 @@ if result is not None:
     other_day = result.get("other_day", [])
 
     st.caption(
-        f"{request.origin_label} → {request.destination_label}, {date}. "
-        f"Zbudowano {len(built)} wariant(y), pominięto {len(skipped)}."
+        t(
+            "res.summary",
+            origin=request.origin_label,
+            dest=request.destination_label,
+            date=date,
+            built=len(built),
+            skipped=len(skipped),
+        )
     )
     if skipped:
-        with st.expander("Pominięte warianty"):
+        with st.expander(t("res.skipped")):
             for s in skipped:
                 st.write(f"**{s.variant_name}**: {s.reason}")
     if not built:
         st.error(
-            "Brak działającego wariantu. Powody: "
-            + " ".join(f"{s.variant_name}: {s.reason}" for s in skipped)
+            t("res.none_reasons", reasons=" ".join(f"{s.variant_name}: {s.reason}" for s in skipped))
             if skipped
-            else "Brak działającego wariantu — sprawdź, czy MOTIS jest uruchomiony."
+            else t("res.none")
         )
         render_other_day_section(
             other_day, lambda it: render_itinerary(it, wiek, bc if bc != "brak" else None)
@@ -712,10 +714,10 @@ if result is not None:
         st.stop()
     header_col, toggle_col = st.columns([3, 1])
     with header_col:
-        st.header("Rekomendacje")
+        st.header(t("res.recommendations"))
     more_keys = [key for key in RECOMMENDATION_LABELS if key not in TOP_CATEGORY_KEYS]
     with toggle_col:
-        pokaz_wiecej = st.checkbox(f"Pokaż więcej ({len(more_keys)})", value=False)
+        pokaz_wiecej = st.checkbox(t("res.show_more", n=len(more_keys)), value=False, key="w_show_more")
 
     # Ten sam wariant potrafi wygrać w kilku kategoriach naraz (np. "Najszybsza" i "Najlepszy
     # kompromis" mogą wskazać dokładnie tę samą trasę, jeśli akurat jest jednocześnie
@@ -730,47 +732,49 @@ if result is not None:
     def render_recommendation_tab(key: str) -> None:
         owner_key = first_owner_key[id(recs[key])]
         if owner_key != key:
-            st.caption(
-                f"Ta sama trasa co „{RECOMMENDATION_LABELS[owner_key]}” — to nie duplikat, po prostu ten wariant wygrywa na obu osiach naraz."
-            )
+            st.caption(t("res.same_route", label=rec_label(owner_key)))
         if key in SAFE_CATEGORY_KEYS and recs[key].is_safe_fallback:
-            st.info(
-                "Żaden wariant nie był w pełni bezpieczny — to najmniej ryzykowny z dostępnych."
-            )
+            st.info(t("res.no_safe"))
         price_note = price_ranking_note(key, recs[key], built)
         if price_note:
             st.info(price_note)
         if key in ("najmniej_przesiadek", "najmniej_przesiadek_bezpieczna"):
-            st.caption(
-                "Najmniej przesiadek spośród wariantów zwróconych przez MOTIS; remis rozstrzyga krótszy czas, potem niższa cena."
-            )
+            st.caption(t("res.fewest_transfers_note"))
         st.subheader(recs[key].variant_name)
         render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
 
     visible_keys = list(RECOMMENDATION_LABELS) if pokaz_wiecej else list(TOP_CATEGORY_KEYS)
-    tabs = st.tabs([RECOMMENDATION_LABELS[key] for key in visible_keys])
+    tabs = st.tabs([rec_label(key) for key in visible_keys])
     for tab, key in zip(tabs, visible_keys):
         with tab:
             render_recommendation_tab(key)
 
-    st.header("Wszystkie warianty")
+    st.header(t("res.all_variants"))
     for it in built:
         if it.is_risky and _is_near_miss_itinerary(it):
-            risk_suffix = "  🟡 prawie bezpieczna"
+            risk_suffix = t("res.risk_near")
         elif it.is_risky:
-            risk_suffix = "  ⚠️"
+            risk_suffix = t("res.risk_risky")
         else:
             risk_suffix = ""
-        with st.expander(
-            f"{it.variant_name} — {it.total_duration_min / 60:.1f} h, "
-            + (
-                f"od {it.total_price_pln:.0f} do {it.total_price_pln_high:.0f} PLN"
-                if it.total_price_pln_high is not None
-                else f"{it.total_price_pln:.0f} PLN"
+        if it.total_price_pln_high is not None:
+            price_text = t(
+                "price.variant_range",
+                lo=f"{it.total_price_pln:.0f}",
+                hi=f"{it.total_price_pln_high:.0f}",
             )
-            + ("" if it.price_verified else " (cena niepotwierdzona)")
-            + f", przesiadek: {it.num_transfers}"
-            + risk_suffix
+        else:
+            price_text = t("price.variant_single", price=f"{it.total_price_pln:.0f}")
+        with st.expander(
+            t(
+                "res.variant_header",
+                name=it.variant_name,
+                hours=f"{it.total_duration_min / 60:.1f}",
+                price=price_text,
+                unverified="" if it.price_verified else t("price.unverified_suffix"),
+                transfers=it.num_transfers,
+                risk=risk_suffix,
+            )
         ):
             render_itinerary(it, wiek, bc if bc != "brak" else None)
 

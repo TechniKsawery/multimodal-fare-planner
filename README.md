@@ -80,6 +80,16 @@ Docker Desktop, git.
    python demo.py
    ```
 
+### Języki interfejsu
+
+Interfejs `app.py` jest dostępny po polsku (domyślnie), angielsku, niemiecku, hiszpańsku,
+francusku i holendersku; język przełączasz przełącznikiem nad tytułem. Teksty UI siedzą w
+słownikach `i18n/<kod>.py` (`t("klucz", pole=…)`); `tests/test_i18n.py` pilnuje kompletu kluczy
+i spójnych pól `{…}` we wszystkich językach. Nowy język = nowy plik w `i18n/` + wpis w
+`i18n/__init__.py`. Tłumaczona jest tylko warstwa prezentacji (ceny i taryfy się nie zmieniają);
+teksty generowane przez moduły domenowe (ostrzeżenia dla cudzoziemców, podpowiedzi BahnCard,
+powody przesiadek, nazwy atrakcji i ich opisy, nazwy wariantów) zostają po polsku.
+
 Szczegóły każdego kroku, w tym pełna lista źródeł danych, pochodzenie cen i znane ograniczenia,
 są rozpisane w sekcjach „Sesja 1–6” poniżej.
 

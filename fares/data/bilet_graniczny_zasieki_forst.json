@@ -8,6 +8,20 @@
     "tresc": "Bilet graniczny jest DODATKIEM do biletu krajowego KD do stacji Zasieki; cena całej trasy z dalszym początkiem (np. Wrocław, Legnica) = bilet krajowy KD do Zasieki + 5,00 zł.",
     "zrodlo": "strona KD (oferty przygraniczne): \"oprócz biletu krajowego do Zasieki\"; https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/"
   },
+  "bilety_bez_doplaty": {
+    "odcinek": "Zasieki - Forst",
+    "doplata_zl": 5.0,
+    "bilety": [
+      "Dolnośląski Bilet Weekendowy",
+      "miesięczny bilet sieciowy KD",
+      "Brandenburg-Berlin-Ticket",
+      "Schönes-Wochenende-Ticket"
+    ],
+    "tresc": "Posiadacze Dolnośląskiego Biletu Weekendowego, miesięcznego biletu sieciowego KD, Brandenburg-Berlin-Ticket i Schönes-Wochenende-Ticket jadą na odcinku Zasieki - Forst bez dopłaty 5 zł.",
+    "w_profilu_pasazera": false,
+    "uwaga": "DiscountProfile nie ma jeszcze pól na te bilety, więc kalkulator nie obniża ceny (nadal 5,00 zł) - zwolnienie jest tylko informacją w opisie ceny i w breakdown (flaga bilet_bez_doplaty_info_niezweryfikowany_w_profilu). Poza treścią podaną w zleceniu (strona KD, oferty przygraniczne) nic nie założono: warunków ważności tych biletów (dni, strefy, godziny) nie opisano. Treść zleceniodawca podał jako wynik odczytu strony; chmura nie ma dostępu do strony przewoźnika.",
+    "zrodlo": "strona KD (oferty przygraniczne): https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/"
+  },
   "okaziciel": true,
   "max_osob_na_blankiecie": 6,
   "bagaz_rower_pies_bezplatnie": true,

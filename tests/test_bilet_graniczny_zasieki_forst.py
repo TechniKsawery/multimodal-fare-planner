@@ -83,6 +83,31 @@ def test_komunikat_bilet_graniczny_jest_dodatkiem_do_biletu_krajowego():
     assert "bilet krajowy KD do Zasieki + 5,00 zł" in r.notes
 
 
+BILETY_BEZ_DOPLATY = [
+    "Dolnośląski Bilet Weekendowy",
+    "miesięczny bilet sieciowy KD",
+    "Brandenburg-Berlin-Ticket",
+    "Schönes-Wochenende-Ticket",
+]
+
+
+def test_bilety_bez_doplaty_5_zl_jako_informacja_z_flaga():
+    r = estimate_price(_seg())
+    assert r.breakdown["bilety_bez_doplaty"] == BILETY_BEZ_DOPLATY
+    assert r.breakdown["bilet_bez_doplaty_info_niezweryfikowany_w_profilu"] is True
+    assert "Dolnośląskiego Biletu Weekendowego, miesięcznego biletu sieciowego KD" in r.notes
+    assert "Brandenburg-Berlin-Ticket i Schönes-Wochenende-Ticket" in r.notes
+    assert "bez dopłaty 5 zł" in r.notes
+    assert r.amount == 5.0  # profil nie zna tych biletów - cena nieobniżona
+
+
+def test_bilety_bez_doplaty_przez_price_rail_leg():
+    leg = _leg("Zasieki", "Forst (Lausitz)", ZASIEKI, FORST, carrier="DB Regio")
+    priced = pricing.price_rail_leg(leg, DiscountProfile())
+    assert priced.breakdown["bilety_bez_doplaty"] == BILETY_BEZ_DOPLATY
+    assert "bez dopłaty 5 zł" in priced.notes
+
+
 @pytest.mark.parametrize("age", [None, 6, 7, 15, 20, 26, 40, 70])
 def test_uczniowie_studenci_i_dorosli_placa_pelna_cene(age):
     assert estimate_price(_seg(age=age)).amount == 5.0

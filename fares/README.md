@@ -313,7 +313,12 @@ niż „wg Gemini, niezweryfikowane niezależnie” kwoty wracają do `price_ver
   „do 6 lat" bezpłatnie (§2 ust. 2) — granica wieku niejednoznaczna, przyjęto wiek < 6 (flaga
   `dzieci_gratis_niejednoznaczne`). Bilet jest **dodatkiem** do biletu krajowego KD do Zasieki
   (strona KD: „oprócz biletu krajowego do Zasieki"): cena trasy z Wrocławia/Legnicy = bilet krajowy
-  + 5,00 zł; komunikat w `notes`/`breakdown["dodatek_do_biletu_krajowego"]`. Źródła: regulamin
+  + 5,00 zł; komunikat w `notes`/`breakdown["dodatek_do_biletu_krajowego"]`. Posiadacze
+  Dolnośląskiego Biletu Weekendowego, miesięcznego biletu sieciowego KD, Brandenburg-Berlin-Ticket
+  i Schönes-Wochenende-Ticket jadą na odcinku Zasieki - Forst bez dopłaty 5 zł (strona KD); profil
+  pasażera nie ma jeszcze tych biletów, więc to tylko informacja w `notes` +
+  `breakdown["bilety_bez_doplaty"]` z flagą `bilet_bez_doplaty_info_niezweryfikowany_w_profilu`
+  (cena nadal 5,00 zł). Źródła: regulamin
   https://kolejedolnoslaskie.pl/wp-content/uploads/2025/10/R_Bilet-graniczny-Polska-Niemcy_2024-10-01.pdf
   i https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/ (odczyt 2026-10-13). Wycenia tylko odcinek
   pociągowy (KD lub DB Regio) z Zasieki do Forst w obie strony; odcinki cząstkowe, autobus

@@ -24,6 +24,7 @@ from datetime import date as date_cls, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from fares.model import DiscountProfile
+from i18n import Joined, Msg, exc_text, transport_mode_name
 
 from . import motis_client, pricing
 from .currency import normalize_currency
@@ -170,8 +171,7 @@ def _other_day_variants(
         transit = [l for l in legs if l.mode is not LegMode.WALK]
         if not transit:  # sam spacer w innym dniu nie jest "połączeniem"
             continue
-        modes_used = sorted({l.extra.get("motis_mode", "RAIL") for l in transit})
-        name = f"Tylko kolej ({'/'.join(modes_used).lower()}, {len(transit) - 1} przesiadki)"
+        name = _rail_only_name(transit)
         candidate = build_itinerary(name, _price_legs(legs, request))
         if candidate.is_infeasible:
             continue
@@ -179,6 +179,17 @@ def _other_day_variants(
         if len(found) >= OTHER_DAY_MAX_VARIANTS:
             break
     return found
+
+
+def _rail_only_name(transit: list[Leg]) -> Msg:
+    """Nazwa wariantu kolejowego z RODZAJAMI transportu (tłumaczonymi), a nie surowymi kluczami
+    MOTIS typu `regional_rail`."""
+    modes_used = sorted({l.extra.get("motis_mode", "RAIL") for l in transit})
+    return Msg(
+        "variant.rail_only",
+        modes=Joined((transport_mode_name(m) for m in modes_used), "/"),
+        transfers=len(transit) - 1,
+    )
 
 
 def _legs_signature(legs: list[Leg]) -> tuple[tuple[str, str], ...]:
@@ -225,11 +236,8 @@ def build_rail_only_variants(
         seen_signatures.add(signature)
 
         transit = [l for l in legs if l.mode is not LegMode.WALK]
-        modes_used = sorted({l.extra.get("motis_mode", "RAIL") for l in transit})
-        if not transit:  # MOTIS `direct`: cały dystans pieszo (punkty w tym samym mieście)
-            name = "Pieszo"
-        else:
-            name = f"Tylko kolej ({'/'.join(modes_used).lower()}, {len(transit) - 1} przesiadki)"
+        # bez odcinków z taborem MOTIS `direct`: cały dystans pieszo (punkty w tym samym mieście)
+        name = _rail_only_name(transit) if transit else Msg("variant.walk")
         priced = _price_legs(legs, request)
         candidate = build_itinerary(name, priced)
         if candidate.is_infeasible:  # przesiadka poniżej absolutnego minimum — odrzucamy
@@ -248,19 +256,16 @@ def build_rail_only_variants(
     return variants
 
 
-def _no_rail_reason(request: RouteRequest, total: int, other_day: int, infeasible: int) -> str:
+def _no_rail_reason(request: RouteRequest, total: int, other_day: int, infeasible: int) -> Msg:
     """Jawny powód pustego wyniku zapytania origin->destination (zamiast cichej pustej listy)."""
     if total == 0:
-        return (
-            f"MOTIS nie zwrócił żadnego połączenia (od {request.departure_time}, {request.date}) — "
-            "brak trasy w wczytanych danych GTFS (PL+DE) albo przystanki poza zasięgiem rozkładów."
-        )
+        return Msg("skip.no_connections_at_all", time=request.departure_time, date=request.date)
     parts = []
     if other_day:
-        parts.append(f"{other_day} połączeń rusza w innym dniu niż {request.date}")
+        parts.append(Msg("skip.part_other_day", n=other_day, date=request.date))
     if infeasible:
-        parts.append(f"{infeasible} odrzucono (przesiadka poniżej minimum)")
-    return f"MOTIS zwrócił {total} połączeń, ale żadne nie nadaje się do wyniku: " + ", ".join(parts) + "."
+        parts.append(Msg("skip.part_infeasible", n=infeasible))
+    return Msg("skip.no_usable_connections", total=total, parts=Joined(parts))
 
 
 @dataclass
@@ -295,7 +300,7 @@ VIA_HUB_MAX_DETOUR_RATIO = 1.5
 SAME_STATION_RADIUS_KM = 0.5
 
 
-def via_hub_detour_reason(origin, via, destination) -> str | None:
+def via_hub_detour_reason(origin, via, destination) -> Msg | None:
     """Powód odrzucenia wariantu przez węzeł `via`, gdy origin->via->destination w linii prostej
     przekracza VIA_HUB_MAX_DETOUR_RATIO x origin->destination; None, gdy węzeł jest sensowny.
     Brak któregokolwiek ze współrzędnych = nie filtrujemy (jak `hub_is_detour`)."""
@@ -305,9 +310,11 @@ def via_hub_detour_reason(origin, via, destination) -> str | None:
     direct = h(*origin, *destination)
     path = h(*origin, *via) + h(*via, *destination)
     if path > VIA_HUB_MAX_DETOUR_RATIO * max(direct, 1.0):
-        return (
-            f"Pominięty: objazd — trasa przez ten węzeł to ok. {path:.0f} km w linii prostej "
-            f"przy {direct:.0f} km bezpośrednio (limit {VIA_HUB_MAX_DETOUR_RATIO}x)."
+        return Msg(
+            "skip.via_detour",
+            path=f"{path:.0f}",
+            direct=f"{direct:.0f}",
+            ratio=VIA_HUB_MAX_DETOUR_RATIO,
         )
     return None
 
@@ -328,7 +335,7 @@ def _transit_points(legs: list[Leg]) -> list[tuple[str, tuple[float, float] | No
     return points
 
 
-def revisited_station_reason(legs: list[Leg]) -> str | None:
+def revisited_station_reason(legs: list[Leg]) -> Msg | None:
     """Powód odrzucenia, gdy trasa przejeżdża dwa razy przez tę samą stację (np. Kraków ->
     Wrocław -> Poznań -> Wrocław -> ...: powrót tą samą drogą zamiast jazdy do przodu).
     Ta sama stacja = te same współrzędne w promieniu SAME_STATION_RADIUS_KM, a bez współrzędnych —
@@ -343,7 +350,7 @@ def revisited_station_reason(legs: list[Leg]) -> str | None:
             else:
                 same = name_i.strip().casefold() == name_j.strip().casefold()
             if same:
-                return f"Pominięty: objazd — trasa wraca przez {name_j} (ta sama stacja dwa razy)."
+                return Msg("skip.revisited", station=name_j)
     return None
 
 
@@ -375,7 +382,7 @@ def build_rail_via_stop_variant(request: RouteRequest, via: AlternativeStop) -> 
     via_id = motis_client.stop_id(via.stop_id)
     first_legs = motis_client.plan_leg(request.origin_stop_id, via_id, request.motis_time)
     if not _departs_on_request_date(first_legs, request):
-        raise MotisError(f"Brak połączenia do {via.label} w dniu {request.date}.")
+        raise MotisError(Msg("skip.no_via_connection", stop=via.label, date=request.date))
     # bufor na przesiadkę w węźle via — bez niego MOTIS podaje odjazd tuż po przyjeździe
     # i wariant odpada jako fizycznie niewykonalny
     onward = first_legs[-1].arrive + timedelta(minutes=MIN_TRANSFER_MINUTES_WALK)
@@ -396,7 +403,7 @@ def build_rail_via_stop_variant(request: RouteRequest, via: AlternativeStop) -> 
         raise MotisError(reason)
 
     priced = _price_legs(legs, request)
-    return build_itinerary(f"Kolej przez {via.label}", priced)
+    return build_itinerary(Msg("variant.via", via=via.label), priced)
 
 
 def build_rail_from_alternative_origin_variants(
@@ -457,7 +464,7 @@ def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Iti
         )
         access_options = [o for o in access_options if _departs_on_request_date(o, request)]
         if not access_options:
-            raise MotisError(f"Brak dojazdu do {origin_access_id} w dniu {request.date}.")
+            raise MotisError(Msg("skip.no_access", stop=origin_access_id, date=request.date))
     else:
         access_options = [[]]  # brak dojazdu kolejowego do lotniska — jedna "pusta" opcja
 
@@ -484,7 +491,9 @@ def build_rail_flight_rail_variant(request: RouteRequest, hub: HubConfig) -> Iti
         for onward_legs in onward_options:
             legs = list(access_legs) + [flight_leg] + onward_legs
             priced = _price_legs(legs, request)
-            candidates.append(build_itinerary(f"Kolej + lot ({hub.label}) + kolej lokalna", priced))
+            candidates.append(
+                build_itinerary(Msg("variant.rail_flight_rail", hub=hub.label), priced)
+            )
 
     return _best_overall(candidates)
 
@@ -511,7 +520,7 @@ def build_flight_regional_variant(request: RouteRequest, hub: HubConfig) -> Itin
     candidates = []
     for onward_legs in onward_options:
         priced = _price_legs([flight_leg] + onward_legs, request)
-        candidates.append(build_itinerary(f"Lot ({hub.label}) + transport regionalny", priced))
+        candidates.append(build_itinerary(Msg("variant.flight_regional", hub=hub.label), priced))
 
     return _best_overall(candidates)
 
@@ -564,9 +573,9 @@ def hub_is_detour(origin, destination, hub: HubConfig) -> bool:
     return path > HUB_MAX_DETOUR_RATIO * max(direct, 1.0)
 
 
-def _infeasible_reason(itinerary: Itinerary) -> str:
-    reasons = "; ".join(w.reason for w in itinerary.transfer_warnings if w.infeasible)
-    return f"Odrzucony: przesiadka niewykonalna fizycznie. {reasons}"
+def _infeasible_reason(itinerary: Itinerary) -> Msg:
+    reasons = Joined((w.reason for w in itinerary.transfer_warnings if w.infeasible), "; ")
+    return Msg("skip.infeasible", reasons=reasons)
 
 
 def generate_variants(
@@ -614,10 +623,10 @@ def generate_variants(
             )
         )
     except MotisError as exc:
-        skipped.append(SkippedVariant("Tylko kolej", str(exc)))
+        skipped.append(SkippedVariant(Msg("variant.rail_only_plain"), exc_text(exc)))
 
     for via in via_hub_stops or []:
-        label = f"Kolej przez {via.label}"
+        label = Msg("variant.via", via=via.label)
         try:
             candidate = build_rail_via_stop_variant(request, via)
             signature = _legs_signature([pl.leg for pl in candidate.legs])
@@ -629,10 +638,10 @@ def generate_variants(
             else:
                 built.append(candidate)
         except MotisError as exc:
-            skipped.append(SkippedVariant(label, str(exc)))
+            skipped.append(SkippedVariant(label, exc_text(exc)))
 
     for alt in alternative_origin_stops or []:
-        label = f"Tylko kolej (start: {alt.label})"
+        label = Msg("variant.rail_start", stop=alt.label)
         try:
             for candidate in build_rail_from_alternative_origin_variants(request, alt):
                 signature = _legs_signature([pl.leg for pl in candidate.legs])
@@ -641,10 +650,10 @@ def generate_variants(
                 seen_rail_signatures.add(signature)
                 built.append(candidate)
         except MotisError as exc:
-            skipped.append(SkippedVariant(label, str(exc)))
+            skipped.append(SkippedVariant(label, exc_text(exc)))
 
     for alt in alternative_destination_stops or []:
-        label = f"Tylko kolej (koniec: {alt.label})"
+        label = Msg("variant.rail_end", stop=alt.label)
         try:
             for candidate in build_rail_from_alternative_destination_variants(request, alt):
                 signature = _legs_signature([pl.leg for pl in candidate.legs])
@@ -653,7 +662,7 @@ def generate_variants(
                 seen_rail_signatures.add(signature)
                 built.append(candidate)
         except MotisError as exc:
-            skipped.append(SkippedVariant(label, str(exc)))
+            skipped.append(SkippedVariant(label, exc_text(exc)))
 
     origin_ll, dest_ll = _endpoints(request, built)
 
@@ -662,22 +671,26 @@ def generate_variants(
     discovered: list[HubConfig] = []
     if hub_discovery and not (origin_ll and dest_ll):
         skipped.append(
-            SkippedVariant("Loty (dobór lotnisk)", "Pominięto: nie udało się ustalić współrzędnych startu/celu.")
+            SkippedVariant(Msg("variant.airport_selection"), Msg("skip.no_coordinates"))
         )
     elif hub_discovery:
         static_pairs = {(h.origin_iata, h.destination_iata) for h in rail_flight_rail_hubs or []}
         try:
             discovered, rejected = hub_discovery(origin_ll, dest_ll, static_pairs)
             for name, reason in rejected:
-                skipped.append(SkippedVariant(name, f"Pominięty: {reason}"))
+                skipped.append(SkippedVariant(name, Msg("skip.skipped", reason=reason)))
         except Exception as exc:  # np. błąd tabeli lotnisk
-            skipped.append(SkippedVariant("Loty (dobór lotnisk)", f"Pominięto: {exc}"))
+            skipped.append(
+                SkippedVariant(
+                    Msg("variant.airport_selection"), Msg("skip.discovery_failed", error=str(exc))
+                )
+            )
     rail_flight_rail_hubs = list(rail_flight_rail_hubs or []) + discovered
 
     for hub in rail_flight_rail_hubs or []:
-        label = f"Kolej + lot ({hub.label}) + kolej lokalna"
+        label = Msg("variant.rail_flight_rail", hub=hub.label)
         if hub_is_detour(origin_ll, dest_ll, hub):
-            skipped.append(SkippedVariant(label, "Pominięty: hub to objazd względem trasy."))
+            skipped.append(SkippedVariant(label, Msg("skip.hub_detour")))
             continue
         try:
             candidate = build_rail_flight_rail_variant(request, hub)
@@ -686,20 +699,22 @@ def generate_variants(
             else:
                 built.append(candidate)
         except MotisError as exc:
-            reason = str(exc)
+            reason = exc_text(exc)
             if hub in discovered:
-                reason = (
-                    f"Brak dojazdu komunikacją do lotniska {hub.origin_iata} lub z lotniska "
-                    f"{hub.destination_iata} (lotnisko bez przystanku w zasięgu w danych MOTIS). {reason}"
+                reason = Msg(
+                    "skip.no_transit_access",
+                    origin=hub.origin_iata,
+                    destination=hub.destination_iata,
+                    reason=reason,
                 )
             skipped.append(SkippedVariant(label, reason))
         except TravelpayoutsError as exc:
-            skipped.append(SkippedVariant(label, str(exc)))
+            skipped.append(SkippedVariant(label, exc_text(exc)))
 
     for hub in flight_regional_hubs or []:
-        label = f"Lot ({hub.label}) + transport regionalny"
+        label = Msg("variant.flight_regional", hub=hub.label)
         if hub_is_detour(origin_ll, dest_ll, hub):
-            skipped.append(SkippedVariant(label, "Pominięty: hub to objazd względem trasy."))
+            skipped.append(SkippedVariant(label, Msg("skip.hub_detour")))
             continue
         try:
             candidate = build_flight_regional_variant(request, hub)
@@ -708,7 +723,7 @@ def generate_variants(
             else:
                 built.append(candidate)
         except (MotisError, TravelpayoutsError) as exc:
-            skipped.append(SkippedVariant(label, str(exc)))
+            skipped.append(SkippedVariant(label, exc_text(exc)))
 
     if other_day_out is not None and not built:
         other_day_out.extend(rail_other_day)

@@ -3,6 +3,8 @@
 Progi minimalne są SZACUNKIEM (nie oficjalnymi zaleceniami przewoźników) — patrz README.md.
 """
 
+from i18n import Msg
+
 from .model import Leg, LegMode, TransferWarning
 
 MIN_TRANSFER_MINUTES_SAME_PLATFORM = (
@@ -114,15 +116,20 @@ def check_transfer(prev_leg: Leg, next_leg: Leg, after_leg_index: int) -> Transf
             prev_leg.mode, next_leg.mode, next_leg.requires_walk, same_stop
         )
         if same_stop:
-            powod_zmiany = "ten sam przystanek, inny peron/wejście wg MOTIS"
+            powod_zmiany = Msg("transfer.why_same_stop")
         elif next_leg.requires_walk:
-            powod_zmiany = "wymaga przejścia/zmiany dworca"
+            powod_zmiany = Msg("transfer.why_walk")
         else:
-            powod_zmiany = "na tym samym przystanku/peronie"
-        reason = (
-            f"Tylko {gap_minutes:.0f} min na przesiadkę {prev_leg.mode.value} -> {next_leg.mode.value} "
-            f"({powod_zmiany}, {prev_leg.destination_name} -> {next_leg.origin_name}), "
-            f"potrzeba minimum {minimum:.0f} min."
+            powod_zmiany = Msg("transfer.why_same_platform")
+        reason = Msg(
+            "transfer.reason",
+            gap=f"{gap_minutes:.0f}",
+            prev=Msg(f"mode.{prev_leg.mode.value}"),
+            next=Msg(f"mode.{next_leg.mode.value}"),
+            why=powod_zmiany,
+            origin=prev_leg.destination_name,
+            destination=next_leg.origin_name,
+            minimum=f"{minimum:.0f}",
         )
         return TransferWarning(
             after_leg_index=after_leg_index,

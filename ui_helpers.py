@@ -5,7 +5,7 @@ import json
 import streamlit as st
 
 from fares.eligibility_info import eligibility_for, explain_ticket
-from i18n import t
+from i18n import t, tm
 
 
 def html_lang_script(lang: str) -> str:
@@ -89,11 +89,11 @@ def render_other_day_section(other_day, render_itinerary) -> None:
             t(
                 "other_day.expander",
                 date=variant.date,
-                name=it.variant_name,
+                name=tm(it.variant_name),
                 hours=f"{it.total_duration_min / 60:.1f}",
                 price=variant_price_text(it),
                 transfers=it.num_transfers,
             )
         ):
-            st.error(variant.label)
+            st.error(tm(variant.label))
             render_itinerary(it)

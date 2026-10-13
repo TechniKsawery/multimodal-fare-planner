@@ -34,7 +34,7 @@ from ui_helpers import (
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
 from fares.model import DiscountProfile
-from i18n import DEFAULT_LANG, LANGUAGES, label_or, t
+from i18n import DEFAULT_LANG, LANGUAGES, exc_text, label_or, t, tm
 from routing import motis_client
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
 from routing.motis_client import MotisError
@@ -170,7 +170,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             price = f"{m:.0f} m" if m else ""
         else:
             price = (
-                f"{p.amount:.2f} {p.currency} ({p.price_type})"
+                f"{p.amount:.2f} {p.currency} ({label_or('ptype', p.price_type, p.price_type)})"
                 if p.price_known
                 else t("price.leg_none")
             )
@@ -241,7 +241,7 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
                     )
                 )
             else:
-                st.warning(t("transfer.risky", reason=w.reason))
+                st.warning(t("transfer.risky", reason=tm(w.reason)))
     else:
         st.success(t("transfer.safe"))
 
@@ -652,7 +652,7 @@ if submitted:
         legitymacja_zagraniczna=_kraj_legitymacji in ("DE", "other"),
     )
     for ostrzezenie in foreigner_warnings_for(profile):
-        st.warning(ostrzezenie)
+        st.warning(tm(ostrzezenie))
     try:
         with st.spinner(t("search.spinner")):
             request = RouteRequest(
@@ -680,7 +680,7 @@ if submitted:
                 search_result.other_day,
             )
     except MotisError as exc:
-        st.error(t("err.motis", exc=exc))
+        st.error(t("err.motis", exc=tm(exc_text(exc))))
         st.stop()
     except Exception as exc:  # np. MOTIS nieuruchomiony
         st.error(t("err.search", exc=exc))
@@ -723,10 +723,13 @@ if result is not None:
     if skipped:
         with st.expander(t("res.skipped")):
             for s in skipped:
-                st.write(f"**{s.variant_name}**: {s.reason}")
+                st.write(f"**{tm(s.variant_name)}**: {tm(s.reason)}")
     if not built:
         st.error(
-            t("res.none_reasons", reasons=" ".join(f"{s.variant_name}: {s.reason}" for s in skipped))
+            t(
+                "res.none_reasons",
+                reasons=" ".join(f"{tm(s.variant_name)}: {tm(s.reason)}" for s in skipped),
+            )
             if skipped
             else t("res.none")
         )
@@ -759,10 +762,10 @@ if result is not None:
             st.info(t("res.no_safe"))
         price_note = price_ranking_note(key, recs[key], built)
         if price_note:
-            st.info(price_note)
+            st.info(tm(price_note))
         if key in ("najmniej_przesiadek", "najmniej_przesiadek_bezpieczna"):
             st.caption(t("res.fewest_transfers_note"))
-        st.subheader(recs[key].variant_name)
+        st.subheader(tm(recs[key].variant_name))
         render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
 
     visible_keys = list(RECOMMENDATION_LABELS) if pokaz_wiecej else list(TOP_CATEGORY_KEYS)
@@ -783,7 +786,7 @@ if result is not None:
         with st.expander(
             t(
                 "res.variant_header",
-                name=it.variant_name,
+                name=tm(it.variant_name),
                 hours=f"{it.total_duration_min / 60:.1f}",
                 price=price_text,
                 unverified="" if it.price_verified else t("price.unverified_suffix"),

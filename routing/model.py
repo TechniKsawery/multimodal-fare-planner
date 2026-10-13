@@ -5,6 +5,7 @@ from datetime import datetime
 from enum import Enum
 
 from fares.model import Carrier
+from i18n import Msg
 
 
 class LegMode(str, Enum):
@@ -195,11 +196,11 @@ class SkippedVariant:
     reason: str
 
 
-def _days_phrase(days_offset: int) -> str:
+def _days_phrase(days_offset: int) -> Msg:
     """"za 2 dni" / "1 dzień wcześniej" — odległość wariantu od dnia zapytania."""
     n = abs(days_offset)
-    unit = "dzień" if n == 1 else "dni"
-    return f"za {n} {unit}" if days_offset > 0 else f"{n} {unit} wcześniej"
+    when = "later" if days_offset > 0 else "earlier"
+    return Msg(f"other_day.{when}_{'one' if n == 1 else 'many'}", n=n)
 
 
 OTHER_DAY_SECTION_TITLE = "Najbliższe połączenia w innym dniu"
@@ -215,10 +216,12 @@ class OtherDayVariant:
     date: str  # "YYYY-MM-DD", dzień odjazdu tego połączenia (czas lokalny)
     requested_date: str  # "YYYY-MM-DD", dzień, o który pytał użytkownik
     days_offset: int  # date - requested_date w dniach (ujemne = wcześniej)
-    label: str = field(init=False, default="")
+    label: str = field(init=False, default="")  # Msg (str z kluczem i18n), patrz i18n.tm
 
     def __post_init__(self) -> None:
-        self.label = (
-            f"INNY DZIEŃ: {self.date} ({_days_phrase(self.days_offset)}, zapytano o "
-            f"{self.requested_date}) — to NIE jest dzień zapytania"
+        self.label = Msg(
+            "other_day.label",
+            date=self.date,
+            phrase=_days_phrase(self.days_offset),
+            requested=self.requested_date,
         )

@@ -11,6 +11,8 @@ from datetime import datetime
 
 import requests
 
+from i18n import Msg
+
 from .model import Leg, LegMode
 
 MOTIS_BASE_URL = os.environ.get("MOTIS_BASE_URL", "http://localhost:8080")
@@ -26,7 +28,8 @@ MAX_WALK_SECONDS = 3600  # do godziny pieszo do/z pierwszego/ostatniego przystan
 
 
 class MotisError(RuntimeError):
-    """Błąd komunikacji z MOTIS albo brak połączenia dla podanej relacji/daty."""
+    """Błąd komunikacji z MOTIS albo brak połączenia dla podanej relacji/daty. Komunikat może być
+    `i18n.Msg` (UI renderuje go w wybranym języku przez `i18n.exc_text` + `tm`)."""
 
 
 def _parse_time(value: str) -> datetime:
@@ -139,7 +142,7 @@ def _geocode_raw(text: str) -> list[dict]:
         response.raise_for_status()
         return response.json()
     except requests.RequestException as exc:
-        raise MotisError(f"Błąd geocodingu w MOTIS ({MOTIS_BASE_URL}): {exc}") from exc
+        raise MotisError(Msg("err.motis_geocode", url=MOTIS_BASE_URL, error=str(exc))) from exc
 
 
 def geocode_suggestions(text: str, limit: int = 5) -> list[dict]:
@@ -194,8 +197,13 @@ def find_stop_id(ref: StopRef) -> str:
 
     if best_id is None:
         raise MotisError(
-            f"MOTIS nie znalazł przystanku {ref.name!r} w promieniu {STOP_MATCH_RADIUS_KM} km "
-            f"od ({ref.lat}, {ref.lon})."
+            Msg(
+                "err.motis_stop_not_found",
+                name=repr(ref.name),
+                radius=STOP_MATCH_RADIUS_KM,
+                lat=ref.lat,
+                lon=ref.lon,
+            )
         )
     _STOP_ID_CACHE[ref] = best_id
     return best_id
@@ -215,7 +223,7 @@ def geocode(text: str) -> tuple:
     """
     results = geocode_suggestions(text, limit=1)
     if not results:
-        raise MotisError(f"MOTIS nie znalazł adresu: {text!r}")
+        raise MotisError(Msg("err.motis_address_not_found", text=repr(text)))
     best = results[0]
     return best["lat"], best["lon"], best["name"]
 
@@ -261,21 +269,21 @@ def plan(
             except ValueError:
                 detail = None
             if detail:
-                raise MotisError(f"MOTIS odrzucił zapytanie: {detail}.")
+                raise MotisError(Msg("err.motis_rejected", detail=detail))
         response.raise_for_status()
     except requests.RequestException as exc:
-        raise MotisError(
-            f"Błąd zapytania do MOTIS ({MOTIS_BASE_URL}): {exc}. "
-            "Sprawdź, czy serwer jest uruchomiony (scripts/run_motis.sh|ps1 server)."
-        ) from exc
+        raise MotisError(Msg("err.motis_request", url=MOTIS_BASE_URL, error=str(exc))) from exc
 
     payload = response.json()
     if not _all_itineraries(payload):
         raise MotisError(
-            f"MOTIS nie znalazł żadnego połączenia {from_place} -> {to_place} dla time={time} "
-            f"(limit dojścia pieszego do/z przystanku: {MAX_WALK_SECONDS // 60} min — punkt "
-            "daleko od stacji albo w mieście bez komunikacji miejskiej w danych może nie mieć "
-            "przystanku w zasięgu; wybierz adres bliżej dworca)."
+            Msg(
+                "err.motis_no_itinerary",
+                origin=from_place,
+                destination=to_place,
+                time=time,
+                minutes=MAX_WALK_SECONDS // 60,
+            )
         )
     return payload
 

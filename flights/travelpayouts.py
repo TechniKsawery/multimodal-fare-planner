@@ -10,6 +10,8 @@ from pathlib import Path
 import requests
 from dotenv import load_dotenv
 
+from i18n import Msg
+
 # .env w katalogu głównym repo; zmienna środowiskowa już ustawiona ma pierwszeństwo (override=False)
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
@@ -18,17 +20,14 @@ TOKEN_ENV_VAR = "TRAVELPAYOUTS_TOKEN"
 
 
 class TravelpayoutsError(RuntimeError):
-    """Błąd komunikacji z Travelpayouts Data API albo brak/niepoprawna odpowiedź."""
+    """Błąd komunikacji z Travelpayouts Data API albo brak/niepoprawna odpowiedź. Komunikat może
+    być `i18n.Msg` (UI renderuje go w wybranym języku przez `i18n.exc_text` + `tm`)."""
 
 
 def _get_token() -> str:
     token = os.environ.get(TOKEN_ENV_VAR)
     if not token:
-        raise TravelpayoutsError(
-            f"Brak tokena API Travelpayouts w zmiennej środowiskowej {TOKEN_ENV_VAR}. "
-            "Darmowy token dostępny po rejestracji na "
-            "https://www.travelpayouts.com/programs/100/tools/api (sekcja Data API / Access token)."
-        )
+        raise TravelpayoutsError(Msg("err.tp_no_token", var=TOKEN_ENV_VAR))
     return token
 
 
@@ -62,11 +61,11 @@ def fetch_cheapest_price(
         )
         response.raise_for_status()
     except requests.RequestException as exc:
-        raise TravelpayoutsError(f"Błąd zapytania do Travelpayouts API: {exc}") from exc
+        raise TravelpayoutsError(Msg("err.tp_request", error=str(exc))) from exc
 
     payload = response.json()
     if not payload.get("success"):
-        raise TravelpayoutsError(f"Travelpayouts API zwróciło błąd: {payload.get('error')}")
+        raise TravelpayoutsError(Msg("err.tp_api", error=str(payload.get("error"))))
     return payload
 
 
@@ -96,11 +95,7 @@ def cheapest_entry(payload: dict, destination: str) -> dict:
     """Jak cheapest_entry_or_none, ale podnosi błąd, gdy brak bezpośredniego wpisu dla relacji."""
     entry = cheapest_entry_or_none(payload, destination)
     if entry is None:
-        raise TravelpayoutsError(
-            f"Brak ceny lotu bezpośredniego dla relacji -> {destination.upper()} w odpowiedzi "
-            "Travelpayouts (zbyt egzotyczna trasa, data poza zakresem cache albo w cache są "
-            "tylko loty z przesiadkami)."
-        )
+        raise TravelpayoutsError(Msg("err.tp_no_direct_price", destination=destination.upper()))
     return entry
 
 
@@ -132,8 +127,8 @@ def fetch_direct_tickets(
         )
         response.raise_for_status()
     except requests.RequestException as exc:
-        raise TravelpayoutsError(f"Błąd zapytania do Travelpayouts API: {exc}") from exc
+        raise TravelpayoutsError(Msg("err.tp_request", error=str(exc))) from exc
     payload = response.json()
     if not payload.get("success"):
-        raise TravelpayoutsError(f"Travelpayouts API zwróciło błąd: {payload.get('error')}")
+        raise TravelpayoutsError(Msg("err.tp_api", error=str(payload.get("error"))))
     return [t for t in payload.get("data") or [] if t.get("transfers") == 0]

@@ -12,6 +12,8 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
+from i18n import Joined, Msg
+
 from . import motis_client
 from .demo_route import (
     DORTMUND_HBF_STOP,
@@ -88,11 +90,8 @@ def direct_flight_status(origin_iata: str, destination_iata: str, date: str) -> 
             if travelpayouts.fetch_direct_tickets(origin_iata, destination_iata, when):
                 return True, ""
     except Exception as exc:  # brak tokena, sieć, błąd API
-        return False, f"błąd Travelpayouts: {exc}"
-    return False, (
-        "brak biletu bezpośredniego w cache Travelpayouts (data ani miesiąc); "
-        "to nie dowodzi braku lotu, tylko braku potwierdzenia"
-    )
+        return False, Msg("skip.travelpayouts_error", error=str(exc))
+    return False, Msg("skip.no_direct_ticket")
 
 
 def has_direct_flight(origin_iata: str, destination_iata: str, date: str) -> bool:
@@ -112,14 +111,15 @@ def discover_hubs(origin, destination, date: str, skip: set | None = None):
     ]
     rejected: list[tuple[str, str]] = []
     if not pairs:
-        rejected.append(("Lotniska", "brak par lotnisk w promieniu bez objazdu (tabela lotnisk PL+DE)"))
+        rejected.append((Msg("variant.airports"), Msg("skip.no_airport_pairs")))
     with ThreadPoolExecutor(max_workers=8) as pool:
         results = list(pool.map(lambda ab: direct_flight_status(ab[0].iata, ab[1].iata, date), pairs))
     hubs = []
-    by_reason: dict[str, list[str]] = {}
+    by_reason: dict[str, tuple[object, list[str]]] = {}
     for (a, b), (ok, reason) in zip(pairs, results):
         if not ok:
-            by_reason.setdefault(reason, []).append(f"{a.iata}→{b.iata}")
+            # grupowanie po polskim brzmieniu; sam powód (Msg albo zwykły str) zostaje do renderu
+            by_reason.setdefault(str(reason), (reason, []))[1].append(f"{a.iata}→{b.iata}")
             continue
         hubs.append(
             HubConfig(
@@ -130,6 +130,11 @@ def discover_hubs(origin, destination, date: str, skip: set | None = None):
                 destination_rail_access_stop_id=access_place(b),
             )
         )
-    for reason, labels in by_reason.items():
-        rejected.append((f"Loty bez potwierdzenia ({len(labels)} par)", f"{reason}. Pary: {', '.join(labels)}"))
+    for reason, labels in by_reason.values():
+        rejected.append(
+            (
+                Msg("variant.unconfirmed_flights", n=len(labels)),
+                Msg("skip.flights_unconfirmed", reason=reason, pairs=Joined(labels)),
+            )
+        )
     return hubs, rejected

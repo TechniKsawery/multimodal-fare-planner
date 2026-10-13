@@ -26,6 +26,8 @@ oszacowaniem. Gdy żaden wariant nie ma potwierdzonej ceny, wygrywa najtańszy n
 demo.py oznaczają go jako cenę niepotwierdzoną. Pozostałe kategorie się nie zmieniają.
 """
 
+from i18n import Msg
+
 from .currency import to_pln
 from .model import Itinerary, LegMode, PricedLeg
 from .transfers import check_all_transfers
@@ -122,26 +124,24 @@ def cheaper_unverified(itineraries: list[Itinerary], chosen: Itinerary) -> list[
 
 
 def price_ranking_note(key: str, chosen: Itinerary, itineraries: list[Itinerary]) -> str | None:
-    """Wspólny dla UI i demo.py dopisek pod kategorią z PRICE_RANKED_KEYS: czy wygrał wariant z
+    """Wspólny dla UI i demo.py dopisek (zwracany jako `i18n.Msg` — UI renderuje go przez `tm`) pod kategorią z PRICE_RANKED_KEYS: czy wygrał wariant z
     ceną niepotwierdzoną (bo żaden nie miał potwierdzonej) albo czy pominięto nominalnie tańsze
     warianty z ceną niepotwierdzoną. None, gdy nie ma czego dopisać."""
     if key not in PRICE_RANKED_KEYS:
         return None
     if not chosen.price_verified:
-        return (
-            "Żaden wariant w tej kategorii nie ma w pełni potwierdzonej ceny — to najtańszy wg "
-            "cen niepotwierdzonych (szacunek), porównuj ostrożnie."
-        )
+        return Msg("rank.unverified_only")
     if key != "najtansza":
         return None
     skipped = cheaper_unverified(itineraries, chosen)
     if not skipped:
         return None
     cheapest = skipped[0]
-    return (
-        f"Pominięto {len(skipped)} wariant(y) nominalnie tańsze, ale z ceną niepotwierdzoną "
-        f"(np. {cheapest.variant_name}: {cheapest.total_price_pln:.2f} PLN) — ich suma zawiera "
-        "odcinki bez potwierdzonej taryfy."
+    return Msg(
+        "rank.skipped_cheaper",
+        n=len(skipped),
+        name=cheapest.variant_name,
+        price=f"{cheapest.total_price_pln:.2f}",
     )
 
 

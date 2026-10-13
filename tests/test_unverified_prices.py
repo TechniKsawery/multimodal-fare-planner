@@ -228,7 +228,7 @@ def _priced(amount, *, verified=True, placeholder=False, start_hour=8, minutes=1
         carrier_name="X",
         distance_km=100.0,
     )
-    breakdown = {} if verified else {"price_verified": False}
+    breakdown = {"price_verified": verified}
     if placeholder:
         breakdown["wartosc_zastepcza"] = True
     return PricedLeg(
@@ -388,13 +388,17 @@ def test_odcinek_flixbus_z_fallbacku_jest_niepotwierdzony_z_dopiskiem(monkeypatc
     assert priced.unverified_label == "cena niepotwierdzona"  # ten sam tekst co przy innych
 
 
-def test_odcinek_flixbus_z_live_api_zostaje_potwierdzony(monkeypatch):
+def test_odcinek_flixbus_z_live_api_to_szacunek_wiec_niepotwierdzony(monkeypatch):
+    # Migawka z nieoficjalnego API ma price_type "szacunek" i nie ma jawnej flagi — brak flagi
+    # NIE znaczy "potwierdzone" (wcześniej znaczył: błąd verified=True przy "szacunek").
     _flixbus_api_dziala(monkeypatch)
     priced = pricing.price_bus_leg(_flixbus_leg())
     assert priced.breakdown["zrodlo"] == "api_flixbus_live"
-    assert priced.amount == 19.99 and priced.currency == "EUR"
-    assert priced.price_verified
-    assert priced.unverified_label == ""
+    assert "price_verified" not in priced.breakdown
+    assert priced.amount == 19.99 and priced.currency == "EUR"  # kwota bez zmian
+    assert priced.price_type == "szacunek"
+    assert not priced.price_verified
+    assert priced.unverified_label == "cena niepotwierdzona"
 
 
 def test_flixbus_fallback_nie_wygrywa_najtanszej_z_potwierdzona_cena(monkeypatch):
@@ -410,15 +414,15 @@ def test_flixbus_fallback_nie_wygrywa_najtanszej_z_potwierdzona_cena(monkeypatch
     assert scoring.cheaper_unverified([flix, potwierdzony], potwierdzony) == [flix]
 
 
-def test_flixbus_z_live_api_nadal_moze_wygrac_najtanszej(monkeypatch):
+def test_flixbus_z_live_api_nie_wygrywa_najtanszej_z_potwierdzona_cena(monkeypatch):
     _flixbus_api_dziala(monkeypatch, payload={"price": {"total": 15.0, "currency": "EUR"}})
     flix = scoring.build_itinerary("Flixbus", [pricing.price_bus_leg(_flixbus_leg())])
     potwierdzony = scoring.build_itinerary("Intercity", [_priced(300.0)])
-    assert flix.price_verified
-    assert scoring.pick_recommendations([flix, potwierdzony])["najtansza"] is flix
+    assert not flix.price_verified
+    assert scoring.pick_recommendations([flix, potwierdzony])["najtansza"] is potwierdzony
 
 
-def test_demo_format_itinerary_oznacza_flixbusa_z_fallbacku_ale_nie_z_api(monkeypatch):
+def test_demo_format_itinerary_oznacza_flixbusa_z_fallbacku_oraz_z_api(monkeypatch):
     _flixbus_api_nie_dziala(monkeypatch)
     z_fallbacku = scoring.build_itinerary("Flixbus", [pricing.price_bus_leg(_flixbus_leg())])
     text = demo.format_itinerary(z_fallbacku)
@@ -427,4 +431,4 @@ def test_demo_format_itinerary_oznacza_flixbusa_z_fallbacku_ale_nie_z_api(monkey
 
     _flixbus_api_dziala(monkeypatch)
     z_api = scoring.build_itinerary("Flixbus", [pricing.price_bus_leg(_flixbus_leg())])
-    assert "niepotwierdzona" not in demo.format_itinerary(z_api)
+    assert "cena niepotwierdzona" in demo.format_itinerary(z_api)

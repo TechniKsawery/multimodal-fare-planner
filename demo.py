@@ -128,20 +128,34 @@ def format_city_section(
     return "\n".join(lines)
 
 
+def _total_price_text(itinerary) -> str:
+    """Cena łączna bez udawania 0 zł: odcinki z ceną nieznaną nie wchodzą do sumy, więc wariant
+    jest "brak ceny" (żaden odcinek nie ma kwoty) albo "cena częściowa" (suma znanych = dolne
+    ograniczenie)."""
+    status = itinerary.price_status
+    if status == "brak":
+        return "brak ceny (kwoty odcinków nieznane, nie zgadujemy) "
+    prefix = "cena częściowa, od " if status == "czesciowa" else ""
+    if itinerary.total_price_pln_high is not None:
+        return (
+            f"{prefix}{'' if prefix else 'od '}{itinerary.total_price_pln:.2f} do "
+            f"{itinerary.total_price_pln_high:.2f} PLN (szacunek, górna granica wg cennika PKP) "
+        )
+    text = f"{prefix}{itinerary.total_price_pln:.2f} PLN "
+    if status == "czesciowa":
+        text += "— część odcinków bez ceny, nie wliczona w sumę "
+    return text
+
+
 def format_itinerary(itinerary, age=None) -> str:
     lines = [
         f"  Czas podróży: {itinerary.total_duration_min / 60:.1f} h "
         f"({int(itinerary.total_duration_min)} min), przesiadek: {itinerary.num_transfers}",
         "  Cena łączna: "
-        + (
-            f"od {itinerary.total_price_pln:.2f} do {itinerary.total_price_pln_high:.2f} PLN "
-            "(szacunek, górna granica wg cennika PKP) "
-            if itinerary.total_price_pln_high is not None
-            else f"{itinerary.total_price_pln:.2f} PLN "
-        )
+        + _total_price_text(itinerary)
         + (
             ""
-            if itinerary.price_verified
+            if itinerary.price_verified or itinerary.price_status != "pelna"
             else "— cena niepotwierdzona (zawiera odcinki bez potwierdzonej taryfy) "
         )
         + f"(ocena wartości: {itinerary.value_score:.0f} PLN, niżej = lepiej)",
@@ -159,7 +173,12 @@ def format_itinerary(itinerary, age=None) -> str:
         line = (
             f"    - {leg.mode.value}: {leg.origin_name} -> {leg.destination_name} "
             f"({leg.depart.strftime('%H:%M')}-{leg.arrive.strftime('%H:%M')}, "
-            f"{leg.carrier_name or '?'}): {priced.amount:.2f} {priced.currency} ({priced.price_type})"
+            f"{leg.carrier_name or '?'}): "
+            + (
+                f"{priced.amount:.2f} {priced.currency} ({priced.price_type})"
+                if priced.price_known
+                else "brak ceny"
+            )
         )
         if priced.unverified_label:
             line += f" — {priced.unverified_label}"

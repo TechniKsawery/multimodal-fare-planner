@@ -25,7 +25,12 @@ from attractions import (
 from attractions import DiscountProfile as AttractionDiscountProfile
 from attractions import HeldDocument
 from demo import DEFAULT_FROM, DEFAULT_TO, DEMO_DATE
-from ui_helpers import render_bezplatne_info, render_other_day_section, set_html_lang
+from ui_helpers import (
+    render_bezplatne_info,
+    render_other_day_section,
+    set_html_lang,
+    variant_price_text,
+)
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
 from fares.model import DiscountProfile
@@ -121,6 +126,8 @@ def _unverified_label(p) -> str:
     tekst z i18n; sama wycena nie jest tu ruszana."""
     if p.price_verified:
         return ""
+    if p.breakdown.get("cena_nieznana"):
+        return t("price.unknown_leg")
     if p.breakdown.get("wartosc_zastepcza"):
         return t("price.unverified_fallback")
     return t("price.unverified")
@@ -133,7 +140,16 @@ def rec_label(key: str) -> str:
 def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
     c1, c2, c3 = st.columns(3)
     c1.metric(t("metric.time"), f"{it.total_duration_min / 60:.1f} h")
-    if it.total_price_pln_high is not None:
+    status = it.price_status
+    if status == "brak":
+        c2.metric(t("metric.price"), t("metric.price_none"))
+    elif status == "czesciowa":
+        c2.metric(
+            t("metric.price"),
+            t("metric.price_partial", price=f"{it.total_price_pln:.2f}"),
+            help=t("price.unknown_total"),
+        )
+    elif it.total_price_pln_high is not None:
         c2.metric(
             t("metric.price"),
             t("metric.price_from", price=f"{it.total_price_pln:.2f}"),
@@ -142,7 +158,9 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
     else:
         c2.metric(t("metric.price"), t("metric.price_exact", price=f"{it.total_price_pln:.2f}"))
     c3.metric(t("metric.transfers"), it.num_transfers)
-    if not it.price_verified:
+    if status != "pelna":
+        st.caption(t("price.unknown_total"))
+    elif not it.price_verified:
         st.caption(t("price.unverified_total"))
     rows = []
     for p in it.legs:
@@ -151,7 +169,11 @@ def render_itinerary(it, wiek=None, posiadana_bahncard=None) -> None:
             m = leg.extra.get("walk_distance_m")
             price = f"{m:.0f} m" if m else ""
         else:
-            price = f"{p.amount:.2f} {p.currency} ({p.price_type})"
+            price = (
+                f"{p.amount:.2f} {p.currency} ({p.price_type})"
+                if p.price_known
+                else t("price.leg_none")
+            )
             if p.unverified_label:
                 price += f" — {_unverified_label(p)}"
         rozbicie = ""
@@ -757,14 +779,7 @@ if result is not None:
             risk_suffix = t("res.risk_risky")
         else:
             risk_suffix = ""
-        if it.total_price_pln_high is not None:
-            price_text = t(
-                "price.variant_range",
-                lo=f"{it.total_price_pln:.0f}",
-                hi=f"{it.total_price_pln_high:.0f}",
-            )
-        else:
-            price_text = t("price.variant_single", price=f"{it.total_price_pln:.0f}")
+        price_text = variant_price_text(it)
         with st.expander(
             t(
                 "res.variant_header",

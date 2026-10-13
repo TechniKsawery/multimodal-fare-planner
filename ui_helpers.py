@@ -59,6 +59,22 @@ def render_bezplatne_info(it) -> None:
             st.caption(t("free_info.caption"))
 
 
+def variant_price_text(it, digits: int = 0) -> str:
+    """Cena wariantu do nagłówków: pełna ("120 PLN" / "od 100 do 140 PLN"), "cena częściowa: od X"
+    (część odcinków bez ceny — suma znanych to dolne ograniczenie) albo "brak ceny". Nigdy "0 PLN"
+    dla kwoty, której nie znamy (Itinerary.price_status)."""
+    status = it.price_status
+    if status == "brak":
+        return t("price.variant_none")
+    lo = f"{it.total_price_pln:.{digits}f}"
+    if it.total_price_pln_high is not None:
+        hi = f"{it.total_price_pln_high:.{digits}f}"
+        key = "price.variant_range" if status == "pelna" else "price.variant_partial_range"
+        return t(key, lo=lo, hi=hi)
+    key = "price.variant_single" if status == "pelna" else "price.variant_partial"
+    return t(key, price=lo)
+
+
 def render_other_day_section(other_day, render_itinerary) -> None:
     """Sekcja "Najbliższe połączenia w innym dniu" (routing/model.py::OtherDayVariant): osobna od
     rekomendacji, z datą i wyraźną etykietą, że to NIE jest dzień zapytania. Nic nie rysuje dla
@@ -75,7 +91,7 @@ def render_other_day_section(other_day, render_itinerary) -> None:
                 date=variant.date,
                 name=it.variant_name,
                 hours=f"{it.total_duration_min / 60:.1f}",
-                price=f"{it.total_price_pln:.0f}",
+                price=variant_price_text(it),
                 transfers=it.num_transfers,
             )
         ):

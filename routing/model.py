@@ -50,10 +50,25 @@ class PricedLeg:
     carrier: Carrier | None = None  # przewoźnik taryfy (gdy wycenił go moduł fares/)
 
     @property
+    def price_known(self) -> bool:
+        """False, gdy kwoty nie znamy (breakdown["cena_nieznana"]): amount=0.0 to wtedy BRAK
+        ceny, nie cena zero — odcinek nie jest wliczony w sumę wariantu."""
+        return not self.breakdown.get("cena_nieznana")
+
+    @property
     def price_verified(self) -> bool:
-        """False, gdy wycena to fallback bez cennika (breakdown["price_verified"] is False,
-        patrz routing/pricing.py) — UI i demo.py dopisują wtedy "cena niepotwierdzona"."""
-        return self.breakdown.get("price_verified") is not False
+        """Czy cena jest potwierdzona. Jawna flaga breakdown["price_verified"] zawsze wygrywa
+        (True = np. pasmo POLREGIO z oficjalnej tabeli, które mimo linii prostej zostaje
+        "szacunkiem"; False = fallback bez cennika). Gdy flagi brak, rozstrzyga price_type:
+        "szacunek" bez jawnego potwierdzenia NIE jest potwierdzony (np. migawka z API FlixBusa,
+        tabela pasm DB, cena lotu z Travelpayouts) — wcześniej brak klucza oznaczał
+        "potwierdzone" i takie odcinki dostawały verified=True."""
+        if not self.price_known:
+            return False
+        flag = self.breakdown.get("price_verified")
+        if isinstance(flag, bool):
+            return flag
+        return self.price_type != "szacunek"
 
     @property
     def unverified_label(self) -> str:
@@ -105,6 +120,16 @@ class Itinerary:
         Wariant z choć jednym takim odcinkiem nie wygrywa rankingu "Najtańsza" z wariantem o
         potwierdzonej cenie — patrz routing/scoring.py::pick_recommendations."""
         return all(pl.price_verified for pl in self.legs)
+
+    @property
+    def price_status(self) -> str:
+        """"pelna" (każdy odcinek ma kwotę), "czesciowa" (część odcinków bez ceny — total_price_pln
+        to tylko suma znanych, dolne ograniczenie) albo "brak" (żaden odcinek poza pieszymi nie ma
+        ceny; total_price_pln=0 to wtedy brak informacji, nie 0 zł). Nie zgadujemy kwot."""
+        if all(pl.price_known for pl in self.legs):
+            return "pelna"
+        has_known = any(pl.price_known and pl.leg.mode is not LegMode.WALK for pl in self.legs)
+        return "czesciowa" if has_known else "brak"
 
     @property
     def is_infeasible(self) -> bool:

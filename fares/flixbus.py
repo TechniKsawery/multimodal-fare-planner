@@ -13,8 +13,9 @@ to dało się odróżnić realną cenę od zgrubnego fallbacku, breakdown["zrodl
 Fallback po km jest dodatkowo oznaczony breakdown["price_verified"] = False (ten sam klucz, co
 przy innych cenach niepotwierdzonych, patrz routing/pricing.py): to zgrubne 0,27 PLN/km, a nie
 cena z oferty, więc UI i demo.py dopisują "cena niepotwierdzona", a wariant z takim odcinkiem
-nie wygrywa rankingu "Najtańsza" z wariantem o potwierdzonej cenie. Cena z live API nie dostaje
-tej flagi — pozostaje bez zmian.
+nie wygrywa rankingu "Najtańsza" z wariantem o potwierdzonej cenie. Cena z live API nie ma jawnej
+flagi, ale to też migawka dynamicznej ceny ("szacunek"), więc PricedLeg.price_verified (routing/
+model.py) uznaje ją za niepotwierdzoną: brak flagi + price_type "szacunek" = niepotwierdzona.
 """
 
 import re

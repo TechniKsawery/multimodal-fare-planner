@@ -575,9 +575,11 @@ with st.form("search"):
         " niezależnie od wieku.",
     )
     ztm_lublin_bezplatny = b4.checkbox(
-        "Lublin: uczeń podstawówki",
-        help="Uczniowie szkół podstawowych (gmina Lublin) — NIE potwierdzone dla"
-        " ponadpodstawowych (licea), tam zostaje ulgowy 50%.",
+        "Lublin: uczeń podstawówki/dziecko do 7 lat/senior 65+",
+        value=wiek >= 65 or wiek <= 14,
+        help="Bezpłatnie: uczniowie szkół podstawowych w Lublinie (legitymacja), dzieci do 30.09"
+        " roku ukończenia 7 lat i osoby 65+. Ponadpodstawowe i policealne do 24 lat to ulgowy"
+        " 50%, nie bezpłatny. Zweryfikowano 2026-10-13 (zdtm.lublin.eu).",
     )
     ztm_poznan_bezplatny = b5.checkbox(
         "Poznań: senior 70+/niepełnosprawność znaczna",

@@ -54,13 +54,16 @@ class DiscountProfile:
 
     pkp_ulga_kod: str = "brak"  # klucz z fares/data/pkp_intercity.json -> ulgi_procent
     bahncard: str | None = None  # None, "25", "50" lub "100" (DB, oficjalne rabaty Flexpreis)
-    ztm_lublin_ulgowy: bool = False  # ZTM Lublin: bilet ulgowy zamiast normalnego
+    ztm_lublin_ulgowy: bool = False  # ZTM Lublin: bilet ulgowy (50%) zamiast normalnego -
+    # uczniowie podstawowych/ponadpodstawowych/policealnych do 24 lat (legitymacja), doktoranci,
+    # uczniowie i studenci szkół zagranicznych do 26 lat z ISIC, emeryci. NIE obejmuje studentów
+    # polskich uczelni (niepotwierdzone, zob. fares/data/ztm_lublin.json::ulgi_niepotwierdzone).
     ztm_lublin_bezplatny: bool = False  # ZTM/ZDiTM Lublin: przejazd bezpłatny (100%) -
-    # uczniowie publicznych i niepublicznych szkół PODSTAWOWYCH (oraz artystycznych) prowadzonych
-    # przez Gminę Lublin lub działających na jej terenie, z ważną legitymacją szkolną (uchwała Rady
-    # Miasta Lublin, obecna podstawa prawna: uchwała nr 206/VII/2024 z 19.12.2024). NIE potwierdzone
-    # dla szkół ponadpodstawowych (licea itd.) - tam zostaje ulgowy. Potwierdzone na żywej stronie
-    # zdtm.lublin.eu 2026-10-10 (patrz fares/data/ztm_lublin.json::_zrodlo_bezplatny).
+    # uczniowie szkół PODSTAWOWYCH działających na terenie Gminy Lublin (legitymacja szkolna,
+    # uchwała nr 206/VII/2024 z 19.12.2024), dzieci do 30.09 roku ukończenia 7 lat i osoby 65+.
+    # Dla szkół ponadpodstawowych/policealnych zostaje ulgowy. Wiek 65+ i dzieci kalkulator
+    # rozpoznaje też sam z `age`. Zweryfikowano zdtm.lublin.eu 2026-10-13 (patrz
+    # fares/data/ztm_lublin.json::_zrodlo_bezplatny).
     ztm_warszawa_ulgowy: bool = False  # ZTM/WTP Warszawa: bilet ulgowy (50%) - m.in. uczniowie
     # szkół ponadpodstawowych, studenci, emeryci/renciści DO 70 roku życia (polski organ
     # emerytalno-rentowy), osoby z UMIARKOWANYM stopniem niepełnosprawności 26+, uczniowie/

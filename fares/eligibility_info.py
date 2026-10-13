@@ -43,8 +43,17 @@ ELIGIBILITY: dict[Carrier, tuple[str, list[str], list[str], str]] = {
     ),
     Carrier.ZTM_LUBLIN: (
         "Lublin",
-        ["uczniowie szkół podstawowych (gmina Lublin; ponadpodstawowe NIE)"],
-        [],
+        [
+            "dzieci do 30.09 roku ukończenia 7 lat",
+            "uczniowie szkół podstawowych (gmina Lublin; ponadpodstawowe NIE)",
+            "osoby 65+",
+        ],
+        [
+            "uczniowie podstawowych/ponadpodstawowych/policealnych do 24 lat",
+            "doktoranci",
+            "uczniowie i studenci szkół zagranicznych do 26 lat z kartą ISIC",
+            "emeryci",
+        ],
         "https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html",
     ),
     Carrier.ZTM_POZNAN: (

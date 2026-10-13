@@ -1,12 +1,52 @@
 {
-  "_zrodlo": "Oficjalny cennik LUBIKA (system biletu elektronicznego ZDiTM Lublin) — https://lubika.zdtm.lublin.eu/cennik/ , taryfa czasowa, strefa 1+2, ważna od 16.02.2026.",
-  "_zrodlo_bezplatny": "Przejazd bezpłatny (kategoria 'bezplatny' w kodzie, amount=0): uczniowie publicznych szkół podstawowych prowadzonych przez Gminę Lublin oraz uczniowie publicznych i niepublicznych szkół podstawowych (w tym artystycznych) działających na terenie Gminy Lublin — wymagana ważna legitymacja szkolna. Potwierdzone na żywej, oficjalnej stronie ZDiTM Lublin: https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html (tabela \"Uprawnienia gminne do przejazdów bezpłatnych\", pkt 2-3), podstawa prawna uchwała nr 206/VII/2024 Rady Miasta Lublin z 19.12.2024 r. (cytowana na tej samej stronie przy innym punkcie tabeli, co potwierdza że strona jest aktualizowana, nie archiwalna). POTWIERDZONE WYKLUCZENIE szkół ponadpodstawowych: ta sama tabela (pkt 1 w sekcji ulgowych, nie bezpłatnych) wymienia wprost 'uczniów szkół podstawowych, ponadpodstawowych i policealnych, do ukończenia 24. roku życia' jako grupę UPRAWNIONĄ DO ULGI 50%, nie do przejazdu bezpłatnego — czyli ponadpodstawowe są świadomie w innej kategorii, nie przeoczone. W kodzie dla ponadpodstawowych zostaje `ztm_lublin_ulgowy` (50%). Zweryfikowano w przeglądarce 2026-10-10.",
-  "_uwaga": "ZTM Lublin sprzedaje bilety jednorazowe jako bilety CZASOWE (ważne przez X minut od skasowania), a nie za odległość/liczbę przystanków (ta ostatnia to osobna 'taryfa przystankowa', tu nieobsługiwana). Kalkulator dobiera najkrótszy bilet czasowy, którego czas ważności >= czasowi jazdy odcinka z MOTIS — to PRZYBLIŻENIE: rzeczywisty bilet liczy czas od skasowania (może obejmować oczekiwanie/przesiadkę), nie tylko czas jazdy. Ceny podane dla strefy 1+2 (obejmuje całą sieć ZTM, w tym gminy ościenne) — dla przejazdów tylko w obrębie strefy 1 rzeczywista cena może być niższa, ale nie mamy mapowania przystanek->strefa.",
-  "_zrodlo_zagraniczne_legitymacje": "Oficjalna tabela 'Uprawnienia ustawowe' ZDiTM Lublin (https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/uprawnienia-ustawowe.html) wprost wymaga: 'Studenci* polskich szkół wyższych - Ważna legitymacja studencka wydana przez POLSKĄ szkołę wyższą'. To ulga USTAWOWA (ogólnopolska, nie lokalna specyfika Lublina) - ta sama zasada co w audycie PKP Intercity (rozporządzenie MI z 20.04.2017, zob. pamięć projektu), więc dwa niezależne przewoźniki/systemy cytujące ten sam przepis krajowy liczą się jako niezależne potwierdzenie. WNIOSEK: zagraniczna (np. niemiecka) legitymacja studencka NIE uprawnia do ustawowej ulgi 50% w Lublinie - brak jakiejkolwiek wzmianki o ISIC/zagranicznych uczelniach w tej tabeli (w przeciwieństwie do Wrocławia, który explicite akceptuje ISIC/Euro26 lub tłumaczoną zagraniczną legitymację dla UCZNIÓW szkół zagranicznych - ale to inna kategoria niż studenci). Zweryfikowano 2026-10-10.",
+  "_zrodlo": "Oficjalny cennik ZDiTM Lublin (zdtm.lublin.eu) i LUBIKA — https://lubika.zdtm.lublin.eu/cennik/ , taryfa czasowa, strefa 1+2, ważna od 16.02.2026. Ceny i zasady ulg zweryfikowane 2026-10-13 wg strony ulg https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html (dane przekazane przez właściciela projektu; domeny ZDiTM są z chmury zablokowane, więc wdrażający nie otworzył ich sam).",
+  "_zrodlo_bezplatny": "Przejazdy bezpłatne wg https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html (zweryfikowano 2026-10-13): (1) dzieci do 30.09 roku, w którym kończą 7 lat; (2) uczniowie szkół podstawowych działających na terenie Gminy Lublin (wymagana ważna legitymacja szkolna; podstawa: uchwała nr 206/VII/2024 Rady Miasta Lublin z 19.12.2024, potwierdzona 2026-10-10); (3) osoby 65+ (wcześniej kod zakładał 70+ — poprawione). Szkoły ponadpodstawowe i policealne NIE są bezpłatne: ta sama tabela daje im ulgę 50% (pkt ulgowe niżej).",
+  "_zrodlo_ulgowe": "Ulga 50% wg https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html (zweryfikowano 2026-10-13): uczniowie szkół podstawowych, ponadpodstawowych i policealnych do ukończenia 24 lat z ważną legitymacją szkolną; doktoranci; uczniowie i studenci szkół zagranicznych do 26 lat z kartą ISIC; emeryci. Uczniowie podstawówek są w praktyce objęci przejazdem bezpłatnym (wygrywa korzystniejsze).",
+  "_uwaga": "ZTM Lublin sprzedaje bilety jednorazowe jako bilety CZASOWE (ważne przez X minut od skasowania), a nie za odległość/liczbę przystanków (ta ostatnia to osobna 'taryfa przystankowa', tu nieobsługiwana). Kalkulator dobiera najkrótszy bilet czasowy, którego czas ważności >= czasowi jazdy odcinka z MOTIS — to PRZYBLIŻENIE: rzeczywisty bilet liczy czas od skasowania (może obejmować oczekiwanie/przesiadkę), nie tylko czas jazdy. Ceny podane dla strefy 1+2 (obejmuje całą sieć ZTM, w tym gminy ościenne) — dla przejazdów tylko w obrębie strefy 1 rzeczywista cena może być niższa, ale nie mamy mapowania przystanek->strefa. Bilet jednoprzejazdowy (5,00/2,50) jest w danych, ale nie jest wybierany automatycznie: nie wiemy, czy odcinek z MOTIS to jedna jazda bez przesiadki, więc zostajemy przy biletach czasowych (górna granica).",
+  "_zrodlo_zagraniczne_legitymacje": "Uczniowie i studenci szkół ZAGRANICZNYCH do 26 lat z kartą ISIC mają ulgę 50% (https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html, zweryfikowano 2026-10-13). Zagraniczna legitymacja BEZ ISIC nie jest tam wymieniona, więc nie zakładamy ulgi. Wcześniejszy zapis (2026-10-10), że zagraniczna legitymacja studencka nie uprawnia do niczego, jest tym samym zastąpiony.",
   "waluta": "PLN",
+  "nazwa_przewoznika": "ZDiTM Lublin (ZTM Lublin, strefa 1+2)",
+  "as_of": "2026-10-13",
+  "obowiazuje_od": "2026-02-16",
+  "typ_ceny": "oficjalna_taryfa",
+  "source_url": "https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html",
+  "source_urls": [
+    "https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html",
+    "https://lubika.zdtm.lublin.eu/cennik/"
+  ],
+  "verified_date": "2026-10-13",
+  "price_verified": true,
+  "weryfikacja": {
+    "status": "potwierdzone wg oficjalnej strony ZDiTM Lublin (dane od właściciela projektu)",
+    "sprawdzono": "2026-10-13",
+    "wynik": "6 biletów normalnych i ulgowych (jednoprzejazdowy, 15/40/90 min, 6 h, 24 h) oraz tytuły bezpłatne i ulgowe wg strony ulg. Cennik ważny od 16.02.2026."
+  },
+  "bilet_jednoprzejazdowy": {"normalny": 5.00, "ulgowy": 2.50},
   "bilety_czasowe": [
     {"wazny_min": 15, "normalny": 3.40, "ulgowy": 1.70},
     {"wazny_min": 40, "normalny": 4.60, "ulgowy": 2.30},
-    {"wazny_min": 90, "normalny": 5.20, "ulgowy": 2.60}
-  ]
+    {"wazny_min": 90, "normalny": 5.20, "ulgowy": 2.60},
+    {"wazny_min": 360, "normalny": 9.00, "ulgowy": 4.50},
+    {"wazny_min": 1440, "normalny": 14.20, "ulgowy": 7.10}
+  ],
+  "bezplatne": {
+    "dzieci_do_wieku": 7,
+    "dzieci_do_dnia": "09-30",
+    "dzieci_opis": "do 30.09 roku, w którym dziecko kończy 7 lat",
+    "senior_od_wieku": 65,
+    "uczniowie_podstawowek_zakladany_wiek": [7, 14],
+    "uczniowie_podstawowek_opis": "uczniowie szkół podstawowych w Gminie Lublin z legitymacją szkolną; z samego wieku (7-14 lat) ZAKŁADAMY ten status (jak ZVON Görlitz), czego wiek nie dowodzi"
+  },
+  "ulgowe_50": [
+    "uczniowie szkół podstawowych, ponadpodstawowych i policealnych do 24 lat (legitymacja szkolna)",
+    "doktoranci",
+    "uczniowie i studenci szkół zagranicznych do 26 lat (karta ISIC)",
+    "emeryci"
+  ],
+  "ulgi_niepotwierdzone": {
+    "studenci_polskich_uczelni": {
+      "status": "niepotwierdzone",
+      "uwaga": "Strona ulg ZDiTM (33.html) nie potwierdza ulgi 50% dla studentów polskich uczelni, więc kod jej NIE przyznaje (student z polską legitymacją płaci cenę normalną, chyba że jest też doktorantem lub zaznaczy inny tytuł). Wcześniejsza wzmianka o ustawowej uldze studentów (strona uprawnienia-ustawowe) nie została potwierdzona 2026-10-13."
+    }
+  }
 }

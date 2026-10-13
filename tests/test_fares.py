@@ -229,9 +229,9 @@ def test_ztm_lublin_dobiera_dluzszy_bilet():
 
 
 def test_ztm_lublin_przekroczenie_najdluzszego_biletu_to_szacunek():
-    seg = Segment(Carrier.ZTM_LUBLIN, "A", "B", ride_duration_min=120)
+    seg = Segment(Carrier.ZTM_LUBLIN, "A", "B", ride_duration_min=2000)
     result = estimate_price(seg)
-    assert result.amount == 5.20  # ekstrapolacja na bazie biletu 90-minutowego
+    assert result.amount == 14.20  # ekstrapolacja na bazie biletu 24-godzinnego
     assert result.price_type is PriceType.ESTIMATE
 
 

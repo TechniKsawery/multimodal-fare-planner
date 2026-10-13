@@ -26,8 +26,13 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
   (`is_leg_in_nrw()`); poza NRW wynik jest niepotwierdzonym szacunkiem (`price_verified=False`).
   Zniżka: oficjalny Kindertarif (`DiscountProfile.vrr_dziecko=True`) — 50% rabatu dla dzieci
   6-14 lat, wliczając sufity cenowe (dzieci poniżej 6 lat jeżdżą bez biletu — nie modelowane).
-- **ZTM Lublin** (`fares/ztm_lublin.py`) — taryfa czasowa (bilety 15/40/90-minutowe, strefa 1+2):
-  dobiera najkrótszy bilet, którego czas ważności pokrywa czas jazdy odcinka z MOTIS.
+- **ZTM Lublin** (`fares/ztm_lublin.py`) — taryfa czasowa (bilety 15/40/90 min, 6 h i 24 h,
+  strefa 1+2; cennik ważny od 16.02.2026, zweryfikowany 2026-10-13): dobiera najkrótszy bilet,
+  którego czas ważności pokrywa czas jazdy odcinka z MOTIS. Bezpłatnie: dzieci do 30.09 roku
+  ukończenia 7 lat, uczniowie podstawówek w Lublinie, osoby 65+ (dzieci i 65+ liczone też z
+  `DiscountProfile.age`; z wieku 7-14 lat zakładamy status ucznia podstawówki). Ulga 50%
+  (`ztm_lublin_ulgowy`): uczniowie do 24 lat, doktoranci, uczniowie/studenci zagraniczni do 26
+  lat z ISIC, emeryci. Studenci polskich uczelni: brak ulgi (niepotwierdzone w źródle).
 - **BVG/VBB Berlin** (`fares/bvg_berlin.py`) — bilety Kurzstrecke/AB/ABC z cennika VBB od
   1.01.2026 (źródło i data w `fares/data/bvg_berlin.json`). Dobiera bilet wg czasu jazdy; gdy
   `Segment.tariff_zone == "ABC"` (routing/pricing.py ustawia to dla odcinka z/do lotniska BER,
@@ -81,7 +86,7 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 | VRR — Kindertarif (50% rabatu, dzieci 6-14 lat) | **oficjalne** | tamże, sekcja "Kinder 50% Rabatt pro Person und Fahrt inkl. Deckel" |
 | DB — mnożniki BahnCard 25/50 | **oficjalne** | [bahn.de/faq/pk/angebot/flexpreis](https://www.bahn.de/faq/pk/angebot/flexpreis) |
 | DB — tabela pasm odległości Flexpreis | **szacunek, skalibrowany do 1 realnej próbki** | DB nie publikuje takiej tabeli (cena dynamiczna); próba żywego wyszukiwania na bahn.de zablokowana jako ruch bota (błąd 751) — użyto zamiast tego realnej ceny Halle→München (373 km, 106–127 EUR) z bahndampf.de + oficjalnie cytowanej górnej granicy (150 EUR 2. klasa) do skalibrowania prostej formuły baza+km |
-| ZTM Lublin — bilety czasowe (15/40/90 min, strefa 1+2) | **oficjalne** | [Cennik LUBIKA](https://lubika.zdtm.lublin.eu/cennik/) (system biletu elektronicznego ZDiTM Lublin), ważny od 16.02.2026 |
+| ZTM Lublin — bilety czasowe (15/40/90 min, 6 h, 24 h, strefa 1+2) i ulgi | **oficjalne** | [Ulgi w przejazdach ZDiTM](https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html) i [Cennik LUBIKA](https://lubika.zdtm.lublin.eu/cennik/), ważny od 16.02.2026, zweryfikowano 2026-10-13 |
 | Międzynarodowy PL↔DE — 3 kategorie cenowe (krótka/średnia/długa) | **oficjalne ceny "od", progi km SZACUNEK** | [Super Sparpreis Europa Polska](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-polen), [zasada BahnCard tylko na niemiecki odcinek](https://int.bahn.de/en/offers/saver-fare-flexible-fare/super-saver-fare-europe-poland) — sprawdzone 2026-09-29 |
 | Międzynarodowy PL↔DE — taryfa Young (15-26 lat) | **oficjalna cena "od" (MINIMUM, nie realna cena — bahn.de explicite nie podaje górnej granicy, "je nach Verfügbarkeit"), flat (bez progów km — tak reklamuje to bahn.de)** | [Super Sparpreis Europa Young Polen](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-young-polen), [FAQ cena](https://www.bahn.de/bahnbusiness/faq/preis-super-sparpreis-europa-polen), [FAQ Young](https://www.bahn.de/faq/pk/angebot/sparpreis/young/super-sparpreis-young) — sprawdzone 2026-10-07 (2x, niezależnie) |
 | HVV (Hamburg) — Einzelkarte/Tageskarte najniższa strefa + Kindertarif 6-14 | **oficjalne** | [hvv.de](https://www.hvv.de/), Tarifstand 01.01.2026 (zweryfikowane w przeglądarce 2026-10-09) + niezależnie potwierdzone komunikatem prasowym HVV `PM251028_Tarifanpassung.pdf` i wandernundmehr.at (wiek dziecka) 2026-10-10 |
@@ -397,6 +402,7 @@ jeśli endpoint się zmienił — ale zanim zaczniesz polegać na realnych cenac
 
 ```python
 from fares._flixbus_api import find_city_id, fetch_cheapest_trip
+
 lublin = find_city_id("Lublin")
 berlin = find_city_id("Berlin")
 print(fetch_cheapest_trip(lublin, berlin, "2026-11-15"))
@@ -496,7 +502,8 @@ from fares.model import Carrier, DiscountProfile, Segment
 
 segment = Segment(
     carrier=Carrier.PKP_INTERCITY,
-    origin="Lublin", destination="Warszawa Wschodnia",
+    origin="Lublin",
+    destination="Warszawa Wschodnia",
     distance_km=170,
     discounts=DiscountProfile(pkp_ulga_kod="student_do_26_lat_doktorant_do_35_lat"),
 )

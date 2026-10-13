@@ -61,8 +61,8 @@ def warnings_for(profile: DiscountProfile) -> list[str]:
 
     if zagraniczna and profile.ztm_lublin_ulgowy:
         warnings.append(
-            "Lublin (ZDiTM): ulga studencka wymaga legitymacji wydanej przez POLSKĄ szkołę"
-            " wyższą — zagraniczna legitymacja studencka nie uprawnia do tej zniżki."
+            "Lublin (ZDiTM): zagraniczny uczeń/student ma ulgę 50% tylko do 26 lat i z kartą"
+            " ISIC — zagraniczna legitymacja bez ISIC nie uprawnia do tej zniżki."
         )
 
     if zagraniczna and profile.mpk_wroclaw_ulgowy:

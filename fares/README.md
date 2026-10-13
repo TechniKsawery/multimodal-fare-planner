@@ -299,6 +299,15 @@ niż „wg Gemini, niezweryfikowane niezależnie” kwoty wracają do `price_ver
   (odczyt 2026-10-13, treść strony sprawdzona przez właściciela projektu). Autobus zastępczy KD i
   ZVON EuropastadtTarif (komunikacja miejska) nie są objęte; dłuższe przejazdy (Wrocław - Görlitz)
   idą dalej ścieżką niepotwierdzonego szacunku.
+- **Bilet graniczny Polska-Niemcy, Zasieki - Forst** (`fares/bilet_graniczny_zasieki_forst.py`,
+  `fares/data/bilet_graniczny_zasieki_forst.json`, `Carrier.BILET_GRANICZNY_ZASIEKI_FORST`): stała
+  cena 5,00 zł w jedną stronę (regulamin PDF, str. 1 §2 ust. 1), ważny na KD Zasieki - Zasieki(Gr)
+  i DB Regio Zasieki(Gr) - Forst, obowiązuje od 2024-10-01. Brak ulg ustawowych (§5 ust. 2):
+  uczniowie i studenci płacą pełną cenę; dzieci do 6 lat bezpłatnie (przyjęto wiek < 6, granicę
+  6-latka sprawdzić w regulaminie). Odczyt regulaminu 2026-10-13, **URL pliku PDF do uzupełnienia**
+  (`weryfikacja.url = null`, `zrodlo_url_do_uzupelnienia` w breakdown). Wycenia tylko odcinek
+  pociągowy (KD lub DB Regio) z Zasieki do Forst w obie strony; odcinki cząstkowe, autobus
+  zastępczy i dłuższe przejazdy idą dalej starą ścieżką (bez zgadywania ceny).
 - **Koleje Małopolskie** (`fares/koleje_malopolskie.py`, `fares/data/koleje_malopolskie.json`,
   `Carrier.KOLEJE_MALOPOLSKIE`): wyłącznie **Tabela nr 1** taryfy przewozowej TP-KMŁ, 30 pasm
   biletu jednorazowego wg taryfy normalnej, 2. klasa, pociąg osobowy, cena brutto z 8% VAT (8,00 zł

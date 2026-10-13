@@ -840,12 +840,56 @@ def price_kd_zgorzelec_gorlitz_leg(leg: Leg) -> PricedLeg:
     )
 
 
+BILET_GRANICZNY_OPERATORZY = KD_KEYWORDS + ("db regio",)
+"""Operatorzy biletu granicznego Zasieki - Forst: KD (Zasieki - Zasieki(Gr)) i DB Regio."""
+
+
+def is_bilet_graniczny_zasieki_forst(leg: Leg) -> bool:
+    """Czy odcinek to POCIĄG KD albo DB Regio dokładnie między Zasieki a Forst (oba kierunki, po
+    nazwach przystanków; Zasieki(Gr) i "Forst (Lausitz)" pasują jako całe słowa). Autobus zastępczy
+    (motis_mode BUS), odcinki cząstkowe i dłuższe przejazdy nie pasują: nie zgadujemy ceny."""
+    if leg.mode is not LegMode.RAIL or leg.extra.get("motis_mode") == "BUS":
+        return False
+    if not _matches_any_word(
+        " ".join(leg.carrier_name.lower().split()), BILET_GRANICZNY_OPERATORZY
+    ):
+        return False
+    stops = (leg.origin_name.lower(), leg.destination_name.lower())
+    return any(
+        _matches_any_word(a, ("zasieki",)) and _matches_any_word(b, ("forst",))
+        for a, b in (stops, stops[::-1])
+    )
+
+
+def price_bilet_graniczny_zasieki_forst_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
+    result = fares_estimate_price(
+        Segment(
+            carrier=Carrier.BILET_GRANICZNY_ZASIEKI_FORST,
+            origin=leg.origin_name,
+            destination=leg.destination_name,
+            discounts=discounts,
+            travel_date=leg.depart.date().isoformat(),
+        )
+    )
+    return PricedLeg(
+        leg=leg,
+        amount=result.amount,
+        currency=result.currency,
+        price_type=result.price_type.value,
+        notes=result.notes,
+        breakdown=dict(result.breakdown),
+        carrier=Carrier.BILET_GRANICZNY_ZASIEKI_FORST,
+    )
+
+
 def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
     if leg.mode is not LegMode.RAIL:
         raise ValueError(f"price_rail_leg wymaga LegMode.RAIL, dostał {leg.mode}")
 
     if is_kd_zgorzelec_gorlitz(leg):
         return price_kd_zgorzelec_gorlitz_leg(leg)
+    if is_bilet_graniczny_zasieki_forst(leg):
+        return price_bilet_graniczny_zasieki_forst_leg(leg, discounts)
 
     name_carrier = infer_rail_carrier(leg.carrier_name)
     if is_cross_border_pl_de(leg):

@@ -44,6 +44,8 @@ class Carrier(str, Enum):
     # 2,00/1,50 EUR (ulga tylko uczniowie do 15. urodzin), fares/zvon_gorlitz.py
     KD_ZGORZELEC_GORLITZ = "kd_zgorzelec_gorlitz"  # pociąg Kolei Dolnośląskich na odcinku
     # granicznym Zgorzelec - Görlitz: przejazd bezpłatny, fares/kd_zgorzelec_gorlitz.py
+    BILET_GRANICZNY_ZASIEKI_FORST = "bilet_graniczny_zasieki_forst"  # Bilet graniczny Polska-Niemcy
+    # Zasieki - Forst (KD + DB Regio): stała cena 5,00 zł, bez ulg, fares/bilet_graniczny_zasieki_forst.py
 
 
 @dataclass

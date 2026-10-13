@@ -1,6 +1,7 @@
 """Dispatch do kalkulatora właściwego dla przewoźnika w segmencie."""
 
 from . import (
+    bilet_graniczny_zasieki_forst,
     bvg_berlin,
     db,
     flixbus,
@@ -46,6 +47,7 @@ _CALCULATORS = {
     Carrier.KOLEJE_MAZOWIECKIE: koleje_mazowieckie.estimate,
     Carrier.ZVON_GORLITZ: zvon_gorlitz.estimate,
     Carrier.KD_ZGORZELEC_GORLITZ: kd_zgorzelec_gorlitz.estimate,
+    Carrier.BILET_GRANICZNY_ZASIEKI_FORST: bilet_graniczny_zasieki_forst.estimate,
     Carrier.INTERNATIONAL_PL_DE: international.estimate,
 }
 

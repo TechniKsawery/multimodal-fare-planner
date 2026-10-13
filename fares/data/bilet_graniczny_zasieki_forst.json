@@ -1,0 +1,17 @@
+{
+  "_zrodlo": "Regulamin sprzedaży i honorowania biletu granicznego Polska-Niemcy (Zasieki - Forst), PDF; cena 5,00 zł: str. 1 §2 ust. 1; brak ulg ustawowych: §5 ust. 2; obowiązuje od 2024-10-01. Treść regulaminu odczytana przez właściciela projektu 2026-10-13; chmura nie ma dostępu do strony przewoźnika. URL pliku PDF NIE jest znany - do uzupełnienia (weryfikacja: weryfikacja.url = null).",
+  "_uwaga": "Jeden bilet w jedną stronę ważny na odcinku KD Zasieki - Zasieki(Gr) oraz DB Regio Zasieki(Gr) - Forst. Kod wycenia tylko odcinek, w którym końcami są Zasieki i Forst (oba kierunki); odcinki cząstkowe (np. samo Zasieki - Zasieki(Gr)) i dłuższe przejazdy (np. Wrocław - Forst) NIE są objęte tym wpisem. Przejazd tam i z powrotem to dwa bilety.",
+  "waluta": "PLN",
+  "cena": 5.0,
+  "kierunek": "w jedną stronę",
+  "dzieci_gratis_wiek_ponizej": 6,
+  "dzieci_gratis_uwaga": "Regulamin: dzieci 'do 6 lat' przejeżdżają bezpłatnie. Czy 6-latek jeszcze jedzie za darmo, nie jest rozstrzygnięte w danych od właściciela; przyjęto ostrożnie wiek < 6 (6-latek płaci 5,00 zł). Do sprawdzenia w regulaminie.",
+  "ulgi_ustawowe": "brak (§5 ust. 2): uczniowie i studenci płacą pełną cenę",
+  "obowiazuje_od": "2024-10-01",
+  "weryfikacja": {
+    "status": "potwierdzone: regulamin (PDF), odczyt właściciela projektu; URL do uzupełnienia",
+    "data_odczytu": "2026-10-13",
+    "url": null,
+    "url_do_uzupelnienia": true
+  }
+}

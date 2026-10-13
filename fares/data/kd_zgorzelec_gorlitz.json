@@ -1,0 +1,11 @@
+{
+  "_zrodlo": "Koleje Dolnośląskie, oferty przygraniczne: https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/ (odczyt 2026-10-13, treść strony sprawdzona przez właściciela projektu). Raport research/zgorzelec-gorlitz-granica.md (gałąź gemini/zgorzelec-gorlitz).",
+  "_uwaga": "Wg strony KD przejazd pociągiem KD na odcinku granicznym Zgorzelec - Görlitz (oba kierunki) jest bezpłatny. Autobus zastępczy KD i komunikacja miejska (ZVON EuropastadtTarif, linia A) NIE są objęte tym wpisem. Przejazd dalej w głąb Polski (np. Wrocław - Görlitz) wyceniany jest osobno.",
+  "waluta": "PLN",
+  "cena": 0.0,
+  "weryfikacja": {
+    "status": "potwierdzone: strona KD, odczyt 2026-10-13, sprawdzone przez właściciela projektu",
+    "data_odczytu": "2026-10-13",
+    "url": "https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/"
+  }
+}

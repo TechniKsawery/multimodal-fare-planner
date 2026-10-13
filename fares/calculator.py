@@ -6,6 +6,7 @@ from . import (
     flixbus,
     hvv,
     international,
+    kd_zgorzelec_gorlitz,
     koleje_malopolskie,
     koleje_mazowieckie,
     kvb,
@@ -42,6 +43,7 @@ _CALCULATORS = {
     Carrier.LKA_LODZ: lka_lodz.estimate,
     Carrier.KOLEJE_MALOPOLSKIE: koleje_malopolskie.estimate,
     Carrier.KOLEJE_MAZOWIECKIE: koleje_mazowieckie.estimate,
+    Carrier.KD_ZGORZELEC_GORLITZ: kd_zgorzelec_gorlitz.estimate,
     Carrier.INTERNATIONAL_PL_DE: international.estimate,
 }
 

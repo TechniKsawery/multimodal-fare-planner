@@ -293,6 +293,12 @@ niż „wg Gemini, niezweryfikowane niezależnie” kwoty wracają do `price_ver
   Bilety z aplikacji trzeba skasować kodem QR; Open Payment System i check-in/check-out nie są
   honorowane. Ulgi (ulgowy 50%: 2,20 / 2,80 / 3,40 zł) i bilety okresowe nie są modelowane:
   przy uldze pokazujemy cenę normalną; `price_verified=False` zawsze (kwoty tylko z raportu Gemini).
+- **Koleje Dolnośląskie, Zgorzelec - Görlitz** (`fares/kd_zgorzelec_gorlitz.py`,
+  `fares/data/kd_zgorzelec_gorlitz.json`): pociąg KD dokładnie między tymi stacjami (oba kierunki)
+  jest bezpłatny (0 zł, oficjalna taryfa). Źródło: https://kolejedolnoslaskie.pl/oferty-taryfowe/oferty-przygraniczne/
+  (odczyt 2026-10-13, treść strony sprawdzona przez właściciela projektu). Autobus zastępczy KD i
+  ZVON EuropastadtTarif (komunikacja miejska) nie są objęte; dłuższe przejazdy (Wrocław - Görlitz)
+  idą dalej ścieżką niepotwierdzonego szacunku.
 - **Koleje Małopolskie** (`fares/koleje_malopolskie.py`, `fares/data/koleje_malopolskie.json`,
   `Carrier.KOLEJE_MALOPOLSKIE`): wyłącznie **Tabela nr 1** taryfy przewozowej TP-KMŁ, 30 pasm
   biletu jednorazowego wg taryfy normalnej, 2. klasa, pociąg osobowy, cena brutto z 8% VAT (8,00 zł

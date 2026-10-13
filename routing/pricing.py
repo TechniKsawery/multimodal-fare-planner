@@ -783,9 +783,51 @@ def _with_spi_range(segment: Segment, result: PriceEstimate) -> PriceEstimate:
     return result
 
 
+KD_KEYWORDS = ("koleje dolnośląskie", "koleje dolnoslaskie")
+GORLITZ_KEYWORDS = ("görlitz", "goerlitz", "gorlitz")
+
+
+def is_kd_zgorzelec_gorlitz(leg: Leg) -> bool:
+    """Czy odcinek to POCIĄG Kolei Dolnośląskich dokładnie między stacjami Zgorzelec i Görlitz
+    (oba kierunki, po nazwach przystanków). Autobus zastępczy KD (motis_mode BUS) i dłuższe
+    przejazdy (np. Wrocław - Görlitz) nie pasują: tam obowiązuje inna wycena."""
+    if leg.mode is not LegMode.RAIL or leg.extra.get("motis_mode") == "BUS":
+        return False
+    if not _matches_any_word(" ".join(leg.carrier_name.lower().split()), KD_KEYWORDS):
+        return False
+    stops = (leg.origin_name.lower(), leg.destination_name.lower())
+    return any(
+        _matches_any_word(a, ("zgorzelec",)) and _matches_any_word(b, GORLITZ_KEYWORDS)
+        for a, b in (stops, stops[::-1])
+    )
+
+
+def price_kd_zgorzelec_gorlitz_leg(leg: Leg) -> PricedLeg:
+    result = fares_estimate_price(
+        Segment(
+            carrier=Carrier.KD_ZGORZELEC_GORLITZ,
+            origin=leg.origin_name,
+            destination=leg.destination_name,
+            travel_date=leg.depart.date().isoformat(),
+        )
+    )
+    return PricedLeg(
+        leg=leg,
+        amount=result.amount,
+        currency=result.currency,
+        price_type=result.price_type.value,
+        notes=result.notes,
+        breakdown=dict(result.breakdown),
+        carrier=Carrier.KD_ZGORZELEC_GORLITZ,
+    )
+
+
 def price_rail_leg(leg: Leg, discounts: DiscountProfile) -> PricedLeg:
     if leg.mode is not LegMode.RAIL:
         raise ValueError(f"price_rail_leg wymaga LegMode.RAIL, dostał {leg.mode}")
+
+    if is_kd_zgorzelec_gorlitz(leg):
+        return price_kd_zgorzelec_gorlitz_leg(leg)
 
     name_carrier = infer_rail_carrier(leg.carrier_name)
     if is_cross_border_pl_de(leg):

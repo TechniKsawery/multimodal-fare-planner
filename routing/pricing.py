@@ -172,16 +172,19 @@ def _city_carrier_for_leg(leg: Leg, carriers: tuple[Carrier, ...] | None = None)
     return None
 
 
-def _is_zvon_europastadt_leg(leg: Leg) -> bool:
-    """Autobus/tramwaj agencji ZVON, którego OBA końce leżą w obszarze EuropastadtTarif. Bez
-    współrzędnych nie zgadujemy (None -> False): nazwa agencji sama nie mówi, czy to Stadtverkehr."""
-    if "zvon" not in leg.carrier_name.lower():
-        return False
+def _is_in_zvon_gorlitz_area(leg: Leg) -> bool:
+    """Czy OBA końce odcinka leżą w kole ZVON_GORLITZ_AREA. Bez współrzędnych False."""
     endpoints = _leg_endpoints(leg)
     if endpoints is None:
         return False
     lat, lon, radius_km = ZVON_GORLITZ_AREA
     return all(haversine_km(p_lat, p_lon, lat, lon) <= radius_km for p_lat, p_lon in endpoints)
+
+
+def _is_zvon_europastadt_leg(leg: Leg) -> bool:
+    """Autobus/tramwaj agencji ZVON, którego OBA końce leżą w obszarze EuropastadtTarif. Bez
+    współrzędnych nie zgadujemy (None -> False): nazwa agencji sama nie mówi, czy to Stadtverkehr."""
+    return "zvon" in leg.carrier_name.lower() and _is_in_zvon_gorlitz_area(leg)
 
 
 def _bvg_tariff_zone(leg: Leg) -> str | None:
@@ -1142,6 +1145,34 @@ def price_suburban_leg(leg: Leg) -> PricedLeg:
     return priced
 
 
+def price_gorlitz_area_unconfirmed_leg(leg: Leg) -> PricedLeg:
+    """Odcinek autobus/tramwaj w obszarze Görlitz–Zgorzelec (ZVON_GORLITZ_AREA), którego agencja
+    w danych MOTIS NIE zawiera "zvon" (inny operator albo inna nazwa agencji w feedzie, np.
+    zastępcza komunikacja trilex/DLB, linia miejska pod nazwą spółki zamiast marki ZVON).
+    Wcześniej wpadał w ryczałt LOCAL_BUS_FLAT_PLN (4,00 PLN) i wyglądał jak cena; nie mamy
+    źródła taryfy dla tego operatora, a EuropastadtTarif obowiązuje tylko na liniach ZVON /
+    Stadtverkehr (fares/data/zvon_gorlitz.json) i nie rozstrzygamy z samej nazwy agencji, czy
+    obejmuje też ten odcinek. Zamiast zgadywać kwotę: amount=0.0 jako brak ceny, jawny znacznik
+    breakdown["cena_nieznana"]=True i price_verified=False (wariant nie wygrywa rankingu cenowego,
+    UI/demo piszą "cena nieznana", a odcinek nie jest wliczony w sumę)."""
+    reason = (
+        f"Odcinek w obszarze Görlitz–Zgorzelec operatora '{leg.carrier_name}' (agencja bez "
+        "'ZVON' w danych MOTIS) — brak potwierdzonej taryfy dla tego operatora."
+    )
+    return PricedLeg(
+        leg=leg,
+        amount=0.0,
+        currency="PLN",
+        price_type="szacunek",
+        notes=f"{reason} Kwota nieznana — NIE wliczona w sumę (0,00 oznacza brak ceny).",
+        breakdown={
+            "price_verified": False,
+            "cena_nieznana": True,
+            "powod_szacunku": "Görlitz–Zgorzelec: operator spoza ZVON, brak potwierdzonej taryfy",
+        },
+    )
+
+
 def is_train_like_line(leg: Leg) -> bool:
     """Czy leg.extra["route_short_name"] wygląda na linię kolejową (RB, RE, IRE, S, SKM...).
     Tylko sygnał pomocniczy do opisu — nie dowód, że to pociąg (może być komunikacja zastępcza)."""
@@ -1269,6 +1300,9 @@ def price_bus_leg(leg: Leg, discounts: DiscountProfile | None = None) -> PricedL
 
     if is_suburban_leg(leg):
         return price_suburban_leg(leg)
+
+    if _is_in_zvon_gorlitz_area(leg):
+        return price_gorlitz_area_unconfirmed_leg(leg)
 
     if leg.distance_km is not None and leg.distance_km > LOCAL_BUS_MAX_KM:
         return price_long_unknown_local_leg(leg)

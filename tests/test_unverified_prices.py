@@ -155,10 +155,10 @@ def test_wartosc_zastepcza_nigdy_nie_jest_oficjalna_taryfa():
     for leg in (
         _leg(
             LegMode.BUS,
-            "Zgorzelec",
-            "Görlitz",
-            ZGORZELEC,
-            GOERLITZ,
+            "Szczecin Główny",
+            "Szczecin Gumieńce",
+            SZCZECIN_GLOWNY,
+            (53.4082, 14.4941),
             carrier="",
             minutes=10,
             motis_mode="BUS",
@@ -170,6 +170,48 @@ def test_wartosc_zastepcza_nigdy_nie_jest_oficjalna_taryfa():
         assert priced.breakdown["price_verified"] is False
         assert priced.breakdown["wartosc_zastepcza"] is True
         assert priced.unverified_label == "cena niepotwierdzona (wartość zastępcza, nie z cennika)"
+
+
+def test_gorlitz_operator_spoza_zvon_nie_dostaje_ryczaltu_4_zl_tylko_cene_nieznana():
+    # Przyczyna "szumu" z testu na żywo: autobus/tramwaj w Görlitz–Zgorzelec, którego agencja w
+    # MOTIS nie zawiera "zvon", wpadał w ryczałt LOCAL_BUS_FLAT_PLN i wyglądał jak cena 4,00.
+    for carrier in ("", "trilex Ersatzverkehr", "Görlitzer Verkehrsbetriebe", "DB Regio Bus"):
+        leg = _leg(LegMode.BUS, "Zgorzelec", "Görlitz", ZGORZELEC, GOERLITZ, carrier=carrier,
+                   minutes=10, motis_mode="BUS")
+        priced = pricing.price_bus_leg(leg)
+        assert priced.amount == 0.0 != pricing.LOCAL_BUS_FLAT_PLN
+        assert priced.price_type == "szacunek" and priced.carrier is None
+        assert priced.breakdown["price_verified"] is False
+        assert priced.breakdown["cena_nieznana"] is True
+        assert "wartosc_zastepcza" not in priced.breakdown
+        assert priced.unverified_label == "cena nieznana (odcinek nie wliczony w sumę)"
+        assert "4,00" not in priced.notes and "NIE wliczona" in priced.notes
+
+
+def test_gorlitz_odcinek_zvon_nadal_ma_taryfe_europastadt():
+    leg = _leg(LegMode.BUS, "Zgorzelec", "Görlitz", ZGORZELEC, GOERLITZ,
+               carrier="ZVON Oberlausitz-Niederschlesien", minutes=10, motis_mode="BUS")
+    priced = pricing.price_bus_leg(leg)
+    assert priced.amount == 2.00 and priced.currency == "EUR" and priced.price_verified
+
+
+def test_gorlitz_bez_wspolrzednych_albo_poza_obszarem_zachowuje_dotychczasowa_sciezke():
+    # bez współrzędnych nie rozstrzygamy, że to Görlitz -> ryczałt jak dla każdego nieznanego operatora
+    bez = _leg(LegMode.BUS, "Zgorzelec", "Görlitz", carrier="", minutes=10, motis_mode="BUS")
+    assert pricing.price_bus_leg(bez).breakdown.get("wartosc_zastepcza") is True
+    daleko = _leg(LegMode.BUS, "Görlitz", "Bautzen", GOERLITZ, (51.18, 14.43), carrier="",
+                  minutes=40, motis_mode="BUS")
+    assert not pricing.price_bus_leg(daleko).breakdown.get("cena_nieznana")
+
+
+def test_wariant_z_odcinkiem_gorlitz_cena_nieznana_nie_wygrywa_najtanszej_i_nie_liczy_sie_do_sumy():
+    leg = _leg(LegMode.BUS, "Zgorzelec", "Görlitz", ZGORZELEC, GOERLITZ, carrier="", minutes=10,
+               motis_mode="BUS")
+    noise = scoring.build_itinerary("szum", [pricing.price_bus_leg(leg)])
+    assert noise.total_price_pln == 0.0 and not noise.price_verified
+    real = scoring.build_itinerary("prawdziwy", [_priced(50.0)])
+    recs = scoring.pick_recommendations([noise, real])
+    assert recs["najtansza"] is real and recs["najtansza_bezpieczna"] is real
 
 
 # --- 2) Ranking "Najtańsza" ------------------------------------------------------------------

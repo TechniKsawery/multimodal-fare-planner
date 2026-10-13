@@ -261,14 +261,47 @@ _STATE_ICON = {
 }
 
 
+def _fee_kind(fee: dict) -> str:
+    """Rodzaj pozycji dopłaty z breakdown["bagaz_podreczny"]["oplaty"]: "od" (dolna granica bez
+    górnej), "przedzial" (min < max) albo "stala" (jedna kwota, np. opłata przy bramce)."""
+    if fee.get("tylko_od"):
+        return "od"
+    hi = fee.get("do")
+    return "przedzial" if hi is not None and hi != fee["od"] else "stala"
+
+
+_CONFIRMED_TAGS = {
+    "stala": " (oficjalna STAŁA kwota, nie przedział)",
+    "przedzial": " (oficjalny PRZEDZIAŁ, konkretna cena zależy od trasy i daty)",
+    "od": " (oficjalna cena „od”, górna granica nieznana)",
+}
+_KIND_MARKERS = {"stala": "kwota stała", "przedzial": "przedział", "od": "cena „od”"}
+
+
+def _confirmed_fees_text(fees: list[dict]) -> tuple[str, str]:
+    """(tag, tekst) dla potwierdzonych dopłat: nazwa rodzaju tylko tam, gdzie pasuje. Gdy wszystkie
+    pozycje są tego samego rodzaju — jeden wspólny tag; gdy mieszane — każda pozycja dostaje
+    własny znacznik, żeby kwota stała nie była podpisana jako przedział (i odwrotnie)."""
+    kinds = [_fee_kind(f) for f in fees]
+    if len(set(kinds)) == 1:
+        return _CONFIRMED_TAGS[kinds[0]], "; ".join(f["tekst"] for f in fees)
+    return (
+        " (oficjalny cennik: część pozycji to kwoty stałe, część przedziały zależne od trasy i daty — rodzaj przy każdej)",
+        "; ".join(f"{f['tekst']} [{_KIND_MARKERS[k]}]" for f, k in zip(fees, kinds)),
+    )
+
+
 def format_breakdown(info: dict) -> str:
     """Czytelny opis stanu bagażu podręcznego z breakdown["bagaz_podreczny"] (UI / demo)."""
     parts = [f"Bagaż podręczny: {_STATE_ICON.get(info['stan'], info['stan'])}."]
     if info["stan"] == CabinBaggageState.PAID.value and info["oplaty"]:
-        tag = (" (oficjalny PRZEDZIAŁ, konkretna cena zależy od trasy i daty)" if info.get("oplaty_potwierdzone")
-               else " ORIENTACYJNA, NIEPOTWIERDZONA (cena dynamiczna)")
+        if info.get("oplaty_potwierdzone"):
+            tag, fees_text = _confirmed_fees_text(info["oplaty"])
+        else:
+            tag = " ORIENTACYJNA, NIEPOTWIERDZONA (cena dynamiczna)"
+            fees_text = "; ".join(f["tekst"] for f in info["oplaty"])
         parts.append(f"Dopłata{tag} (waluta przewoźnika, bez przeliczenia, NIE wliczona w cenę łączną): "
-                     + "; ".join(f["tekst"] for f in info["oplaty"]) + ".")
+                     + fees_text + ".")
     if info.get("oplaty_dodatkowe"):
         parts.append("Inne opłaty bagażowe (waluta przewoźnika, bez przeliczenia): "
                      + "; ".join(e["tekst"] for e in info["oplaty_dodatkowe"]) + ".")

@@ -164,6 +164,30 @@ def test_easyjet_oplata_bramkowa_potwierdzona_online_bez_kwoty():
     assert "60.00 GBP (przy bramce)" in txt and "5.99" not in txt
 
 
+def test_easyjet_stala_kwota_pokazana_jako_kwota_nie_jako_przedzial():
+    txt = format_breakdown(get_cabin_baggage("U2").to_dict())
+    dopl = txt.split("Dopłata", 1)[1].split("Inne opłaty", 1)[0]
+    assert "STAŁA kwota" in dopl and "PRZEDZIAŁ" not in dopl and "–" not in dopl
+
+
+def test_tag_rodzaju_oplaty_zalezy_od_pozycji_a_nie_od_samej_flagi_potwierdzenia():
+    def fee(od, do=None, tylko_od=False):
+        return {"etykieta": "x", "od": od, "do": do, "waluta": "EUR", "tylko_od": tylko_od,
+                "tekst": f"{od}-{do} EUR (x)"}
+
+    def render(*fees):
+        return format_breakdown({"stan": "platny", "oplaty": list(fees), "oplaty_potwierdzone": True,
+                                 "opis": ""})
+
+    assert "PRZEDZIAŁ" in render(fee(6.0, 36.0)) and "STAŁA" not in render(fee(6.0, 36.0))
+    assert "STAŁA kwota" in render(fee(60.0)) and "PRZEDZIAŁ" not in render(fee(60.0))
+    assert "STAŁA kwota" in render(fee(60.0, 60.0))  # min == max to kwota, nie przedział
+    assert "cena „od”" in render(fee(21.0, tylko_od=True))
+    mixed = render(fee(6.0, 36.0), fee(60.0))
+    assert "[przedział]" in mixed and "[kwota stała]" in mixed
+    assert mixed.index("[przedział]") < mixed.index("[kwota stała]")
+
+
 @pytest.mark.parametrize("code", ["FR", "W6"])
 def test_ryanair_i_wizz_maja_potwierdzony_oficjalny_przedzial(code):
     info = get_cabin_baggage(code)

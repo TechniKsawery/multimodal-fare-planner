@@ -60,6 +60,8 @@ class PricedLeg:
         """Dopisek przy cenie odcinka w UI i demo.py; pusty dla ceny z taryfy/oferty."""
         if self.price_verified:
             return ""
+        if self.breakdown.get("cena_nieznana"):
+            return "cena nieznana (odcinek nie wliczony w sumę)"
         if self.breakdown.get("wartosc_zastepcza"):
             return "cena niepotwierdzona (wartość zastępcza, nie z cennika)"
         return "cena niepotwierdzona"

@@ -40,7 +40,21 @@ def test_easyjet_w_gbp_nie_przeliczane():
     info = get_cabin_baggage("U2")
     assert info.state is S.PAID
     assert {f.currency for f in info.fees} == {"GBP"}
-    assert any(f.is_from and f.min_amount == 5.99 for f in info.fees)
+    assert [(f.label, f.min_amount) for f in info.fees] == [("przy bramce", 60.0)]
+    assert not any(f.is_from for f in info.fees)  # online zmienne: brak stałej kwoty
+
+
+def test_easyjet_oplaty_dodatkowe_ze_zrodlem():
+    info = get_cabin_baggage("U2")
+    by = {e.label: e for e in info.extra_fees}
+    assert by["bagaż rejestrowany online"].amount is None and not by["bagaż rejestrowany online"].confirmed
+    drop = by["bagaż rejestrowany przy stanowisku bag drop"]
+    assert (drop.amount, drop.currency, drop.confirmed) == (60.0, "GBP", True)
+    assert (by["nadwaga bagażu, za kg"].amount, by["nadwaga bagażu, za kg"].currency) == (12.0, "GBP")
+    assert by["dodatkowa waga do 32 kg, online, za 3 kg"].kind == "do"
+    assert info.fees_source == "https://www.easyjet.com/en/terms-and-conditions/fees"
+    assert info.fees_verified_on == "2026-10-13"
+    assert "cena zmienna" in by["bagaż rejestrowany online"].format()
 
 
 def test_eurowings_pola_od_w_swoich_walutach():
@@ -48,6 +62,22 @@ def test_eurowings_pola_od_w_swoich_walutach():
     assert info.state is S.PAID
     by_cur = {(f.currency, f.is_from): f.min_amount for f in info.fees}
     assert by_cur == {("EUR", True): 21.0, ("EUR", False): 60.0}
+    assert {f.label: f.min_amount for f in info.fees if not f.is_from} == {"na lotnisku": 45.0, "przy bramce": 60.0}
+
+
+def test_eurowings_oplaty_dodatkowe_od_vs_stale():
+    info = get_cabin_baggage("EW")
+    by = {e.label: e for e in info.extra_fees}
+    od = [e for e in info.extra_fees if e.kind == "od"]
+    assert {e.amount for e in od} == {18.0, 75.0} and not any(e.confirmed for e in od)
+    assert "niepotwierdzona" in od[0].format()
+    assert by["bagaż rejestrowany do 23 kg na lotnisku / offline"].amount == 40.0
+    assert by["nadwaga bagażu rejestrowanego, za kg"].amount == 15.0
+    assert all(e.confirmed for e in info.extra_fees if e.kind == "stala")
+    assert info.fees_source.startswith("https://www.eurowings.com/en/legal-information/schedule-of-charges")
+    d = info.to_dict()
+    assert len(d["oplaty_dodatkowe"]) == 4 and d["data_weryfikacji_oplat"] == "2026-10-13"
+    assert "Inne opłaty bagażowe" in format_breakdown(d)
 
 
 def test_lufthansa_zalezy_od_taryfy_to_nieznany():
@@ -120,12 +150,18 @@ def test_doplaty_tanich_linii_jedna_waluta(code):
     assert len({f.currency for f in info.fees}) == 1
 
 
-@pytest.mark.parametrize("code", ["EW", "U2"])
-def test_eurowings_i_easyjet_zostaja_niepotwierdzone(code):
-    info = get_cabin_baggage(code)
+def test_eurowings_dopłata_podręczny_online_zostaje_niepotwierdzona():
+    info = get_cabin_baggage("EW")
     assert not info.fees_verified
     assert info.to_dict()["oplaty_potwierdzone"] is False
     assert "NIEPOTWIERDZONA" in format_breakdown(info.to_dict())
+
+
+def test_easyjet_oplata_bramkowa_potwierdzona_online_bez_kwoty():
+    info = get_cabin_baggage("U2")
+    assert info.fees_verified
+    txt = format_breakdown(info.to_dict())
+    assert "60.00 GBP (przy bramce)" in txt and "5.99" not in txt
 
 
 @pytest.mark.parametrize("code", ["FR", "W6"])

@@ -252,6 +252,7 @@
         "doplata": {
           "waluta": "EUR",
           "online_od_eur": 21.0,
+          "lotnisko_eur": 45.0,
           "bramka_eur": 60.0
         }
       },
@@ -269,15 +270,50 @@
           "uwaga": "Mały bagaż + 2 duże podręczne (po max 8 kg każdy) w cenie taryfy."
         }
       },
-      "uwaga": "Rozstrzygnięcie rozbieżności 18 vs 21 €: oficjalny taryfikator prawny (Schedule of charges, usługa BRD: 'Second hand baggage when booking online or via Call Center') oraz opis taryfy BASIC podają stawkę 'od 21 €' (89 PLN / £18 / 20 CHF w zależności od trasy). Kwota 18 € to dawna archiwalna stawka z 2021 r., która pozostała na niektórych grafikach marketingowych oraz minimalna cena za bagaż rejestrowany 23 kg (od 18 € / 76 PLN). Dokupienie na lotnisku offline (check-in desk): 45 € (190 PLN). Opłata przy bramce (Gate-check fee, kod GBG): 60 € (254 PLN). Ponieważ cena online podana jest wyłącznie jako cena minimalna 'od' (brak publicznego górnego limitu przedziału), doplata_potwierdzona pozostaje false.",
-      "doplata_potwierdzona": false
+      "uwaga": "Rozstrzygnięcie rozbieżności 18 vs 21 €: oficjalny taryfikator prawny (Schedule of charges, usługa BRD: 'Second hand baggage when booking online or via Call Center') oraz opis taryfy BASIC podają stawkę 'od 21 €' (89 PLN / £18 / 20 CHF w zależności od trasy). Kwota 18 € to dawna archiwalna stawka z 2021 r., która pozostała na niektórych grafikach marketingowych oraz minimalna cena za bagaż rejestrowany 23 kg (od 18 € / 76 PLN). Dokupienie na lotnisku offline (check-in desk): 45 € (190 PLN). Opłata przy bramce (Gate-check fee, kod GBG): 60 € (254 PLN). Ponieważ cena online podana jest wyłącznie jako cena minimalna 'od' (brak publicznego górnego limitu przedziału), doplata_potwierdzona pozostaje false. 2026-10-13 (Schedule of charges, tabela 'Carriage of baggage', trasy krótkie/średnie; treść wg Gemini): BRD online od 21 EUR / 89 PLN, na lotnisku 45 EUR / 190 PLN, gate-check (GBG) 60 EUR / 254 PLN. Kwoty stałe (lotnisko, bramka) potwierdzone; kwoty 'od' zależą od trasy.",
+      "doplata_potwierdzona": false,
+      "data_weryfikacji_oplat": "2026-10-13",
+      "oplaty_dodatkowe": [
+        {
+          "etykieta": "bagaż rejestrowany do 23 kg, zredukowana opłata online (BAG1)",
+          "kwota": 18.0,
+          "waluta": "EUR",
+          "typ": "od",
+          "potwierdzona": false,
+          "uwaga": "od 18 EUR / 76 PLN zależnie od trasy"
+        },
+        {
+          "etykieta": "bagaż rejestrowany do 23 kg na lotnisku / offline",
+          "kwota": 40.0,
+          "waluta": "EUR",
+          "typ": "stala",
+          "potwierdzona": true,
+          "uwaga": "40 EUR / 169 PLN"
+        },
+        {
+          "etykieta": "drugi bagaż rejestrowany",
+          "kwota": 75.0,
+          "waluta": "EUR",
+          "typ": "od",
+          "potwierdzona": false,
+          "uwaga": "od 75 EUR / 317 PLN zależnie od trasy"
+        },
+        {
+          "etykieta": "nadwaga bagażu rejestrowanego, za kg",
+          "kwota": 15.0,
+          "waluta": "EUR",
+          "typ": "stala",
+          "potwierdzona": true,
+          "uwaga": "15 EUR / 63 PLN za kg"
+        }
+      ]
     },
     "U2": {
       "nazwa": "easyJet",
       "price_verified": true,
       "data_weryfikacji": "2026-10-12",
       "zrodlo": "https://www.easyjet.com/en/help/baggage/cabin-bags",
-      "zrodlo_oplaty": "https://www.easyjet.com/pl/ogolne-warunki/oplaty",
+      "zrodlo_oplaty": "https://www.easyjet.com/en/terms-and-conditions/fees",
       "taryfa": "Standard vs Inclusive Plus / easyJet Plus",
       "stan_w_cenie_bazowej": "podreczny_platny",
       "maly": {
@@ -300,7 +336,6 @@
         "w_cenie": false,
         "doplata": {
           "waluta": "GBP",
-          "online_od_gbp": 5.99,
           "bramka_gbp": 60.0
         }
       },
@@ -314,8 +349,44 @@
           "uwaga": "Mały bagaż pod fotel + duży podręczny (56x45x25 cm, max 15 kg) w cenie."
         }
       },
-      "uwaga": "W oficjalnej tabeli opłat easyJet (rynek PL/UK/DE) opłata online za duży bagaż podręczny jest w pełni dynamiczna ('Opłaty różnią się w zależności od popytu, trasy, daty lotu i czasu rezerwacji. Dokładną cenę zobaczysz w momencie zakupu'). Dawna kwota 'od 5.99 £' była stawką marketingową i nie występuje w oficjalnym taryfikatorze. Opłata przy stanowisku nadawania bagażu / przy bramce wynosi stałe: 300 zł na rynku PL, 70 € na rynku DE, 60 £ na rynku UK (bagaż podręczny przyniesiony bez rezerwacji jest umieszczany w luku). Ze względu na brak publicznego przedziału cen online, doplata_potwierdzona pozostaje false.",
-      "doplata_potwierdzona": false
+      "uwaga": "2026-10-13, https://www.easyjet.com/en/terms-and-conditions/fees (treść wg Gemini, easyJet wyrywkowo potwierdzone przez Ksaviego): mały bagaż 45×36×20 cm bezpłatnie; duży kabinowy 56×45×25 online zmienny (popyt/trasa/data), przy bramce 60 GBP. Dawna kwota 'od 5.99 £' usunięta — nie występuje w oficjalnym taryfikatorze. Wcześniejsze stawki lokalne (300 zł PL / 70 € DE) pochodzą z innych rynków i nie są używane.",
+      "doplata_potwierdzona": true,
+      "data_weryfikacji_oplat": "2026-10-13",
+      "doplata_opis": "Duży bagaż podręczny (56×45×25 cm) online: cena zmienna zależnie od popytu, trasy i daty — brak stałej kwoty w taryfikatorze, więc nie podajemy jej. Stała opłata przy bramce: 60 GBP (waluta przewoźnika, bez przeliczenia).",
+      "oplaty_dodatkowe": [
+        {
+          "etykieta": "bagaż rejestrowany online",
+          "kwota": null,
+          "waluta": "GBP",
+          "typ": "zmienna",
+          "potwierdzona": false,
+          "uwaga": "zmienna zależnie od popytu, trasy i daty — brak stałej kwoty"
+        },
+        {
+          "etykieta": "bagaż rejestrowany przy stanowisku bag drop",
+          "kwota": 60.0,
+          "waluta": "GBP",
+          "typ": "stala",
+          "potwierdzona": true,
+          "uwaga": "60 GBP"
+        },
+        {
+          "etykieta": "dodatkowa waga do 32 kg, online, za 3 kg",
+          "kwota": 15.0,
+          "waluta": "GBP",
+          "typ": "do",
+          "potwierdzona": true,
+          "uwaga": "do 15 GBP za 3 kg (górna granica)"
+        },
+        {
+          "etykieta": "nadwaga bagażu, za kg",
+          "kwota": 12.0,
+          "waluta": "GBP",
+          "typ": "stala",
+          "potwierdzona": true,
+          "uwaga": "12 GBP za kg"
+        }
+      ]
     }
   }
 }

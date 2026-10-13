@@ -26,8 +26,8 @@
       "nazwa": "Eurowings",
       "koszt": 18.0,
       "waluta": "EUR",
-      "zakres": "od 18 EUR za bagaż do 23 kg w taryfie BASIC (online, wg trasy)",
-      "zrodlo": "https://www.eurosender.com/en/airlines/eurowings-baggage-allowance"
+      "zakres": "od 18 EUR / 76 PLN za bagaż do 23 kg (zredukowana opłata BAG1, online, wg trasy); na lotnisku 40 EUR (oficjalny taryfikator, 2026-10-13)",
+      "zrodlo": "https://www.eurowings.com/en/legal-information/schedule-of-charges-legal-information.html"
     },
     "LH": {
       "nazwa": "Lufthansa",

@@ -276,6 +276,39 @@ def test_eic_ma_te_sama_kwote_co_pasmo_tlk_ic_ale_inny_status():
     )
 
 
+def _wwa_gdansk(route, hour=8, carrier="PKP Intercity"):
+    leg = _leg(
+        LegMode.RAIL,
+        "Warszawa Wschodnia",
+        "Gdańsk Główny",
+        carrier=carrier,
+        distance_km=285,
+        minutes=180,
+        extra={"route_short_name": route},
+    )
+    leg.depart = leg.depart.replace(hour=hour)
+    leg.arrive = leg.depart + timedelta(minutes=180)
+    return pricing.price_rail_leg(leg, DiscountProfile())
+
+
+@pytest.mark.parametrize("hour", [6, 8, 14, 20])
+def test_warszawa_wschodnia_gdansk_67_pln_status_zalezy_tylko_od_kategorii_pociagu(hour):
+    # Ta sama kwota 67,00 PLN (pasmo 280-290 km); o statusie decyduje wyłącznie kategoria
+    # pociągu z routeShortName/nazwy przewoźnika — nie godzina ani ścieżka wyceny.
+    for route in ("IC", "TLK", ""):
+        priced = _wwa_gdansk(route, hour)
+        assert (priced.amount, priced.price_type) == (67.0, "oficjalna_taryfa"), route
+        assert priced.price_verified is True
+    for route, carrier in (
+        ("EIC", "PKP Intercity"),
+        ("EIP", "PKP Intercity"),
+        ("", "PKP Intercity Express InterCity"),
+    ):
+        priced = _wwa_gdansk(route, hour, carrier)
+        assert (priced.amount, priced.price_type) == (67.0, "szacunek"), route
+        assert priced.price_verified is False
+
+
 # --- S3: granica PL/DE -----------------------------------------------------------------------
 
 

@@ -42,6 +42,7 @@ from routing.search_service import search
 from routing.variants import RouteRequest
 from ui_helpers import (
     SELECTED_KEY,
+    SELECTED_SLOT_KEY,
     format_verified_date,
     leg_price_status,
     leg_source,
@@ -52,6 +53,7 @@ from ui_helpers import (
     render_variant_list,
     set_html_lang,
     status_cell,
+    unique_places,
 )
 
 with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
@@ -471,64 +473,251 @@ def render_attractions_and_city_cards(
                     st.markdown(f"[{t('attr.official')}]({attr.official_url})")
 
 
-def address_picker(label: str, default_text: str, state_key: str):
-    """Pole adresu + podpowiedzi z geocodingu MOTIS do wyboru (zamiast wpisywania z palca
-    na ślepo — literówka w mieście/ulicy dotąd potrafiła po cichu trafić w zły punkt)."""
-    query = st.text_input(label, value=default_text, key=f"{state_key}_query")
-    if len(query.strip()) < 3:
-        st.caption(t("addr.min_chars"))
-        return None
+def resolve_place(text: str) -> list[dict]:
+    """Kandydaci z geokodera dla wpisanego tekstu (bez powtórzeń tej samej nazwy i punktu).
+    Pusta lista = nic nie znaleziono; błędy geokodera (MotisError) idą wyżej."""
+    return unique_places(motis_client.geocode_suggestions(text))
+
+
+def _clear_result() -> None:
+    for key in ("search_result", "pending_search", SELECTED_KEY, SELECTED_SLOT_KEY):
+        st.session_state.pop(key, None)
+
+
+def _change_route() -> None:
+    """„zmień”: wraca do formularza z nazwami, które znalazł geokoder (do poprawienia)."""
+    result = st.session_state.get("search_result")
+    if result is not None:
+        st.session_state["origin_query"] = result["request"].origin_label
+        st.session_state["dest_query"] = result["request"].destination_label
+    _clear_result()
+
+
+def run_search(inputs: dict, origin: dict, dest: dict) -> bool:
+    """Szuka połączeń dla gotowych współrzędnych i zapisuje wynik w session_state. False przy błędzie
+    (komunikat już wyświetlony)."""
+    foreigner_warnings = inputs["foreigner_warnings"]
     try:
-        suggestions = motis_client.geocode_suggestions(query)
+        with st.spinner(t("search.spinner")):
+            request = RouteRequest(
+                origin_stop_id=motis_client.coords_place(origin["lat"], origin["lon"]),
+                destination_stop_id=motis_client.coords_place(dest["lat"], dest["lon"]),
+                origin_label=origin["name"],
+                destination_label=dest["name"],
+                date=inputs["date"].isoformat(),
+                departure_time=inputs["time"].strftime("%H:%M:%S"),
+                discounts=inputs["profile"],
+                checked_baggage=inputs["checked_baggage"],
+            )
+            # search() (routing/search_service.py, współdzielone z API w api/) nie przekazuje
+            # alternative_destination_stops — patrz komentarz tam / w demo.py (podmieniłoby
+            # rzeczywisty adres docelowy na sztywny dworzec, ucinając ostatni odcinek do adresu).
+            search_result = search(request)
     except MotisError as exc:
-        st.caption(t("addr.unavailable", exc=exc))
-        return None
-    if not suggestions:
-        st.caption(t("addr.no_match"))
-        return None
-    idx = st.selectbox(
-        t("addr.pick", label=label.lower()),
-        options=list(range(len(suggestions))),
-        format_func=lambda i: suggestions[i]["name"],
-        key=f"{state_key}_choice",
+        render_foreigner_warnings(foreigner_warnings)
+        st.error(t("err.motis", exc=tm(exc_text(exc))))
+        return False
+    except Exception as exc:  # np. MOTIS nieuruchomiony
+        render_foreigner_warnings(foreigner_warnings)
+        st.error(t("err.search", exc=exc))
+        return False
+    # Wynik ląduje w session_state, a nie w zwykłej zmiennej lokalnej: widgety POZA formularzem
+    # (karty, sortowanie, wybór adresu) wywołują kolejny rerun Streamlita, w którym wysłanie
+    # formularza jest znów False - bez zapamiętania wyniku wyszukiwanie "znikałoby".
+    st.session_state.pop(SELECTED_KEY, None)
+    st.session_state.pop(SELECTED_SLOT_KEY, None)
+    st.session_state.pop("pending_search", None)
+    st.session_state["search_result"] = {
+        "request": request,
+        "date": inputs["date"],
+        "built": search_result.built,
+        "skipped": search_result.skipped,
+        "recs": search_result.recommendations,
+        "other_day": search_result.other_day,
+        "foreigner_warnings": foreigner_warnings,
+    }
+    return True
+
+
+def render_place_choice() -> None:
+    """Krótki wybór miejsca, gdy geokoder zwrócił kilka adresów (tylko dla pól, które tego wymagają).
+    Szukanie rusza dopiero po kliknięciu przycisku pod wyborem."""
+    pending = st.session_state.get("pending_search")
+    if pending is None:
+        return
+    with st.container(border=True):
+        st.subheader(t("choose.title"))
+        picks = {}
+        for side in ("origin", "dest"):
+            options = pending[f"{side}_options"]
+            if len(options) == 1:
+                picks[side] = options[0]
+                continue
+            idx = st.radio(
+                t(f"choose.{side}"),
+                options=list(range(len(options))),
+                format_func=lambda i, options=options: options[i]["name"],
+                key=f"pick_{side}",
+            )
+            picks[side] = options[idx]
+        if st.button(t("choose.submit"), type="primary", key="pick_submit") and run_search(
+            pending["inputs"], picks["origin"], picks["dest"]
+        ):
+            st.rerun()
+
+
+def render_search_header(result) -> None:
+    request = result["request"]
+    with st.container(horizontal=True, vertical_alignment="center"):
+        st.markdown(t("res.searching", origin=request.origin_label, dest=request.destination_label))
+        st.button(t("res.change"), key="change_route", type="tertiary", on_click=_change_route)
+    st.caption(t("res.when", date=result["date"]))
+
+
+st.session_state.setdefault("origin_query", DEFAULT_FROM)
+st.session_state.setdefault("dest_query", DEFAULT_TO)
+
+# Cały formularz jest w st.form: nic się nie odświeża i nie szuka adresów w trakcie pisania, wszystko
+# dzieje się po jednym przycisku. Widgety z domyślną wartością zależną od wieku (value=wiek < 18 itd.)
+# są celowo BEZ key=: zmiana wieku nadal przestawia je na nową podpowiedź (przy wysłaniu formularza).
+# Ceną jest to, że ręczne nadpisanie takiego checkboxa przepada przy zmianie wieku lub języka.
+with st.form("search", border=False):
+    c_origin, c_dest = st.columns(2)
+    origin_text = c_origin.text_input(t("addr.origin"), key="origin_query", help=t("addr.help"))
+    dest_text = c_dest.text_input(t("addr.dest"), key="dest_query", help=t("addr.help"))
+    c_date, c_time = st.columns(2)
+    date = c_date.date_input(
+        t("form.date"),
+        dt.date.today() + dt.timedelta(days=5),
+        help=t("form.date_help"),
+        key="w_date",
     )
-    return suggestions[idx]
+    godzina = c_time.time_input(
+        t("form.time"),
+        dt.time(6, 0),
+        step=dt.timedelta(minutes=15),
+        help=t("form.time_help"),
+        key="w_time",
+    )
+    with st.expander(t("form.more")):
+        st.caption(t("form.more_hint"))
+        wiek = st.number_input(
+            t("age.label"),
+            min_value=0,
+            max_value=120,
+            value=30,
+            step=1,
+            help=t("age.help"),
+            key="w_wiek",
+        )
+        obywatelstwo = st.selectbox(
+            t("citizen.label"),
+            [None, "PL", "UE", "poza_UE"],
+            format_func=lambda o: t("citizen.none") if o is None else t(f"citizen.{o}"),
+            help=t("citizen.help"),
+            key="w_obywatelstwo",
+        )
+        c_attr_profile1, c_attr_profile2 = st.columns(2)
+        uczen_student = c_attr_profile1.checkbox(
+            t("student.label"),
+            help=t("student.help"),
+            key="w_uczen_student",
+        )
+        senior_attrakcje = c_attr_profile2.checkbox(
+            t("senior.label"),
+            help=t("senior.help"),
+            key="w_senior",
+        )
+        _kraj_legitymacji = st.selectbox(
+            t("idcountry.label"),
+            ["none", "PL", "DE", "other"],
+            format_func=lambda k: t(f"idcountry.{k}"),
+            help=t("idcountry.help"),
+            key="w_kraj_legitymacji",
+        )
+        bagaz_rejestrowany = st.checkbox(
+            t("form.baggage"),
+            value=True,
+            help=t("form.baggage_help"),
+            key="w_bagaz",
+        )
+        c1, c2 = st.columns(2)
+        pkp = c1.selectbox(
+            t("form.pkp"), PKP_ULGI, format_func=lambda k: label_or("pkp", k, k), key="w_pkp"
+        )
+        bc = c2.selectbox(
+            t("form.bahncard"),
+            ["brak", "25", "50", "100"],
+            format_func=lambda k: t(f"bc.{k}"),
+            key="w_bc",
+        )
+        c3, c4 = st.columns(2)
+        ztm_ulgowy = c3.checkbox(
+            t("form.ztm_lublin"),
+            value=wiek < 18,
+            help=t("form.ztm_lublin_help"),
+        )
+        vrr_dziecko = c4.checkbox(
+            t("form.vrr"),
+            value=6 <= wiek <= 14,
+            help=t("form.vrr_help"),
+        )
+        child_with_guardian = False
+        if 6 <= wiek <= 14:
+            child_with_guardian = st.checkbox(
+                t("form.guardian"),
+                value=False,
+                help=t("form.guardian_help"),
+            )
+        st.caption(t("form.kinder_other"))
+        k1, k2, k3 = st.columns(3)
+        hvv_dziecko = k1.checkbox(t("form.hamburg"), value=6 <= wiek <= 14)
+        mvv_dziecko = k2.checkbox(t("form.munich"), value=6 <= wiek <= 14)
+        vrs_koln_dziecko = k3.checkbox(t("form.cologne"), value=6 <= wiek <= 14)
+        st.caption(t("form.reduced_other"))
+        u1, u2, u3, u4, u5 = st.columns(5)
+        ztm_warszawa_ulgowy = u1.checkbox(t("city.warszawa"), value=wiek < 18)
+        mpk_krakow_ulgowy = u2.checkbox(t("city.krakow"), value=wiek < 18)
+        ztm_poznan_ulgowy = u3.checkbox(t("city.poznan"), value=wiek < 18)
+        mpk_wroclaw_ulgowy = u4.checkbox(t("city.wroclaw"), value=wiek < 18)
+        bvg_berlin_ulgowy = u5.checkbox(t("city.berlin"), value=wiek < 18)
+        st.caption(t("form.free_caption"))
+        b1, b2, b3, b4, b5, b6 = st.columns(6)
+        ztm_warszawa_bezplatny = b1.checkbox(
+            t("free.warszawa"),
+            value=wiek >= 70,
+            help=t("free.warszawa_help"),
+        )
+        mpk_krakow_bezplatny = b2.checkbox(
+            t("free.krakow"),
+            value=wiek >= 70,
+            help=t("free.krakow_help"),
+        )
+        mpk_wroclaw_bezplatny = b3.checkbox(
+            t("free.wroclaw"),
+            value=wiek <= 7 or wiek <= 21 or wiek >= 65,
+            help=t("free.wroclaw_help"),
+        )
+        ztm_lublin_bezplatny = b4.checkbox(
+            t("free.lublin"),
+            value=wiek >= 65 or wiek <= 14,
+            help=t("free.lublin_help"),
+        )
+        ztm_poznan_bezplatny = b5.checkbox(
+            t("free.poznan"),
+            value=wiek >= 70,
+            help=t("free.poznan_help"),
+        )
+        bvg_berlin_schwerbehindert = b6.checkbox(
+            t("free.berlin"),
+            help=t("free.berlin_help"),
+        )
+        schwerbehinderte_wertmarke_de = st.checkbox(
+            t("free.de_wertmarke"),
+            help=t("free.de_wertmarke_help"),
+        )
+    submitted = st.form_submit_button(t("form.submit"), type="primary", width="stretch")
 
-
-wiek = st.number_input(
-    t("age.label"),
-    min_value=0,
-    max_value=120,
-    value=30,
-    step=1,
-    help=t("age.help"),
-    key="w_wiek",
-)
-obywatelstwo = st.selectbox(
-    t("citizen.label"),
-    [None, "PL", "UE", "poza_UE"],
-    format_func=lambda o: t("citizen.none") if o is None else t(f"citizen.{o}"),
-    help=t("citizen.help"),
-    key="w_obywatelstwo",
-)
-c_attr_profile1, c_attr_profile2 = st.columns(2)
-uczen_student = c_attr_profile1.checkbox(
-    t("student.label"),
-    help=t("student.help"),
-    key="w_uczen_student",
-)
-senior_attrakcje = c_attr_profile2.checkbox(
-    t("senior.label"),
-    help=t("senior.help"),
-    key="w_senior",
-)
-_kraj_legitymacji = st.selectbox(
-    t("idcountry.label"),
-    ["none", "PL", "DE", "other"],
-    format_func=lambda k: t(f"idcountry.{k}"),
-    help=t("idcountry.help"),
-    key="w_kraj_legitymacji",
-)
 _kod_kraju = {"PL": "PL", "DE": "DE"}.get(_kraj_legitymacji)
 attraction_profile = AttractionDiscountProfile(
     age=wiek,
@@ -539,116 +728,10 @@ attraction_profile = AttractionDiscountProfile(
     ),
 )
 
-st.subheader(t("section.route"))
-c_origin, c_dest = st.columns(2)
-with c_origin:
-    origin_resolved = address_picker(t("addr.origin"), DEFAULT_FROM, "origin")
-with c_dest:
-    dest_resolved = address_picker(t("addr.dest"), DEFAULT_TO, "dest")
-
-# Widgety z domyślną wartością zależną od wieku (value=wiek < 18 itd.) są celowo BEZ key=: zmiana
-# wieku ma je nadal przestawiać na nową podpowiedź, jak dotąd. Ceną jest to, że ręczne
-# nadpisanie takiego checkboxa przepada przy zmianie języka (zmienia się jego etykieta).
-with st.form("search"):
-    date = st.date_input(
-        t("form.date"),
-        dt.date.today() + dt.timedelta(days=5),
-        help=t("form.date_help"),
-        key="w_date",
-    )
-    godzina = st.time_input(
-        t("form.time"),
-        dt.time(6, 0),
-        step=dt.timedelta(minutes=15),
-        help=t("form.time_help"),
-        key="w_time",
-    )
-    bagaz_rejestrowany = st.checkbox(
-        t("form.baggage"),
-        value=True,
-        help=t("form.baggage_help"),
-        key="w_bagaz",
-    )
-    c1, c2 = st.columns(2)
-    pkp = c1.selectbox(
-        t("form.pkp"), PKP_ULGI, format_func=lambda k: label_or("pkp", k, k), key="w_pkp"
-    )
-    bc = c2.selectbox(
-        t("form.bahncard"),
-        ["brak", "25", "50", "100"],
-        format_func=lambda k: t(f"bc.{k}"),
-        key="w_bc",
-    )
-    c3, c4 = st.columns(2)
-    ztm_ulgowy = c3.checkbox(
-        t("form.ztm_lublin"),
-        value=wiek < 18,
-        help=t("form.ztm_lublin_help"),
-    )
-    vrr_dziecko = c4.checkbox(
-        t("form.vrr"),
-        value=6 <= wiek <= 14,
-        help=t("form.vrr_help"),
-    )
-    child_with_guardian = False
-    if 6 <= wiek <= 14:
-        child_with_guardian = st.checkbox(
-            t("form.guardian"),
-            value=False,
-            help=t("form.guardian_help"),
-        )
-    st.caption(t("form.kinder_other"))
-    k1, k2, k3 = st.columns(3)
-    hvv_dziecko = k1.checkbox(t("form.hamburg"), value=6 <= wiek <= 14)
-    mvv_dziecko = k2.checkbox(t("form.munich"), value=6 <= wiek <= 14)
-    vrs_koln_dziecko = k3.checkbox(t("form.cologne"), value=6 <= wiek <= 14)
-    st.caption(t("form.reduced_other"))
-    u1, u2, u3, u4, u5 = st.columns(5)
-    ztm_warszawa_ulgowy = u1.checkbox(t("city.warszawa"), value=wiek < 18)
-    mpk_krakow_ulgowy = u2.checkbox(t("city.krakow"), value=wiek < 18)
-    ztm_poznan_ulgowy = u3.checkbox(t("city.poznan"), value=wiek < 18)
-    mpk_wroclaw_ulgowy = u4.checkbox(t("city.wroclaw"), value=wiek < 18)
-    bvg_berlin_ulgowy = u5.checkbox(t("city.berlin"), value=wiek < 18)
-    st.caption(t("form.free_caption"))
-    b1, b2, b3, b4, b5, b6 = st.columns(6)
-    ztm_warszawa_bezplatny = b1.checkbox(
-        t("free.warszawa"),
-        value=wiek >= 70,
-        help=t("free.warszawa_help"),
-    )
-    mpk_krakow_bezplatny = b2.checkbox(
-        t("free.krakow"),
-        value=wiek >= 70,
-        help=t("free.krakow_help"),
-    )
-    mpk_wroclaw_bezplatny = b3.checkbox(
-        t("free.wroclaw"),
-        value=wiek <= 7 or wiek <= 21 or wiek >= 65,
-        help=t("free.wroclaw_help"),
-    )
-    ztm_lublin_bezplatny = b4.checkbox(
-        t("free.lublin"),
-        value=wiek >= 65 or wiek <= 14,
-        help=t("free.lublin_help"),
-    )
-    ztm_poznan_bezplatny = b5.checkbox(
-        t("free.poznan"),
-        value=wiek >= 70,
-        help=t("free.poznan_help"),
-    )
-    bvg_berlin_schwerbehindert = b6.checkbox(
-        t("free.berlin"),
-        help=t("free.berlin_help"),
-    )
-    schwerbehinderte_wertmarke_de = st.checkbox(
-        t("free.de_wertmarke"),
-        help=t("free.de_wertmarke_help"),
-    )
-    submitted = st.form_submit_button(t("form.submit"))
-
 if submitted:
-    if origin_resolved is None or dest_resolved is None:
-        st.error(t("err.pick_address"))
+    _clear_result()
+    if not origin_text.strip() or not dest_text.strip():
+        st.error(t("addr.empty"))
         st.stop()
     profile = DiscountProfile(
         pkp_ulga_kod=pkp,
@@ -675,56 +758,38 @@ if submitted:
         obywatelstwo=obywatelstwo,
         legitymacja_zagraniczna=_kraj_legitymacji in ("DE", "other"),
     )
-    foreigner_warnings = foreigner_warnings_for(profile)
+    inputs = {
+        "profile": profile,
+        "date": date,
+        "time": godzina,
+        "checked_baggage": bagaz_rejestrowany,
+        "foreigner_warnings": foreigner_warnings_for(profile),
+    }
     try:
         with st.spinner(t("search.spinner")):
-            request = RouteRequest(
-                origin_stop_id=motis_client.coords_place(
-                    origin_resolved["lat"], origin_resolved["lon"]
-                ),
-                destination_stop_id=motis_client.coords_place(
-                    dest_resolved["lat"], dest_resolved["lon"]
-                ),
-                origin_label=origin_resolved["name"],
-                destination_label=dest_resolved["name"],
-                date=date.isoformat(),
-                departure_time=godzina.strftime("%H:%M:%S"),
-                discounts=profile,
-                checked_baggage=bagaz_rejestrowany,
-            )
-            # search() (routing/search_service.py, współdzielone z API w api/) nie przekazuje
-            # alternative_destination_stops — patrz komentarz tam / w demo.py (podmieniłoby
-            # rzeczywisty adres docelowy na sztywny dworzec, ucinając ostatni odcinek do adresu).
-            search_result = search(request)
-            built, skipped, recs, other_day = (
-                search_result.built,
-                search_result.skipped,
-                search_result.recommendations,
-                search_result.other_day,
-            )
+            origin_options = resolve_place(origin_text)
+            dest_options = resolve_place(dest_text)
     except MotisError as exc:
-        render_foreigner_warnings(foreigner_warnings)
+        render_foreigner_warnings(inputs["foreigner_warnings"])
         st.error(t("err.motis", exc=tm(exc_text(exc))))
         st.stop()
-    except Exception as exc:  # np. MOTIS nieuruchomiony
-        render_foreigner_warnings(foreigner_warnings)
-        st.error(t("err.search", exc=exc))
-        st.stop()
+    for text, field, options in (
+        (origin_text, t("addr.origin"), origin_options),
+        (dest_text, t("addr.dest"), dest_options),
+    ):
+        if not options:
+            st.error(t("addr.not_found", text=text.strip(), field=field.lower()))
+            st.stop()
+    if len(origin_options) == 1 and len(dest_options) == 1:
+        run_search(inputs, origin_options[0], dest_options[0])
+    else:
+        st.session_state["pending_search"] = {
+            "inputs": inputs,
+            "origin_options": origin_options,
+            "dest_options": dest_options,
+        }
 
-    # Wynik ląduje w session_state, a nie w zwykłej zmiennej lokalnej: widgety POZA formularzem
-    # (np. checkbox "Pokaż więcej") wywołują kolejny rerun Streamlita, w którym `submitted` jest
-    # znów False — bez zapamiętania wyniku cały ten blok by się nie wykonał i wyszukiwanie
-    # "znikało by" przy każdej takiej interakcji.
-    st.session_state.pop(SELECTED_KEY, None)
-    st.session_state["search_result"] = {
-        "request": request,
-        "date": date,
-        "built": built,
-        "skipped": skipped,
-        "recs": recs,
-        "other_day": other_day,
-        "foreigner_warnings": foreigner_warnings,
-    }
+render_place_choice()
 
 result = st.session_state.get("search_result")
 if result is not None:
@@ -736,23 +801,11 @@ if result is not None:
         result["recs"],
     )
     other_day = result.get("other_day", [])
+    existing_bahncard = None if bc == "brak" else bc
+    render_search_header(result)
     render_foreigner_warnings(result.get("foreigner_warnings", []))
-
-    st.caption(
-        t(
-            "res.summary",
-            origin=request.origin_label,
-            dest=request.destination_label,
-            date=date,
-            built=len(built),
-            skipped=len(skipped),
-        )
-    )
     if skipped:
-        # widoczna sekcja, nie zwinięty tekst: użytkownik ma zobaczyć, czego nie pokazujemy i dlaczego
-        st.subheader(t("res.skipped"))
-        for s in skipped:
-            st.markdown(f"- **{tm(s.variant_name)}**: {tm(s.reason)}")
+        st.caption(t("res.skipped_note", n=len(skipped)))
     if not built:
         st.error(
             t(
@@ -763,54 +816,58 @@ if result is not None:
             else t("res.none")
         )
         render_other_day_section(
-            other_day, lambda it: render_itinerary(it, wiek, bc if bc != "brak" else None)
+            other_day, lambda it: render_itinerary(it, wiek, existing_bahncard)
         )
         st.stop()
-    render_variant_cards(built)
-    render_variant_list(built)
 
-    # Wybór (karta albo wiersz listy) siedzi w session_state obok wyniku wyszukiwania, więc zmiana
-    # wyboru, sortowania czy filtra nie kasuje wyników.
-    selected = st.session_state.get(SELECTED_KEY)
-    if selected is not None and selected < len(built):
-        st.header(t("details.title", name=tm(built[selected].variant_name)))
-        render_itinerary(built[selected], wiek, bc if bc != "brak" else None)
-    else:
-        st.caption(t("details.none"))
+    def render_details(it) -> None:
+        render_itinerary(it, wiek, existing_bahncard)
 
-    st.header(t("res.recommendations"))
+    render_variant_cards(built, recs, render_details)
 
-    # Ten sam wariant potrafi wygrać w kilku kategoriach naraz (np. "Najszybsza" i "Najlepszy
-    # kompromis" mogą wskazać dokładnie tę samą trasę, jeśli akurat jest jednocześnie
-    # najszybsza i relatywnie tania) — to poprawne działanie scoringu, nie duplikat/błąd, ale
-    # bez podpowiedzi wygląda na demo jak awaria. Pierwsza kategoria w kolejności
-    # RECOMMENDATION_LABELS, która "zdobyła" dany wariant, staje się jego "właścicielem";
-    # każda kolejna kategoria wskazująca na ten sam wariant dostaje hint z jej nazwą.
-    first_owner_key = {}
-    for key, itinerary in recs.items():
-        first_owner_key.setdefault(id(itinerary), key)
+    with st.expander(t("res.see_all")):
+        st.caption(t("res.summary", built=len(built), skipped=len(skipped)))
+        if skipped:
+            # powody pominięcia są tu, w jednym miejscu, razem z resztą opcji (nad listą jest tylko
+            # liczba pominiętych)
+            st.subheader(t("res.skipped"))
+            for s in skipped:
+                st.markdown(f"- **{tm(s.variant_name)}**: {tm(s.reason)}")
+        render_variant_list(built, render_details)
 
-    def render_recommendation_tab(key: str) -> None:
-        owner_key = first_owner_key[id(recs[key])]
-        if owner_key != key:
-            st.caption(t("res.same_route", label=rec_label(owner_key)))
-        if key in SAFE_CATEGORY_KEYS and recs[key].is_safe_fallback:
-            st.info(t("res.no_safe"))
-        price_note = price_ranking_note(key, recs[key], built)
-        if price_note is not None and price_note.key == "rank.skipped_cheaper":
-            # tańszy wariant bez potwierdzonej ceny jest normalnie na liście i na karcie szacunku
-            st.caption(t("rank.cheaper_in_list"))
-        elif price_note:
-            st.info(tm(price_note))
-        if key in ("najmniej_przesiadek", "najmniej_przesiadek_bezpieczna"):
-            st.caption(t("res.fewest_transfers_note"))
-        st.subheader(tm(recs[key].variant_name))
-        render_itinerary(recs[key], wiek, bc if bc != "brak" else None)
+        st.subheader(t("res.recommendations"))
 
-    tabs = st.tabs([rec_label(key) for key in RECOMMENDATION_LABELS])
-    for tab, key in zip(tabs, RECOMMENDATION_LABELS):
-        with tab:
-            render_recommendation_tab(key)
+        # Ten sam wariant potrafi wygrać w kilku kategoriach naraz (np. "Najszybsza" i "Najlepszy
+        # kompromis" mogą wskazać dokładnie tę samą trasę, jeśli akurat jest jednocześnie
+        # najszybsza i relatywnie tania) — to poprawne działanie scoringu, nie duplikat/błąd, ale
+        # bez podpowiedzi wygląda na demo jak awaria. Pierwsza kategoria w kolejności
+        # RECOMMENDATION_LABELS, która "zdobyła" dany wariant, staje się jego "właścicielem";
+        # każda kolejna kategoria wskazująca na ten sam wariant dostaje hint z jej nazwą.
+        first_owner_key = {}
+        for key, itinerary in recs.items():
+            first_owner_key.setdefault(id(itinerary), key)
+
+        def render_recommendation_tab(key: str) -> None:
+            owner_key = first_owner_key[id(recs[key])]
+            if owner_key != key:
+                st.caption(t("res.same_route", label=rec_label(owner_key)))
+            if key in SAFE_CATEGORY_KEYS and recs[key].is_safe_fallback:
+                st.info(t("res.no_safe"))
+            price_note = price_ranking_note(key, recs[key], built)
+            if price_note is not None and price_note.key == "rank.skipped_cheaper":
+                # tańszy wariant bez potwierdzonej ceny jest normalnie na liście i na karcie szacunku
+                st.caption(t("rank.cheaper_in_list"))
+            elif price_note:
+                st.info(tm(price_note))
+            if key in ("najmniej_przesiadek", "najmniej_przesiadek_bezpieczna"):
+                st.caption(t("res.fewest_transfers_note"))
+            st.subheader(tm(recs[key].variant_name))
+            render_itinerary(recs[key], wiek, existing_bahncard)
+
+        tabs = st.tabs([rec_label(key) for key in RECOMMENDATION_LABELS])
+        for tab, key in zip(tabs, RECOMMENDATION_LABELS):
+            with tab:
+                render_recommendation_tab(key)
 
     render_attractions_and_city_cards(
         request.destination_label,

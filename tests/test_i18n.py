@@ -22,7 +22,7 @@ from routing.model import (
     TransferWarning,
 )
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations
-from tests.test_price_status_ui import open_details
+from tests.test_price_status_ui import leg_table, open_details
 
 ROOT = Path(__file__).resolve().parent.parent
 PL = TRANSLATIONS["pl"]
@@ -49,11 +49,11 @@ def test_komplet_kluczy_i_te_same_pola(lang):
 
 
 def test_polski_domyslny_i_zapasowy():
-    assert t("form.submit") == "Szukaj"
-    assert t("form.submit", lang="de") == "Suchen"
-    assert t("form.submit", lang="xx") == "Szukaj"  # nieznany język -> polski
+    assert t("form.submit") == "Szukaj połączeń"
+    assert t("form.submit", lang="de") == "Verbindungen suchen"
+    assert t("form.submit", lang="xx") == "Szukaj połączeń"  # nieznany język -> polski
     assert t("klucz.ktorego.nie.ma") == "klucz.ktorego.nie.ma"
-    assert t("list.hint", lang="en", shown=3, total=5).startswith("All routes found: 3 of 5")
+    assert t("list.hint", lang="en", shown=3, total=5).startswith("All options: 3 of 5")
 
 
 def test_tlumaczenia_etykiet_domenowych_pokrywaja_slowniki():
@@ -150,15 +150,16 @@ def test_aplikacja_w_kazdym_jezyku_wyszukuje_i_renderuje_wyniki(mocked_backend, 
 
     at.button[0].click().run()  # formularz wyszukiwania
     assert not at.exception, at.exception
-    assert t("res.recommendations", lang=lang) in [h.value for h in at.header]
-    assert t("res.all_variants", lang=lang) in [h.value for h in at.header]
+    assert t("res.see_all", lang=lang) in [e.label for e in at.expander]
+    assert t("res.recommendations", lang=lang) in [h.value for h in at.subheader]
+    assert t("res.all_variants", lang=lang) in [h.value for h in at.subheader]
     open_details(at)
     near_miss = t("transfer.near_miss", lang=lang, station="Katowice", shortfall="5", gap="5", required="10")
     # Streamlit zamienia początkowe emoji komunikatu na ikonę, więc w .value go już nie ma
     assert near_miss.removeprefix("🟡 ") in [i.value for i in at.info]
     assert t("price.unverified_total", lang=lang) in [c.value for c in at.caption]
     # ceny odcinków nie zależą od języka
-    rows = at.dataframe[1].value
+    rows = leg_table(at, lang)
     assert t("col.price", lang=lang) in rows.columns
     prices = list(rows[t("col.price", lang=lang)])
     assert prices[0].startswith("40.00 PLN") and prices[1].startswith("60.00 PLN")
@@ -172,10 +173,10 @@ def test_aplikacja_w_kazdym_jezyku_wyszukuje_i_renderuje_wyniki(mocked_backend, 
 def test_zmiana_jezyka_zachowuje_wynik_wyszukiwania(mocked_backend):
     at = _app().run()
     at.button[0].click().run()
-    assert PL["res.recommendations"] in [h.value for h in at.header]
+    assert PL["res.recommendations"] in [h.value for h in at.subheader]
     at.radio[0].set_value("de").run()
     assert not at.exception
-    assert t("res.recommendations", lang="de") in [h.value for h in at.header]
+    assert t("res.recommendations", lang="de") in [h.value for h in at.subheader]
 
 
 def test_html_lang_script_ustawia_lang_dokumentu_nadrzednego():

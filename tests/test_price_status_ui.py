@@ -158,9 +158,17 @@ def _wariant():
     return _itinerary(ok, fallback)
 
 
+CARD_BUTTONS = ("show_recommended", "show_confirmed", "show_estimate")
+
+
+def leg_table(at, lang="pl"):
+    """Tabela odcinków wariantu (jest też lista wszystkich wariantów, więc szukamy po kolumnach)."""
+    return next(d.value for d in at.dataframe if t("col.price", lang=lang) in d.value.columns)
+
+
 def open_details(at):
     """Klika "Pokaż szczegóły" na pierwszej karcie wariantu (zaznacza wariant, wynik zostaje)."""
-    button = next((b for b in at.button if b.key in ("show_confirmed", "show_estimate")), None)
+    button = next((b for b in at.button if b.key in CARD_BUTTONS), None)
     if button is not None:
         button.click().run()
     else:  # wariant bez pełnej ceny nie ma karty - wybór z listy (AppTest nie zaznacza wierszy)
@@ -202,7 +210,7 @@ def test_ekran_wyniku_pokazuje_status_zrodlo_i_date(mocked_backend, monkeypatch,
     assert t("source.coverage", lang=lang, n=1, total=2) in captions
     assert at.metric[1].label == t("metric.price", lang=lang)
 
-    rows = at.dataframe[1].value  # [0] to lista wszystkich wariantów, [1] tabela odcinków
+    rows = leg_table(at, lang)
     status_col = list(rows[t("col.price_status", lang=lang)])
     assert status_col[0].endswith(t("badge.official", lang=lang))
     assert status_col[1].endswith(t("badge.no_price", lang=lang))
@@ -293,3 +301,4 @@ def test_ekran_wyniku_ma_dwie_karty_wariantow(two_variants_backend, monkeypatch,
     assert t("cards.confirmed", lang=lang) in text
     assert t("cards.estimate", lang=lang) in text
     assert f":orange-badge[{t('cards.estimate_tag', lang=lang)}]" in text
+    assert t("cards.recommended", lang=lang) in text

@@ -8,7 +8,7 @@ import streamlit as st
 
 from fares.eligibility_info import eligibility_for, explain_ticket
 from fares.model import PriceType
-from i18n import label_or, t, tm
+from i18n import current_lang, label_or, t, tm
 from routing.model import LegMode
 
 
@@ -239,7 +239,16 @@ def cheapest_variant_cards(built) -> tuple[object | None, object | None]:
 
 
 SELECTED_KEY = "selected_variant"  # indeks wariantu w st.session_state["search_result"]["built"]
+SELECTED_SLOT_KEY = "selected_slot"  # karta/lista, pod którą rozwinięto szczegóły
+SLOT_LIST = "list"
 SORT_OPTIONS = ("price", "time", "transfers")
+
+# Podświetlenie wybranej karty: sama ramka kontenera z kluczem "card-selected-*" (poza tym wybraną
+# kartę znaczy też plakietka "wybrana", więc kolor nie jest jedynym sygnałem).
+_CARD_CSS = (
+    "<style>[class*='st-key-card-selected-']{"
+    "border:2px solid #1f77b4 !important;background:rgba(31,119,180,.07);}</style>"
+)
 
 
 def route_summary(it) -> str:
@@ -270,8 +279,50 @@ def time_span(it) -> str:
     return f"{first:%H:%M} → {last:%H:%M}" + (f" +{days}" if days > 0 else "")
 
 
+def duration_text(minutes: float) -> str:
+    """"8 h 30 min" zamiast "8.5 h" (zaokrąglone do pełnych minut)."""
+    total = round(minutes)
+    hours, mins = divmod(total, 60)
+    if not hours:
+        return f"{mins} min"
+    return f"{hours} h {mins:02d} min" if mins else f"{hours} h"
+
+
+def transfers_text(n: int, lang: str | None = None) -> str:
+    """"bez przesiadek" / "1 przesiadka" / "2 przesiadki" / "5 przesiadek" (polska odmiana tylko
+    w polskim; w pozostałych językach liczba pojedyncza i mnoga)."""
+    if n <= 0:
+        return t("plain.transfers_0", lang=lang)
+    if n == 1:
+        return t("plain.transfers_1", lang=lang)
+    polish_few = (lang or current_lang()) == "pl" and 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14
+    return t("plain.transfers_few" if polish_few else "plain.transfers_many", lang=lang, n=n)
+
+
+def unique_places(suggestions: list[dict]) -> list[dict]:
+    """Kandydaci geokodera bez powtórzeń (ta sama nazwa i punkt po zaokrągleniu do ~10 m), w
+    kolejności od geokodera."""
+    seen, out = set(), []
+    for s in suggestions:
+        key = (s["name"].strip().casefold(), round(s["lat"], 4), round(s["lon"], 4))
+        if key not in seen:
+            seen.add(key)
+            out.append(s)
+    return out
+
+
 def variant_index(built, it) -> int:
     return next(i for i, x in enumerate(built) if x is it)
+
+
+def recommended_variant(built, recs):
+    """Jedna polecana trasa: "najlepszy kompromis (bezpieczny)" z rekomendacji (kompromis ceny, czasu
+    i przesiadek bez ryzykownych przesiadek, gdy takie są), a bez rekomendacji pierwszy wariant."""
+    for key in ("najlepszy_kompromis_bezpieczny", "najlepszy_kompromis"):
+        it = recs.get(key) if recs else None
+        if it is not None and any(x is it for x in built):
+            return it
+    return built[0] if built else None
 
 
 def _sort_key(sort: str):
@@ -291,55 +342,102 @@ def variant_list(built, sort: str = "price", only_confirmed: bool = False) -> li
     return sorted(idx, key=lambda i: key(built[i]))
 
 
-def select_variant(index: int) -> None:
-    st.session_state[SELECTED_KEY] = index
+def select_variant(index: int, slot: str = SLOT_LIST, toggle: bool = True) -> None:
+    """Wybiera wariant i miejsce (karta/lista), pod którym rozwija się jego szczegóły. Ponowne
+    kliknięcie tej samej karty zwija szczegóły (toggle)."""
+    state = st.session_state
+    if toggle and state.get(SELECTED_KEY) == index and state.get(SELECTED_SLOT_KEY) == slot:
+        state.pop(SELECTED_KEY, None)
+        state.pop(SELECTED_SLOT_KEY, None)
+        return
+    state[SELECTED_KEY] = index
+    state[SELECTED_SLOT_KEY] = slot
 
 
-def _variant_card(built, it, title: str, tag: str | None = None, key: str = "card") -> None:
-    with st.container(border=True):
-        st.markdown(f"**{title}**")
+def _active_slot(cards: list[tuple[str, int]]) -> str | None:
+    """Slot ze szczegółami: zapisany, jeśli pasuje do wybranego wariantu; w przeciwnym razie
+    pierwsza karta z tym wariantem (np. gdy wybór ustawiono bez slotu)."""
+    selected = st.session_state.get(SELECTED_KEY)
+    if selected is None:
+        return None
+    slot = st.session_state.get(SELECTED_SLOT_KEY)
+    if slot == SLOT_LIST or any(s == slot and i == selected for s, i in cards):
+        return slot
+    return next((s for s, i in cards if i == selected), None)
+
+
+def _variant_card(built, it, title: str, slot: str, active: str | None, render_details,
+                  tag: str | None = None, note: str | None = None) -> None:
+    """Karta wariantu; gdy to aktywny slot, szczegóły rozwijają się TUŻ POD kartą."""
+    selected = active == slot
+    with st.container(border=True, key=f"card-selected-{slot}" if selected else f"card-{slot}"):
+        st.markdown(f"**{title}**" + (f"  :blue-badge[{t('cards.selected')}]" if selected else ""))
+        if note:
+            st.caption(note)
         if tag:
-            st.markdown(f":orange-badge[{tag}]")
+            st.badge(tag, color="orange", help=t("cards.estimate_help"))
         st.subheader(route_summary(it))
         st.caption(f"{tm(it.variant_name)} • {carriers_summary(it)}")
         st.markdown(f"🕒 {time_span(it)}")
-        st.caption(
-            t(
-                "cards.meta",
-                hours=f"{it.total_duration_min / 60:.1f}",
-                transfers=it.num_transfers,
-            )
-        )
+        st.caption(f"{duration_text(it.total_duration_min)} • {transfers_text(it.num_transfers)}")
         st.markdown(f"**{variant_price_text(it)}**")
         status = itinerary_price_status(it)
-        st.badge(status_label(status), color=_STATUS_BADGE_COLOR[status])
-        st.button(
-            t("cards.details"),
-            key=f"show_{key}",
-            on_click=select_variant,
-            args=(variant_index(built, it),),
+        st.badge(
+            status_label(status),
+            color=_STATUS_BADGE_COLOR[status],
+            help=t(f"badge.explain_{_STATUS_KEY[status]}"),
         )
+        if it.is_risky:
+            st.caption(t("cards.risky"))
+        st.button(
+            t("cards.hide") if selected else t("cards.details"),
+            key=f"show_{slot}",
+            on_click=select_variant,
+            args=(variant_index(built, it), slot),
+        )
+    if selected:
+        render_selected_details(it, render_details)
 
 
-def render_variant_cards(built) -> None:
-    """Na górze wyników: dwie karty obok siebie albo jedna, gdy to ten sam wariant. Przycisk
-    "Pokaż szczegóły" wybiera wariant (SELECTED_KEY); sam wynik wyszukiwania zostaje w session_state."""
+def render_selected_details(it, render_details) -> None:
+    with st.container(border=True):
+        st.subheader(t("details.title", name=tm(it.variant_name)))
+        render_details(it)
+
+
+def render_variant_cards(built, recs, render_details) -> None:
+    """Na górze wyników trzy karty jedna pod drugą: polecana trasa, najtańsza potwierdzona i
+    najtańsza wg szacunku (ta ostatnia tylko, gdy to inny wariant niż potwierdzona). "Pokaż
+    szczegóły" wybiera wariant (SELECTED_KEY) i rozwija szczegóły pod daną kartą; sam wynik
+    wyszukiwania zostaje w session_state."""
+    st.html(_CARD_CSS)
+    recommended = recommended_variant(built, recs)
     confirmed, estimate = cheapest_variant_cards(built)
+    cards = []
+    if recommended is not None:
+        cards.append(("recommended", recommended))
+    if confirmed is not None:
+        cards.append(("confirmed", confirmed))
+    if estimate is not None:
+        cards.append(("estimate", estimate))
+    active = _active_slot([(slot, variant_index(built, it)) for slot, it in cards])
+    if recommended is not None:
+        _variant_card(
+            built, recommended, t("cards.recommended"), "recommended", active, render_details,
+            note=t("cards.recommended_why"),
+        )
     if confirmed is None and estimate is None:
         st.info(t("cards.none"))
         return
-    if estimate is None:
-        _variant_card(built, confirmed, t("cards.confirmed"), key="confirmed")
-        return
     if confirmed is None:
         st.info(t("cards.no_confirmed"))
-        _variant_card(built, estimate, t("cards.estimate"), t("cards.estimate_tag"), key="estimate")
-        return
-    left, right = st.columns(2)
-    with left:
-        _variant_card(built, confirmed, t("cards.confirmed"), key="confirmed")
-    with right:
-        _variant_card(built, estimate, t("cards.estimate"), t("cards.estimate_tag"), key="estimate")
+    else:
+        _variant_card(built, confirmed, t("cards.confirmed"), "confirmed", active, render_details)
+    if estimate is not None:
+        _variant_card(
+            built, estimate, t("cards.estimate"), "estimate", active, render_details,
+            tag=t("cards.estimate_tag"),
+        )
 
 
 def _variant_row(it) -> dict:
@@ -347,7 +445,7 @@ def _variant_row(it) -> dict:
     return {
         t("list.col.variant"): ("⚠️ " if it.is_risky else "") + tm(it.variant_name),
         t("col.route"): route_summary(it),
-        t("metric.time"): f"{it.total_duration_min / 60:.1f} h",
+        t("metric.time"): duration_text(it.total_duration_min),
         t("metric.transfers"): it.num_transfers,
         t("list.col.price"): variant_price_text(it),
         t("col.price_status"): status_cell(status),
@@ -357,13 +455,14 @@ def _variant_row(it) -> dict:
 def _on_row_select(table_key: str, order: list[int]) -> None:
     rows = st.session_state[table_key].selection.rows
     if rows:
-        select_variant(order[rows[0]])
+        select_variant(order[rows[0]], SLOT_LIST, toggle=False)
 
 
-def render_variant_list(built) -> None:
+def render_variant_list(built, render_details) -> None:
     """Pełna lista wszystkich wariantów (potwierdzone, szacunki, loty) z sortowaniem i filtrem
-    "tylko potwierdzone". Zaznaczenie wiersza wybiera wariant do podglądu szczegółów."""
-    st.header(t("res.all_variants"))
+    "tylko potwierdzone". Zaznaczenie wiersza wybiera wariant; jego szczegóły rozwijają się pod
+    tabelą (o ile nie otwarto ich pod którąś z kart na górze)."""
+    st.subheader(t("res.all_variants"))
     c_sort, c_filter = st.columns([2, 1])
     sort = c_sort.selectbox(
         t("list.sort"),
@@ -387,3 +486,10 @@ def render_variant_list(built) -> None:
         selection_mode="single-row",
         key=table_key,
     )
+    selected = st.session_state.get(SELECTED_KEY)
+    if (
+        selected is not None
+        and selected < len(built)
+        and st.session_state.get(SELECTED_SLOT_KEY) == SLOT_LIST
+    ):
+        render_selected_details(built[selected], render_details)

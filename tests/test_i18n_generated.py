@@ -19,7 +19,7 @@ from routing import airports, motis_client, search_service, variants
 from routing.model import Itinerary, Leg, LegMode, OtherDayVariant, PricedLeg, SkippedVariant
 from routing.scoring import build_itinerary, pick_recommendations, price_ranking_note
 from routing.transfers import check_transfer
-from tests.test_price_status_ui import open_details
+from tests.test_price_status_ui import leg_table, open_details
 
 ROOT = Path(__file__).resolve().parent.parent
 PL = TRANSLATIONS["pl"]
@@ -585,7 +585,7 @@ def test_aplikacja_pokazuje_pominiete_przesiadki_i_ostrzezenia_w_jezyku(
     assert tm(transport_mode_name("REGIONAL_RAIL"), lang) in joined
 
     # tabela: typ ceny przetłumaczony, odcinek bez ceny opisany po ludzku
-    rows = at.dataframe[1].value  # [0] to lista wariantów
+    rows = leg_table(at, lang)
     prices = list(rows[t("col.price", lang=lang)])
     # status ceny jest tylko w kolumnie "Status ceny", nie w nawiasie przy kwocie
     assert "(" not in prices[0].split(" — ")[0]

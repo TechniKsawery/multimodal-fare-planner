@@ -148,22 +148,18 @@ class DiscountProfile:
     (Merkzeichen H/Bl, określone świadczenia socjalne) — to nie wpływa na cenę PRZEJAZDU, którą
     liczy ten kalkulator, tylko na koszt samej legitymacji, który tu nie jest modelowany."""
     age: int | None = None
-    """Wiek pasażera w dniu podróży. Używany przez fares/international.py (bilet DB PL-DE) do
-    wyboru taryfy wiekowej: dziecko/niemowlę (bis 5 lat gratis, 6-14 lat zależnie od
-    `child_with_guardian`), "Super Sparpreis Europa Young" (15-26 lat) albo taryfa normalna —
-    i przez fares/international_pkp.py (własna oferta PKP) do ulgi dziecięcej (6-14 -50%,
-    <6 gratis) — nie wpływa na żaden INNY moduł taryf (PKP/DB/VRR/ZTM krajowe mają własne,
-    osobne pola ulg wyżej, bo te zniżki zależą od STATUSU, nie samego wieku). Przed tym polem
-    `age` z CLI/API trafiał tylko do routing/card_suggestions.py (sugestia zakupu BahnCard),
-    nigdy do ceny biletu — zob. audyt zniżek w projekcie (2026-10-07)."""
+    """Wiek pasażera w dniu podróży. Używany przez fares/db.py (krajowy DB Flexpreis: dzieci do 5 lat
+    gratis, 6-14 lat z opiekunem gratis, 6-14 lat samodzielnie 50% rabatu), przez
+    fares/international.py (bilet DB PL-DE: bis 5 lat gratis, 6-14 lat z/bez opiekuna, Young 15-26 lat)
+    oraz przez fares/international_pkp.py (ulga dziecięca 6-14 -50%, <6 gratis) i kalkulatory lokalne
+    (HVV/MVV/VRS <6 gratis, ZTM Lublin, ZVON Görlitz)."""
     child_with_guardian: bool = False
-    """Tylko bilet międzynarodowy PL-DE, dziecko 6-14 lat (`age`): czy dziecko podróżuje w
-    towarzystwie osoby od 15 lat zgłoszonej przy tej samej rezerwacji — bahn.de: takie dziecko
-    jedzie bezpłatnie na ofercie DB (zob. fares/data/international_pl_de.json::_zrodlo_dziecko).
-    Domyślnie False (dziecko liczone jako podróżujące SAMODZIELNIE -> tylko 50% zniżki na
-    niemiecki odcinek, NIE za darmo) — bezpieczniejszy domyślny wybór: nie zakładamy opiekuna,
-    którego nie potwierdzono, żeby nie zaniżyć ceny biletu. PKP (fares/international_pkp.py) nie
-    rozróżnia opiekuna — jego ulga dziecięca 50%/100% obowiązuje niezależnie od tego pola."""
+    """Dziecko 6-14 lat (`age`): czy dziecko podróżuje w towarzystwie osoby od 15 lat zgłoszonej
+    przy tej samej rezerwacji — bahn.de: takie dziecko jedzie bezpłatnie na ofercie DB krajowej
+    (fares/db.py) oraz międzynarodowej (fares/international.py). Domyślnie False (dziecko liczone
+    jako podróżujące SAMODZIELNIE -> 50% zniżki na DB Flexpreis krajowy / niemiecki odcinek PL-DE,
+    NIE za darmo) — bezpieczniejszy domyślny wybór: nie zakładamy opiekuna, którego nie potwierdzono,
+    żeby nie zaniżyć ceny biletu. PKP (fares/international_pkp.py) nie rozróżnia opiekuna."""
 
     obywatelstwo: str | None = None
     """Jedna z: None (nie podano), "PL", "UE" (kraj UE/EOG inny niż Polska), "poza_UE".

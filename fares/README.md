@@ -5,7 +5,9 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 - **PKP Intercity** (`fares/pkp.py`) — cena z tabeli pasm odległości × mnożnik ulgi. Tylko
   odcinki KRAJOWE (w całości w Polsce) — odcinek PL↔DE (patrz niżej) idzie osobną ścieżką.
 - **DB** (`fares/db.py`) — Flexpreis jako górna granica z tabeli pasm odległości × mnożnik BahnCard
-  (BahnCard 25 → ×0.75, BahnCard 50 → ×0.5). Tylko odcinki KRAJOWE (w całości w Niemczech).
+  (BahnCard 25 → ×0.75, BahnCard 50 → ×0.5, BahnCard 100 → ×0.0) oraz ulgi wiekowe dla dzieci
+  (do 5 lat gratis, 6–14 lat z opiekunem gratis, 6–14 lat samodzielnie −50% na Flexpreis;
+  zweryfikowano 2026-10-14). Tylko odcinki KRAJOWE (w całości w Niemczech).
 - **Międzynarodowy PL↔DE** (`fares/international.py`) — jeden ciągły odcinek kolejowy
   przekraczający granicę (np. Berlin-Warszawa-Express). SZTYWNE kategorie cenowe wg relacji
   (Super Sparpreis Europa: krótka/średnia/długa), NIE tabela pasm jak PKP/DB. Wykrywane w
@@ -17,8 +19,7 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
   `fares/data/international_pl_de.json`). Pasażerowie 15-26 lat (`DiscountProfile.age`) dostają
   zamiast tego taryfę "Super Sparpreis Europa Young" — JEDNA cena "od" dla wszystkich relacji
   (bahn.de nie publikuje progów zależnych od odległości dla tej oferty), BahnCard działa tak samo
-  jak dla dorosłych. `age` NIE wpływa na żaden inny moduł taryf w tym katalogu — zob.
-  `_uwaga_young` w `fares/data/international_pl_de.json`.
+  jak dla dorosłych.
 - **VRR** (`fares/vrr.py`) — taryfa eezy.nrw: cena = Grundpreis + cena za km (linii prostej),
   z sufitem cenowym. Obejmuje pociągi regionalne VRR ORAZ lokalny bus/tramwaj/U-Bahn w obszarze
   VRR (Zagłębie Rury/NRW) — to jedna, wspólna taryfa strefowa dla całego transportu VRR.
@@ -85,8 +86,8 @@ Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:
 | VRR — eezy.nrw (Grundpreis + cena/km) | **oficjalne** | [Preistabelle VRR](https://www.vrr.de/fileadmin/user_upload/pdf/service/downloads/Weitere_Broschueren_und_Tarifinformationen/VRR_Preise_2026.pdf), Stand 01.06.2026 |
 | VRR — Kindertarif (50% rabatu, dzieci 6-14 lat) | **oficjalne** | tamże, sekcja "Kinder 50% Rabatt pro Person und Fahrt inkl. Deckel" |
 | DB — mnożniki BahnCard 25/50 | **oficjalne** | [bahn.de/faq/pk/angebot/flexpreis](https://www.bahn.de/faq/pk/angebot/flexpreis) |
-| DB — mnożnik BahnCard 100 (×0,0) | **NIEPOTWIERDZONY** (brak dosłownego cytatu z bahn.de; 2026-10-14 bahn.de zablokowane z kontenera) | brak; wyniki wyszukiwarki wskazują tylko na [bahn.de/angebot/bahncard/bahncard100/bahncard100](https://www.bahn.de/angebot/bahncard/bahncard100/bahncard100) („Unbegrenzt reisen im Nah- und Fernverkehr”, parafraza) — `breakdown["mnoznik_potwierdzony"]=False` |
-| DB krajowe — ulgi wiekowe (dzieci 0–5 gratis, 6–14 z opiekunem, seniorzy) | **NIEZAMODELOWANE** — `fares/db.py` nie czyta `age` | wyszukiwarka sugeruje [bahn.de/faq/pk/angebot/kindertickets](https://www.bahn.de/faq/pk/angebot/kindertickets) i [fahrkarten-fuer-kinder](https://www.bahn.de/service/individuelle-reise/kinder/fahrkarten-fuer-kinder), ale bez dosłownych cytatów (WebFetch zablokowany) reguły nie dodano |
+| DB — mnożnik BahnCard 100 (×0,0) | **oficjalne** (zweryfikowano 2026-10-14 na bahn.de) | [bahn.de/faq/wofuer-kann-ich-die-bahncard-100-nutzen](https://www.bahn.de/faq/wofuer-kann-ich-die-bahncard-100-nutzen) („Die (Probe) BahnCard 100 gilt für beliebig viele Fahrten in allen Zügen der Deutschen Bahn”) oraz [bahn.de/angebot/bahncard/bahncard100/bahncard100](https://www.bahn.de/angebot/bahncard/bahncard100/bahncard100) — `breakdown["mnoznik_potwierdzony"]=True` |
+| DB krajowe — ulgi wiekowe (dzieci 0–5 gratis, 6–14 z opiekunem gratis, 6–14 samodzielnie 50%, seniorzy brak ulgi na Flexpreis) | **oficjalne** (zweryfikowano 2026-10-14 na bahn.de) | [fahrkarten-fuer-kinder](https://www.bahn.de/service/individuelle-reise/kinder/fahrkarten-fuer-kinder), [kinder-bis-6-jahre](https://www.bahn.de/service/individuelle-reise/kinder/fahrkarten-fuer-kinder/kinder-bis-6-jahre), [kinder-6-14-jahre](https://www.bahn.de/service/individuelle-reise/kinder/fahrkarten-fuer-kinder/kinder-6-14-jahre), [alleinreisende-kinder](https://www.bahn.de/service/individuelle-reise/kinder/fahrkarten-fuer-kinder/alleinreisende-kinder) i [flexpreis](https://www.bahn.de/angebot/sparpreis-flexpreis/flexpreis) |
 | DB — tabela pasm odległości Flexpreis | **szacunek, skalibrowany do 1 realnej próbki** | DB nie publikuje takiej tabeli (cena dynamiczna); próba żywego wyszukiwania na bahn.de zablokowana jako ruch bota (błąd 751) — użyto zamiast tego realnej ceny Halle→München (373 km, 106–127 EUR) z bahndampf.de + oficjalnie cytowanej górnej granicy (150 EUR 2. klasa) do skalibrowania prostej formuły baza+km |
 | ZTM Lublin — bilety czasowe (15/40/90 min, 6 h, 24 h, strefa 1+2) i ulgi | **oficjalne** | [Ulgi w przejazdach ZDiTM](https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html) i [Cennik LUBIKA](https://lubika.zdtm.lublin.eu/cennik/), ważny od 16.02.2026, zweryfikowano 2026-10-13 |
 | Międzynarodowy PL↔DE — 3 kategorie cenowe (krótka/średnia/długa) | **oficjalne ceny "od", progi km SZACUNEK** | [Super Sparpreis Europa Polska](https://www.bahn.de/angebot/sparpreis-flexpreis/super-sparpreis-europa-polen), [zasada BahnCard tylko na niemiecki odcinek](https://int.bahn.de/en/offers/saver-fare-flexible-fare/super-saver-fare-europe-poland) — sprawdzone 2026-09-29 |

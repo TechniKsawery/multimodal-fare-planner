@@ -792,7 +792,7 @@ def test_dziecko_ponizej_6_lat_bezplatnie_granice_wieku(carrier, dziecko_flag):
 
 
 # --- DB krajowe: BahnCard 25/50/100 przy cenie krajowej, brak ulg wiekowych ---
-def _db_segment(bahncard=None, age=None, km=250):
+def _db_segment(bahncard=None, age=None, km=250, child_with_guardian=False):
     from fares.model import Carrier, DiscountProfile, Segment
 
     return Segment(
@@ -800,7 +800,11 @@ def _db_segment(bahncard=None, age=None, km=250):
         origin="A",
         destination="B",
         distance_km=km,
-        discounts=DiscountProfile(bahncard=bahncard, age=age),
+        discounts=DiscountProfile(
+            bahncard=bahncard,
+            age=age,
+            child_with_guardian=child_with_guardian,
+        ),
     )
 
 
@@ -814,21 +818,100 @@ def test_db_bahncard_mnozniki_przy_cenie_krajowej():
     assert db.estimate(_db_segment("100")).amount == 0.0
 
 
-def test_db_bahncard_100_oznaczony_jako_niepotwierdzony():
+def test_db_bahncard_100_potwierdzony_oficjalnie():
     from fares import db
 
     bc100 = db.estimate(_db_segment("100"))
-    assert bc100.breakdown["mnoznik_potwierdzony"] is False
-    assert "NIEPOTWIERDZONY" in bc100.notes
-    for bc in (None, "25", "50"):
+    assert bc100.amount == 0.0
+    assert bc100.breakdown["mnoznik_potwierdzony"] is True
+    assert "NIEPOTWIERDZONY" not in bc100.notes
+    assert "oficjalny" in bc100.notes
+    for bc in (None, "25", "50", "100"):
         est = db.estimate(_db_segment(bc))
         assert est.breakdown["mnoznik_potwierdzony"] is True
 
 
-def test_db_krajowe_nie_czyta_wieku():
+@pytest.mark.parametrize("km,base_price", [(40, 25.0), (550, 148.0)])
+def test_db_krajowe_wiek_4_gratis_niezaleznie_od_bahncard(km, base_price):
     from fares import db
 
-    assert {db.estimate(_db_segment(age=a)).amount for a in (None, 3, 10, 70)} == {97}
+    for bc in (None, "25", "50", "100"):
+        res = db.estimate(_db_segment(bahncard=bc, age=4, km=km))
+        assert res.amount == 0.0
+        assert res.currency == "EUR"
+        assert res.price_type is PriceType.ESTIMATE
+        assert res.breakdown["kategoria_wiekowa"] == "dziecko_do_5_lat"
+        assert res.breakdown["mnoznik_potwierdzony"] is True
+        assert "Kinder im Alter von 0 bis inklusive 5 Jahre" in res.notes
+
+
+@pytest.mark.parametrize("km,base_price", [(40, 25.0), (550, 148.0)])
+def test_db_krajowe_wiek_8_z_opiekunem_gratis(km, base_price):
+    from fares import db
+
+    for bc in (None, "25", "50", "100"):
+        res = db.estimate(_db_segment(bahncard=bc, age=8, km=km, child_with_guardian=True))
+        assert res.amount == 0.0
+        assert res.currency == "EUR"
+        assert res.price_type is PriceType.ESTIMATE
+        assert res.breakdown["kategoria_wiekowa"] == "dziecko_6_14_z_opiekunem"
+        assert res.breakdown["mnoznik_potwierdzony"] is True
+        assert "in Begleitung von Reisenden ab 15 Jahre kostenfrei" in res.notes
+
+
+@pytest.mark.parametrize("km,base_price", [(40, 25.0), (550, 148.0)])
+def test_db_krajowe_wiek_8_samodzielnie_50_procent_rabatu_i_bahncard(km, base_price):
+    from fares import db
+
+    # Samodzielnie bez BahnCard -> 50% Flexpreis
+    res_brak = db.estimate(_db_segment(bahncard=None, age=8, km=km, child_with_guardian=False))
+    assert res_brak.amount == round(base_price * 0.5, 2)
+    assert res_brak.breakdown["kategoria_wiekowa"] == "dziecko_6_14_samodzielnie"
+    assert res_brak.breakdown["ulga_dziecieca_rabat_procent"] == 50.0
+    assert res_brak.price_type is PriceType.ESTIMATE
+
+    # Samodzielnie z BahnCard 25 -> 50% * 0.75
+    res_bc25 = db.estimate(_db_segment(bahncard="25", age=8, km=km, child_with_guardian=False))
+    assert res_bc25.amount == round(base_price * 0.5 * 0.75, 2)
+    assert res_bc25.breakdown["mnoznik_potwierdzony"] is True
+
+    # Samodzielnie z BahnCard 50 -> 50% * 0.5
+    res_bc50 = db.estimate(_db_segment(bahncard="50", age=8, km=km, child_with_guardian=False))
+    assert res_bc50.amount == round(base_price * 0.5 * 0.5, 2)
+    assert res_bc50.breakdown["mnoznik_potwierdzony"] is True
+
+    # Samodzielnie z BahnCard 100 -> 0.0 EUR
+    res_bc100 = db.estimate(_db_segment(bahncard="100", age=8, km=km, child_with_guardian=False))
+    assert res_bc100.amount == 0.0
+    assert res_bc100.breakdown["mnoznik_potwierdzony"] is True
+
+
+@pytest.mark.parametrize("age", [16, 30, 70])
+@pytest.mark.parametrize("km,base_price", [(40, 25.0), (550, 148.0)])
+def test_db_krajowe_wiek_16_30_70_cena_normalna_i_bahncard(age, km, base_price):
+    from fares import db
+
+    # Bez karty: pełna cena pasma Flexpreis
+    res_brak = db.estimate(_db_segment(bahncard=None, age=age, km=km))
+    assert res_brak.amount == base_price
+    assert res_brak.breakdown.get("wiek") == age
+    assert res_brak.price_type is PriceType.ESTIMATE
+    assert res_brak.breakdown["mnoznik_potwierdzony"] is True
+
+    # BahnCard 25: 75%
+    res_bc25 = db.estimate(_db_segment(bahncard="25", age=age, km=km))
+    assert res_bc25.amount == round(base_price * 0.75, 2)
+    assert res_bc25.breakdown["mnoznik_potwierdzony"] is True
+
+    # BahnCard 50: 50%
+    res_bc50 = db.estimate(_db_segment(bahncard="50", age=age, km=km))
+    assert res_bc50.amount == round(base_price * 0.5, 2)
+    assert res_bc50.breakdown["mnoznik_potwierdzony"] is True
+
+    # BahnCard 100: 0.0 EUR
+    res_bc100 = db.estimate(_db_segment(bahncard="100", age=age, km=km))
+    assert res_bc100.amount == 0.0
+    assert res_bc100.breakdown["mnoznik_potwierdzony"] is True
 
 
 def test_api_schema_ma_child_with_guardian():

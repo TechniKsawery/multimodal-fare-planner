@@ -300,5 +300,5 @@ def test_ekran_wyniku_ma_dwie_karty_wariantow(two_variants_backend, monkeypatch,
     text = " ".join(m.value for m in at.markdown)
     assert t("cards.confirmed", lang=lang) in text
     assert t("cards.estimate", lang=lang) in text
-    assert f":orange-badge[{t('cards.estimate_tag', lang=lang)}]" in text
+    assert "mw-badge-estimate" in text and t("cards.estimate_tag", lang=lang) in text
     assert t("cards.recommended", lang=lang) in text

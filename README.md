@@ -165,6 +165,12 @@ setupu — wystarczy:
 Krok `import` (ponowne ściąganie danych, `fetch_data.py`) jest potrzebny tylko wtedy, gdy
 chcesz odświeżyć dane GTFS/OSM albo zmieniłeś `motis/config.yml`.
 
+**Wygląd.** Styl interfejsu wg `research/ui-styl.md` (wersja 2) siedzi w `.streamlit/config.toml`
+(kolory motywu) i `ui_style.py` (CSS: plakietki statusu ceny, karty, przycisk „Szukaj połączeń”).
+Jasna paleta jest podstawą, ciemna jest do wyboru w menu ⋮ w prawym górnym rogu
+(System / Light / Dark); przy ustawieniu „System” ciemny system operacyjny daje ciemną paletę.
+Motyw wymaga Streamlita z sekcjami `[theme.dark]` i CSS `light-dark()` (sprawdzone na 1.65).
+
 ## Sesja 1: dane
 
 ```

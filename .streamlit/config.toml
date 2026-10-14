@@ -1,0 +1,20 @@
+# Styl interfejsu wg research/ui-styl.md (wersja 2): jasna paleta jest domyślna, ciemna jest
+# drugą do wyboru w menu ustawień Streamlita (⋮ → Settings → Theme). Sekcja [theme] niesie
+# paletę jasną, [theme.dark] ją nadpisuje. Tokeny CSS (plakietki, karty) siedzą w ui_style.py.
+
+[theme]
+base = "light"
+primaryColor = "#2563EB"
+backgroundColor = "#F8F9FA"
+secondaryBackgroundColor = "#F1F5F9"
+textColor = "#1E293B"
+font = "sans serif"
+
+[theme.dark]
+primaryColor = "#3B82F6"
+backgroundColor = "#18181B"
+secondaryBackgroundColor = "#27272A"
+textColor = "#FAFAFA"
+
+[browser]
+gatherUsageStats = false

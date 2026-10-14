@@ -4,6 +4,7 @@ import json
 import re
 import unicodedata
 from datetime import date
+from html import escape
 from urllib.parse import urlparse
 
 import streamlit as st
@@ -12,6 +13,7 @@ from fares.eligibility_info import eligibility_for, explain_ticket
 from fares.model import PriceType
 from i18n import current_lang, label_or, t, tm
 from routing.model import LegMode
+from ui_style import badge_html, selected_badge_html
 
 
 def html_lang_script(lang: str) -> str:
@@ -115,7 +117,6 @@ PRICE_NO_PRICE = "NO_PRICE"
 _STATUS_RANK = {PRICE_OFFICIAL: 0, PRICE_ESTIMATE: 1, PRICE_NO_PRICE: 2}
 _STATUS_KEY = {PRICE_OFFICIAL: "official", PRICE_ESTIMATE: "estimate", PRICE_NO_PRICE: "no_price"}
 _STATUS_EMOJI = {PRICE_OFFICIAL: "🟢", PRICE_ESTIMATE: "🟡", PRICE_NO_PRICE: "⚪"}
-_STATUS_BADGE_COLOR = {PRICE_OFFICIAL: "green", PRICE_ESTIMATE: "orange", PRICE_NO_PRICE: "gray"}
 
 
 def leg_price_status(p) -> str | None:
@@ -149,6 +150,12 @@ def itinerary_price_status(it) -> str:
 
 def status_label(status: str) -> str:
     return t(f"badge.{_STATUS_KEY[status]}")
+
+
+def status_badge(status: str) -> str:
+    """Plakietka statusu ceny (HTML, style w ui_style.py) z wyjaśnieniem w podpowiedzi."""
+    key = _STATUS_KEY[status]
+    return badge_html(status_label(status), key, t(f"badge.explain_{key}"))
 
 
 def status_cell(status: str | None) -> str:
@@ -200,7 +207,7 @@ def render_price_summary(it) -> None:
     """Pod metrykami ekranu wyniku: badge statusu ceny łącznej, jedno zdanie wyjaśnienia oraz
     źródło i data weryfikacji (z zastrzeżeniem, ile odcinków ma takie dane)."""
     status = itinerary_price_status(it)
-    st.badge(status_label(status), color=_STATUS_BADGE_COLOR[status])
+    st.markdown(status_badge(status), unsafe_allow_html=True)
     st.caption(t(f"badge.explain_{_STATUS_KEY[status]}"))
     hosts, oldest, covered, priced = itinerary_verification(it)
     if priced:
@@ -244,14 +251,6 @@ SELECTED_KEY = "selected_variant"  # indeks wariantu w st.session_state["search_
 SELECTED_SLOT_KEY = "selected_slot"  # karta/lista, pod którą rozwinięto szczegóły
 SLOT_LIST = "list"
 SORT_OPTIONS = ("price", "time", "transfers")
-
-# Podświetlenie wybranej karty: sama ramka kontenera z kluczem "card-selected-*" (poza tym wybraną
-# kartę znaczy też plakietka "wybrana", więc kolor nie jest jedynym sygnałem).
-_CARD_CSS = (
-    "<style>[class*='st-key-card-selected-']{"
-    "border:2px solid #1f77b4 !important;background:rgba(31,119,180,.07);}</style>"
-)
-
 
 def route_summary(it) -> str:
     """Skrót przystanków: "Lublin → Warszawa Wschodnia → Gdańsk Główny" (początek, miejsca zmiany
@@ -465,28 +464,36 @@ def _active_slot(cards: list[tuple[str, int]]) -> str | None:
 
 
 def _variant_card(built, it, title: str, slot: str, active: str | None, render_details,
-                  tag: str | None = None, note: str | None = None) -> None:
-    """Karta wariantu; gdy to aktywny slot, szczegóły rozwijają się TUŻ POD kartą."""
+                  tag: str | None = None, note: str | None = None,
+                  also: list[str] | None = None) -> None:
+    """Karta wariantu; gdy to aktywny slot, szczegóły rozwijają się TUŻ POD kartą. Wygląd (ramka,
+    cień, wyróżnienie wybranej) daje ui_style.py po kluczu kontenera card-* / card-selected-*."""
     selected = active == slot
     with st.container(border=True, key=f"card-selected-{slot}" if selected else f"card-{slot}"):
-        st.markdown(f"**{title}**" + (f"  :blue-badge[{t('cards.selected')}]" if selected else ""))
+        head = f'<span class="mw-card-title">{escape(title)}</span>'
+        if selected:
+            head += " " + selected_badge_html(t("cards.selected"))
+        st.markdown(head, unsafe_allow_html=True)
         if note:
             st.caption(note)
-        if tag:
-            st.badge(tag, color="orange", help=t("cards.estimate_help"))
+        status = itinerary_price_status(it)
+        price_row = f'<span class="mw-price">{escape(variant_price_text(it))}</span>'
+        if tag and status == PRICE_ESTIMATE:
+            # jedna plakietka zamiast dwóch: etykieta „szacunek, niepotwierdzona” jest tu statusem ceny
+            price_row += badge_html(tag, "estimate", t("cards.estimate_help"))
+        else:
+            price_row += status_badge(status)
+            if tag:
+                price_row += badge_html(tag, "estimate", t("cards.estimate_help"))
+        st.markdown(f'<div class="mw-price-row">{price_row}</div>', unsafe_allow_html=True)
         st.subheader(route_summary(it))
         st.caption(f"{tm(it.variant_name)} • {carriers_summary(it)}")
         st.markdown(f"🕒 {time_span(it)}")
         st.caption(f"{duration_text(it.total_duration_min)} • {transfers_text(it.num_transfers)}")
-        st.markdown(f"**{variant_price_text(it)}**")
-        status = itinerary_price_status(it)
-        st.badge(
-            status_label(status),
-            color=_STATUS_BADGE_COLOR[status],
-            help=t(f"badge.explain_{_STATUS_KEY[status]}"),
-        )
         if it.is_risky:
             st.caption(t("cards.risky"))
+        if also:
+            st.caption(t("cards.also", labels=", ".join(also)))
         st.button(
             t("cards.hide") if selected else t("cards.details"),
             key=f"show_{slot}",
@@ -504,11 +511,11 @@ def render_selected_details(it, render_details) -> None:
 
 
 def render_variant_cards(built, recs, render_details) -> None:
-    """Na górze wyników trzy karty jedna pod drugą: polecana trasa, najtańsza potwierdzona i
-    najtańsza wg szacunku (ta ostatnia tylko, gdy to inny wariant niż potwierdzona). "Pokaż
-    szczegóły" wybiera wariant (SELECTED_KEY) i rozwija szczegóły pod daną kartą; sam wynik
-    wyszukiwania zostaje w session_state."""
-    st.html(_CARD_CSS)
+    """Na górze wyników karty jedna pod drugą: polecana trasa, najtańsza potwierdzona i najtańsza wg
+    szacunku (ta ostatnia tylko, gdy to inny wariant niż potwierdzona), a po nich dodatkowo
+    najszybsza i bezpieczna przesiadka (tylko gdy to inny wariant niż któraś z kart wyżej; inaczej
+    ta karta dostaje dopisek „także: …”). "Pokaż szczegóły" wybiera wariant (SELECTED_KEY) i
+    rozwija szczegóły pod daną kartą; sam wynik wyszukiwania zostaje w session_state."""
     recommended = recommended_variant(built, recs)
     confirmed, estimate = cheapest_variant_cards(built)
     cards = []
@@ -518,23 +525,48 @@ def render_variant_cards(built, recs, render_details) -> None:
         cards.append(("confirmed", confirmed))
     if estimate is not None:
         cards.append(("estimate", estimate))
-    active = _active_slot([(slot, variant_index(built, it)) for slot, it in cards])
+    # dodatkowe karty: najszybsza i najtańsza bez ryzykownej przesiadki (rekomendacje scoringu)
+    extras, also = [], {}
+    for slot, key, label in (
+        ("fastest", "najszybsza", t("rec.najszybsza")),
+        ("safe", "najtansza_bezpieczna", t("cards.safe")),
+    ):
+        it = recs.get(key) if recs else None
+        if it is None or not any(x is it for x in built):
+            continue
+        if slot == "safe" and (it.is_risky or it.is_safe_fallback):
+            continue  # bez w pełni bezpiecznego wariantu nie udajemy, że taki jest
+        owner = next((s for s, x in cards + extras if x is it), None)
+        if owner is not None:
+            also.setdefault(owner, []).append(label)
+        else:
+            extras.append((slot, it))
+    extra_titles = {"fastest": t("rec.najszybsza"), "safe": t("cards.safe")}
+    extra_notes = {"fastest": t("cards.fastest_why"), "safe": t("cards.safe_why")}
+    active = _active_slot([(slot, variant_index(built, it)) for slot, it in cards + extras])
     if recommended is not None:
         _variant_card(
             built, recommended, t("cards.recommended"), "recommended", active, render_details,
-            note=t("cards.recommended_why"),
+            note=t("cards.recommended_why"), also=also.get("recommended"),
         )
     if confirmed is None and estimate is None:
         st.info(t("cards.none"))
-        return
-    if confirmed is None:
+    elif confirmed is None:
         st.info(t("cards.no_confirmed"))
-    else:
-        _variant_card(built, confirmed, t("cards.confirmed"), "confirmed", active, render_details)
+    if confirmed is not None:
+        _variant_card(
+            built, confirmed, t("cards.confirmed"), "confirmed", active, render_details,
+            note=t("cards.confirmed_why"), also=also.get("confirmed"),
+        )
     if estimate is not None:
         _variant_card(
             built, estimate, t("cards.estimate"), "estimate", active, render_details,
-            tag=t("cards.estimate_tag"),
+            tag=t("cards.estimate_tag"), note=t("cards.estimate_why"), also=also.get("estimate"),
+        )
+    for slot, it in extras:
+        _variant_card(
+            built, it, extra_titles[slot], slot, active, render_details,
+            note=extra_notes[slot], also=also.get(slot),
         )
 
 

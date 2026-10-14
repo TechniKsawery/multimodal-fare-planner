@@ -57,6 +57,7 @@ from ui_helpers import (
     status_cell,
     unique_places,
 )
+from ui_style import inject_style
 
 with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
     PKP_ULGI = list(json.load(fh)["ulgi_procent"])
@@ -65,8 +66,11 @@ with open("fares/data/pkp_intercity.json", encoding="utf-8") as fh:
 # przebiegu (po zmianie języka Streamlit robi rerun, w którym st.session_state["lang"] już jest).
 st.set_page_config(
     page_title=t("app.page_title", lang=st.session_state.get("lang", DEFAULT_LANG)),
+    page_icon="🚆",
     layout="wide",
+    initial_sidebar_state="collapsed",
 )
+inject_style()
 st.radio(
     "Język / Language",
     options=list(LANGUAGES),
@@ -77,6 +81,7 @@ st.radio(
 )
 set_html_lang(st.session_state["lang"])
 st.title(t("app.title"))
+st.caption(t("app.subtitle"))
 
 # Czysto kosmetyczne rozróżnienie w UI (nie wpływa na progi z routing/transfers.py ani na
 # scoring/kategoryzację "bezpieczna"): przesiadka, której brakuje do progu bezpieczeństwa
@@ -589,6 +594,12 @@ def render_search_header(result) -> None:
     st.caption(t("res.when", date=result["date"]))
 
 
+def group_header(title_key: str, hint_key: str) -> None:
+    """Nagłówek grupy opcji w formularzu: ikona i tytuł, pod spodem jedno zdanie, czego dotyczy."""
+    st.markdown(f'<p class="mw-group-title">{t(title_key)}</p>', unsafe_allow_html=True)
+    st.caption(t(hint_key))
+
+
 st.session_state.setdefault("origin_query", DEFAULT_FROM)
 st.session_state.setdefault("dest_query", DEFAULT_TO)
 
@@ -614,124 +625,143 @@ with st.form("search", border=False):
         help=t("form.time_help"),
         key="w_time",
     )
+    # Wszystkie opcje w 5 grupach z research/ui-styl.md (§7); grupy 1-4 w jednym panelu „Więcej
+    # opcji”, grupa 5 (przejazdy bezpłatne) w osobnym, bo Streamlit nie zagnieżdża expanderów.
+    # Nazwy zmiennych, domyślne wartości i brak kluczy przy widgetach zależnych od wieku bez zmian.
     with st.expander(t("form.more")):
         st.caption(t("form.more_hint"))
-        wiek = st.number_input(
-            t("age.label"),
-            min_value=0,
-            max_value=120,
-            value=30,
-            step=1,
-            help=t("age.help"),
-            key="w_wiek",
-        )
-        obywatelstwo = st.selectbox(
-            t("citizen.label"),
-            [None, "PL", "UE", "poza_UE"],
-            format_func=lambda o: t("citizen.none") if o is None else t(f"citizen.{o}"),
-            help=t("citizen.help"),
-            key="w_obywatelstwo",
-        )
-        c_attr_profile1, c_attr_profile2 = st.columns(2)
-        uczen_student = c_attr_profile1.checkbox(
-            t("student.label"),
-            help=t("student.help"),
-            key="w_uczen_student",
-        )
-        senior_attrakcje = c_attr_profile2.checkbox(
-            t("senior.label"),
-            help=t("senior.help"),
-            key="w_senior",
-        )
-        _kraj_legitymacji = st.selectbox(
-            t("idcountry.label"),
-            ["none", "PL", "DE", "other"],
-            format_func=lambda k: t(f"idcountry.{k}"),
-            help=t("idcountry.help"),
-            key="w_kraj_legitymacji",
-        )
-        bagaz_rejestrowany = st.checkbox(
-            t("form.baggage"),
-            value=True,
-            help=t("form.baggage_help"),
-            key="w_bagaz",
-        )
-        c1, c2 = st.columns(2)
-        pkp = c1.selectbox(
-            t("form.pkp"), PKP_ULGI, format_func=lambda k: label_or("pkp", k, k), key="w_pkp"
-        )
-        bc = c2.selectbox(
-            t("form.bahncard"),
-            ["brak", "25", "50", "100"],
-            format_func=lambda k: t(f"bc.{k}"),
-            key="w_bc",
-        )
-        c3, c4 = st.columns(2)
-        ztm_ulgowy = c3.checkbox(
-            t("form.ztm_lublin"),
-            value=wiek < 18,
-            help=t("form.ztm_lublin_help"),
-        )
-        vrr_dziecko = c4.checkbox(
-            t("form.vrr"),
-            value=6 <= wiek <= 14,
-            help=t("form.vrr_help"),
-        )
-        child_with_guardian = False
-        if 6 <= wiek <= 14:
-            child_with_guardian = st.checkbox(
-                t("form.guardian"),
-                value=False,
-                help=t("form.guardian_help"),
+        with st.container(border=True, key="group-passenger"):
+            group_header("group.passenger", "group.passenger_hint")
+            wiek = st.number_input(
+                t("age.label"),
+                min_value=0,
+                max_value=120,
+                value=30,
+                step=1,
+                help=t("age.help"),
+                key="w_wiek",
             )
-        st.caption(t("form.kinder_other"))
-        k1, k2, k3 = st.columns(3)
-        hvv_dziecko = k1.checkbox(t("form.hamburg"), value=6 <= wiek <= 14)
-        mvv_dziecko = k2.checkbox(t("form.munich"), value=6 <= wiek <= 14)
-        vrs_koln_dziecko = k3.checkbox(t("form.cologne"), value=6 <= wiek <= 14)
-        st.caption(t("form.reduced_other"))
-        u1, u2, u3, u4, u5 = st.columns(5)
-        ztm_warszawa_ulgowy = u1.checkbox(t("city.warszawa"), value=wiek < 18)
-        mpk_krakow_ulgowy = u2.checkbox(t("city.krakow"), value=wiek < 18)
-        ztm_poznan_ulgowy = u3.checkbox(t("city.poznan"), value=wiek < 18)
-        mpk_wroclaw_ulgowy = u4.checkbox(t("city.wroclaw"), value=wiek < 18)
-        bvg_berlin_ulgowy = u5.checkbox(t("city.berlin"), value=wiek < 18)
+            obywatelstwo = st.selectbox(
+                t("citizen.label"),
+                [None, "PL", "UE", "poza_UE"],
+                format_func=lambda o: t("citizen.none") if o is None else t(f"citizen.{o}"),
+                help=t("citizen.help"),
+                key="w_obywatelstwo",
+            )
+            _kraj_legitymacji = st.selectbox(
+                t("idcountry.label"),
+                ["none", "PL", "DE", "other"],
+                format_func=lambda k: t(f"idcountry.{k}"),
+                help=t("idcountry.help"),
+                key="w_kraj_legitymacji",
+            )
+            c_attr_profile1, c_attr_profile2 = st.columns(2)
+            uczen_student = c_attr_profile1.checkbox(
+                t("student.label"),
+                help=t("student.help"),
+                key="w_uczen_student",
+            )
+            senior_attrakcje = c_attr_profile2.checkbox(
+                t("senior.label"),
+                help=t("senior.help"),
+                key="w_senior",
+            )
+        with st.container(border=True, key="group-rail"):
+            group_header("group.rail", "group.rail_hint")
+            c1, c2 = st.columns(2)
+            pkp = c1.selectbox(
+                t("form.pkp"), PKP_ULGI, format_func=lambda k: label_or("pkp", k, k), key="w_pkp"
+            )
+            bc = c2.selectbox(
+                t("form.bahncard"),
+                ["brak", "25", "50", "100"],
+                format_func=lambda k: t(f"bc.{k}"),
+                key="w_bc",
+            )
+            child_with_guardian = False
+            if 6 <= wiek <= 14:
+                child_with_guardian = st.checkbox(
+                    t("form.guardian"),
+                    value=False,
+                    help=t("form.guardian_help"),
+                )
+        with st.container(border=True, key="group-baggage"):
+            group_header("group.baggage", "group.baggage_hint")
+            bagaz_rejestrowany = st.checkbox(
+                t("form.baggage"),
+                value=True,
+                help=t("form.baggage_help"),
+                key="w_bagaz",
+            )
+        with st.container(border=True, key="group-city"):
+            group_header("group.city", "group.city_hint")
+            st.markdown(f"**🇵🇱 {t('group.city_pl')}**")
+            st.caption(t("form.reduced_other"))
+            u1, u2, u3 = st.columns(3)
+            ztm_ulgowy = u1.checkbox(
+                t("form.ztm_lublin"),
+                value=wiek < 18,
+                help=t("form.ztm_lublin_help"),
+            )
+            ztm_warszawa_ulgowy = u2.checkbox(t("city.warszawa"), value=wiek < 18)
+            mpk_krakow_ulgowy = u3.checkbox(t("city.krakow"), value=wiek < 18)
+            u4, u5, _u6 = st.columns(3)
+            ztm_poznan_ulgowy = u4.checkbox(t("city.poznan"), value=wiek < 18)
+            mpk_wroclaw_ulgowy = u5.checkbox(t("city.wroclaw"), value=wiek < 18)
+            st.markdown(f"**🇩🇪 {t('group.city_de')}**")
+            bvg_berlin_ulgowy = st.checkbox(t("city.berlin"), value=wiek < 18)
+            st.caption(t("form.kinder_other"))
+            vrr_dziecko = st.checkbox(
+                t("form.vrr"),
+                value=6 <= wiek <= 14,
+                help=t("form.vrr_help"),
+            )
+            k1, k2, k3 = st.columns(3)
+            hvv_dziecko = k1.checkbox(t("form.hamburg"), value=6 <= wiek <= 14)
+            mvv_dziecko = k2.checkbox(t("form.munich"), value=6 <= wiek <= 14)
+            vrs_koln_dziecko = k3.checkbox(t("form.cologne"), value=6 <= wiek <= 14)
+    with st.expander(t("group.free")):
         st.caption(t("form.free_caption"))
-        b1, b2, b3, b4, b5, b6 = st.columns(6)
-        ztm_warszawa_bezplatny = b1.checkbox(
-            t("free.warszawa"),
-            value=wiek >= 70,
-            help=t("free.warszawa_help"),
-        )
-        mpk_krakow_bezplatny = b2.checkbox(
-            t("free.krakow"),
-            value=wiek >= 70,
-            help=t("free.krakow_help"),
-        )
-        mpk_wroclaw_bezplatny = b3.checkbox(
-            t("free.wroclaw"),
-            value=wiek <= 7 or wiek <= 21 or wiek >= 65,
-            help=t("free.wroclaw_help"),
-        )
-        ztm_lublin_bezplatny = b4.checkbox(
-            t("free.lublin"),
-            value=wiek >= 65 or wiek <= 14,
-            help=t("free.lublin_help"),
-        )
-        ztm_poznan_bezplatny = b5.checkbox(
-            t("free.poznan"),
-            value=wiek >= 70,
-            help=t("free.poznan_help"),
-        )
-        bvg_berlin_schwerbehindert = b6.checkbox(
-            t("free.berlin"),
-            help=t("free.berlin_help"),
-        )
-        schwerbehinderte_wertmarke_de = st.checkbox(
-            t("free.de_wertmarke"),
-            help=t("free.de_wertmarke_help"),
-        )
-    submitted = st.form_submit_button(t("form.submit"), type="primary", width="stretch")
+        with st.container(border=True, key="group-free-pl"):
+            st.markdown(f"**🇵🇱 {t('group.city_pl')}**")
+            ztm_warszawa_bezplatny = st.checkbox(
+                t("free.warszawa"),
+                value=wiek >= 70,
+                help=t("free.warszawa_help"),
+            )
+            mpk_krakow_bezplatny = st.checkbox(
+                t("free.krakow"),
+                value=wiek >= 70,
+                help=t("free.krakow_help"),
+            )
+            ztm_poznan_bezplatny = st.checkbox(
+                t("free.poznan"),
+                value=wiek >= 70,
+                help=t("free.poznan_help"),
+            )
+            mpk_wroclaw_bezplatny = st.checkbox(
+                t("free.wroclaw"),
+                value=wiek <= 7 or wiek <= 21 or wiek >= 65,
+                help=t("free.wroclaw_help"),
+            )
+            ztm_lublin_bezplatny = st.checkbox(
+                t("free.lublin"),
+                value=wiek >= 65 or wiek <= 14,
+                help=t("free.lublin_help"),
+            )
+        with st.container(border=True, key="group-free-de"):
+            st.markdown(f"**🇩🇪 {t('group.city_de')}**")
+            bvg_berlin_schwerbehindert = st.checkbox(
+                t("free.berlin"),
+                help=t("free.berlin_help"),
+            )
+            schwerbehinderte_wertmarke_de = st.checkbox(
+                t("free.de_wertmarke"),
+                help=t("free.de_wertmarke_help"),
+            )
+    submitted = st.form_submit_button(
+        t("form.submit"), type="primary", width="stretch", icon=":material/search:"
+    )
 
 _kod_kraju = {"PL": "PL", "DE": "DE"}.get(_kraj_legitymacji)
 attraction_profile = AttractionDiscountProfile(

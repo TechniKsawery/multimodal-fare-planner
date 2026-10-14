@@ -648,6 +648,7 @@ def test_price_from_note_pusta_dla_stalej_ceny_i_api_zwraca_pola():
     assert price_from_note(_by_id("krakow_wawel")) == ""
     assert price_from_note(_by_id("koln_zoo"))
     from fastapi.testclient import TestClient
+
     from api.main import app
 
     items = TestClient(app).get("/attractions", params={"city": "berlin"}).json()
@@ -764,6 +765,7 @@ def test_brak_zapisanej_znizki_karty_jest_zerem_z_flaga_niezweryfikowane():
 
 def test_komunikat_waluty_nie_mowi_o_placeholderze():
     import pytest
+
     from common.currency import UnsupportedCurrencyError, normalize_currency
 
     with pytest.raises(UnsupportedCurrencyError) as exc:
@@ -903,8 +905,7 @@ def test_ekran_nie_pokazuje_roboczych_notatek_w_zadnym_jezyku(monkeypatch):
 
     built = [_rail("A", 50.0)]
     monkeypatch.setattr(
-        motis_client, "geocode_suggestions",
-        lambda text, limit=5: [{"lat": 50.0, "lon": 19.9, "name": text}],
+        motis_client, "geocode_suggestions", _fake_geocode,
     )
     monkeypatch.setattr(motis_client, "coords_place", lambda lat, lon: f"{lat},{lon}")
     monkeypatch.setattr(
@@ -921,8 +922,8 @@ def test_ekran_nie_pokazuje_roboczych_notatek_w_zadnym_jezyku(monkeypatch):
         at.session_state["lang"] = lang
         at.run()
         for city in ("Berlin", "Kraków", "Lublin", "München", "Köln", "Gelsenkirchen"):
-            at.text_input(key="origin_query").set_value("Lublin")
-            at.text_input(key="dest_query").set_value(city)
+            at.session_state["origin_query"] = "Lublin"
+            at.session_state["dest_query"] = city
             at.button[0].click().run()
             assert not at.exception, at.exception
             shown = [m.value for m in at.markdown] + [c.value for c in at.caption]
@@ -990,8 +991,7 @@ def test_ekran_oznacza_niepotwierdzone_ceny_w_kazdym_jezyku_flaga(monkeypatch):
 
     built = [_rail("A", 50.0)]
     monkeypatch.setattr(
-        motis_client, "geocode_suggestions",
-        lambda text, limit=5: [{"lat": 50.0, "lon": 19.9, "name": text}],
+        motis_client, "geocode_suggestions", _fake_geocode,
     )
     monkeypatch.setattr(motis_client, "coords_place", lambda lat, lon: f"{lat},{lon}")
     monkeypatch.setattr(
@@ -1016,8 +1016,8 @@ def test_ekran_oznacza_niepotwierdzone_ceny_w_kazdym_jezyku_flaga(monkeypatch):
         at.session_state["lang"] = lang
         at.run()
         for typed, key in cities.items():
-            at.text_input(key="origin_query").set_value("Lublin")
-            at.text_input(key="dest_query").set_value(typed)
+            at.session_state["origin_query"] = "Lublin"
+            at.session_state["dest_query"] = typed
             at.button[0].click().run()
             assert not at.exception, at.exception
             expected = 0
@@ -1032,3 +1032,13 @@ def test_ekran_oznacza_niepotwierdzone_ceny_w_kazdym_jezyku_flaga(monkeypatch):
             if lang == "pl":
                 checked_unverified += expected
     assert checked_unverified >= len(UNCONFIRMED_AFTER_NOTE_REMOVAL)
+
+
+def _fake_geocode(text, limit=5):
+    """Atrapa geokodera: znane miasto dostaje swoje współrzędne (inaczej wynik poza promieniem 25 km od
+    miasta z places/aliases.json byłby odrzucony jak wieś o tej samej nazwie), reszta punkt pod Krakowem."""
+    from places.aliases import find_city
+
+    city = find_city(text)
+    lat, lon = (city.lat, city.lon) if city else (50.0, 19.9)
+    return [{"lat": lat, "lon": lon, "name": text}]

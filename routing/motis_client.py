@@ -6,6 +6,7 @@ http://localhost:8080, konfigurowalne przez zmienną środowiskową MOTIS_BASE_U
 
 import math
 import os
+import time
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -159,11 +160,75 @@ def geocode_suggestions(text: str, limit: int = 5) -> list[dict]:
         suggestion = {"lat": r["lat"], "lon": r["lon"], "name": r.get("name") or text}
         # typ miejsca (STOP / ADDRESS / PLACE) i ewentualna kategoria służą UI do odsiania śmieci
         # (np. stron WWW z nazwą w OSM); dokładamy je tylko wtedy, gdy MOTIS je zwrócił
-        for field in ("type", "category"):
+        for field in ("type", "category", "country"):
             if r.get(field):
                 suggestion[field] = r[field]
+        areas = _areas(r)
+        if areas:  # obszary administracyjne (np. województwo) odróżniają miejsca o tej samej nazwie
+            suggestion["areas"] = areas
         out.append(suggestion)
     return out
+
+
+def _areas(match: dict) -> list[dict]:
+    """Obszary administracyjne dopasowania jako [{name, adminLevel}] (OSM admin_level: 2 kraj, 4 województwo
+    albo kraj związkowy, ...); pusta lista, gdy MOTIS ich nie zwrócił."""
+    return [
+        {"name": a["name"], "adminLevel": a["adminLevel"]}
+        for a in match.get("areas") or []
+        if a.get("name") and a.get("adminLevel") is not None
+    ]
+
+
+_REVERSE_CACHE: dict[tuple[float, float], list[dict]] = {}
+
+
+def reverse_geocode_areas(lat: float, lon: float) -> list[dict]:
+    """Obszary administracyjne miejsca o danych współrzędnych (/api/v1/reverse-geocode, pierwszy wynik z
+    obszarami); pamiętane w procesie. Służy do dopisania regionu, gdy geokoder nie podał go przy wyniku."""
+    key = (round(lat, 4), round(lon, 4))
+    if key not in _REVERSE_CACHE:
+        try:
+            response = requests.get(
+                f"{MOTIS_BASE_URL}/api/v1/reverse-geocode",
+                params={"place": f"{lat},{lon}"},
+                timeout=30,
+            )
+            response.raise_for_status()
+            matches = response.json()
+        except requests.RequestException as exc:
+            raise MotisError(Msg("err.motis_geocode", url=MOTIS_BASE_URL, error=str(exc))) from exc
+        while len(_REVERSE_CACHE) >= GEOCODE_CACHE_MAX:
+            _REVERSE_CACHE.pop(next(iter(_REVERSE_CACHE)))
+        _REVERSE_CACHE[key] = next((a for m in matches if (a := _areas(m))), [])
+    return list(_REVERSE_CACHE[key])
+
+
+# Podpowiedzi przy pisaniu pytają geokoder często, więc wynik dla tego samego tekstu pamiętamy chwilę:
+# powtórzone zapytanie (cofnięcie znaku, wybór z listy, wysłanie formularza) nie obciąża MOTIS.
+GEOCODE_CACHE_TTL_S = 300
+GEOCODE_CACHE_MAX = 256
+_GEOCODE_CACHE: dict[tuple[str, int], tuple[float, list[dict]]] = {}
+
+
+def clear_geocode_cache() -> None:
+    _GEOCODE_CACHE.clear()
+    _REVERSE_CACHE.clear()
+
+
+def geocode_suggestions_cached(text: str, limit: int = 5) -> list[dict]:
+    """geocode_suggestions z pamięcią podręczną w procesie (TTL GEOCODE_CACHE_TTL_S, do
+    GEOCODE_CACHE_MAX wpisów). Błędy MOTIS nie są zapamiętywane."""
+    key = (" ".join(text.casefold().split()), limit)
+    now = time.monotonic()
+    hit = _GEOCODE_CACHE.get(key)
+    if hit is not None and now - hit[0] < GEOCODE_CACHE_TTL_S:
+        return [dict(s) for s in hit[1]]
+    results = geocode_suggestions(text, limit=limit)
+    while len(_GEOCODE_CACHE) >= GEOCODE_CACHE_MAX:
+        _GEOCODE_CACHE.pop(next(iter(_GEOCODE_CACHE)))
+    _GEOCODE_CACHE[key] = (now, results)
+    return [dict(s) for s in results]
 
 
 @dataclass(frozen=True)

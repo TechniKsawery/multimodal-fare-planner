@@ -1,5 +1,6 @@
 python-dotenv
 streamlit
+streamlit-searchbox>=0.1.24
 requests
 fastapi
 uvicorn[standard]

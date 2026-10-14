@@ -90,6 +90,22 @@ i spójnych pól `{…}` we wszystkich językach. Nowy język = nowy plik w `i18
 teksty generowane przez moduły domenowe (ostrzeżenia dla cudzoziemców, podpowiedzi BahnCard,
 powody przesiadek, nazwy atrakcji i ich opisy, nazwy wariantów) zostają po polsku.
 
+### Pola „Skąd” i „Dokąd”: podpowiedzi i nazwy miejsc w każdym języku
+
+Podpowiedzi pojawiają się podczas pisania (komponent `streamlit-searchbox`: natywny `st.selectbox`
+filtruje tylko gotową listę i nie przekazuje wpisywanego tekstu do serwera). Geokoder MOTIS dostaje
+zapytanie dopiero od 3 znaków, po 300 ms od ostatniego znaku, a ten sam tekst jest pamiętany przez
+5 minut. Przycisk „Szukaj połączeń” działa też bez wybrania podpowiedzi (bierze najlepsze
+dopasowanie).
+
+Miasta mają nazwy w PL/EN/DE/ES/FR/NL w `places/aliases.json`: wpisanie dowolnej z nich znajduje to
+samo miejsce, a w podpowiedziach i nagłówku wyniku widać nazwę w języku interfejsu i lokalną obok
+(„Cologne · Köln”). MOTIS nie zwraca nazw alternatywnych (odpowiedź `/api/v1/geocode` ma jedno pole
+`name`; parametr `language` zmienia tylko język tej jednej nazwy), dlatego jest własna tablica.
+Plik jest oznaczony jako niezweryfikowany, dopóki `python scripts/build_place_aliases.py --check`
+(potrzebny dostęp do query.wikidata.org) nie potwierdzi go wobec Wikidata; `--write` zapisuje QID
+i status.
+
 Szczegóły każdego kroku, w tym pełna lista źródeł danych, pochodzenie cen i znane ograniczenia,
 są rozpisane w sekcjach „Sesja 1–6” poniżej.
 

@@ -1,0 +1,746 @@
+{
+  "_zrodlo": "Etykiety Wikidata (https://www.wikidata.org) w językach pl/en/de/es/fr/nl, tytuły artykułów Wikipedii w tych językach. Pole nazwy: nazwa miejsca w danym języku; pusty tekst = brak odrębnej nazwy w tym języku (UI używa wtedy nazwy lokalnej).",
+  "_data_aktualizacji": "2026-10-14",
+  "_UWAGA_weryfikacja": "Sprawdzone skryptem scripts/build_place_aliases.py wg Wikidata (2026-10-14). Miasta z zweryfikowano:false mają rozbieżności albo czekają na ręczny wybór obiektu (raport skryptu).",
+  "jezyki": [
+    "pl",
+    "en",
+    "de",
+    "es",
+    "fr",
+    "nl"
+  ],
+  "miasta": {
+    "warszawa": {
+      "local": "Warszawa",
+      "kraj": "PL",
+      "lat": 52.23,
+      "lon": 21.01,
+      "wikidata": "Q270",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Warszawa",
+        "en": "Warsaw",
+        "de": "Warschau",
+        "es": "Varsovia",
+        "fr": "Varsovie",
+        "nl": "Warschau"
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "krakow": {
+      "local": "Kraków",
+      "kraj": "PL",
+      "lat": 50.06,
+      "lon": 19.94,
+      "wikidata": "Q31487",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Kraków",
+        "en": "Kraków",
+        "de": "Krakau",
+        "es": "Cracovia",
+        "fr": "Cracovie",
+        "nl": "Krakau"
+      },
+      "aliasy_wyszukiwania": [
+        "Cracow"
+      ]
+    },
+    "wroclaw": {
+      "local": "Wrocław",
+      "kraj": "PL",
+      "lat": 51.11,
+      "lon": 17.04,
+      "wikidata": "Q1799",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Wrocław",
+        "en": "",
+        "de": "Breslau",
+        "es": "Breslavia",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "poznan": {
+      "local": "Poznań",
+      "kraj": "PL",
+      "lat": 52.41,
+      "lon": 16.93,
+      "wikidata": "Q268",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Poznań",
+        "en": "",
+        "de": "Posen",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "gdansk": {
+      "local": "Gdańsk",
+      "kraj": "PL",
+      "lat": 54.35,
+      "lon": 18.65,
+      "wikidata": "Q1792",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Gdańsk",
+        "en": "",
+        "de": "Danzig",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "szczecin": {
+      "local": "Szczecin",
+      "kraj": "PL",
+      "lat": 53.43,
+      "lon": 14.55,
+      "wikidata": "Q393",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Szczecin",
+        "en": "",
+        "de": "Stettin",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "lodz": {
+      "local": "Łódź",
+      "kraj": "PL",
+      "lat": 51.76,
+      "lon": 19.46,
+      "wikidata": "Q580",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Łódź",
+        "en": "",
+        "de": "",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "lublin": {
+      "local": "Lublin",
+      "kraj": "PL",
+      "lat": 51.25,
+      "lon": 22.57,
+      "wikidata": "Q37333",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Lublin",
+        "en": "",
+        "de": "",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "katowice": {
+      "local": "Katowice",
+      "kraj": "PL",
+      "lat": 50.26,
+      "lon": 19.02,
+      "wikidata": "Q588",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Katowice",
+        "en": "",
+        "de": "Katowice",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": [
+        "Kattowitz"
+      ]
+    },
+    "bydgoszcz": {
+      "local": "Bydgoszcz",
+      "kraj": "PL",
+      "lat": 53.12,
+      "lon": 18.01,
+      "wikidata": "Q41252",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Bydgoszcz",
+        "en": "",
+        "de": "Bydgoszcz",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": [
+        "Bromberg"
+      ]
+    },
+    "torun": {
+      "local": "Toruń",
+      "kraj": "PL",
+      "lat": 53.01,
+      "lon": 18.6,
+      "wikidata": "Q47554",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Toruń",
+        "en": "",
+        "de": "Toruń",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": [
+        "Thorn"
+      ]
+    },
+    "opole": {
+      "local": "Opole",
+      "kraj": "PL",
+      "lat": 50.67,
+      "lon": 17.93,
+      "wikidata": "Q92212",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Opole",
+        "en": "",
+        "de": "Opole",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": [
+        "Oppeln"
+      ]
+    },
+    "gliwice": {
+      "local": "Gliwice",
+      "kraj": "PL",
+      "lat": 50.29,
+      "lon": 18.67,
+      "wikidata": "Q105084",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Gliwice",
+        "en": "",
+        "de": "Gleiwitz",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "olsztyn": {
+      "local": "Olsztyn",
+      "kraj": "PL",
+      "lat": 53.78,
+      "lon": 20.49,
+      "wikidata": "Q82765",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Olsztyn",
+        "en": "",
+        "de": "Olsztyn",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": [
+        "Allenstein"
+      ]
+    },
+    "czestochowa": {
+      "local": "Częstochowa",
+      "kraj": "PL",
+      "lat": 50.8,
+      "lon": 19.12,
+      "wikidata": "Q103217",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Częstochowa",
+        "en": "",
+        "de": "Częstochowa",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": [
+        "Tschenstochau"
+      ]
+    },
+    "gorzow_wielkopolski": {
+      "local": "Gorzów Wielkopolski",
+      "kraj": "PL",
+      "lat": 52.73,
+      "lon": 15.24,
+      "wikidata": "Q104731",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Gorzów Wielkopolski",
+        "en": "",
+        "de": "Gorzów Wielkopolski",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": [
+        "Landsberg an der Warthe"
+      ]
+    },
+    "zgorzelec": {
+      "local": "Zgorzelec",
+      "kraj": "PL",
+      "lat": 51.15,
+      "lon": 15.01,
+      "wikidata": "Q147929",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Zgorzelec",
+        "en": "",
+        "de": "",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "berlin": {
+      "local": "Berlin",
+      "kraj": "DE",
+      "lat": 52.52,
+      "lon": 13.4,
+      "wikidata": "Q64",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Berlin",
+        "es": "Berlín",
+        "fr": "",
+        "nl": "Berlijn"
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "hamburg": {
+      "local": "Hamburg",
+      "kraj": "DE",
+      "lat": 53.55,
+      "lon": 9.99,
+      "wikidata": "Q1055",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Hamburg",
+        "es": "Hamburgo",
+        "fr": "Hambourg",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "munchen": {
+      "local": "München",
+      "kraj": "DE",
+      "lat": 48.14,
+      "lon": 11.58,
+      "wikidata": "Q1726",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Monachium",
+        "en": "Munich",
+        "de": "München",
+        "es": "Múnich",
+        "fr": "Munich",
+        "nl": "München"
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "koln": {
+      "local": "Köln",
+      "kraj": "DE",
+      "lat": 50.94,
+      "lon": 6.96,
+      "wikidata": "Q365",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Kolonia",
+        "en": "Cologne",
+        "de": "Köln",
+        "es": "Colonia",
+        "fr": "Cologne",
+        "nl": "Keulen"
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "dusseldorf": {
+      "local": "Düsseldorf",
+      "kraj": "DE",
+      "lat": 51.23,
+      "lon": 6.78,
+      "wikidata": "Q1718",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Düsseldorf",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "gelsenkirchen": {
+      "local": "Gelsenkirchen",
+      "kraj": "DE",
+      "lat": 51.52,
+      "lon": 7.1,
+      "wikidata": "Q2765",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Gelsenkirchen",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "dresden": {
+      "local": "Dresden",
+      "kraj": "DE",
+      "lat": 51.05,
+      "lon": 13.74,
+      "wikidata": "Q1731",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Drezno",
+        "en": "",
+        "de": "Dresden",
+        "es": "Dresde",
+        "fr": "Dresde",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "leipzig": {
+      "local": "Leipzig",
+      "kraj": "DE",
+      "lat": 51.34,
+      "lon": 12.37,
+      "wikidata": "Q2079",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Lipsk",
+        "en": "",
+        "de": "Leipzig",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "frankfurt_am_main": {
+      "local": "Frankfurt am Main",
+      "kraj": "DE",
+      "lat": 50.11,
+      "lon": 8.68,
+      "wikidata": "Q1794",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Frankfurt nad Menem",
+        "en": "Frankfurt",
+        "de": "Frankfurt am Main",
+        "es": "Fráncfort del Meno",
+        "fr": "Francfort-sur-le-Main",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "stuttgart": {
+      "local": "Stuttgart",
+      "kraj": "DE",
+      "lat": 48.78,
+      "lon": 9.18,
+      "wikidata": "Q1022",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Stuttgart",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "nurnberg": {
+      "local": "Nürnberg",
+      "kraj": "DE",
+      "lat": 49.45,
+      "lon": 11.08,
+      "wikidata": "Q2090",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Norymberga",
+        "en": "Nuremberg",
+        "de": "Nürnberg",
+        "es": "Núremberg",
+        "fr": "Nuremberg",
+        "nl": "Neurenberg"
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "hannover": {
+      "local": "Hannover",
+      "kraj": "DE",
+      "lat": 52.37,
+      "lon": 9.73,
+      "wikidata": "Q1715",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Hanower",
+        "en": "Hanover",
+        "de": "Hannover",
+        "es": "",
+        "fr": "Hanovre",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "bremen": {
+      "local": "Bremen",
+      "kraj": "DE",
+      "lat": 53.08,
+      "lon": 8.8,
+      "wikidata": "Q24879",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Brema",
+        "en": "",
+        "de": "Bremen",
+        "es": "",
+        "fr": "Brême",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "aachen": {
+      "local": "Aachen",
+      "kraj": "DE",
+      "lat": 50.78,
+      "lon": 6.08,
+      "wikidata": "Q1017",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Akwizgran",
+        "en": "",
+        "de": "Aachen",
+        "es": "Aquisgrán",
+        "fr": "Aix-la-Chapelle",
+        "nl": "Aken"
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "mainz": {
+      "local": "Mainz",
+      "kraj": "DE",
+      "lat": 50.0,
+      "lon": 8.27,
+      "wikidata": "Q1720",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Moguncja",
+        "en": "",
+        "de": "Mainz",
+        "es": "Maguncia",
+        "fr": "Mayence",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "gorlitz": {
+      "local": "Görlitz",
+      "kraj": "DE",
+      "lat": 51.15,
+      "lon": 14.99,
+      "wikidata": "Q4077",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Görlitz",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "dortmund": {
+      "local": "Dortmund",
+      "kraj": "DE",
+      "lat": 51.51,
+      "lon": 7.47,
+      "wikidata": "Q1295",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Dortmund",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "essen": {
+      "local": "Essen",
+      "kraj": "DE",
+      "lat": 51.46,
+      "lon": 7.01,
+      "wikidata": "Q2066",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Essen",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "duisburg": {
+      "local": "Duisburg",
+      "kraj": "DE",
+      "lat": 51.43,
+      "lon": 6.77,
+      "wikidata": "Q2100",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Duisburg",
+        "es": "Duisburgo",
+        "fr": "Duisbourg",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "bochum": {
+      "local": "Bochum",
+      "kraj": "DE",
+      "lat": 51.48,
+      "lon": 7.22,
+      "wikidata": "Q2103",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Bochum",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "bonn": {
+      "local": "Bonn",
+      "kraj": "DE",
+      "lat": 50.74,
+      "lon": 7.1,
+      "wikidata": "Q586",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Bonn",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "munster": {
+      "local": "Münster",
+      "kraj": "DE",
+      "lat": 51.96,
+      "lon": 7.63,
+      "wikidata": "Q2742",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "Münster",
+        "es": "",
+        "fr": "",
+        "nl": ""
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "wien": {
+      "local": "Wien",
+      "kraj": "AT",
+      "lat": 48.21,
+      "lon": 16.37,
+      "wikidata": "Q1741",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Wiedeń",
+        "en": "Vienna",
+        "de": "Wien",
+        "es": "Viena",
+        "fr": "Vienne",
+        "nl": "Wenen"
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "praha": {
+      "local": "Praha",
+      "kraj": "CZ",
+      "lat": 50.08,
+      "lon": 14.44,
+      "wikidata": "Q1085",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "Praga",
+        "en": "Prague",
+        "de": "Prag",
+        "es": "Praga",
+        "fr": "Prague",
+        "nl": "Praag"
+      },
+      "aliasy_wyszukiwania": []
+    },
+    "amsterdam": {
+      "local": "Amsterdam",
+      "kraj": "NL",
+      "lat": 52.37,
+      "lon": 4.9,
+      "wikidata": "Q727",
+      "zweryfikowano": true,
+      "wyswietlana": {
+        "pl": "",
+        "en": "",
+        "de": "",
+        "es": "",
+        "fr": "",
+        "nl": "Amsterdam"
+      },
+      "aliasy_wyszukiwania": []
+    }
+  },
+  "_pola": "wyswietlana: nazwa pokazywana w języku interfejsu (wg Wikidata); aliasy_wyszukiwania: dodatkowe zapisy tylko do wyszukiwania, nigdy nie pokazywane (dawne i potoczne nazwy: Kattowitz, Bromberg, Cracow); lat/lon: przybliżony środek miasta, służy WYŁĄCZNIE do rozstrzygania trafień w Wikidata (tolerancja 25 km)."
+}

@@ -11,6 +11,7 @@ from html import escape
 from pathlib import Path
 
 import streamlit as st
+from streamlit_searchbox import st_searchbox
 
 from attractions import (
     CATEGORY_LABELS,
@@ -31,6 +32,7 @@ from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
 from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
 from i18n import DEFAULT_LANG, LANGUAGES, current_lang, exc_text, label_or, t, tm
+from places.aliases import local_query, place_text
 from routing import motis_client
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
 from routing.model import LegMode
@@ -43,15 +45,15 @@ from routing.scoring import (
 from routing.search_service import search
 from routing.variants import RouteRequest
 from ui_helpers import (
+    MIN_SUGGEST_CHARS,
     SELECTED_KEY,
     SELECTED_SLOT_KEY,
-    clear_place,
-    correct_place_text,
+    best_place,
     format_verified_date,
     leg_price_status,
     leg_source,
-    place_kind,
-    rank_places,
+    place_input,
+    place_label,
     render_bezplatne_info,
     render_other_day_section,
     render_price_summary,
@@ -59,7 +61,7 @@ from ui_helpers import (
     render_variant_list,
     set_html_lang,
     status_cell,
-    unique_places,
+    suggest_places,
 )
 from ui_style import inject_style
 
@@ -485,44 +487,14 @@ def render_attractions_and_city_cards(
                     st.markdown(f"[{t('attr.official')}]({attr.official_url})")
 
 
-MAX_PLACE_CANDIDATES = 5
-
-
-def resolve_place(text: str) -> list[dict]:
-    """Kandydaci z geokodera dla wpisanego tekstu: tylko miejscowości, dworce, przystanki i adresy
-    (dworce i miasta na górze, najlepiej pasujące do tekstu pierwsze), bez powtórzeń. Literówki i
-    brakujące ogonki w nazwie miasta ("lodz", "Warzsawa") poprawia correct_place_text: geokoder dostaje
-    wtedy oba zapisy, a ranking liczy dopasowanie do poprawionego. Gdy pierwszy wynik jest
-    jednoznacznym miastem (albo dworcem), zwraca tylko jego - wtedy nie ma o co pytać.
-    Pusta lista = nic nie znaleziono; błędy geokodera (MotisError) idą wyżej."""
-    corrected = correct_place_text(text)
-    queries = [corrected] if corrected == text else [corrected, text]
-    # pytamy o więcej niż pokazujemy, bo śmieci zajmują miejsca w odpowiedzi geokodera
-    raw = [
-        s
-        for q in queries
-        for s in motis_client.geocode_suggestions(q, limit=4 * MAX_PLACE_CANDIDATES)
-    ]
-    options = rank_places(unique_places(raw), corrected)[:MAX_PLACE_CANDIDATES]
-    clear = clear_place(options, corrected)
-    return [clear] if clear is not None else options
-
-
-_PLACE_ICONS = {"stop": "🚉", "city": "🏙️", "address": "📍", "unknown": "📍"}
-
-
-def place_label(option: dict, query: str = "") -> str:
-    """Wiersz rozwijanej listy: ikona rodzaju miejsca i nazwa."""
-    return f"{_PLACE_ICONS.get(place_kind(option, query) or 'unknown', '📍')}  {option['name']}"
-
-
 def _clear_result() -> None:
-    for key in ("search_result", "pending_search", SELECTED_KEY, SELECTED_SLOT_KEY):
+    for key in ("search_result", SELECTED_KEY, SELECTED_SLOT_KEY):
         st.session_state.pop(key, None)
 
 
 def _change_route() -> None:
-    """„zmień”: wraca do formularza z nazwami, które znalazł geokoder (do poprawienia)."""
+    """„zmień”: wraca do formularza z nazwami, które znalazł geokoder (do poprawienia). Pola Skąd/Dokąd
+    same zauważają zmianę tekstu w session_state (render_place_input)."""
     result = st.session_state.get("search_result")
     if result is not None:
         st.session_state["origin_query"] = result["request"].origin_label
@@ -563,7 +535,6 @@ def run_search(inputs: dict, origin: dict, dest: dict) -> bool:
     # formularza jest znów False - bez zapamiętania wyniku wyszukiwanie "znikałoby".
     st.session_state.pop(SELECTED_KEY, None)
     st.session_state.pop(SELECTED_SLOT_KEY, None)
-    st.session_state.pop("pending_search", None)
     st.session_state["search_result"] = {
         "request": request,
         "date": inputs["date"],
@@ -572,47 +543,25 @@ def run_search(inputs: dict, origin: dict, dest: dict) -> bool:
         "recs": search_result.recommendations,
         "other_day": search_result.other_day,
         "foreigner_warnings": foreigner_warnings,
+        # tekst z pola „Dokąd” z chwili wyszukiwania (nazwy miast w lokalnym zapisie, więc „Cologne”
+        # też rozpozna miasto): zapas dla atrakcji, gdy adres celu nie zawiera nazwy miasta
+        "dest_text": local_query(inputs["dest_text"]),
     }
     return True
-
-
-def render_place_choice() -> None:
-    """Krótki wybór miejsca, gdy geokoder zwrócił kilka adresów (tylko dla pól, które tego wymagają).
-    Szukanie rusza dopiero po kliknięciu przycisku pod wyborem."""
-    pending = st.session_state.get("pending_search")
-    if pending is None:
-        return
-    # klucz listy zależy od wyszukiwania: widget identyfikuje się samymi indeksami opcji, więc ze
-    # stałym kluczem ponowne wysłanie formularza (z tyloma samymi kandydatami) zostawiało stary
-    # wybór zaznaczony przy zupełnie innych nazwach. Lista jest rozwijana i da się w niej pisać
-    # (filtruje opcje), więc zajmuje jedną linię zamiast pięciu.
-    token = pending["token"]
-    with st.container(border=True):
-        st.subheader(t("choose.title"))
-        picks = {}
-        for side in ("origin", "dest"):
-            options = pending[f"{side}_options"]
-            if len(options) == 1:
-                picks[side] = options[0]
-                continue
-            query = correct_place_text(pending["inputs"].get(f"{side}_text", ""))
-            idx = st.selectbox(
-                t(f"choose.{side}"),
-                options=list(range(len(options))),
-                format_func=lambda i, options=options, query=query: place_label(options[i], query),
-                key=f"pick_{side}_{token}",
-            )
-            picks[side] = options[idx]
-        if st.button(t("choose.submit"), type="primary", key="pick_submit") and run_search(
-            pending["inputs"], picks["origin"], picks["dest"]
-        ):
-            st.rerun()
 
 
 def render_search_header(result) -> None:
     request = result["request"]
     with st.container(horizontal=True, vertical_alignment="center"):
-        st.markdown(t("res.searching", origin=request.origin_label, dest=request.destination_label))
+        # nazwy miast w języku interfejsu, nazwa lokalna w nawiasie (request trzyma nazwy z geokodera)
+        lang = current_lang()
+        st.markdown(
+            t(
+                "res.searching",
+                origin=place_text(request.origin_label, lang),
+                dest=place_text(request.destination_label, lang),
+            )
+        )
         st.button(t("res.change"), key="change_route", type="tertiary", on_click=_change_route)
     st.caption(t("res.when", date=result["date"]))
 
@@ -633,14 +582,71 @@ def group_header(title_key: str, hint_key: str) -> None:
 st.session_state.setdefault("origin_query", DEFAULT_FROM)
 st.session_state.setdefault("dest_query", DEFAULT_TO)
 
-# Cały formularz jest w st.form: nic się nie odświeża i nie szuka adresów w trakcie pisania, wszystko
-# dzieje się po jednym przycisku. Widgety z domyślną wartością zależną od wieku (value=wiek < 18 itd.)
+
+def _search_places(term: str) -> list[tuple[str, dict]]:
+    """Funkcja podpowiedzi dla pól Skąd/Dokąd. Błąd geokodera nie psuje strony: lista jest wtedy
+    pusta, a pod polami pojawia się krótka informacja (po udanym zapytaniu znika)."""
+    try:
+        options = suggest_places(term, current_lang())
+    except MotisError:
+        st.session_state["suggest_error"] = True
+        return []
+    st.session_state.pop("suggest_error", None)
+    return options
+
+
+def render_place_input(side: str, label: str) -> None:
+    """Jedno pole miejsca z podpowiedziami przy pisaniu (streamlit-searchbox). Tekst, który ma być w
+    polu, to st.session_state[f"{side}_query"]: ustawiony z zewnątrz („zmień”, test) albo po zmianie
+    języka zakłada pole od nowa z tym tekstem. Pole pamięta wybraną podpowiedź w
+    st.session_state[f"{side}_sb"], a place_input() czyta ją przy wysłaniu formularza."""
+    key, text_key, mirror_key = f"{side}_sb", f"{side}_query", f"{side}_mirror"
+    wanted = st.session_state[text_key]
+    lang = current_lang()
+    if key in st.session_state and (
+        st.session_state.get(mirror_key) != wanted or st.session_state.get(f"{side}_lang") != lang
+    ):
+        del st.session_state[key]
+    st_searchbox(
+        _search_places,
+        placeholder=t("addr.placeholder", n=MIN_SUGGEST_CHARS),
+        label=label,
+        help=t("addr.help"),
+        default=wanted,
+        default_searchterm=wanted,
+        default_use_searchterm=True,
+        edit_after_submit="current",
+        debounce=300,  # ms po ostatnim znaku, zanim zapytamy geokoder
+        rerun_scope="fragment",
+        key=key,
+    )
+    text, pick = place_input(side)
+    st.session_state[text_key] = st.session_state[mirror_key] = text
+    st.session_state[f"{side}_lang"] = lang
+    if pick is not None:  # pole zostawia wpisany tekst, więc pod spodem widać, co dokładnie wybrano
+        st.caption(t("addr.picked", place=place_label(pick, lang=lang)))
+
+
+# Pola Skąd/Dokąd są poza st.form i w osobnym fragmencie: pisanie przeładowuje tylko ten fragment
+# (a nie cały ekran), więc pokazany wynik wyszukiwania zostaje (jest w st.session_state["search_result"]).
+@st.fragment
+def render_place_inputs() -> None:
+    c_origin, c_dest = st.columns(2)
+    with c_origin:
+        render_place_input("origin", t("addr.origin"))
+    with c_dest:
+        render_place_input("dest", t("addr.dest"))
+    if st.session_state.get("suggest_error"):
+        st.caption(t("addr.suggest_error"))
+
+
+render_place_inputs()
+
+# Formularz: data, godzina i opcje wysyłane jednym przyciskiem (nic się nie odświeża przy ich zmianie).
+# Widgety z domyślną wartością zależną od wieku (value=wiek < 18 itd.)
 # są celowo BEZ key=: zmiana wieku nadal przestawia je na nową podpowiedź (przy wysłaniu formularza).
 # Ceną jest to, że ręczne nadpisanie takiego checkboxa przepada przy zmianie wieku lub języka.
 with st.form("search", border=False):
-    c_origin, c_dest = st.columns(2)
-    origin_text = c_origin.text_input(t("addr.origin"), key="origin_query", help=t("addr.help"))
-    dest_text = c_dest.text_input(t("addr.dest"), key="dest_query", help=t("addr.help"))
     c_date, c_time = st.columns(2)
     date = c_date.date_input(
         t("form.date"),
@@ -817,6 +823,8 @@ attraction_profile = AttractionDiscountProfile(
 
 if submitted:
     _clear_result()
+    origin_text, origin_pick = place_input("origin")
+    dest_text, dest_pick = place_input("dest")
     if not origin_text.strip() or not dest_text.strip():
         st.error(t("addr.empty"))
         st.stop()
@@ -850,37 +858,26 @@ if submitted:
         "date": date,
         "time": godzina,
         "checked_baggage": bagaz_rejestrowany,
-        "origin_text": origin_text,
         "dest_text": dest_text,
         "foreigner_warnings": foreigner_warnings_for(profile),
     }
+    # wybrana podpowiedź idzie wprost do wyszukiwania; sam wpisany tekst - najlepsze dopasowanie
     try:
         with st.spinner(t("search.spinner")):
-            origin_options = resolve_place(origin_text)
-            dest_options = resolve_place(dest_text)
+            origin = origin_pick or best_place(origin_text)
+            dest = dest_pick or best_place(dest_text)
     except MotisError as exc:
         render_foreigner_warnings(inputs["foreigner_warnings"])
         st.error(t("err.motis", exc=tm(exc_text(exc))))
         st.stop()
-    for text, field, options in (
-        (origin_text, t("addr.origin"), origin_options),
-        (dest_text, t("addr.dest"), dest_options),
+    for text, field, place in (
+        (origin_text, t("addr.origin"), origin),
+        (dest_text, t("addr.dest"), dest),
     ):
-        if not options:
+        if place is None:
             st.error(t("addr.not_found", text=text.strip(), field=field.lower()))
             st.stop()
-    if len(origin_options) == 1 and len(dest_options) == 1:
-        run_search(inputs, origin_options[0], dest_options[0])
-    else:
-        st.session_state["pending_search"] = {
-            "inputs": inputs,
-            "origin_options": origin_options,
-            "dest_options": dest_options,
-            "token": st.session_state.get("search_seq", 0) + 1,
-        }
-        st.session_state["search_seq"] = st.session_state["pending_search"]["token"]
-
-render_place_choice()
+    run_search(inputs, origin, dest)
 
 result = st.session_state.get("search_result")
 if result is not None:
@@ -962,6 +959,6 @@ if result is not None:
 
     render_attractions_and_city_cards(
         request.destination_label,
-        fallback_text=st.session_state.get("dest_query", ""),
+        fallback_text=result.get("dest_text", ""),
         attraction_profile=attraction_profile,
     )

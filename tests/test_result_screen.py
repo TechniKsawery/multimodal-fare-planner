@@ -14,8 +14,8 @@ from routing import motis_client, search_service
 from routing.model import Itinerary, Leg, LegMode, PricedLeg, SkippedVariant
 from routing.scoring import pick_recommendations
 from ui_helpers import (
+    best_place,
     carriers_summary,
-    clear_place,
     duration_text,
     place_kind,
     rank_places,
@@ -373,11 +373,6 @@ def _count_backend(monkeypatch, built, suggestions):
     return calls
 
 
-def _pick(at, side):
-    """Rozwijana lista wyboru miejsca; jej klucz zawiera numer wyszukiwania (pick_<strona>_<n>)."""
-    return next(r for r in at.selectbox if r.key and r.key.startswith(f"pick_{side}_"))
-
-
 def _picks(at):
     return [r for r in at.selectbox if r.key and r.key.startswith("pick_")]
 
@@ -390,14 +385,13 @@ def test_pola_skad_dokad_nic_nie_szukaja_przed_przyciskiem(monkeypatch):
     calls = _count_backend(monkeypatch, [_rail("A", 50.0)], ONE)
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
     at.run()
-    at.text_input(key="origin_query").set_value("Kraków Główny").run()
-    at.text_input(key="dest_query").set_value("Gdańsk Główny").run()
+    at.session_state["origin_query"] = "Kraków Główny"
+    at.session_state["dest_query"] = "Gdańsk Główny"
+    at.run()
+    # samo pole nie pyta geokodera (podpowiedzi przy pisaniu ruszają w przeglądarce, nie w AppTest)
     assert calls["geocode"] == [] and calls["search"] == 0
     assert not at.exception, at.exception
     assert at.button[0].label == t("form.submit")
-    # (AppTest zapomina wartości pól formularza między przebiegami, więc wpisujemy je ponownie)
-    at.text_input(key="origin_query").set_value("Kraków Główny")
-    at.text_input(key="dest_query").set_value("Gdańsk Główny")
     at.button[0].click().run()
     assert calls["search"] == 1 and len(calls["geocode"]) == 2
     assert calls["geocode"][0].startswith("Kraków Główny")
@@ -415,41 +409,39 @@ def test_jeden_adres_szuka_od_razu_i_pokazuje_skad_dokad_zmien(monkeypatch):
     change.click().run()
     assert not at.exception, at.exception
     assert "search_result" not in at.session_state
-    # formularz zostaje z nazwami znalezionymi przez geokoder, do poprawienia
-    assert at.text_input(key="origin_query").value.startswith("Miejsce (")
+    # formularz zostaje z nazwami znalezionymi przez geokoder, do poprawienia (też w samym polu)
+    assert at.session_state["origin_query"].startswith("Miejsce (")
+    assert at.session_state["origin_sb"]["result"].startswith("Miejsce (")
 
 
-def test_kilka_adresow_pokazuje_krotki_wybor_i_szuka_dopiero_po_potwierdzeniu(monkeypatch):
+def test_wiele_adresow_bez_wyboru_podpowiedzi_bierze_najlepsze_dopasowanie(monkeypatch):
     calls = _count_backend(monkeypatch, [_rail("A", 50.0)], TWO)
     at = _run()
-    assert calls["search"] == 0
-    assert t("choose.title") in [s.value for s in at.subheader]
-    origin_pick = _pick(at, "origin")
-    assert origin_pick.label == t("choose.origin")
-    assert len(origin_pick.options) == 2
-    assert _pick(at, "dest").label == t("choose.dest")
-    assert "search_result" not in at.session_state
-    _pick(at, "dest").select_index(1).run()  # zmiana wyboru nic nie szuka
-    assert calls["search"] == 0
-    next(b for b in at.button if b.key == "pick_submit").click().run()
-    assert not at.exception, at.exception
-    assert calls["search"] == 1
-    assert at.session_state["search_result"]["request"].destination_label.startswith("Inne miejsce")
+    assert calls["search"] == 1  # nie ma już osobnego pytania „Skąd dokładnie?”
     assert not _picks(at)
+    request = at.session_state["search_result"]["request"]
+    assert request.origin_label.startswith("Miejsce (") and request.destination_label.startswith("Miejsce (")
 
 
-def test_wybor_tylko_dla_pola_z_wieloma_wynikami(monkeypatch):
-    _count_backend(monkeypatch, [_rail("A", 50.0)], ONE)
-    answers = {"Skad": TWO, "Dokad": ONE}
-    monkeypatch.setattr(
-        motis_client, "geocode_suggestions", lambda text, limit=5: answers[text.split()[0]]
-    )
+def _chosen(name, lat, lon):
+    """Stan pola z wybraną podpowiedzią (tak zapisuje go streamlit-searchbox)."""
+    option = {"lat": lat, "lon": lon, "name": name, "type": "STOP"}
+    return {"result": option, "search": name[:4], "options_js": [], "key_react": "test"}
+
+
+def test_wybrana_podpowiedz_idzie_wprost_do_wyszukiwania_bez_pytania_geokodera(monkeypatch):
+    calls = _count_backend(monkeypatch, [_rail("A", 50.0)], ONE)
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
     at.run()
-    at.text_input(key="origin_query").set_value("Skad x")
-    at.text_input(key="dest_query").set_value("Dokad y")
+    at.session_state["origin_sb"] = _chosen("Gdańsk Główny", 54.35, 18.64)
+    at.session_state["dest_query"] = "Dworzec Główny"  # to pole bez wyboru: najlepsze dopasowanie
+    at.run()
     at.button[0].click().run()
-    assert [r.key for r in _picks(at)] == [_pick(at, "origin").key]
+    assert not at.exception, at.exception
+    request = at.session_state["search_result"]["request"]
+    assert request.origin_label == "Gdańsk Główny"
+    assert request.origin_stop_id == "54.35,18.64"
+    assert calls["geocode"] and all("Gdańsk" not in text for text in calls["geocode"])
 
 
 def test_brak_wynikow_geokodera_to_czytelny_blad_bez_szukania(monkeypatch):
@@ -500,7 +492,7 @@ def test_unikalne_miejsca_i_polecana_trasa():
     assert recommended_variant(built, {}) is built[0]
 
 
-# --- filtr i ranking kandydatów geokodera, wybór tylko przy realnej niejednoznaczności ---------------
+# --- filtr i ranking kandydatów geokodera, najlepsze dopasowanie bez wyboru podpowiedzi ---------------
 
 WROCLAW = {"lat": 51.11, "lon": 17.03, "name": "Wrocław", "type": "PLACE", "category": "city"}
 WROCLAW_GL = {"lat": 51.09, "lon": 17.04, "name": "Wrocław Główny", "type": "STOP"}
@@ -532,17 +524,6 @@ def test_rodzaj_miejsca_wg_typu_geokodera():
     assert place_kind({"lat": 1, "lon": 1, "name": "Cokolwiek"}) == "unknown"
 
 
-def test_pierwszy_jednoznaczny_wynik_miasta_nie_wymaga_wyboru():
-    assert clear_place([WROCLAW, WROCLAW_GL, ULICA], "Wroclaw") is WROCLAW
-    # pierwszy wynik to nie miasto o tej nazwie -> pytamy
-    assert clear_place([WROCLAW_GL, WROCLAW], "Wroclaw") is None
-    assert clear_place([PRZYSTANEK, ULICA], "Wrocław, Rynek") is None
-    # dwie miejscowości o tej samej nazwie w różnych miejscach -> realna niejednoznaczność
-    inne = dict(WROCLAW, lat=40.0, lon=20.0)
-    assert clear_place([WROCLAW, inne], "Wrocław") is None
-    assert clear_place([], "x") is None
-
-
 def test_geocode_suggestions_przekazuje_typ_miejsca(monkeypatch):
     class FakeResponse:
         def raise_for_status(self):
@@ -565,50 +546,29 @@ def _answers(monkeypatch, by_prefix):
 
 
 def _submit(at, origin, dest):
-    at.text_input(key="origin_query").set_value(origin)
-    at.text_input(key="dest_query").set_value(dest)
+    at.session_state["origin_query"] = origin
+    at.session_state["dest_query"] = dest
     at.button[0].click().run()
 
 
-def test_jednoznaczne_miasto_szuka_od_razu_bez_smieci_w_wyborze(monkeypatch):
-    _answers(monkeypatch, {"Wroclaw": [KLOCKI, WROCLAW, SUYU, WROCLAW_GL], "Gdansk": [WROCLAW_GL, ULICA]})
+def test_bez_wyboru_podpowiedzi_smieci_odpadaja_a_miasto_i_dworzec_wygrywaja(monkeypatch):
+    gdansk_gl = {"lat": 54.355, "lon": 18.645, "name": "Gdańsk Główny", "type": "STOP"}
+    gdansk_ul = {"lat": 54.35, "lon": 18.65, "name": "Rynek 1, Gdańsk", "type": "ADDRESS"}
+    _answers(monkeypatch, {"Wroclaw": [KLOCKI, WROCLAW, SUYU, WROCLAW_GL], "Gdańsk": [gdansk_ul, gdansk_gl]})
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
     at.run()
-    _submit(at, "Wroclaw", "Gdansk")  # skąd: jednoznaczne miasto; dokąd: dworzec + adres
-    assert "search_result" not in at.session_state  # dokąd wymaga wyboru
-    assert not [r for r in _picks(at) if r.key.startswith("pick_origin")]
-    assert list(_pick(at, "dest").options) == ["🚉  Wrocław Główny", "📍  Rynek 1, Wrocław"]
-    _submit_pick = next(b for b in at.button if b.key == "pick_submit")
-    _submit_pick.click().run()
+    _submit(at, "Wroclaw", "Gdansk")  # skąd: miasto wśród śmieci; dokąd: dworzec przed adresem
     request = at.session_state["search_result"]["request"]
-    assert request.origin_label == "Wrocław" and request.destination_label == "Wrocław Główny"
+    assert request.origin_label == "Wrocław" and request.destination_label == "Gdańsk Główny"
 
 
-def test_dwa_jednoznaczne_miasta_nie_pytaja_o_wybor(monkeypatch):
-    _answers(monkeypatch, {"Wroclaw": [KLOCKI, WROCLAW, SUYU], "Lublin": [dict(WROCLAW, name="Lublin")]})
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
-    at.run()
-    _submit(at, "Wroclaw", "Lublin")
-    request = at.session_state["search_result"]["request"]
-    assert (request.origin_label, request.destination_label) == ("Wrocław", "Lublin")
-
-
-def test_baner_pokazuje_cel_zaznaczony_na_liscie_a_nie_stary_wybor(monkeypatch):
-    """Regresja: ponowne wysłanie formularza przy otwartym wyborze zostawiało zaznaczony stary indeks
-    radia przy nowej liście kandydatów (np. baner „KLOCKI.wroclaw.pl” zamiast „Wroclaw”)."""
-    first = [WROCLAW_GL, ULICA, PRZYSTANEK]
-    second = [dict(WROCLAW_GL, name="Gdańsk Główny"), dict(ULICA, name="Gdańsk 1"), dict(PRZYSTANEK, name="Gdańsk 2")]
-    _answers(monkeypatch, {"a x": first, "b y": second, "Wroclaw": [WROCLAW]})
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
-    at.run()
-    _submit(at, "Wroclaw", "a x")
-    _pick(at, "dest").select_index(2).run()  # użytkownik klika trzecią opcję, ale nie potwierdza
-    _submit(at, "Wroclaw", "b y")  # i wysyła formularz od nowa, z tyloma samymi kandydatami
-    pick = _pick(at, "dest")
-    assert pick.value == 0 and pick.options[0].endswith("Gdańsk Główny")
-    next(b for b in at.button if b.key == "pick_submit").click().run()
-    searching = next(m.value for m in at.markdown if m.value.startswith("Szukamy z:"))
-    assert "**Gdańsk Główny**" in searching
+def test_best_place_i_brak_wynikow(monkeypatch):
+    monkeypatch.setattr(
+        motis_client, "geocode_suggestions", lambda text, limit=5: [KLOCKI, SUYU] if text == "x y" else []
+    )
+    assert best_place("x y") is None  # same śmieci
+    assert best_place("   ") is None
+    assert best_place("nic") is None
 
 
 # --- dopasowanie przy błędnym zapisie, duplikaty adresów, odznaczanie wiersza -------------------------

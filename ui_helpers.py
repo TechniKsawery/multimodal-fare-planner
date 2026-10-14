@@ -2,9 +2,10 @@
 
 import json
 import re
-import unicodedata
+from collections.abc import Sequence
 from datetime import date
 from difflib import SequenceMatcher, get_close_matches
+from functools import lru_cache
 from html import escape
 from urllib.parse import urlparse
 
@@ -13,6 +14,8 @@ import streamlit as st
 from fares.eligibility_info import eligibility_for, explain_ticket
 from fares.model import PriceType
 from i18n import current_lang, label_or, t, tm
+from places.aliases import CITY_RADIUS_KM, alias_names, find_city, fold, local_query, localize_name
+from routing import motis_client
 from routing.model import LegMode
 from ui_style import badge_html, selected_badge_html
 
@@ -341,15 +344,16 @@ _STATION_NAME = re.compile(
 _DOMAIN_LIKE = re.compile(r"\S\.(?:[a-z]{2,}\.)*[a-z]{2,}\b|https?:|www\.", re.IGNORECASE)
 
 
-def _fold(text: str) -> str:
-    """Nazwa do porównań: małe litery, bez polskich/niemieckich znaków diakrytycznych i interpunkcji."""
-    text = text.casefold().replace("ł", "l").replace("ß", "ss")
-    text = unicodedata.normalize("NFKD", text)
-    text = "".join(c for c in text if not unicodedata.combining(c))
-    return " ".join(re.sub(r"[^a-z0-9]+", " ", text).split())
+_fold = fold  # złożenie nazwy do porównań wspólne z places.aliases
 
 
-def place_kind(suggestion: dict, query: str = "") -> str | None:
+def _queries(query: str | Sequence[str]) -> list[str]:
+    """Zapytanie jako lista zapisów: wpisany tekst i jego wersja z nazwami miast w języku lokalnym
+    (np. "Krakau" i "Kraków"); wynik pasuje, jeśli pasuje do któregokolwiek."""
+    return [query] if isinstance(query, str) else list(query) or [""]
+
+
+def place_kind(suggestion: dict, query: str | Sequence[str] = "") -> str | None:
     """Rodzaj kandydata z geokodera wg jego typu miejsca: "stop" (dworzec/przystanek), "city"
     (miejscowość), "address", "unknown" (geokoder nie podał typu) albo None = nie nadaje się
     (np. firma/strona WWW z nazwą w OSM, rzeka, obiekt).
@@ -374,7 +378,7 @@ def place_kind(suggestion: dict, query: str = "") -> str | None:
         return PLACE_STOP
     if category in _SETTLEMENT_CATEGORIES:
         return PLACE_CITY
-    if not category and query and _fold(name) == _fold(query):
+    if not category and any(q and _fold(name) == _fold(q) for q in _queries(query)):
         return PLACE_CITY
     return None
 
@@ -412,11 +416,14 @@ def match_score(name: str, query: str) -> float:
     return 2 * overlap + SequenceMatcher(None, q, n).ratio()
 
 
-def rank_places(suggestions: list[dict], query: str = "") -> list[dict]:
+def rank_places(
+    suggestions: list[dict], query: str | Sequence[str] = "", anchor: tuple[float, float] | None = None
+) -> list[dict]:
     """Odsiewa kandydatów, którzy nie są miejscowością, dworcem, przystankiem ani adresem, i wysuwa
     na górę dworce i miasta (potem zwykłe przystanki, adresy i kandydaci bez typu). Wewnątrz grupy
     najlepiej pasujące do wpisanego tekstu są pierwsze (match_score); przy remisie zostaje kolejność
-    od geokodera."""
+    od geokodera. `query` może być listą zapisów (wpisany tekst i nazwa lokalna): liczy się lepszy.
+    `anchor` = współrzędne znanego miasta: przy remisie wyżej jest wynik bliższy temu miastu."""
 
     def group(s: dict) -> int:
         kind = place_kind(s, query)
@@ -425,7 +432,14 @@ def rank_places(suggestions: list[dict], query: str = "") -> list[dict]:
         return {PLACE_STOP: 1, PLACE_ADDRESS: 2, PLACE_UNKNOWN: 2}[kind]
 
     kept = [s for s in suggestions if place_kind(s, query) is not None]
-    return sorted(kept, key=lambda s: (group(s), -round(match_score(s["name"], query), 3)))
+
+    def score(s: dict) -> float:
+        return max(match_score(s["name"], q) for q in _queries(query))
+
+    def distance(s: dict) -> float:
+        return _km(anchor, s) if anchor else 0.0
+
+    return sorted(kept, key=lambda s: (group(s), -round(score(s), 3), round(distance(s), 1)))
 
 
 # Większe miejscowości do poprawiania literówek we wpisanym tekście ("Warzsawa" -> "Warszawa").
@@ -443,46 +457,154 @@ KNOWN_PLACES = (
 _KNOWN_FOLDED = {_fold(name): name for name in KNOWN_PLACES}
 
 
+@lru_cache(maxsize=1)
+def _known_folded() -> dict[str, str]:
+    """Złożone nazwy do poprawiania literówek: krótka lista miast i nazwy miast w 6 językach (aliasy
+    wskazują nazwę lokalną: "Monachuim" -> "München")."""
+    return {**_KNOWN_FOLDED, **alias_names()}
+
+
 def correct_place_text(text: str) -> str:
-    """Wpisany tekst z poprawionymi literówkami i brakującymi ogonkami w nazwach miast: każdy człon po
-    przecinku, który jest równy albo bliski znanej miejscowości ("lodz", "Warzsawa"), zamieniany jest
-    na jej pełną nazwę ("Łódź", "Warszawa").
-    Człony z numerem domu zostają bez zmian. Brak poprawek = ten sam tekst."""
-    parts = text.split(",")
+    """Wpisany tekst z poprawionymi literówkami, brakującymi ogonkami i nazwami miast w innych językach:
+    każdy człon po przecinku, który jest równy albo bliski znanej miejscowości ("lodz", "Warzsawa",
+    "Cologne", "Krakau Hbf"), zamieniany jest na jej nazwę lokalną ("Łódź", "Warszawa", "Köln",
+    "Kraków Hbf"). Człony z numerem domu zostają bez zmian. Brak poprawek = ten sam tekst."""
+    parts = local_query(text).split(",")
+    known = _known_folded()
     for i, part in enumerate(parts):
         folded = _fold(part)
-        if len(folded) < 4 or any(c.isdigit() for c in folded):
+        if len(folded) < 4 or any(c.isdigit() for c in folded) or find_city(part):
             continue
-        close = (
-            [folded]
-            if folded in _KNOWN_FOLDED
-            else get_close_matches(folded, _KNOWN_FOLDED, n=1, cutoff=0.8)
-        )
+        close = [folded] if folded in known else get_close_matches(folded, known, n=1, cutoff=0.8)
         if close:
             lead = part[: len(part) - len(part.lstrip())]
-            parts[i] = lead + _KNOWN_FOLDED[close[0]]
+            parts[i] = lead + known[close[0]]
     return ",".join(parts)
 
 
-def clear_place(options: list[dict], query: str) -> dict | None:
-    """Kandydat, którego można wybrać bez pytania: pierwszy wynik jest miastem (albo dworcem) o nazwie
-    równej wpisanemu tekstowi i żaden inny kandydat takiego rodzaju nie ma tej samej nazwy w innym
-    punkcie (jak kilka miejscowości "Neustadt"). Inaczej None = pokaż wybór."""
-    if not options:
-        return None
-    first = options[0]
-    kind = place_kind(first, query)
-    if kind != PLACE_CITY and not _is_station(first):
-        return None
-    name = _fold(first["name"])
-    if name != _fold(query):
-        return None
-    rivals = [
-        o
-        for o in options[1:]
-        if _fold(o["name"]) == name and (place_kind(o, query) == kind or _is_station(o))
+MAX_PLACE_CANDIDATES = 5
+MIN_SUGGEST_CHARS = 3  # krócej nie pytamy geokodera (podpowiedzi przy pisaniu)
+
+_PLACE_ICONS = {PLACE_STOP: "🚉", PLACE_CITY: "🏙️", PLACE_ADDRESS: "📍", PLACE_UNKNOWN: "📍"}
+
+
+def _km(anchor: tuple[float, float], suggestion: dict) -> float:
+    return motis_client.haversine_km(anchor[0], anchor[1], suggestion["lat"], suggestion["lon"])
+
+
+def place_candidates(text: str) -> list[dict]:
+    """Kandydaci z geokodera dla wpisanego tekstu: tylko miejscowości, dworce, przystanki i adresy
+    (dworce i miasta na górze, najlepiej pasujące do tekstu pierwsze), bez powtórzeń. Literówki,
+    brakujące ogonki i nazwy miast w innych językach ("lodz", "Warzsawa", "Krakau", "Cologne")
+    poprawia correct_place_text: geokoder dostaje wtedy oba zapisy, a ranking liczy dopasowanie do
+    każdego z nich. Gdy cały tekst to miasto z places/aliases.json, zostają tylko wyniki w promieniu
+    CITY_RADIUS_KM od jego współrzędnych (najbliższe pierwsze): wieś o tej samej nazwie ("Toruń" pod
+    Zamościem) nie jest wtedy ani pierwszą opcją, ani żadną. Pusta lista = nic nie znaleziono; błędy
+    geokodera (MotisError) idą wyżej."""
+    corrected = correct_place_text(text)
+    queries = [corrected] if corrected == text else [corrected, text]
+    city = find_city(corrected)
+    anchor = (city.lat, city.lon) if city and city.lat is not None else None
+    # pytamy o więcej niż pokazujemy, bo śmieci zajmują miejsca w odpowiedzi geokodera
+    raw = [
+        s
+        for q in queries
+        for s in motis_client.geocode_suggestions_cached(q, limit=4 * MAX_PLACE_CANDIDATES)
     ]
-    return None if rivals else first
+    ranked = rank_places(unique_places(raw), queries, anchor)
+    if anchor:
+        ranked = [o for o in ranked if _km(anchor, o) <= CITY_RADIUS_KM]
+    options = ranked[:MAX_PLACE_CANDIDATES]
+    if anchor:
+        for o in options:
+            o["_anchor_km"] = _km(anchor, o)  # do opisu wpisów o tej samej nazwie (_describe_duplicates)
+    return options
+
+
+def best_place(text: str) -> dict | None:
+    """Najlepsze dopasowanie do wpisanego tekstu (dla wyszukiwania bez wyboru podpowiedzi) albo None."""
+    options = place_candidates(text) if text.strip() else []
+    return options[0] if options else None
+
+
+def place_label(option: dict, query: str = "", lang: str | None = None) -> str:
+    """Wiersz listy podpowiedzi: ikona rodzaju miejsca, nazwa w języku interfejsu i, gdy jest inna,
+    nazwa lokalna obok ("🏙️  Cologne · Köln")."""
+    shown, local = localize_name(option["name"], lang or current_lang())
+    icon = _PLACE_ICONS.get(place_kind(option, query) or PLACE_UNKNOWN, "📍")
+    label = f"{icon}  {shown}" if local is None else f"{icon}  {shown} · {local}"
+    return f"{label} ({option['detail']})" if option.get("detail") else label
+
+
+def _region(option: dict) -> str:
+    """Region wyniku z obszarów geokodera (admin_level 4: województwo, kraj związkowy), np. "woj.
+    kujawsko-pomorskie"; pusty tekst, gdy geokoder go nie podał."""
+    for area in option.get("areas", ()):
+        if area.get("adminLevel") == 4:
+            name = area["name"].strip()
+            return "woj. " + name[len("województwo ") :] if name.lower().startswith("województwo ") else name
+    return ""
+
+
+def _describe_duplicates(options: list[dict], lang: str | None, query: str = "") -> None:
+    """Wpisy o tej samej nazwie i ikonie dostają w option["detail"] opis, który je różni: region (z wyniku
+    geokodera, a gdy go brak - z odwrotnego geokodowania), kraj, odległość od znanego miasta w km, a na
+    końcu współrzędne, więc dwa wpisy nigdy nie wyglądają tak samo. Wpisy bez duplikatu zostają bez opisu."""
+    groups: dict[str, list[dict]] = {}
+    for o in options:
+        o.pop("detail", None)
+        groups.setdefault(place_label(o, query, lang), []).append(o)
+    for group in (g for g in groups.values() if len(g) > 1):
+        for o in group:
+            region = _region(o)
+            if not region:
+                try:
+                    areas = motis_client.reverse_geocode_areas(o["lat"], o["lon"])
+                except motis_client.MotisError:
+                    areas = []
+                region = _region({"areas": areas})
+            o["_parts"] = [region or o.get("country", "")]
+        steps = (
+            lambda o: [],
+            lambda o: [f"{o['_anchor_km']:.0f} km"] if "_anchor_km" in o else [],
+            lambda o: [f"{o['lat']:.2f}, {o['lon']:.2f}"],
+        )
+        for step in steps:  # kolejny szczegół dopisujemy tylko wpisom, które nadal wyglądają tak samo
+            seen: dict[tuple, int] = {}
+            for o in group:
+                key = tuple(p for p in o["_parts"] if p)
+                seen[key] = seen.get(key, 0) + 1
+            for o in group:
+                if seen[tuple(p for p in o["_parts"] if p)] > 1:
+                    o["_parts"] += step(o)
+        for o in group:
+            parts = [p for p in o.pop("_parts") if p]
+            if parts:
+                o["detail"] = ", ".join(parts)
+
+
+def place_input(side: str) -> tuple[str, dict | None]:
+    """Co jest teraz w polu „Skąd”/„Dokąd” (side = "origin" albo "dest"): (tekst, wybrana podpowiedź albo
+    None). Pole (streamlit-searchbox) trzyma w session_state wybrane miejsce, a gdy użytkownik nic nie
+    wybrał - wpisany tekst; bez pola (pierwszy przebieg) zostaje zapamiętany tekst {side}_query."""
+    state = st.session_state.get(f"{side}_sb") or {}
+    result = state.get("result")
+    if isinstance(result, dict):
+        return result["name"], result
+    if isinstance(result, str):
+        return result, None
+    return st.session_state.get(f"{side}_query", ""), None
+
+
+def suggest_places(term: str, lang: str | None = None) -> list[tuple[str, dict]]:
+    """Podpowiedzi przy pisaniu: pary (etykieta, miejsce). Poniżej MIN_SUGGEST_CHARS znaków (po
+    obcięciu spacji) nie pytamy geokodera wcale."""
+    text = term.strip()
+    if len(text) < MIN_SUGGEST_CHARS:
+        return []
+    options = place_candidates(text)
+    _describe_duplicates(options, lang, text)
+    return [(place_label(o, text, lang), o) for o in options]
 
 
 def variant_index(built, it) -> int:

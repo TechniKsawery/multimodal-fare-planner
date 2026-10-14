@@ -1,6 +1,7 @@
 """Szacowanie ceny segmentu komunikacji miejskiej BVG / VBB Berlin."""
 
 from ._data_loading import load
+from ._dzieci_do_6 import bezplatne_dziecko, dziecko_ponizej_6
 from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _TABLE = load("bvg_berlin.json")
@@ -26,9 +27,13 @@ def estimate(segment: Segment) -> PriceEstimate:
     if segment.ride_duration_min is None:
         raise ValueError("BVG Berlin (taryfa czasowa): ride_duration_min jest wymagane")
 
+    if dziecko_ponizej_6(segment):
+        return bezplatne_dziecko(segment, _TABLE)
+
     bilet = _wybierz_bilet(segment.ride_duration_min, segment.tariff_zone)
     schwerbehindert = segment.discounts.bvg_berlin_schwerbehindert
-    ulgowy = segment.discounts.bvg_berlin_ulgowy
+    wiek_ulgowy = segment.discounts.age is not None and 6 <= segment.discounts.age <= 14
+    ulgowy = segment.discounts.bvg_berlin_ulgowy or wiek_ulgowy
     if schwerbehindert:
         amount = 0.0
         typ_biletu = "bezpłatny (Schwerbehindertenausweis + Wertmarke)"
@@ -65,6 +70,11 @@ def estimate(segment: Segment) -> PriceEstimate:
                 f" Czas jazdy ({segment.ride_duration_min:.0f} min) przekracza najdłuższy dostępny "
                 f"bilet ({bilet['wazny_min']} min) — cena to szacunek."
                 if przekroczono
+                else ""
+            )
+            + (
+                " Taryfa ulgowa z wieku (Ermäßigungstarif 6-14 lat)."
+                if wiek_ulgowy and not segment.discounts.bvg_berlin_ulgowy and not schwerbehindert
                 else ""
             )
         ),

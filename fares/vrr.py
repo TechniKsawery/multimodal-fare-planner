@@ -7,6 +7,7 @@ w fares/data/vrr_eezy.json oraz README.md w tym katalogu. Sufit cenowy jest upro
 """
 
 from ._data_loading import load
+from ._dzieci_do_6 import bezplatne_dziecko, dziecko_ponizej_6
 from .model import Carrier, PriceEstimate, PriceType, Segment
 
 _TABLE = load("vrr_eezy.json")
@@ -15,6 +16,10 @@ _TABLE = load("vrr_eezy.json")
 def estimate(segment: Segment) -> PriceEstimate:
     if segment.carrier is not Carrier.VRR:
         raise ValueError(f"nieprawidłowy przewoźnik dla kalkulatora VRR: {segment.carrier}")
+
+    if dziecko_ponizej_6(segment):
+        return bezplatne_dziecko(segment, _TABLE)
+
     if segment.distance_km is None:
         raise ValueError("VRR (eezy.nrw): distance_km jest wymagane (odległość w linii prostej)")
 
@@ -22,7 +27,8 @@ def estimate(segment: Segment) -> PriceEstimate:
     sufit = _TABLE["sufity_cenowe_einzelticket"][_TABLE["sufit_uzywany_domyslnie"]]
     amount = round(min(surowa_cena, sufit), 2)
 
-    dziecko = segment.discounts.vrr_dziecko
+    wiek_dziecko = segment.discounts.age is not None and 6 <= segment.discounts.age <= 14
+    dziecko = segment.discounts.vrr_dziecko or wiek_dziecko
     if dziecko:
         amount = round(amount * (1 - _TABLE["kindertarif_rabat_procent"] / 100), 2)
 

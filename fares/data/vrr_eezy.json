@@ -14,5 +14,22 @@
   "sufit_24h_2_klasa": 28.90,
   "sufit_miesieczny_2_klasa": 63.00,
   "kindertarif_rabat_procent": 50,
-  "_kindertarif_uwaga": "Oficjalny Kindertarif eezy.nrw: dzieci 6-14 lat płacą 50% ceny dorosłego za przejazd, rabat wliczony też w sufity cenowe ('Kinder 50% Rabatt pro Person und Fahrt inkl. Deckel', Preistabelle VRR 2026). Dzieci poniżej 6 lat jeżdżą bez biletu (nie modelowane osobno — traktuj taki przejazd jako 0 PLN poza kalkulatorem). Od 15 lat pełna taryfa dorosłych."
+  "_zrodlo_dzieci": "Zasady taryfowe dla dzieci potwierdzone oficjalnymi źródłami eezy.nrw oraz vrr.de (zweryfikowano 2026-10-15): (1) Bezpłatne: dzieci poniżej 6 lat (eezy.nrw: 'Kinder unter sechs Jahren benötigen im ÖPNV kein Ticket.'; vrr.de: 'Kinder unter 6 Jahren fahren kostenlos mit.'); (2) Ulgowe (Kindertarif, 50% rabatu): dzieci od 6 do 14 lat (eezy.nrw: 'Die Software erkennt im Hintergrund anhand des Geburtsdatums automatisch das Alter und berechnet für Kinder im Alter von sechs bis 14 Jahren automatisch den Kindertarif. Für Jugendliche ab 15 Jahren wird automatisch der Erwachsenentarif berechnet.'; vrr.de: 'EinzelTickets werden für Erwachsene ab 15 Jahren und für Kinder von 6 bis unter 15 Jahren ausgegeben.').",
+  "dzieci_ponizej_6_lat_bezplatnie": {
+    "zrodlo_url": "https://eezy.nrw/hilfe/so-funktioniert-eezy-nrw",
+    "drugie_zrodlo_url": "https://www.vrr.de/tickets-tarife/ticketuebersicht/ticket/vrr/einzelticket/",
+    "cytat": "Kinder unter sechs Jahren benötigen im ÖPNV kein Ticket.",
+    "drugi_cytat": "Kinder unter 6 Jahren fahren kostenlos mit.",
+    "warunek": "Dziecko poniżej 6 lat podróżuje bezpłatnie (bez biletu).",
+    "data_weryfikacji": "2026-10-15"
+  },
+  "wiek_ulgowy": {
+    "zakres_wieku": [6, 14],
+    "zrodlo_url": "https://eezy.nrw/hilfe/so-funktioniert-eezy-nrw",
+    "drugie_zrodlo_url": "https://www.vrr.de/tickets-tarife/ticketuebersicht/ticket/vrr/einzelticket/",
+    "cytat": "Die Software erkennt im Hintergrund anhand des Geburtsdatums automatisch das Alter und berechnet für Kinder im Alter von sechs bis 14 Jahren automatisch den Kindertarif. Für Jugendliche ab 15 Jahren wird automatisch der Erwachsenentarif berechnet.",
+    "drugi_cytat": "EinzelTickets werden für Erwachsene ab 15 Jahren und für Kinder von 6 bis unter 15 Jahren ausgegeben.",
+    "data_weryfikacji": "2026-10-15"
+  },
+  "_kindertarif_uwaga": "Oficjalny Kindertarif eezy.nrw: dzieci 6-14 lat płacą 50% ceny dorosłego za przejazd, rabat wliczony też w sufity cenowe ('Kinder 50% Rabatt pro Person und Fahrt inkl. Deckel', Preistabelle VRR 2026). Dzieci poniżej 6 lat jeżdżą bez biletu. Od 15 lat pełna taryfa dorosłych."
 }

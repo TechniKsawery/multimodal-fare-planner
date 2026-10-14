@@ -1,4 +1,4 @@
-"""Bezpłatny przejazd dzieci poniżej 6 lat w lokalnym transporcie HVV/MVV/VRS.
+"""Bezpłatny przejazd dzieci poniżej 6 lat w lokalnym transporcie HVV/MVV/VRS/BVG/VRR.
 
 Reguła wieku jest w `fares/data/<przewoźnik>.json::dzieci_ponizej_6_lat_bezplatnie` (źródło,
 cytat, data weryfikacji). Wiek bierzemy z `DiscountProfile.age`; brak wieku = brak reguły.

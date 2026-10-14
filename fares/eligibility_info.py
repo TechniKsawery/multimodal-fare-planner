@@ -14,21 +14,28 @@ ELIGIBILITY: dict[Carrier, tuple[str, list[str], list[str], str]] = {
     Carrier.ZTM_WARSZAWA: (
         "Warszawa",
         [
+            "dzieci do 30.09 roku ukończenia 7 lat",
             "uczniowie szkół podstawowych (Karta Ucznia; ponadpodstawowe NIE)",
             "osoby 70+ (bez wymogu zamieszkania)",
             "niepełnosprawność znaczna 26+",
         ],
-        ["studenci", "emeryci/renciści do 70 lat", "niepełnosprawność umiarkowana 26+"],
+        [
+            "dzieci od 1.10 roku ukończenia 7 lat do 16 lat",
+            "studenci",
+            "emeryci/renciści do 70 lat",
+            "niepełnosprawność umiarkowana 26+",
+        ],
         "https://www.wtp.waw.pl/ulgi-znizki/",
     ),
     Carrier.MPK_KRAKOW: (
         "Kraków",
         [
+            "dzieci do 30.09 roku ukończenia 7 lat",
             "uczniowie szkół podstawowych z Krakowa/Metropolii (ponadpodstawowe NIE)",
             "osoby 70+ (bez wymogu zamieszkania)",
             "niepełnosprawność znaczna",
         ],
-        [],
+        ["dzieci od 1.10 roku ukończenia 7 lat do 16 lat"],
         "https://ztp.krakow.pl/kmk/przewodnik-po-biletach-kmk",
     ),
     Carrier.MPK_WROCLAW: (
@@ -58,15 +65,31 @@ ELIGIBILITY: dict[Carrier, tuple[str, list[str], list[str], str]] = {
     ),
     Carrier.ZTM_POZNAN: (
         "Poznań",
-        ["osoby 70+ (bez wymogu zamieszkania)", "niepełnosprawność znaczna / I grupa"],
-        ["uczniowie (w Poznaniu NIE jeżdżą bezpłatnie)"],
+        [
+            "dzieci do 30.09 roku ukończenia 7 lat",
+            "osoby 70+ (bez wymogu zamieszkania)",
+            "niepełnosprawność znaczna / I grupa",
+        ],
+        [
+            "uczniowie (w Poznaniu NIE jeżdżą bezpłatnie)",
+            "dzieci od 1.10 roku ukończenia 7 lat do 18 lat",
+        ],
         "https://www.ztm.poznan.pl/wszystko-o-biletach/ulgi-i-zwolnienia/",
     ),
     Carrier.BVG_BERLIN: (
         "Berlin",
-        ["Schwerbehindertenausweis (G/aG/H/Bl) + osobno wykupiona Wertmarke"],
+        [
+            "dzieci do 6 lat",
+            "Schwerbehindertenausweis (G/aG/H/Bl) + osobno wykupiona Wertmarke",
+        ],
         ["dzieci 6-14 lat (Ermäßigungstarif)"],
         "https://www.vbb.de",
+    ),
+    Carrier.VRR: (
+        "VRR (NRW)",
+        ["dzieci do 6 lat"],
+        ["dzieci 6-14 lat (Kindertarif)"],
+        "https://eezy.nrw/hilfe/so-funktioniert-eezy-nrw",
     ),
     Carrier.HVV: ("Hamburg", [_WERTMARKE, "dzieci do 6 lat"], ["dzieci 6-14 lat"], "https://www.hvv.de"),
     Carrier.MVV: (

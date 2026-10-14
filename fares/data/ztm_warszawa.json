@@ -5,6 +5,26 @@
   "_zrodlo_senior_niepelnosprawnosc": "Oficjalna, filtrowalna tabela ulg WTP Warszawa — https://www.wtp.waw.pl/ulgi-znizki/ (zweryfikowano 2026-10-10), potwierdzona niezależnie przez dedykowany artykuł https://www.wtp.waw.pl/newsy/2025/11/18/bezplatne-przejazdy-wtp-dla-osob-70-co-warto-wiedziec/ (ost. aktualizacja 2026-01-28) oraz warszawa19115.pl (snippet Google: 'Do bezpłatnych przejazdów są uprawnione osoby, które: ukończyły 26. rok życia i mają orzeczenie o znacznym stopniu niepełnosprawności'). KATEGORIA BEZPŁATNA (amount=0, w kodzie `ztm_warszawa_bezplatny`): osoby 70+ (tylko dokument tożsamości, BEZ wymogu zamieszkania w Warszawie); osoby ze znacznym stopniem niepełnosprawności 26+; osoby całkowicie niezdolne do pracy I do samodzielnej egzystencji 26+; dzieci/młodzież z niepełnosprawnością do 26 lat. KATEGORIA ULGOWA 50% (w kodzie `ztm_warszawa_ulgowy`), NIE bezpłatna: emeryci/renciści DO 70 roku życia z polskim organem emerytalno-rentowym; osoby z UMIARKOWANYM stopniem niepełnosprawności 26+ (samo 'umiarkowany' NIE wystarcza do bezpłatnego, wymagany 'znaczny'); osoby całkowicie niezdolne do pracy BEZ niezdolności do samodzielnej egzystencji 26+; uczniowie/studenci szkół ZAGRANICZNYCH do 26 lat. Osoby 65-69 lat mogą dodatkowo kupić osobny, płatny 'Roczny bilet seniora' (50 zł/rok) jako alternatywę dla ulgi 50% per przejazd - to produkt do zakupu, nie modelowany jako osobne pole (jak Bilet Poznań dla uczniów podstawówek).",
   "_zrodlo_skm": "Honorowanie biletów czasowych ZTM w pociągach SKM Warszawa (linie S1, S2, S3, S4, S40) w granicach stref biletowych oraz ceny 20/75/90 min (3,40 / 4,40 / 7,00 zł): https://www.wtp.waw.pl/ceny-i-rodzaje-biletow/ , raport research/ztm-lka-regio.md (gałąź gemini/ztm-lka-regio), 2026-10-12. Status: wg Gemini, niezweryfikowane niezależnie. Ceny zgodne z wcześniejszym odczytem z warszawa19115.pl (2026-10-06).",
   "_zrodlo_km_wkd": "Bilety czasowe ZTM (20-, 75-, 90-minutowe) NIE są honorowane w pociągach Kolei Mazowieckich i WKD (Wspólny Bilet obejmuje tylko dobowe i dłuższe). Wyjątek: połączenia lotniskowe KM Warszawa Płudy - Warszawa Lotnisko Chopina (w obu kierunkach): https://www.wtp.waw.pl/integracje/wspolny-bilet-ztm-km-wkd/ , raport research/ztm-lka-regio.md, 2026-10-12. Status: wg Gemini, niezweryfikowane niezależnie.",
+  "_zrodlo_dzieci": "Zasady taryfowe dla dzieci potwierdzone dwoma niezależnymi oficjalnymi źródłami (wtp.waw.pl i warszawa19115.pl, zweryfikowano 2026-10-15): (1) Bezpłatne: dzieci od urodzenia do 30 września w roku kalendarzowym, w którym kończą 7 lat albo rozpoczynają odroczoną naukę w szkole podstawowej (wymagany dokument ze zdjęciem z datą urodzenia lub oświadczenie rodzica/opiekuna); (2) Ulgowe 50%: dzieci i młodzież od 1 października roku kalendarzowego, w którym kończą 7 lat do ukończenia 16 roku życia (dokument ze zdjęciem zawierający datę urodzenia dziecka lub oświadczenie rodzica/opiekuna prawnego).",
+  "dzieci_bezplatne": {
+    "do_wieku": 7,
+    "do_dnia": "09-30",
+    "opis": "Dzieci od urodzenia do 30 września w roku kalendarzowym, w którym kończą 7 lat albo rozpoczynają odroczoną naukę w szkole podstawowej",
+    "zrodlo_url": "https://www.wtp.waw.pl/ulgi-znizki/",
+    "drugie_zrodlo_url": "https://warszawa19115.pl/wyszukiwarka/-/asset_publisher/rK827Z5k48bb/content/osoby-uprawnione-do-przejazdow-bezplatnych",
+    "cytat": "Dzieci od urodzenia do 30 września w roku kalendarzowym, w którym kończą 7 lat albo rozpoczynają odroczoną naukę w szkole podstawowej",
+    "data_weryfikacji": "2026-10-15"
+  },
+  "dzieci_ulgowe": {
+    "od_dnia": "10-01",
+    "od_roku_wieku": 7,
+    "do_wieku": 16,
+    "opis": "Dzieci i młodzież od 1 października roku kalendarzowego, w którym kończą 7 lat do ukończenia 16 roku życia",
+    "zrodlo_url": "https://www.wtp.waw.pl/ulgi-znizki/",
+    "drugie_zrodlo_url": "https://warszawa19115.pl/wyszukiwarka/-/asset_publisher/rK827Z5k48bb/content/osoby-uprawnione-do-przejazdow-ulgowych-50-",
+    "cytat": "Dzieci i młodzież od 1 października roku kalendarzowego, w którym kończą 7 lat do ukończenia 16 roku życia",
+    "data_weryfikacji": "2026-10-15"
+  },
   "waluta": "PLN",
   "nazwa_przewoznika": "ZTM Warszawa (WTP)",
   "as_of": "2026-10-06",

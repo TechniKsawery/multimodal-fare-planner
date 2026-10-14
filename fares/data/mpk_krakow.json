@@ -3,6 +3,26 @@
   "_uwaga": "Od 2 marca 2026 zlikwidowano bilet 20-minutowy (zastąpiony 15-minutowym) i dodano nową pulę 30-minutową. Bilety czasowe strefy I+II+III, ulga 50%. UWAGA: istnieje osobny bilet zintegrowany 'WSPÓLNY 70-minutowy KMK+KMŁ' (10,00/5,00 zł — udział gminy w opłacie łącznej, ważny też na liniach KMŁ/ŁKA odc. Wieliczka), to INNY produkt niż bilet 90-minutowy KMK poniżej — nieobsługiwany tu (brak modelu dla biletów łączonych z inną spółką), nie pomylić przy przyszłych zmianach.",
   "_zrodlo_bezplatny": "Przejazd bezpłatny (kategoria 'bezplatny' w kodzie, amount=0): uczniowie szkół PODSTAWOWYCH z Krakowa i gmin Metropolii Krakowskiej, cały rok (od wakacji 2024, potwierdzone krakow.pl: https://krakow.pl/aktualnosci/283607,26,komunikat,dla_uczniow_podstawowek_komunikacja_bezplatna_caly_rok.html ). Wymagana ważna legitymacja szkolna. POTWIERDZONE WYKLUCZENIE szkół ponadpodstawowych DWOMA NIEZALEŻNYMI, OFICJALNYMI źródłami: (1) tekst samego Załącznika nr 2 do uchwały (bazowa: Uchwała Nr XXI/231/11 Rady Miasta Krakowa z 6.07.2011 r. z późniejszymi zmianami) opublikowany na bip.krakow.pl (https://www.bip.krakow.pl/plik.php?zid=341738&wer=0&new=t&mode=shw) - ogólne uprawnienie uczniów (pozycja U) dotyczy WYŁĄCZNIE szkół podstawowych; uczniowie liceów/techników są objęci TYLKO pozycją 5 tego samego załącznika, która dotyczy wyłącznie uczniów o SPECJALNYCH POTRZEBACH EDUKACYJNYCH (legitymacja wydana z powodu niepełnosprawności), na trasie dom-placówka, nie ogółu uczniów ponadpodstawowych; (2) projekt uchwały zmieniającej ten załącznik (bip.krakow.pl/_inc/rada/show_pdfdoc.php?id=142759) potwierdza ten sam zakres - zmieniany wiersz mówi wyłącznie o 'uczniach szkół podstawowych prowadzonych w obszarze objętym integracją międzygminną'. Dodatkowo (kontekst, nie liczony jako jedno z dwóch głównych źródeł): petycja uczniów do prezydenta Krakowa z 2026-03-22 (krknews.pl) o 'wprowadzenie TEŻ dla ponadpodstawowych' potwierdza, że stan ten trwa do dziś. W kodzie dla ponadpodstawowych (poza uczniami ze specjalnymi potrzebami edukacyjnymi, nieobsługiwanymi osobno) zostaje `mpk_krakow_ulgowy` (50%). Zweryfikowano 2026-10-10.",
   "_zrodlo_senior_niepelnosprawnosc": "Oficjalna, szczegółowa tabela uprawnień ZTP Kraków — https://ztp.krakow.pl/kmk/przewodnik-po-biletach-kmk (zakładka 'Uprawnienia do ulg', zweryfikowano 2026-10-10), potwierdzona jako JEDYNE oficjalne źródło przez stronę miasta krakow.pl/bezbarier (artykuł 'Ulgi w komunikacji miejskiej w Krakowie' z 25.02.2025, wprost odsyła do tej strony ZTP). Cytuje dokładne podstawy prawne (ustawy/rozporządzenia) dla każdej kategorii. BEZPŁATNE (amount=0, `mpk_krakow_bezplatny`): osoby 70+ (BEZ wymogu zamieszkania w Krakowie - tylko dokument z datą urodzenia); znaczny stopień niepełnosprawności / całkowita niezdolność do pracy i samodzielnej egzystencji / I grupa inwalidztwa; plus WĄSKIE wyjątki gdzie nawet 'umiarkowany' stopień jest bezpłatny przy konkretnych symbolach przyczyny niepełnosprawności (wzrok '04-O', ruch '05-R'/'10-N', intelekt '01-U'). TYLKO ULGOWE 50% (`mpk_krakow_ulgowy`), NIE bezpłatne: emeryci DO 70 roku życia; 'umiarkowany' stopień niepełnosprawności OGÓLNIE (bez specyficznych symboli powyżej) / całkowita niezdolność do pracy (bez niezdolności do samodzielnej egzystencji) / II grupa inwalidzka; niepełnosprawność słuchu lekki stopień (symbol '03-L'); uczniowie/studenci szkół ZAGRANICZNYCH do 26 lat z ważną kartą ISIC. UWAGA różnica względem Warszawy: w Krakowie 'umiarkowany' stopień bywa bezpłatny dla konkretnych przyczyn, w Warszawie 'umiarkowany' to zawsze tylko 50% bez wyjątków.",
+  "_zrodlo_dzieci": "Zasady taryfowe dla dzieci potwierdzone dwoma niezależnymi oficjalnymi źródłami (ztp.krakow.pl oraz bip.krakow.pl / Uchwała Nr XXI/231/11 RMK z późn. zm., Załącznik nr 2, zweryfikowano 2026-10-15): (1) Bezpłatne: dzieci od urodzenia do dnia 30 września roku, w którym kończą 7 rok życia (wymagane oświadczenie rodzica lub opiekuna prawnego, bądź dokument urzędowy potwierdzający wiek dziecka); (2) Ulgowe 50%: dzieci i młodzież od 1 października roku kalendarzowego, w którym kończą 7 lat do ukończenia 16 roku życia (wymagany dokument ze zdjęciem i datą urodzenia).",
+  "dzieci_bezplatne": {
+    "do_wieku": 7,
+    "do_dnia": "09-30",
+    "opis": "Dzieci od urodzenia do dnia 30 września roku, w którym kończą 7 rok życia",
+    "zrodlo_url": "https://ztp.krakow.pl/kmk/przewodnik-po-biletach-kmk",
+    "drugie_zrodlo_url": "https://krakow.pl",
+    "cytat": "Dzieci od urodzenia do dnia 30 września roku, w którym kończą 7 rok życia",
+    "data_weryfikacji": "2026-10-15"
+  },
+  "dzieci_ulgowe": {
+    "od_dnia": "10-01",
+    "od_roku_wieku": 7,
+    "do_wieku": 16,
+    "opis": "Dzieci i młodzież od 1 października roku kalendarzowego, w którym kończą 7 lat do ukończenia 16 roku życia",
+    "zrodlo_url": "https://ztp.krakow.pl/kmk/przewodnik-po-biletach-kmk",
+    "drugie_zrodlo_url": "https://krakow.pl",
+    "cytat": "Dzieci i młodzież od 1 października roku kalendarzowego, w którym kończą 7 lat do ukończenia 16 roku życia*",
+    "data_weryfikacji": "2026-10-15"
+  },
   "waluta": "PLN",
   "nazwa_przewoznika": "MPK Kraków (ZTP)",
   "as_of": "2026-10-06",

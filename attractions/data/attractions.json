@@ -103,7 +103,7 @@
       "address": "Gelsenkirchener Str. 181, 45309 Essen",
       "official_url": "https://www.zollverein.de",
       "price_is_from": true,
-      "variable_pricing_note": "cena „od”: operator ma 20+ wariantów zwiedzania (1h od 12,50 €, 2h od 16,50 €); ulga ermäßigt od 9,50 € (1h) / od 13,50 € (2h) potwierdzona na zollverein.de/besuch-planen/eintrittspreise/ 2026-10-11, ale kto się kwalifikuje do ulgi na trasy i ulgi dla dzieci/rodzin NIE są tam podane — ulgi możliwe, kwota niepotwierdzona",
+      "variable_pricing_note": "cena „od”: operator ma 20+ wariantów zwiedzania (1h od 12,50 €, 2h od 16,50 €); ulga ermäßigt od 9,50 € (1h) / od 13,50 € (2h), ale kto się do niej kwalifikuje na trasach oraz ulgi dla dzieci/rodzin nie są podane — ulgi możliwe, kwota niepotwierdzona",
       "price_verified": true,
       "highlight": true,
       "tags": [
@@ -121,7 +121,10 @@
         "price_verified": true
       },
       "_UWAGA_warianty_zwiedzania": "2026-10-10: poprzednia notatka w tym pliku mówiła o '6 wariantach zwiedzania' Zeche Zollverein — PO WERYFIKACJI NA ŻYWO (zollverein.de/besuch-planen/eintrittspreise/ + zollverein.ticketfritz.de) to się NIE POTWIERDZA: oficjalny katalog ma 20+ osobno nazwanych Führungen pogrupowanych w 2 kategorie czasowe (1-godzinne od 12,50 EUR/ermäßigt od 9,50 EUR, 2-godzinne od 16,50 EUR/ermäßigt od 13,50 EUR), plus osobne produkty (Zollverein-Rundfahrten 17 EUR, linia turystyczna 7-8 EUR). Rozbicie na 6 osobnych wpisów Attraction, jak proponowano, nie odpowiada rzeczywistej strukturze cennika — wymaga decyzji produktowej (które konkretne trasy modelować osobno), a nie tylko weryfikacji. Jeden przykładowo sprawdzony konkretny produkt, 'Von Kohle, Koks und harter Arbeit' (1,5h): 14,50 EUR dorosły / 11,50 EUR ermäßigt i dzieci 5-17 lat / Familienticket I 22,50 EUR / Familienticket II 33,50 EUR — ale TO NIE jest ten sam produkt co obecny wpis 12,50 EUR w tym pliku (inny czas trwania i cena).",
-      "_weryfikacja_2026-10-11": "zollverein.de/besuch-planen/eintrittspreise (2026-10-11): Führungen ab 12,50 EUR (1h) / ermäßigt ab 9,50 EUR, 2h ab 16,50/13,50. Strona NIE podaje, kto ma prawo do ulgi przy Führungen; zdanie o uczniach/studentach/Azubi do 26 lat dotyczy tylko linii autobusowej Zollverein. Ruhr Museum: dzieci/młodzież <18 oraz uczniowie i studenci <25 wstęp wolny. Dlatego ulgi 9,50 nie przypisujemy uczniom/studentom."
+      "_weryfikacja_2026-10-11": "zollverein.de/besuch-planen/eintrittspreise (2026-10-11): Führungen ab 12,50 EUR (1h) / ermäßigt ab 9,50 EUR, 2h ab 16,50/13,50. Strona NIE podaje, kto ma prawo do ulgi przy Führungen; zdanie o uczniach/studentach/Azubi do 26 lat dotyczy tylko linii autobusowej Zollverein. Ruhr Museum: dzieci/młodzież <18 oraz uczniowie i studenci <25 wstęp wolny. Dlatego ulgi 9,50 nie przypisujemy uczniom/studentom.",
+      "_robocze_przed_czyszczeniem_2026_10_14": {
+        "variable_pricing_note": "cena „od”: operator ma 20+ wariantów zwiedzania (1h od 12,50 €, 2h od 16,50 €); ulga ermäßigt od 9,50 € (1h) / od 13,50 € (2h) potwierdzona na zollverein.de/besuch-planen/eintrittspreise/ 2026-10-11, ale kto się kwalifikuje do ulgi na trasy i ulgi dla dzieci/rodzin NIE są tam podane — ulgi możliwe, kwota niepotwierdzona"
+      }
     },
     {
       "id": "dortmund_signal_iduna_park",
@@ -350,7 +353,10 @@
         "price_verified": true
       },
       "_UWAGA_dynamiczne_ceny": "2026-10-11: zweryfikowano NA ŻYWO w widżecie rezerwacji (tv-turm.de/en/tickets-and-bundles/) po wybraniu konkretnego terminu — ceny 'Standard Ticket' są DYNAMICZNE (zależą od godziny i dnia, np. 24-29,50 EUR dla dorosłego w ciągu jednego dnia), nie jedną stałą kwotą jak normal_price=20 sugeruje (to prawdopodobnie najniższa możliwa cena 'ab'/'from'). Kategoria 'Child' (4-14 lat) istnieje i ma analogicznie dynamiczną cenę, potwierdzoną przykładowo na 14 EUR. Jest też osobna kategoria 'Infant' (prawdopodobnie 0-3 lata) — jej konkretną cenę/wiek nie sprawdzono dalej (czas sesji).",
-      "_weryfikacja_2026-10-11": "tv-turm.de/en/tickets-and-bundles (2026-10-11): Standard Ticket 'from 20.00 EUR', View & Drink od 31 EUR; ceny dynamiczne w widżecie rezerwacji, który nie pokazuje kwot bez wyboru terminu (nie przechodzono do koszyka). Widżet (zrzut ekranu od Ksaviego 2026-10-11, 'View without VR', 1 dorosły): kategorie Adult/Child/Infant, brak osobnych cen student/senior/rodzina; ceny zależą od godziny, w widocznym zakresie wieczornym 24 EUR (best price) do 33 EUR (limited availability). Przedziały wiekowe z widżetu (zrzuty od Ksaviego 2026-10-11): Adult 15+, Child 4-14, Infant 0-3 lat. Child (4-14), 'View without VR': 11.10.2026 od 14 EUR (best price) do 23 EUR (limited availability), najtańszy termin na 12.10.2026 od 10 EUR; zależnie od godziny."
+      "_weryfikacja_2026-10-11": "tv-turm.de/en/tickets-and-bundles (2026-10-11): Standard Ticket 'from 20.00 EUR', View & Drink od 31 EUR; ceny dynamiczne w widżecie rezerwacji, który nie pokazuje kwot bez wyboru terminu (nie przechodzono do koszyka). Widżet (zrzut ekranu od Ksaviego 2026-10-11, 'View without VR', 1 dorosły): kategorie Adult/Child/Infant, brak osobnych cen student/senior/rodzina; ceny zależą od godziny, w widocznym zakresie wieczornym 24 EUR (best price) do 33 EUR (limited availability). Przedziały wiekowe z widżetu (zrzuty od Ksaviego 2026-10-11): Adult 15+, Child 4-14, Infant 0-3 lat. Child (4-14), 'View without VR': 11.10.2026 od 14 EUR (best price) do 23 EUR (limited availability), najtańszy termin na 12.10.2026 od 10 EUR; zależnie od godziny.",
+      "_robocze_przed_czyszczeniem_2026_10_14": {
+        "description": "Najwyższy obiekt w Niemczech (368 m) na Alexanderplatz. Taras widokowy na wysokości 203 metrów z widokiem 360 stopni na cały Berlin. Cena to 'Standard Ticket' (wstęp bez kolejki wliczony w cenę); wariant z napojem 'View & DRINK' od 31 EUR. Zniżka Berlin WelcomeCard (25% na bilet widokowy) honorowana tylko w kasie na miejscu, nie online (źródło wg Gemini: berlin-welcomecard.de/de/partner/fernsehturm-berlin, 2026-10-12)."
+      }
     },
     {
       "id": "berlin_brandenburger_tor",
@@ -391,7 +397,10 @@
         "currywurst",
         "gastronomia",
         "tradycja"
-      ]
+      ],
+      "_robocze_przed_czyszczeniem_2026_10_14": {
+        "description": "Legendarna berlińska kiełbaska z sosem curry w Kreuzbergu, serwowana od pokoleń obok słynnego kebaba Mustafa's. Cena orientacyjna (Currywurst + Pommes osobno, bez formalnego 'combo' w karcie) — brak cennika na stronie operatora, niepotwierdzona u źródła."
+      }
     },
     {
       "id": "krakow_wawel",
@@ -440,6 +449,9 @@
         "source_url": "https://bilety-wawel.pl",
         "verified_date": "2026-10-10",
         "price_verified": true
+      },
+      "_robocze_przed_czyszczeniem_2026_10_14": {
+        "description": "Katedra na Wawelu z Dzwonem Zygmunta, krypty i groby królewskie oraz Muzeum Katedralne. Zarządzana przez Archidiecezję Krakowską, NIEZALEŻNIE od Zamku Królewskiego — to osobny bilet, inny zarządca i inna kasa. Zniżka karty miejskiej (Kraków Card) wciąż niepotwierdzona — nie wymieniona na stronie sprzedaży biletów. POPRAWKA 2026-10-10: cena zweryfikowana NA ŻYWO na bilety-wawel.pl różni się od wcześniej wpisanej (22 PLN) — aktualna cena biletu wstępu to 26 PLN."
       }
     },
     {
@@ -481,7 +493,10 @@
         "wisła kraków",
         "stadion"
       ],
-      "price_verified": false
+      "price_verified": false,
+      "_robocze_przed_czyszczeniem_2026_10_14": {
+        "description": "Dom 13-krotnego Mistrza Polski Wisły Kraków. Zwiedzanie stadionu, strefy VIP i muzeum klubowego 'Wisła z tradycją'. NIEPOTWIERDZONE: oficjalna strona klubu (wisla.krakow.pl) przekierowuje na wislakrakow.com, gdzie nie ma już informacji o zwiedzaniu stadionu. DODATKOWY DOWÓD 2026-10-10: stara podstrona z ofertą zwiedzania (archiwum.wisla.krakow.pl/Zwiedzanie_stadionu) ma PRZETERMINOWANY certyfikat SSL (błąd 'certificate has expired' przy próbie wejścia) — silna wskazówka, że ta podstrona jest martwa/nieaktualizowana, a aktualny wislakrakow.com/bilety ma tylko cennik biletów meczowych, bez oferty zwiedzania. Oferta prawdopodobnie nieaktywna, wymaga kontaktu z klubem przed użyciem w produkcji."
+      }
     },
     {
       "id": "krakow_kazimierz_zapiekanki",
@@ -501,7 +516,10 @@
         "zapiekanki",
         "klimat"
       ],
-      "price_verified": false
+      "price_verified": false,
+      "_robocze_przed_czyszczeniem_2026_10_14": {
+        "description": "Tradycyjne chrupiące zapiekanki z pieczarkami i serem na Placu Nowym w historycznej żydowskiej dzielnicy Kazimierz. Cena orientacyjna — street food bez formalnego cennika online, niepotwierdzona u źródła."
+      }
     },
     {
       "id": "lublin_arena_lublin",
@@ -586,7 +604,10 @@
         "pamięć",
         "muzeum",
         "edukacja"
-      ]
+      ],
+      "_robocze_przed_czyszczeniem_2026_10_14": {
+        "description": "Miejsc pamięci i martyrologii na terenie dawnego niemieckiego obozu koncentracyjnego i zagłady. Wstęp na teren i do ekspozycji stałych jest bezpłatny — POTWIERDZONE NA ŻYWO 2026-10-10 bezpośrednim cytatem ze strony operatora: 'Wstęp do Muzeum (w tym na wszystkie wystawy) jest bezpłatny.' Płatne jest tylko oprowadzanie z przewodnikiem w weekendy (25 PLN bilet normalny / 20 PLN bilet ulgowy, soboty i niedziele o 11:00 i 14:15)."
+      }
     },
     {
       "id": "lublin_cebularz",
@@ -1510,6 +1531,9 @@
         "verified_date": "2026-10-11",
         "price_verified": true,
         "max_age": 17
+      },
+      "_robocze_przed_czyszczeniem_2026_10_14": {
+        "description": "Ogród botaniczny z ok. 200 tys. roślin, prowadzony przez SNSB. Cena z portalu miejskiego muenchen.de — niepotwierdzona u operatora (botmuc.snsb.de nie odpowiedział)."
       }
     },
     {
@@ -1720,8 +1744,11 @@
       ],
       "price_is_from": true,
       "dynamic_pricing": true,
-      "variable_pricing_note": "cena „od”: online ceny dynamiczne (dorosły 22,50–29,50 €; dziecko 10,50–15 €; ulgowy/senior 63+ 16,10–23 € wg koelnerzoo.de/article/eintrittspreise/, 2026-10-11) — ulgi możliwe, kwota zależy od terminu",
-      "price_verified": true
+      "variable_pricing_note": "cena „od”: online ceny dynamiczne (dorosły 22,50–29,50 €; dziecko 10,50–15 €; ulgowy/senior 63+ 16,10–23 €) — ulgi możliwe, kwota zależy od terminu",
+      "price_verified": true,
+      "_robocze_przed_czyszczeniem_2026_10_14": {
+        "variable_pricing_note": "cena „od”: online ceny dynamiczne (dorosły 22,50–29,50 €; dziecko 10,50–15 €; ulgowy/senior 63+ 16,10–23 € wg koelnerzoo.de/article/eintrittspreise/, 2026-10-11) — ulgi możliwe, kwota zależy od terminu"
+      }
     },
     {
       "id": "koln_triangle",

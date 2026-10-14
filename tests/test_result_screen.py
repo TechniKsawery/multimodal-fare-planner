@@ -374,8 +374,12 @@ def _count_backend(monkeypatch, built, suggestions):
 
 
 def _pick(at, side):
-    """Radio wyboru miejsca; jego klucz zawiera numer wyszukiwania (pick_<strona>_<n>)."""
-    return next(r for r in at.radio if r.key and r.key.startswith(f"pick_{side}_"))
+    """Rozwijana lista wyboru miejsca; jej klucz zawiera numer wyszukiwania (pick_<strona>_<n>)."""
+    return next(r for r in at.selectbox if r.key and r.key.startswith(f"pick_{side}_"))
+
+
+def _picks(at):
+    return [r for r in at.selectbox if r.key and r.key.startswith("pick_")]
 
 
 ONE = [{"lat": 50.0, "lon": 19.9, "name": "Miejsce"}]
@@ -403,7 +407,7 @@ def test_jeden_adres_szuka_od_razu_i_pokazuje_skad_dokad_zmien(monkeypatch):
     calls = _count_backend(monkeypatch, [_rail("A", 50.0)], ONE)
     at = _run()
     assert calls["search"] == 1
-    assert not [r for r in at.radio if r.key and r.key.startswith("pick_")]
+    assert not _picks(at)
     searching = next(m.value for m in at.markdown if m.value.startswith("Szukamy z:"))
     assert "Miejsce (" in searching and " do: " in searching
     change = next(b for b in at.button if b.key == "change_route")
@@ -425,13 +429,13 @@ def test_kilka_adresow_pokazuje_krotki_wybor_i_szuka_dopiero_po_potwierdzeniu(mo
     assert len(origin_pick.options) == 2
     assert _pick(at, "dest").label == t("choose.dest")
     assert "search_result" not in at.session_state
-    _pick(at, "dest").set_value(1).run()  # zmiana wyboru nic nie szuka
+    _pick(at, "dest").select_index(1).run()  # zmiana wyboru nic nie szuka
     assert calls["search"] == 0
     next(b for b in at.button if b.key == "pick_submit").click().run()
     assert not at.exception, at.exception
     assert calls["search"] == 1
     assert at.session_state["search_result"]["request"].destination_label.startswith("Inne miejsce")
-    assert not [r for r in at.radio if r.key and r.key.startswith("pick_")]
+    assert not _picks(at)
 
 
 def test_wybor_tylko_dla_pola_z_wieloma_wynikami(monkeypatch):
@@ -445,7 +449,7 @@ def test_wybor_tylko_dla_pola_z_wieloma_wynikami(monkeypatch):
     at.text_input(key="origin_query").set_value("Skad x")
     at.text_input(key="dest_query").set_value("Dokad y")
     at.button[0].click().run()
-    assert [r.key for r in at.radio if r.key.startswith("pick_")] == [_pick(at, "origin").key]
+    assert [r.key for r in _picks(at)] == [_pick(at, "origin").key]
 
 
 def test_brak_wynikow_geokodera_to_czytelny_blad_bez_szukania(monkeypatch):
@@ -508,9 +512,10 @@ SUYU = {"lat": 41.0, "lon": 29.0, "name": "Lublin suyu", "type": "PLACE"}
 
 def test_smieci_z_geokodera_odpadaja_a_dworce_i_miasta_ida_na_gore():
     got = rank_places([KLOCKI, ULICA, PRZYSTANEK, SUYU, WROCLAW_GL, WROCLAW], "Wroclaw")
+    # w grupie miast i dworców wygrywa dokładna nazwa ("Wrocław"), potem reszta wg dopasowania
     assert [s["name"] for s in got] == [
-        "Wrocław Główny",
         "Wrocław",
+        "Wrocław Główny",
         "Wrocław, Rynek",
         "Rynek 1, Wrocław",
     ]
@@ -555,7 +560,7 @@ def test_geocode_suggestions_przekazuje_typ_miejsca(monkeypatch):
 def _answers(monkeypatch, by_prefix):
     _backend(monkeypatch, [_rail("A", 50.0)])
     monkeypatch.setattr(
-        motis_client, "geocode_suggestions", lambda text, limit=5: by_prefix[text.strip()]
+        motis_client, "geocode_suggestions", lambda text, limit=5: by_prefix.get(text.strip(), [])
     )
 
 
@@ -571,8 +576,8 @@ def test_jednoznaczne_miasto_szuka_od_razu_bez_smieci_w_wyborze(monkeypatch):
     at.run()
     _submit(at, "Wroclaw", "Gdansk")  # skąd: jednoznaczne miasto; dokąd: dworzec + adres
     assert "search_result" not in at.session_state  # dokąd wymaga wyboru
-    assert not [r for r in at.radio if r.key.startswith("pick_origin")]
-    assert [o for o in _pick(at, "dest").options] == ["Wrocław Główny", "Rynek 1, Wrocław"]
+    assert not [r for r in _picks(at) if r.key.startswith("pick_origin")]
+    assert list(_pick(at, "dest").options) == ["🚉  Wrocław Główny", "📍  Rynek 1, Wrocław"]
     _submit_pick = next(b for b in at.button if b.key == "pick_submit")
     _submit_pick.click().run()
     request = at.session_state["search_result"]["request"]
@@ -597,10 +602,112 @@ def test_baner_pokazuje_cel_zaznaczony_na_liscie_a_nie_stary_wybor(monkeypatch):
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
     at.run()
     _submit(at, "Wroclaw", "a x")
-    _pick(at, "dest").set_value(2).run()  # użytkownik klika trzecią opcję, ale nie potwierdza
+    _pick(at, "dest").select_index(2).run()  # użytkownik klika trzecią opcję, ale nie potwierdza
     _submit(at, "Wroclaw", "b y")  # i wysyła formularz od nowa, z tyloma samymi kandydatami
-    radio = _pick(at, "dest")
-    assert radio.value == 0 and radio.options[0] == "Gdańsk Główny"
+    pick = _pick(at, "dest")
+    assert pick.value == 0 and pick.options[0].endswith("Gdańsk Główny")
     next(b for b in at.button if b.key == "pick_submit").click().run()
     searching = next(m.value for m in at.markdown if m.value.startswith("Szukamy z:"))
     assert "**Gdańsk Główny**" in searching
+
+
+# --- dopasowanie przy błędnym zapisie, duplikaty adresów, odznaczanie wiersza -------------------------
+
+
+def test_poprawianie_literowek_i_brakujacych_ogonkow_w_nazwie_miasta():
+    from ui_helpers import correct_place_text
+
+    assert correct_place_text("lodz") == "Łódź"
+    assert correct_place_text("Warzsawa") == "Warszawa"
+    assert correct_place_text("Rynek 1, Wroclaw") == "Rynek 1, Wrocław"
+    assert correct_place_text("Munchen, Hbf") == "München, Hbf"
+    # człony z numerem domu i nieznane nazwy zostają bez zmian
+    assert correct_place_text("Krakowskie Przedmieście 50, Lublin") == "Krakowskie Przedmieście 50, Lublin"
+    assert correct_place_text("Bahnhofstraße") == "Bahnhofstraße"
+
+
+def test_najlepiej_pasujace_wyniki_sa_pierwsze_a_numer_domu_decyduje():
+    from ui_helpers import match_score
+
+    assert match_score("Łódź", "lodz") > match_score("Łódź Widzew", "lodz")
+    assert match_score("Łódź Widzew", "lodz") > match_score("Lublin", "lodz")
+    # numer domu liczy się tylko dokładnie: "50" nie łapie "500"
+    assert match_score("Krakowskie Przedmieście 46/50", "Krakowskie Przedmieście 50") > match_score(
+        "Krakowskie Przedmieście", "Krakowskie Przedmieście 50"
+    )
+    assert match_score("Ulica 500", "Ulica 50") < match_score("Ulica 50", "Ulica 50")
+    lodz = [
+        {"lat": 51.77, "lon": 19.54, "name": "Łódź Widzew", "type": "STOP"},
+        {"lat": 51.77, "lon": 19.45, "name": "Łódź", "type": "PLACE", "category": "city"},
+        {"lat": 51.76, "lon": 19.47, "name": "Łódź Fabryczna", "type": "STOP"},
+    ]
+    assert [s["name"] for s in rank_places(lodz, "lodz")] == ["Łódź", "Łódź Fabryczna", "Łódź Widzew"]
+
+
+def test_duplikaty_tego_samego_adresu_w_poblizu_sa_zwijane():
+    near = [
+        {"lat": 51.2500, "lon": 22.5700, "name": "Krakowskie Przedmieście 46-50"},
+        {"lat": 51.2502, "lon": 22.5701, "name": "Krakowskie Przedmieście 46/50"},
+        {"lat": 51.2504, "lon": 22.5702, "name": "Krakowskie Przedmieście 46/50"},
+    ]
+    assert unique_places(near) == near[:1]
+    # ta sama nazwa daleko stąd (inna miejscowość) zostaje
+    far = near[:1] + [dict(near[0], lat=52.0, lon=21.0)]
+    assert len(unique_places(far)) == 2
+
+
+def test_literowka_w_miescie_pyta_geokoder_poprawiona_nazwa(monkeypatch):
+    asked = []
+    lodz = {"lat": 51.77, "lon": 19.45, "name": "Łódź", "type": "PLACE", "category": "city"}
+
+    def geocode(text, limit=5):
+        asked.append(text)
+        return [lodz] if text == "Łódź" else []
+
+    _backend(monkeypatch, [_rail("A", 50.0)])
+    monkeypatch.setattr(motis_client, "geocode_suggestions", geocode)
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
+    at.run()
+    _submit(at, "lodz", "lodz")
+    assert "Łódź" in asked and "lodz" in asked  # geokoder dostał poprawiony i wpisany zapis
+    request = at.session_state["search_result"]["request"]
+    assert request.origin_label == "Łódź" and request.destination_label == "Łódź"
+
+
+def test_odznaczenie_wiersza_listy_zwija_szczegoly_ale_nie_karty(monkeypatch):
+    from types import SimpleNamespace
+
+    import ui_helpers
+
+    def state(rows, slot):
+        table = SimpleNamespace(selection=SimpleNamespace(rows=rows))
+        return {"tbl": table, ui_helpers.SELECTED_KEY: 1, ui_helpers.SELECTED_SLOT_KEY: slot}
+
+    monkeypatch.setattr(ui_helpers.st, "session_state", state([], ui_helpers.SLOT_LIST))
+    ui_helpers._on_row_select("tbl", [3, 1])
+    assert ui_helpers.SELECTED_KEY not in ui_helpers.st.session_state
+    assert ui_helpers.SELECTED_SLOT_KEY not in ui_helpers.st.session_state
+    # szczegóły otwarte pod kartą na górze zostają, gdy odznaczamy wiersz tabeli
+    monkeypatch.setattr(ui_helpers.st, "session_state", state([], "confirmed"))
+    ui_helpers._on_row_select("tbl", [3, 1])
+    assert ui_helpers.st.session_state[ui_helpers.SELECTED_KEY] == 1
+    # zaznaczenie wiersza wybiera wariant z listy wg kolejności sortowania
+    monkeypatch.setattr(ui_helpers.st, "session_state", state([1], ui_helpers.SLOT_LIST))
+    ui_helpers._on_row_select("tbl", [3, 2])
+    assert ui_helpers.st.session_state[ui_helpers.SELECTED_KEY] == 2
+
+
+@pytest.mark.parametrize("lang", [code for code in LANGUAGES if code != "pl"])
+def test_opisy_atrakcji_zmieniaja_jezyk_razem_z_interfejsem(monkeypatch, lang):
+    """Regresja: po zmianie języka karty atrakcji zostawały z polskimi opisami."""
+    from attractions import get_attractions, localized_description
+
+    monkeypatch.setattr(i18n, "current_lang", lambda: lang)
+    _backend(monkeypatch, [_rail("A", 50.0)])
+    at = _run(lang)
+    shown = {m.value for m in at.markdown}
+    attractions = get_attractions(city="gelsenkirchen")
+    assert attractions
+    for a in attractions:
+        assert localized_description(a, lang) in shown, a.id
+        assert a.description not in shown, a.id

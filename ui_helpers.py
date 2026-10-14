@@ -4,6 +4,7 @@ import json
 import re
 import unicodedata
 from datetime import date
+from difflib import SequenceMatcher, get_close_matches
 from html import escape
 from urllib.parse import urlparse
 
@@ -301,15 +302,24 @@ def transfers_text(n: int, lang: str | None = None) -> str:
 
 
 def unique_places(suggestions: list[dict]) -> list[dict]:
-    """Kandydaci geokodera bez powtórzeń (ta sama nazwa i punkt po zaokrągleniu do ~10 m), w
-    kolejności od geokodera."""
-    seen, out = set(), []
+    """Kandydaci geokodera bez powtórzeń: ta sama nazwa (bez wielkości liter i znaków diakrytycznych,
+    więc "46-50" i "46/50" to jedno) w promieniu ok. 300 m, w kolejności od geokodera. Ta sama nazwa
+    w odległych miejscach (kilka miejscowości "Neustadt") zostaje."""
+    out: list[tuple[str, dict]] = []
     for s in suggestions:
-        key = (s["name"].strip().casefold(), round(s["lat"], 4), round(s["lon"], 4))
-        if key not in seen:
-            seen.add(key)
-            out.append(s)
-    return out
+        name = _fold(s["name"])
+        if any(
+            name == seen
+            and abs(s["lat"] - o["lat"]) < _SAME_PLACE_DEG
+            and abs(s["lon"] - o["lon"]) < _SAME_PLACE_DEG * 1.6
+            for seen, o in out
+        ):
+            continue
+        out.append((name, s))
+    return [s for _, s in out]
+
+
+_SAME_PLACE_DEG = 0.003  # ~330 m szerokości geograficznej
 
 
 PLACE_STOP, PLACE_CITY, PLACE_ADDRESS, PLACE_UNKNOWN = "stop", "city", "address", "unknown"
@@ -324,7 +334,8 @@ _TRANSPORT_CATEGORIES = {
     "platform", "stop_position", "aerodrome", "airport",
 }  # fmt: skip
 _STATION_NAME = re.compile(
-    r"\b(hbf|hauptbahnhof|bahnhof|bf|g[łl]ówny|glowny|centralny|dworzec|stacja|station|gare)\b",
+    r"\b(hbf|hauptbahnhof|bahnhof|bf|g[łl]ówny|glowny|centralny|centralna|fabryczna|wschodnia|zachodnia"
+    r"|dworzec|stacja|station|gare)\b",
     re.IGNORECASE,
 )
 _DOMAIN_LIKE = re.compile(r"\S\.(?:[a-z]{2,}\.)*[a-z]{2,}\b|https?:|www\.", re.IGNORECASE)
@@ -372,10 +383,40 @@ def _is_station(suggestion: dict) -> bool:
     return place_kind(suggestion) == PLACE_STOP and bool(_STATION_NAME.search(suggestion["name"]))
 
 
+def match_score(name: str, query: str) -> float:
+    """Jak dobrze nazwa kandydata pasuje do wpisanego tekstu (0 - 3, więcej = lepiej), odporne na
+    ogonki, wielkość liter i drobne literówki: dokładna nazwa wygrywa ze wszystkim, potem liczy się
+    udział słów zapytania znalezionych w nazwie (słowo, jego początek albo bliskie literówce;
+    numery domów tylko dokładnie, więc "50" nie łapie "500") i ogólne podobieństwo napisów."""
+    q, n = _fold(query), _fold(name)
+    if not q or not n:
+        return 0.0
+    if q == n:
+        return 3.0
+    words = n.split()
+
+    def hit(token: str) -> float:
+        exact_only = len(token) < 3 or token.isdigit()
+        best = 0.0
+        for w in words:
+            if w == token or (not exact_only and w.startswith(token)):
+                return 1.0
+            if not exact_only and not w.isdigit():
+                ratio = SequenceMatcher(None, token, w).ratio()
+                if ratio >= 0.75:
+                    best = max(best, ratio)
+        return best
+
+    tokens = q.split()
+    overlap = sum(hit(tok) for tok in tokens) / len(tokens)
+    return 2 * overlap + SequenceMatcher(None, q, n).ratio()
+
+
 def rank_places(suggestions: list[dict], query: str = "") -> list[dict]:
     """Odsiewa kandydatów, którzy nie są miejscowością, dworcem, przystankiem ani adresem, i wysuwa
-    na górę dworce i miasta (potem zwykłe przystanki, adresy i kandydaci bez typu). Stabilnie:
-    wewnątrz grupy zostaje kolejność od geokodera."""
+    na górę dworce i miasta (potem zwykłe przystanki, adresy i kandydaci bez typu). Wewnątrz grupy
+    najlepiej pasujące do wpisanego tekstu są pierwsze (match_score); przy remisie zostaje kolejność
+    od geokodera."""
 
     def group(s: dict) -> int:
         kind = place_kind(s, query)
@@ -384,7 +425,43 @@ def rank_places(suggestions: list[dict], query: str = "") -> list[dict]:
         return {PLACE_STOP: 1, PLACE_ADDRESS: 2, PLACE_UNKNOWN: 2}[kind]
 
     kept = [s for s in suggestions if place_kind(s, query) is not None]
-    return sorted(kept, key=group)
+    return sorted(kept, key=lambda s: (group(s), -round(match_score(s["name"], query), 3)))
+
+
+# Większe miejscowości do poprawiania literówek we wpisanym tekście ("Warzsawa" -> "Warszawa").
+# Geokoder sam bywa tolerancyjny, ale przy dwuznacznych wpisach zwraca śmieci - wtedy pytamy go
+# jeszcze raz poprawioną nazwą. Lista celowo krótka: tylko miasta, do których realnie jeździmy.
+KNOWN_PLACES = (
+    "Warszawa", "Kraków", "Łódź", "Wrocław", "Poznań", "Gdańsk", "Szczecin", "Bydgoszcz", "Lublin",
+    "Białystok", "Katowice", "Gdynia", "Częstochowa", "Radom", "Rzeszów", "Toruń", "Kielce",
+    "Gliwice", "Zabrze", "Olsztyn", "Bielsko-Biała", "Opole", "Zielona Góra", "Gorzów Wielkopolski",
+    "Tarnów", "Zakopane", "Sopot", "Przemyśl", "Zamość", "Chełm", "Terespol", "Zgorzelec",
+    "Berlin", "Hamburg", "München", "Köln", "Frankfurt", "Stuttgart", "Düsseldorf", "Dortmund",
+    "Essen", "Leipzig", "Bremen", "Dresden", "Hannover", "Nürnberg", "Duisburg", "Bochum",
+    "Gelsenkirchen", "Görlitz", "Bonn", "Münster", "Wien", "Praha", "Amsterdam",
+)  # fmt: skip
+_KNOWN_FOLDED = {_fold(name): name for name in KNOWN_PLACES}
+
+
+def correct_place_text(text: str) -> str:
+    """Wpisany tekst z poprawionymi literówkami i brakującymi ogonkami w nazwach miast: każdy człon po
+    przecinku, który jest równy albo bliski znanej miejscowości ("lodz", "Warzsawa"), zamieniany jest
+    na jej pełną nazwę ("Łódź", "Warszawa").
+    Człony z numerem domu zostają bez zmian. Brak poprawek = ten sam tekst."""
+    parts = text.split(",")
+    for i, part in enumerate(parts):
+        folded = _fold(part)
+        if len(folded) < 4 or any(c.isdigit() for c in folded):
+            continue
+        close = (
+            [folded]
+            if folded in _KNOWN_FOLDED
+            else get_close_matches(folded, _KNOWN_FOLDED, n=1, cutoff=0.8)
+        )
+        if close:
+            lead = part[: len(part) - len(part.lstrip())]
+            parts[i] = lead + _KNOWN_FOLDED[close[0]]
+    return ",".join(parts)
 
 
 def clear_place(options: list[dict], query: str) -> dict | None:
@@ -586,6 +663,10 @@ def _on_row_select(table_key: str, order: list[int]) -> None:
     rows = st.session_state[table_key].selection.rows
     if rows:
         select_variant(order[rows[0]], SLOT_LIST, toggle=False)
+    elif st.session_state.get(SELECTED_SLOT_KEY) == SLOT_LIST:
+        # odznaczenie wiersza zwija szczegóły (wybór spod karty na górze zostaje nietknięty)
+        st.session_state.pop(SELECTED_KEY, None)
+        st.session_state.pop(SELECTED_SLOT_KEY, None)
 
 
 def render_variant_list(built, render_details) -> None:

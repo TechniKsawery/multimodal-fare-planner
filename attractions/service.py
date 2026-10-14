@@ -4,6 +4,7 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import date
+from functools import cache
 
 from routing.currency import convert
 
@@ -157,7 +158,7 @@ def get_all_attractions() -> list[Attraction]:
                 name=item["name"],
                 city=item["city"],
                 category=AttractionCategory(item["category"]),
-                description=item["description"],
+                description=public_text(item["description"]),
                 normal_price=float(item["normal_price"]),
                 currency=item["currency"],
                 default_card_discount_percent=float(item.get("default_card_discount_percent", 0.0)),
@@ -175,7 +176,7 @@ def get_all_attractions() -> list[Attraction]:
                 price_is_from=bool(
                     item.get("price_is_from", False) or item.get("dynamic_pricing", False)
                 ),
-                variable_pricing_note=item.get("variable_pricing_note", ""),
+                variable_pricing_note=public_text(item.get("variable_pricing_note", "")),
                 closed_until=item.get("closed_until", ""),
                 closed_source_url=item.get("closed_source_url", ""),
             )
@@ -296,12 +297,82 @@ def _status_title_applies(
     return flag or profile.has_recognized_document(doc_types, None)
 
 
-def price_from_note(attraction: Attraction) -> str:
-    """Adnotacja do ceny wyświetlanej użytkownikowi ("" gdy cena jest stała)."""
+# Robocze notatki weryfikacyjne, które trafiły do tekstów opisów (znaczniki "POPRAWKA 2026-10-10",
+# "wg Gemini", cytaty ze stron operatorów, adresy URL ze źródłami itp.) nie są treścią dla użytkownika
+# - w żadnym języku. Dane są już oczyszczone (oryginały w polu `_robocze_przed_czyszczeniem_2026_10_14`
+# w attractions.json), a public_text() jest siatką bezpieczeństwa przy wczytywaniu i wyświetlaniu:
+# gdy ktoś znów wklei notatkę do opisu, nie dotrze ona do UI ani do API.
+_WORKING_NOTE_MARKERS = re.compile(
+    r"""
+      \bGemini\b
+    | \b(?:POPRAWKA|KORREKTUR|CORRECTION|CORRECCIÓN|CORRECTIE)\b
+    | \b(?:NIE)?POTWIERDZONE\b | \bUNCONFIRMED\b | \bCONFIRMED\ LIVE\b
+    | \bUNBESTÄTIGT\b | \bLIVE\ BESTÄTIGT\b | \bSIN\ CONFIRMAR\b | \bCONFIRMADO\ EN\ VIVO\b
+    | \bNON\ CONFIRMÉ\b | \bCONFIRMÉ\ EN\ DIRECT\b | \bONBEVESTIGD\b | \bLIVE\ BEVESTIGD\b
+    | DODATKOWY\ DOWÓD | ADDITIONAL\ EVIDENCE | ZUSÄTZLICHER\ BEWEIS | PRUEBA\ ADICIONAL
+    | PREUVE\ SUPPLÉMENTAIRE | EXTRA\ BEWIJS
+    | niepotwierdzon\w*\ u\ (?:źródła|operatora)
+    | not\ confirmed\ (?:at\ the\ source|with\ the\ operator)
+    | (?:an\ der\ Quelle|beim\ Betreiber)\ nicht\ bestätigt
+    | no\ confirmado\ (?:en\ la\ fuente|con\ el\ operador)
+    | non\ confirmé\ (?:à\ la\ source|auprès\ de\ l'exploitant)
+    | niet\ bevestigd\ bij\ (?:de\ bron|de\ exploitant)
+    | \b20\d\d-\d\d-\d\d\b
+    | [a-z0-9-]+\.(?:de|pl|com|eu|org)/\S
+    | certificate\ has\ expired
+    """,
+    re.VERBOSE,
+)
+_PARENTHETICAL = re.compile(r"\s*\([^()]*\)")
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
+
+
+def has_working_note(text: str) -> bool:
+    return bool(_WORKING_NOTE_MARKERS.search(text))
+
+
+def public_text(text: str) -> str:
+    """Tekst bez roboczych notatek weryfikacyjnych: najpierw wypadają nawiasy z notatką (np. źródło
+    i data weryfikacji), potem całe zdania z notatką. Tekst bez notatek zostaje bez zmian."""
+    if not has_working_note(text):
+        return text
+    text = _strip_note_parentheticals(text)
+    sentences = [x for x in _SENTENCE_END.split(text) if not has_working_note(x)]
+    return " ".join(sentences).strip()
+
+
+def _strip_note_parentheticals(text: str) -> str:
+    return _PARENTHETICAL.sub(lambda m: "" if has_working_note(m.group(0)) else m.group(0), text)
+
+
+@cache
+def _translations(lang: str) -> dict:
+    """Tłumaczenia tekstów atrakcji (attractions/data/translations/<lang>.json: opisy i notatki
+    o cenach "od", klucz = id atrakcji). Brak pliku = brak tłumaczeń (zostaje polski)."""
+    try:
+        return load(f"translations/{lang}.json")
+    except FileNotFoundError:
+        return {}
+
+
+def localized_description(attraction: Attraction, lang: str | None = None) -> str:
+    """Opis atrakcji w danym języku; polski (źródłowy) i brak tłumaczenia dają oryginał."""
+    translated = _translations(lang or "pl").get("descriptions", {}).get(attraction.id)
+    return public_text(translated or attraction.description)
+
+
+def price_from_note(attraction: Attraction, lang: str | None = None) -> str:
+    """Adnotacja do ceny wyświetlanej użytkownikowi ("" gdy cena jest stała); w danym języku, jeśli
+    jest tłumaczenie (domyślnie polski)."""
     if not attraction.price_is_from:
         return ""
-    note = attraction.variable_pricing_note or "ceny zależą od terminu/wariantu, ulgi możliwe"
-    return note
+    translated = _translations(lang or "pl").get("notes", {}).get(attraction.id)
+    note = (
+        translated
+        or attraction.variable_pricing_note
+        or "ceny zależą od terminu/wariantu, ulgi możliwe"
+    )
+    return public_text(note)
 
 
 def best_price_for_attraction(

@@ -44,7 +44,7 @@ _TOKENS = {
 # jako koniec bloku HTML.
 _RULES = (
     # układ strony
-    ".block-container{max-width:1140px;padding-top:1.5rem;padding-bottom:3rem;}",
+    ".block-container{max-width:1140px;padding-top:4rem;padding-bottom:3rem;}",
     "h1{font-size:26px !important;font-weight:700 !important;line-height:1.2 !important;}",
     "h3{font-size:15px !important;font-weight:600 !important;line-height:1.35 !important;}",
     # karty wariantów i grupy formularza (kontenery z kluczem card-* / group-*)
@@ -60,7 +60,25 @@ _RULES = (
     "color:var(--mw-muted);}",
     ".mw-price-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:2px 0 4px;}",
     ".mw-price{font-size:22px;font-weight:800;line-height:1.15;}",
-    ".mw-group-title{font-size:15px;font-weight:600;line-height:1.35;margin:0;}",
+    '[class*="st-key-group-"]{padding:1.1rem 1.25rem !important;gap:.85rem !important;margin-bottom:.25rem;}',
+    ".mw-group-head{margin:0 0 .35rem;padding-bottom:.6rem;border-bottom:1px solid var(--mw-border);}",
+    ".mw-group-title{font-size:16px !important;font-weight:700;line-height:1.35;margin:0 0 .15rem !important;}",
+    ".mw-group-hint{font-size:13.5px !important;line-height:1.4;margin:0 !important;color:var(--mw-muted);}",
+    ".mw-sub-title{font-size:14px !important;font-weight:700;line-height:1.3;margin:.5rem 0 .1rem !important;}",
+    # przełącznik języka: poziome pigułki zamiast surowych przycisków radio
+    ".st-key-lang-switch{padding:.1rem 0 .5rem;}",
+    '.st-key-lang-switch [role="radiogroup"]{gap:.4rem !important;flex-wrap:wrap;}',
+    '.st-key-lang-switch [data-testid="stRadioOption"]{margin:0 !important;padding:.3rem .95rem;'
+    "border-radius:999px;border:1px solid var(--mw-border);background:var(--mw-card);cursor:pointer;"
+    "transition:border-color .15s ease-in-out,background-color .15s ease-in-out;}",
+    '.st-key-lang-switch [data-testid="stRadioOption"] > div > div:first-child{display:none !important;}',
+    '.st-key-lang-switch [data-testid="stRadioOption"]:hover{border-color:var(--mw-primary);}',
+    '.st-key-lang-switch [data-testid="stRadioOption"] p{font-size:14px !important;font-weight:500;'
+    "line-height:1.4;}",
+    '.st-key-lang-switch [data-testid="stRadioOption"][data-selected="true"]{'
+    "background:var(--mw-primary);border-color:var(--mw-primary);}",
+    '.st-key-lang-switch [data-testid="stRadioOption"][data-selected="true"] p{color:#FFFFFF;'
+    "font-weight:600;}",
     # plakietki statusu ceny: tekst + kropka, nie sam kolor
     ".mw-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:6px;"
     "border:1px solid;font-size:11px;font-weight:700;line-height:1.2;letter-spacing:.02em;"

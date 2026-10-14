@@ -1,5 +1,7 @@
 """Testy modułu atrakcji i kart miejskich (attractions/)."""
 
+import re
+
 from attractions import (
     Attraction,
     AttractionCategory,
@@ -768,3 +770,265 @@ def test_komunikat_waluty_nie_mowi_o_placeholderze():
         normalize_currency("GBP")
     assert "PLACEHOLDER" not in str(exc.value)
     assert "EUR" in str(exc.value)
+
+
+def test_kazda_atrakcja_ma_opis_i_notatke_w_kazdym_jezyku_interfejsu():
+    """Opisy atrakcji nie mogą zostawać po polsku po zmianie języka: każdy język ma komplet tłumaczeń
+    (attractions/data/translations/<kod>.json), a nowa atrakcja bez tłumaczenia wywala ten test."""
+    from attractions import localized_description, price_from_note
+    from i18n import LANGUAGES
+
+    attractions = get_all_attractions()
+    for lang in (code for code in LANGUAGES if code != "pl"):
+        for a in attractions:
+            text = localized_description(a, lang)
+            assert text and text != a.description, f"{lang}: brak tłumaczenia opisu {a.id}"
+            if a.price_is_from and a.variable_pricing_note:
+                note = price_from_note(a, lang)
+                assert note and note != a.variable_pricing_note, f"{lang}: brak notatki {a.id}"
+
+
+def test_polski_i_nieznany_jezyk_daja_oryginalny_opis():
+    from attractions import localized_description
+
+    a = get_all_attractions()[0]
+    assert localized_description(a) == a.description
+    assert localized_description(a, "pl") == a.description
+    assert localized_description(a, "xx") == a.description
+
+
+# --- robocze notatki weryfikacyjne nie trafiają do użytkownika --------------------------------------
+
+DIRTY = {
+    "pl": "Bilet 20 EUR. POPRAWKA 2026-10-10: cena zweryfikowana NA ŻYWO. Wstęp wolny w czwartki.",
+    "en": "Ticket 20 EUR. CORRECTION 2026-10-10: price verified LIVE. Free entry on Thursdays.",
+    "de": "Ticket 20 EUR. KORREKTUR 10.10.2026: Preis LIVE geprüft. Eintritt donnerstags frei.",
+    "es": "Entrada 20 EUR. CORRECCIÓN 10-10-2026: precio verificado EN VIVO. Entrada gratuita los jueves.",
+    "fr": "Billet 20 EUR. CORRECTION 10/10/2026 : prix vérifié EN DIRECT. Entrée gratuite le jeudi.",
+    "nl": "Ticket 20 EUR. CORRECTIE 10-10-2026: prijs LIVE gecontroleerd. Gratis toegang op donderdag.",
+}
+CLEAN_TAIL = {
+    "pl": "Wstęp wolny w czwartki.",
+    "en": "Free entry on Thursdays.",
+    "de": "Eintritt donnerstags frei.",
+    "es": "Entrada gratuita los jueves.",
+    "fr": "Entrée gratuite le jeudi.",
+    "nl": "Gratis toegang op donderdag.",
+}
+OTHER_NOTES = [
+    "Uwaga: zwiedzanie wstrzymane 05-13.10.2026.",
+    "Cena (źródło wg Gemini: berlin-welcomecard.de/de/partner/x, 2026-10-12) tylko w kasie.",
+    "NIEPOTWIERDZONE: strona klubu przekierowuje gdzie indziej. Zwiedzanie stadionu.",
+    "Najniższa cena z portalu — niepotwierdzona u operatora (botmuc.snsb.de nie odpowiedział).",
+    "UNCONFIRMED: the site redirects elsewhere. Stadium tour.",
+    "Offer is old (archiwum.wisla.krakow.pl/Zwiedzanie, certificate has expired). Tour.",
+]
+
+
+def test_public_text_wycina_notatki_w_kazdym_jezyku_i_zostawia_tresc():
+    from attractions.service import has_working_note, public_text
+
+    for lang, dirty in DIRTY.items():
+        assert has_working_note(dirty), lang
+        cleaned = public_text(dirty)
+        assert not has_working_note(cleaned), lang
+        assert cleaned.endswith(CLEAN_TAIL[lang]) and cleaned.startswith("Bilet" if lang == "pl" else ("Ticket" if lang in ("en", "de", "nl") else ("Entrada" if lang == "es" else "Billet"))), lang
+        assert "POPRAWKA" not in cleaned and "2026-10-10" not in cleaned
+    # nawias ze źródłem wypada, a reszta zdania zostaje; zdania z treścią dla użytkownika zostają
+    assert public_text(OTHER_NOTES[1]) == "Cena tylko w kasie."
+    assert public_text(OTHER_NOTES[0]) == OTHER_NOTES[0]
+    for note in (OTHER_NOTES[2], OTHER_NOTES[4]):
+        assert public_text(note) in ("Zwiedzanie stadionu.", "Stadium tour.")
+    assert not public_text(OTHER_NOTES[3]).strip()
+    assert public_text(OTHER_NOTES[5]) == "Offer is old. Tour."
+    # zwykły tekst (także z datą i warunkiem dla użytkownika) przechodzi bez zmian
+    ok = "Cennik obowiązuje do 31.12.2026. Pergamonmuseum jest zamknięte do lipca 2027."
+    assert public_text(ok) == ok
+
+
+def test_dane_opisow_i_notatek_cen_sa_czyste_w_kazdym_jezyku():
+    """Pilnuje samych plików z danymi (nie tylko filtra): opis ani notatka o cenie „od” nie mogą
+    zawierać roboczych notatek weryfikacyjnych (POPRAWKA, wg Gemini, daty weryfikacji, URL-e źródeł).
+    Oryginały siedzą w polu `_robocze_przed_czyszczeniem_*` w attractions.json."""
+    from attractions._data_loading import load
+    from attractions.service import has_working_note
+    from i18n import LANGUAGES
+
+    raw = load("attractions.json")["atrakcje"]
+    for item in raw:
+        for field in ("description", "variable_pricing_note"):
+            assert not has_working_note(item.get(field, "")), f"pl {item['id']}.{field}"
+    for lang in (code for code in LANGUAGES if code != "pl"):
+        translations = load(f"translations/{lang}.json")
+        for kind in ("descriptions", "notes"):
+            for id_, text in translations[kind].items():
+                assert not has_working_note(text), f"{lang} {kind} {id_}"
+
+
+def test_wyswietlanie_filtruje_notatki_nawet_gdy_wkleja_je_ktos_do_danych(monkeypatch):
+    """Siatka bezpieczeństwa: brudny opis (polski i tłumaczony) ani brudna notatka ceny nie wychodzą
+    z localized_description / price_from_note, w żadnym języku."""
+    import attractions.service as service
+    from attractions import localized_description, price_from_note
+    from attractions.service import has_working_note
+
+    base = get_all_attractions()[0]
+    dirty_attr = Attraction(**{**base.__dict__, "description": DIRTY["pl"], "price_is_from": True,
+                               "variable_pricing_note": DIRTY["pl"]})
+    monkeypatch.setattr(
+        service,
+        "_translations",
+        lambda lang: {"descriptions": {base.id: DIRTY[lang]}, "notes": {base.id: DIRTY[lang]}}
+        if lang in DIRTY and lang != "pl"
+        else {},
+    )
+    for lang in DIRTY:
+        for text in (localized_description(dirty_attr, lang), price_from_note(dirty_attr, lang)):
+            assert not has_working_note(text), lang
+            assert text.endswith(CLEAN_TAIL[lang]), lang
+
+
+def test_ekran_nie_pokazuje_roboczych_notatek_w_zadnym_jezyku(monkeypatch):
+    """Cały ekran atrakcji (opisy, linia z ceną i notatką „od”) dla miast, w których były notatki."""
+    from pathlib import Path
+
+    from streamlit.testing.v1 import AppTest
+
+    import i18n
+    from attractions.service import has_working_note
+    from i18n import LANGUAGES
+    from routing import motis_client, search_service
+    from routing.scoring import pick_recommendations
+    from tests.test_result_screen import _rail
+
+    built = [_rail("A", 50.0)]
+    monkeypatch.setattr(
+        motis_client, "geocode_suggestions",
+        lambda text, limit=5: [{"lat": 50.0, "lon": 19.9, "name": text}],
+    )
+    monkeypatch.setattr(motis_client, "coords_place", lambda lat, lon: f"{lat},{lon}")
+    monkeypatch.setattr(
+        search_service, "search",
+        lambda request: search_service.SearchResult(
+            request=request, built=list(built), skipped=[],
+            recommendations=pick_recommendations(list(built)),
+        ),
+    )
+    root = Path(__file__).resolve().parent.parent
+    for lang in LANGUAGES:
+        monkeypatch.setattr(i18n, "current_lang", lambda lang=lang: lang)
+        at = AppTest.from_file(str(root / "app.py"), default_timeout=60)
+        at.session_state["lang"] = lang
+        at.run()
+        for city in ("Berlin", "Kraków", "Lublin", "München", "Köln", "Gelsenkirchen"):
+            at.text_input(key="origin_query").set_value("Lublin")
+            at.text_input(key="dest_query").set_value(city)
+            at.button[0].click().run()
+            assert not at.exception, at.exception
+            shown = [m.value for m in at.markdown] + [c.value for c in at.caption]
+            assert len(shown) > 20, (lang, city)
+            for text in shown:
+                # linki "Strona oficjalna" mają prawdziwe adresy URL - to nie notatki
+                visible = re.sub(r"\]\([^)]*\)", "]", str(text))
+                # data wyjazdu z nagłówka wyniku też nie jest notatką
+                visible = visible.replace(str(at.session_state["search_result"]["date"]), "")
+                assert not has_working_note(visible), (lang, city, text[:120])
+
+
+# --- "cena niepotwierdzona" niesie flaga price_verified, nie tekst notatki ---------------------------
+
+# atrakcje, których usunięta notatka robocza mówiła, że cena/oferta jest niepotwierdzona u źródła
+UNCONFIRMED_AFTER_NOTE_REMOVAL = {
+    "berlin_curry36",
+    "krakow_kazimierz_zapiekanki",
+    "munchen_botanischer_garten",
+    "krakow_stadion_wisly",
+}
+
+
+def test_ceny_z_usunietych_notatek_dalej_maja_flage_niepotwierdzona():
+    """Usunięcie zdania „niepotwierdzona u źródła” z opisu nie może zdjąć oznaczenia ceny: ta sama
+    informacja ma iść do użytkownika flagą price_verified (UI dopisuje „(cena niepotwierdzona)”)."""
+    from attractions._data_loading import load
+
+    by_id = {a.id: a for a in get_all_attractions()}
+    for id_ in UNCONFIRMED_AFTER_NOTE_REMOVAL:
+        assert by_id[id_].price_verified is False, id_
+    # wg danych: każda atrakcja, której oryginalny opis mówił o niepotwierdzonej CENIE, ma flagę false
+    for item in load("attractions.json")["atrakcje"]:
+        before = item.get("_robocze_przed_czyszczeniem_2026_10_14", {}).get("description", "")
+        said_unconfirmed = re.search(r"[Cc]ena[^.]*niepotwierdzon|NIEPOTWIERDZONE", before)
+        if said_unconfirmed:
+            assert item["price_verified"] is False, item["id"]
+            assert item["id"] in UNCONFIRMED_AFTER_NOTE_REMOVAL
+
+
+def test_niepotwierdzona_zniizka_karty_nadal_jest_oznaczona_flaga_a_nie_notatka():
+    """Katedra Wawelska: zdanie o niepotwierdzonej zniżce Kraków Card wypadło z opisu, ale kalkulator
+    karty dalej liczy ją jako 0% i flaguje jako niezweryfikowaną (unverified_discount_attraction_ids)."""
+    cathedral = next(a for a in get_all_attractions() if a.id == "krakow_katedra_wawelska")
+    evaluations = evaluate_city_cards("krakow", [cathedral])
+    assert evaluations
+    for ev in evaluations:
+        assert cathedral.id in ev.unverified_discount_attraction_ids
+        assert "niezweryfikowane" in ev.summary
+
+
+def test_ekran_oznacza_niepotwierdzone_ceny_w_kazdym_jezyku_flaga(monkeypatch):
+    """Każda atrakcja bez potwierdzonej ceny (price_verified=false) dostaje na ekranie dopisek
+    „cena niepotwierdzona” w wybranym języku - niezależnie od tekstu opisu."""
+    from pathlib import Path
+
+    from streamlit.testing.v1 import AppTest
+
+    import i18n
+    from attractions import DiscountProfile as AttractionProfile
+    from i18n import LANGUAGES, t
+    from routing import motis_client, search_service
+    from routing.scoring import pick_recommendations
+    from tests.test_result_screen import _rail
+
+    built = [_rail("A", 50.0)]
+    monkeypatch.setattr(
+        motis_client, "geocode_suggestions",
+        lambda text, limit=5: [{"lat": 50.0, "lon": 19.9, "name": text}],
+    )
+    monkeypatch.setattr(motis_client, "coords_place", lambda lat, lon: f"{lat},{lon}")
+    monkeypatch.setattr(
+        search_service, "search",
+        lambda request: search_service.SearchResult(
+            request=request, built=list(built), skipped=[],
+            recommendations=pick_recommendations(list(built)),
+        ),
+    )
+    cities = {
+        "Gelsenkirchen": "gelsenkirchen", "Berlin": "berlin", "Kraków": "krakow",
+        "Lublin": "lublin", "Warszawa": "warszawa", "Poznań": "poznan", "Hamburg": "hamburg",
+        "München": "munchen", "Köln": "koln", "Wrocław": "wroclaw",
+    }  # fmt: skip
+    profile = AttractionProfile(age=30)
+    root = Path(__file__).resolve().parent.parent
+    checked_unverified = 0
+    for lang in LANGUAGES:
+        monkeypatch.setattr(i18n, "current_lang", lambda lang=lang: lang)
+        suffix = t("price.unverified_suffix", lang=lang)
+        at = AppTest.from_file(str(root / "app.py"), default_timeout=60)
+        at.session_state["lang"] = lang
+        at.run()
+        for typed, key in cities.items():
+            at.text_input(key="origin_query").set_value("Lublin")
+            at.text_input(key="dest_query").set_value(typed)
+            at.button[0].click().run()
+            assert not at.exception, at.exception
+            expected = 0
+            for a in get_attractions(city=key):
+                _, _, source = best_price_for_attraction(a, profile)
+                if (source is None and not a.price_verified) or (
+                    source is not None and not source.price_verified
+                ):
+                    expected += 1
+            shown = sum(suffix in c.value for c in at.caption)
+            assert shown == expected, (lang, typed, shown, expected)
+            if lang == "pl":
+                checked_unverified += expected
+    assert checked_unverified >= len(UNCONFIRMED_AFTER_NOTE_REMOVAL)

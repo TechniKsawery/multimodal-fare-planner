@@ -7,6 +7,7 @@ Wymaga działającego MOTIS (localhost:8080), patrz README.md.
 import datetime as dt
 import json
 import re
+from html import escape
 from pathlib import Path
 
 import streamlit as st
@@ -19,6 +20,7 @@ from attractions import (
     evaluate_city_cards,
     get_attractions,
     get_city_cards,
+    localized_description,
     normalize_city,
     price_from_note,
     suggest_best_city_card,
@@ -28,7 +30,7 @@ from demo import DEFAULT_FROM, DEFAULT_TO
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
 from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
-from i18n import DEFAULT_LANG, LANGUAGES, exc_text, label_or, t, tm
+from i18n import DEFAULT_LANG, LANGUAGES, current_lang, exc_text, label_or, t, tm
 from routing import motis_client
 from routing.card_suggestions import db_distance_km, suggest_bahncard_for_itinerary
 from routing.model import LegMode
@@ -44,9 +46,11 @@ from ui_helpers import (
     SELECTED_KEY,
     SELECTED_SLOT_KEY,
     clear_place,
+    correct_place_text,
     format_verified_date,
     leg_price_status,
     leg_source,
+    place_kind,
     rank_places,
     render_bezplatne_info,
     render_other_day_section,
@@ -71,14 +75,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 inject_style()
-st.radio(
-    "Język / Language",
-    options=list(LANGUAGES),
-    format_func=LANGUAGES.get,
-    key="lang",
-    horizontal=True,
-    label_visibility="collapsed",
-)
+with st.container(key="lang-switch"):
+    st.radio(
+        "Język / Language",
+        options=list(LANGUAGES),
+        format_func=LANGUAGES.get,
+        key="lang",
+        horizontal=True,
+        label_visibility="collapsed",
+    )
 set_html_lang(st.session_state["lang"])
 st.title(t("app.title"))
 st.caption(t("app.subtitle"))
@@ -461,7 +466,7 @@ def render_attractions_and_city_cards(
             elif not attr.price_verified:
                 price_text += t("price.unverified_suffix")
             if attr.price_is_from:
-                price_text += f" — {price_from_note(attr)}"
+                price_text += f" — {price_from_note(attr, lang=current_lang())}"
             discount_note = (
                 t("attr.card_discount", pct=f"{attr.default_card_discount_percent:.0f}")
                 if attr.default_card_discount_percent > 0
@@ -473,7 +478,7 @@ def render_attractions_and_city_cards(
                     f"{label_or('cat', attr.category.value, CATEGORY_LABELS.get(attr.category, attr.category.value))}"
                     f" • {price_text}{discount_note}"
                 )
-                st.write(attr.description)
+                st.write(localized_description(attr, current_lang()))
                 if attr.address:
                     st.caption(f"📍 {attr.address}")
                 if attr.official_url:
@@ -485,14 +490,30 @@ MAX_PLACE_CANDIDATES = 5
 
 def resolve_place(text: str) -> list[dict]:
     """Kandydaci z geokodera dla wpisanego tekstu: tylko miejscowości, dworce, przystanki i adresy
-    (dworce i miasta na górze), bez powtórzeń tej samej nazwy i punktu. Gdy pierwszy wynik jest
+    (dworce i miasta na górze, najlepiej pasujące do tekstu pierwsze), bez powtórzeń. Literówki i
+    brakujące ogonki w nazwie miasta ("lodz", "Warzsawa") poprawia correct_place_text: geokoder dostaje
+    wtedy oba zapisy, a ranking liczy dopasowanie do poprawionego. Gdy pierwszy wynik jest
     jednoznacznym miastem (albo dworcem), zwraca tylko jego - wtedy nie ma o co pytać.
     Pusta lista = nic nie znaleziono; błędy geokodera (MotisError) idą wyżej."""
+    corrected = correct_place_text(text)
+    queries = [corrected] if corrected == text else [corrected, text]
     # pytamy o więcej niż pokazujemy, bo śmieci zajmują miejsca w odpowiedzi geokodera
-    raw = motis_client.geocode_suggestions(text, limit=4 * MAX_PLACE_CANDIDATES)
-    options = rank_places(unique_places(raw), text)[:MAX_PLACE_CANDIDATES]
-    clear = clear_place(options, text)
+    raw = [
+        s
+        for q in queries
+        for s in motis_client.geocode_suggestions(q, limit=4 * MAX_PLACE_CANDIDATES)
+    ]
+    options = rank_places(unique_places(raw), corrected)[:MAX_PLACE_CANDIDATES]
+    clear = clear_place(options, corrected)
     return [clear] if clear is not None else options
+
+
+_PLACE_ICONS = {"stop": "🚉", "city": "🏙️", "address": "📍", "unknown": "📍"}
+
+
+def place_label(option: dict, query: str = "") -> str:
+    """Wiersz rozwijanej listy: ikona rodzaju miejsca i nazwa."""
+    return f"{_PLACE_ICONS.get(place_kind(option, query) or 'unknown', '📍')}  {option['name']}"
 
 
 def _clear_result() -> None:
@@ -561,9 +582,10 @@ def render_place_choice() -> None:
     pending = st.session_state.get("pending_search")
     if pending is None:
         return
-    # klucz radia zależy od wyszukiwania: widget identyfikuje się samymi indeksami opcji, więc ze
+    # klucz listy zależy od wyszukiwania: widget identyfikuje się samymi indeksami opcji, więc ze
     # stałym kluczem ponowne wysłanie formularza (z tyloma samymi kandydatami) zostawiało stary
-    # wybór zaznaczony przy zupełnie innych nazwach
+    # wybór zaznaczony przy zupełnie innych nazwach. Lista jest rozwijana i da się w niej pisać
+    # (filtruje opcje), więc zajmuje jedną linię zamiast pięciu.
     token = pending["token"]
     with st.container(border=True):
         st.subheader(t("choose.title"))
@@ -573,10 +595,11 @@ def render_place_choice() -> None:
             if len(options) == 1:
                 picks[side] = options[0]
                 continue
-            idx = st.radio(
+            query = correct_place_text(pending["inputs"].get(f"{side}_text", ""))
+            idx = st.selectbox(
                 t(f"choose.{side}"),
                 options=list(range(len(options))),
-                format_func=lambda i, options=options: options[i]["name"],
+                format_func=lambda i, options=options, query=query: place_label(options[i], query),
                 key=f"pick_{side}_{token}",
             )
             picks[side] = options[idx]
@@ -595,9 +618,16 @@ def render_search_header(result) -> None:
 
 
 def group_header(title_key: str, hint_key: str) -> None:
-    """Nagłówek grupy opcji w formularzu: ikona i tytuł, pod spodem jedno zdanie, czego dotyczy."""
-    st.markdown(f'<p class="mw-group-title">{t(title_key)}</p>', unsafe_allow_html=True)
-    st.caption(t(hint_key))
+    """Nagłówek grupy opcji w formularzu: ikona i tytuł, pod spodem jedno zdanie, czego dotyczy.
+    Jeden blok HTML (a nie st.markdown + st.caption): osobne elementy Streamlita nachodziły na siebie.
+    """
+    st.markdown(
+        '<div class="mw-group-head">'
+        f'<p class="mw-group-title">{escape(t(title_key))}</p>'
+        f'<p class="mw-group-hint">{escape(t(hint_key))}</p>'
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
 
 st.session_state.setdefault("origin_query", DEFAULT_FROM)
@@ -695,7 +725,10 @@ with st.form("search", border=False):
             )
         with st.container(border=True, key="group-city"):
             group_header("group.city", "group.city_hint")
-            st.markdown(f"**🇵🇱 {t('group.city_pl')}**")
+            st.markdown(
+                f'<p class="mw-sub-title">🇵🇱 {escape(t("group.city_pl"))}</p>',
+                unsafe_allow_html=True,
+            )
             st.caption(t("form.reduced_other"))
             u1, u2, u3 = st.columns(3)
             ztm_ulgowy = u1.checkbox(
@@ -708,7 +741,10 @@ with st.form("search", border=False):
             u4, u5, _u6 = st.columns(3)
             ztm_poznan_ulgowy = u4.checkbox(t("city.poznan"), value=wiek < 18)
             mpk_wroclaw_ulgowy = u5.checkbox(t("city.wroclaw"), value=wiek < 18)
-            st.markdown(f"**🇩🇪 {t('group.city_de')}**")
+            st.markdown(
+                f'<p class="mw-sub-title">🇩🇪 {escape(t("group.city_de"))}</p>',
+                unsafe_allow_html=True,
+            )
             bvg_berlin_ulgowy = st.checkbox(t("city.berlin"), value=wiek < 18)
             st.caption(t("form.kinder_other"))
             vrr_dziecko = st.checkbox(
@@ -723,7 +759,10 @@ with st.form("search", border=False):
     with st.expander(t("group.free")):
         st.caption(t("form.free_caption"))
         with st.container(border=True, key="group-free-pl"):
-            st.markdown(f"**🇵🇱 {t('group.city_pl')}**")
+            st.markdown(
+                f'<p class="mw-sub-title">🇵🇱 {escape(t("group.city_pl"))}</p>',
+                unsafe_allow_html=True,
+            )
             ztm_warszawa_bezplatny = st.checkbox(
                 t("free.warszawa"),
                 value=wiek >= 70,
@@ -750,7 +789,10 @@ with st.form("search", border=False):
                 help=t("free.lublin_help"),
             )
         with st.container(border=True, key="group-free-de"):
-            st.markdown(f"**🇩🇪 {t('group.city_de')}**")
+            st.markdown(
+                f'<p class="mw-sub-title">🇩🇪 {escape(t("group.city_de"))}</p>',
+                unsafe_allow_html=True,
+            )
             bvg_berlin_schwerbehindert = st.checkbox(
                 t("free.berlin"),
                 help=t("free.berlin_help"),
@@ -808,6 +850,8 @@ if submitted:
         "date": date,
         "time": godzina,
         "checked_baggage": bagaz_rejestrowany,
+        "origin_text": origin_text,
+        "dest_text": dest_text,
         "foreigner_warnings": foreigner_warnings_for(profile),
     }
     try:

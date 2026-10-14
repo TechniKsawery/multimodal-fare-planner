@@ -1,6 +1,8 @@
 """Fragmenty UI Streamlit wydzielone z app.py, żeby dało się je testować bez uruchamiania całej aplikacji."""
 
 import json
+import re
+import unicodedata
 from datetime import date
 from urllib.parse import urlparse
 
@@ -309,6 +311,102 @@ def unique_places(suggestions: list[dict]) -> list[dict]:
             seen.add(key)
             out.append(s)
     return out
+
+
+PLACE_STOP, PLACE_CITY, PLACE_ADDRESS, PLACE_UNKNOWN = "stop", "city", "address", "unknown"
+
+# Kategorie PLACE (jeśli geokoder je poda), które są miejscowością, dworcem, przystankiem lub lotniskiem.
+_SETTLEMENT_CATEGORIES = {
+    "city", "town", "village", "hamlet", "suburb", "borough", "quarter", "neighbourhood",
+    "municipality", "locality",
+}  # fmt: skip
+_TRANSPORT_CATEGORIES = {
+    "station", "halt", "railway", "public_transport", "tram_stop", "bus_station", "bus_stop",
+    "platform", "stop_position", "aerodrome", "airport",
+}  # fmt: skip
+_STATION_NAME = re.compile(
+    r"\b(hbf|hauptbahnhof|bahnhof|bf|g[łl]ówny|glowny|centralny|dworzec|stacja|station|gare)\b",
+    re.IGNORECASE,
+)
+_DOMAIN_LIKE = re.compile(r"\S\.(?:[a-z]{2,}\.)*[a-z]{2,}\b|https?:|www\.", re.IGNORECASE)
+
+
+def _fold(text: str) -> str:
+    """Nazwa do porównań: małe litery, bez polskich/niemieckich znaków diakrytycznych i interpunkcji."""
+    text = text.casefold().replace("ł", "l").replace("ß", "ss")
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(c for c in text if not unicodedata.combining(c))
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", text).split())
+
+
+def place_kind(suggestion: dict, query: str = "") -> str | None:
+    """Rodzaj kandydata z geokodera wg jego typu miejsca: "stop" (dworzec/przystanek), "city"
+    (miejscowość), "address", "unknown" (geokoder nie podał typu) albo None = nie nadaje się
+    (np. firma/strona WWW z nazwą w OSM, rzeka, obiekt).
+
+    PLACE jest miejscowością lub dworcem tylko wtedy, gdy jego kategoria na to wskazuje; bez
+    kategorii uznajemy go za miejscowość, jeśli jego nazwa to dokładnie wpisany tekst ("Wroclaw" ->
+    "Wrocław"), a "KLOCKI.wroclaw.pl" czy "Lublin suyu" odpadają."""
+    kind = (suggestion.get("type") or "").upper()
+    if not kind:
+        return PLACE_UNKNOWN
+    if kind == "STOP":
+        return PLACE_STOP
+    if kind == "ADDRESS":
+        return PLACE_ADDRESS
+    if kind != "PLACE":
+        return None
+    name = suggestion["name"].strip()
+    if _DOMAIN_LIKE.search(name):
+        return None
+    category = (suggestion.get("category") or "").lower()
+    if category in _TRANSPORT_CATEGORIES:
+        return PLACE_STOP
+    if category in _SETTLEMENT_CATEGORIES:
+        return PLACE_CITY
+    if not category and query and _fold(name) == _fold(query):
+        return PLACE_CITY
+    return None
+
+
+def _is_station(suggestion: dict) -> bool:
+    return place_kind(suggestion) == PLACE_STOP and bool(_STATION_NAME.search(suggestion["name"]))
+
+
+def rank_places(suggestions: list[dict], query: str = "") -> list[dict]:
+    """Odsiewa kandydatów, którzy nie są miejscowością, dworcem, przystankiem ani adresem, i wysuwa
+    na górę dworce i miasta (potem zwykłe przystanki, adresy i kandydaci bez typu). Stabilnie:
+    wewnątrz grupy zostaje kolejność od geokodera."""
+
+    def group(s: dict) -> int:
+        kind = place_kind(s, query)
+        if kind == PLACE_CITY or _is_station(s):
+            return 0
+        return {PLACE_STOP: 1, PLACE_ADDRESS: 2, PLACE_UNKNOWN: 2}[kind]
+
+    kept = [s for s in suggestions if place_kind(s, query) is not None]
+    return sorted(kept, key=group)
+
+
+def clear_place(options: list[dict], query: str) -> dict | None:
+    """Kandydat, którego można wybrać bez pytania: pierwszy wynik jest miastem (albo dworcem) o nazwie
+    równej wpisanemu tekstowi i żaden inny kandydat takiego rodzaju nie ma tej samej nazwy w innym
+    punkcie (jak kilka miejscowości "Neustadt"). Inaczej None = pokaż wybór."""
+    if not options:
+        return None
+    first = options[0]
+    kind = place_kind(first, query)
+    if kind != PLACE_CITY and not _is_station(first):
+        return None
+    name = _fold(first["name"])
+    if name != _fold(query):
+        return None
+    rivals = [
+        o
+        for o in options[1:]
+        if _fold(o["name"]) == name and (place_kind(o, query) == kind or _is_station(o))
+    ]
+    return None if rivals else first
 
 
 def variant_index(built, it) -> int:

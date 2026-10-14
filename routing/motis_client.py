@@ -154,9 +154,16 @@ def geocode_suggestions(text: str, limit: int = 5) -> list[dict]:
     if not text or not text.strip():
         return []
     results = _geocode_raw(text)
-    return [
-        {"lat": r["lat"], "lon": r["lon"], "name": r.get("name") or text} for r in results[:limit]
-    ]
+    out = []
+    for r in results[:limit]:
+        suggestion = {"lat": r["lat"], "lon": r["lon"], "name": r.get("name") or text}
+        # typ miejsca (STOP / ADDRESS / PLACE) i ewentualna kategoria służą UI do odsiania śmieci
+        # (np. stron WWW z nazwą w OSM); dokładamy je tylko wtedy, gdy MOTIS je zwrócił
+        for field in ("type", "category"):
+            if r.get(field):
+                suggestion[field] = r[field]
+        out.append(suggestion)
+    return out
 
 
 @dataclass(frozen=True)

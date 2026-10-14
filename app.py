@@ -43,9 +43,11 @@ from routing.variants import RouteRequest
 from ui_helpers import (
     SELECTED_KEY,
     SELECTED_SLOT_KEY,
+    clear_place,
     format_verified_date,
     leg_price_status,
     leg_source,
+    rank_places,
     render_bezplatne_info,
     render_other_day_section,
     render_price_summary,
@@ -473,10 +475,19 @@ def render_attractions_and_city_cards(
                     st.markdown(f"[{t('attr.official')}]({attr.official_url})")
 
 
+MAX_PLACE_CANDIDATES = 5
+
+
 def resolve_place(text: str) -> list[dict]:
-    """Kandydaci z geokodera dla wpisanego tekstu (bez powtórzeń tej samej nazwy i punktu).
+    """Kandydaci z geokodera dla wpisanego tekstu: tylko miejscowości, dworce, przystanki i adresy
+    (dworce i miasta na górze), bez powtórzeń tej samej nazwy i punktu. Gdy pierwszy wynik jest
+    jednoznacznym miastem (albo dworcem), zwraca tylko jego - wtedy nie ma o co pytać.
     Pusta lista = nic nie znaleziono; błędy geokodera (MotisError) idą wyżej."""
-    return unique_places(motis_client.geocode_suggestions(text))
+    # pytamy o więcej niż pokazujemy, bo śmieci zajmują miejsca w odpowiedzi geokodera
+    raw = motis_client.geocode_suggestions(text, limit=4 * MAX_PLACE_CANDIDATES)
+    options = rank_places(unique_places(raw), text)[:MAX_PLACE_CANDIDATES]
+    clear = clear_place(options, text)
+    return [clear] if clear is not None else options
 
 
 def _clear_result() -> None:
@@ -545,6 +556,10 @@ def render_place_choice() -> None:
     pending = st.session_state.get("pending_search")
     if pending is None:
         return
+    # klucz radia zależy od wyszukiwania: widget identyfikuje się samymi indeksami opcji, więc ze
+    # stałym kluczem ponowne wysłanie formularza (z tyloma samymi kandydatami) zostawiało stary
+    # wybór zaznaczony przy zupełnie innych nazwach
+    token = pending["token"]
     with st.container(border=True):
         st.subheader(t("choose.title"))
         picks = {}
@@ -557,7 +572,7 @@ def render_place_choice() -> None:
                 t(f"choose.{side}"),
                 options=list(range(len(options))),
                 format_func=lambda i, options=options: options[i]["name"],
-                key=f"pick_{side}",
+                key=f"pick_{side}_{token}",
             )
             picks[side] = options[idx]
         if st.button(t("choose.submit"), type="primary", key="pick_submit") and run_search(
@@ -787,7 +802,9 @@ if submitted:
             "inputs": inputs,
             "origin_options": origin_options,
             "dest_options": dest_options,
+            "token": st.session_state.get("search_seq", 0) + 1,
         }
+        st.session_state["search_seq"] = st.session_state["pending_search"]["token"]
 
 render_place_choice()
 

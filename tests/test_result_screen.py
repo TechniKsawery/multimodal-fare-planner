@@ -15,7 +15,10 @@ from routing.model import Itinerary, Leg, LegMode, PricedLeg, SkippedVariant
 from routing.scoring import pick_recommendations
 from ui_helpers import (
     carriers_summary,
+    clear_place,
     duration_text,
+    place_kind,
+    rank_places,
     recommended_variant,
     route_summary,
     time_span,
@@ -370,6 +373,11 @@ def _count_backend(monkeypatch, built, suggestions):
     return calls
 
 
+def _pick(at, side):
+    """Radio wyboru miejsca; jego klucz zawiera numer wyszukiwania (pick_<strona>_<n>)."""
+    return next(r for r in at.radio if r.key and r.key.startswith(f"pick_{side}_"))
+
+
 ONE = [{"lat": 50.0, "lon": 19.9, "name": "Miejsce"}]
 TWO = ONE + [{"lat": 51.0, "lon": 20.9, "name": "Inne miejsce"}]
 
@@ -412,12 +420,12 @@ def test_kilka_adresow_pokazuje_krotki_wybor_i_szuka_dopiero_po_potwierdzeniu(mo
     at = _run()
     assert calls["search"] == 0
     assert t("choose.title") in [s.value for s in at.subheader]
-    origin_pick = at.radio(key="pick_origin")
+    origin_pick = _pick(at, "origin")
     assert origin_pick.label == t("choose.origin")
     assert len(origin_pick.options) == 2
-    assert at.radio(key="pick_dest").label == t("choose.dest")
+    assert _pick(at, "dest").label == t("choose.dest")
     assert "search_result" not in at.session_state
-    at.radio(key="pick_dest").set_value(1).run()  # zmiana wyboru nic nie szuka
+    _pick(at, "dest").set_value(1).run()  # zmiana wyboru nic nie szuka
     assert calls["search"] == 0
     next(b for b in at.button if b.key == "pick_submit").click().run()
     assert not at.exception, at.exception
@@ -437,7 +445,7 @@ def test_wybor_tylko_dla_pola_z_wieloma_wynikami(monkeypatch):
     at.text_input(key="origin_query").set_value("Skad x")
     at.text_input(key="dest_query").set_value("Dokad y")
     at.button[0].click().run()
-    assert [r.key for r in at.radio if r.key.startswith("pick_")] == ["pick_origin"]
+    assert [r.key for r in at.radio if r.key.startswith("pick_")] == [_pick(at, "origin").key]
 
 
 def test_brak_wynikow_geokodera_to_czytelny_blad_bez_szukania(monkeypatch):
@@ -486,3 +494,113 @@ def test_unikalne_miejsca_i_polecana_trasa():
     recs = pick_recommendations(built)
     assert recommended_variant(built, recs) is recs["najlepszy_kompromis_bezpieczny"]
     assert recommended_variant(built, {}) is built[0]
+
+
+# --- filtr i ranking kandydatów geokodera, wybór tylko przy realnej niejednoznaczności ---------------
+
+WROCLAW = {"lat": 51.11, "lon": 17.03, "name": "Wrocław", "type": "PLACE", "category": "city"}
+WROCLAW_GL = {"lat": 51.09, "lon": 17.04, "name": "Wrocław Główny", "type": "STOP"}
+PRZYSTANEK = {"lat": 51.10, "lon": 17.00, "name": "Wrocław, Rynek", "type": "STOP"}
+ULICA = {"lat": 51.10, "lon": 17.02, "name": "Rynek 1, Wrocław", "type": "ADDRESS"}
+KLOCKI = {"lat": 51.2, "lon": 17.1, "name": "KLOCKI.wroclaw.pl", "type": "PLACE"}
+SUYU = {"lat": 41.0, "lon": 29.0, "name": "Lublin suyu", "type": "PLACE"}
+
+
+def test_smieci_z_geokodera_odpadaja_a_dworce_i_miasta_ida_na_gore():
+    got = rank_places([KLOCKI, ULICA, PRZYSTANEK, SUYU, WROCLAW_GL, WROCLAW], "Wroclaw")
+    assert [s["name"] for s in got] == [
+        "Wrocław Główny",
+        "Wrocław",
+        "Wrocław, Rynek",
+        "Rynek 1, Wrocław",
+    ]
+
+
+def test_rodzaj_miejsca_wg_typu_geokodera():
+    assert place_kind(WROCLAW_GL) == "stop" and place_kind(ULICA) == "address"
+    assert place_kind(KLOCKI, "Wroclaw") is None and place_kind(SUYU, "Lublin") is None
+    # PLACE bez kategorii jest miastem tylko, gdy nazwa to wpisany tekst (bez diakrytyków)
+    assert place_kind({"lat": 1, "lon": 1, "name": "Wrocław", "type": "PLACE"}, "wroclaw") == "city"
+    assert place_kind({"lat": 1, "lon": 1, "name": "Wrocław", "type": "PLACE"}, "Lublin") is None
+    # nazwa-adres WWW odpada nawet z miejską kategorią; brak typu = nie oceniamy
+    assert place_kind(dict(KLOCKI, category="city"), "x") is None
+    assert place_kind({"lat": 1, "lon": 1, "name": "Cokolwiek"}) == "unknown"
+
+
+def test_pierwszy_jednoznaczny_wynik_miasta_nie_wymaga_wyboru():
+    assert clear_place([WROCLAW, WROCLAW_GL, ULICA], "Wroclaw") is WROCLAW
+    # pierwszy wynik to nie miasto o tej nazwie -> pytamy
+    assert clear_place([WROCLAW_GL, WROCLAW], "Wroclaw") is None
+    assert clear_place([PRZYSTANEK, ULICA], "Wrocław, Rynek") is None
+    # dwie miejscowości o tej samej nazwie w różnych miejscach -> realna niejednoznaczność
+    inne = dict(WROCLAW, lat=40.0, lon=20.0)
+    assert clear_place([WROCLAW, inne], "Wrocław") is None
+    assert clear_place([], "x") is None
+
+
+def test_geocode_suggestions_przekazuje_typ_miejsca(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return [{"name": "A", "lat": 1, "lon": 2, "type": "STOP", "id": "x", "category": "c"}]
+
+    monkeypatch.setattr(motis_client.requests, "get", lambda *a, **kw: FakeResponse())
+    assert motis_client.geocode_suggestions("A") == [
+        {"name": "A", "lat": 1, "lon": 2, "type": "STOP", "category": "c"}
+    ]
+
+
+def _answers(monkeypatch, by_prefix):
+    _backend(monkeypatch, [_rail("A", 50.0)])
+    monkeypatch.setattr(
+        motis_client, "geocode_suggestions", lambda text, limit=5: by_prefix[text.strip()]
+    )
+
+
+def _submit(at, origin, dest):
+    at.text_input(key="origin_query").set_value(origin)
+    at.text_input(key="dest_query").set_value(dest)
+    at.button[0].click().run()
+
+
+def test_jednoznaczne_miasto_szuka_od_razu_bez_smieci_w_wyborze(monkeypatch):
+    _answers(monkeypatch, {"Wroclaw": [KLOCKI, WROCLAW, SUYU, WROCLAW_GL], "Gdansk": [WROCLAW_GL, ULICA]})
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
+    at.run()
+    _submit(at, "Wroclaw", "Gdansk")  # skąd: jednoznaczne miasto; dokąd: dworzec + adres
+    assert "search_result" not in at.session_state  # dokąd wymaga wyboru
+    assert not [r for r in at.radio if r.key.startswith("pick_origin")]
+    assert [o for o in _pick(at, "dest").options] == ["Wrocław Główny", "Rynek 1, Wrocław"]
+    _submit_pick = next(b for b in at.button if b.key == "pick_submit")
+    _submit_pick.click().run()
+    request = at.session_state["search_result"]["request"]
+    assert request.origin_label == "Wrocław" and request.destination_label == "Wrocław Główny"
+
+
+def test_dwa_jednoznaczne_miasta_nie_pytaja_o_wybor(monkeypatch):
+    _answers(monkeypatch, {"Wroclaw": [KLOCKI, WROCLAW, SUYU], "Lublin": [dict(WROCLAW, name="Lublin")]})
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
+    at.run()
+    _submit(at, "Wroclaw", "Lublin")
+    request = at.session_state["search_result"]["request"]
+    assert (request.origin_label, request.destination_label) == ("Wrocław", "Lublin")
+
+
+def test_baner_pokazuje_cel_zaznaczony_na_liscie_a_nie_stary_wybor(monkeypatch):
+    """Regresja: ponowne wysłanie formularza przy otwartym wyborze zostawiało zaznaczony stary indeks
+    radia przy nowej liście kandydatów (np. baner „KLOCKI.wroclaw.pl” zamiast „Wroclaw”)."""
+    first = [WROCLAW_GL, ULICA, PRZYSTANEK]
+    second = [dict(WROCLAW_GL, name="Gdańsk Główny"), dict(ULICA, name="Gdańsk 1"), dict(PRZYSTANEK, name="Gdańsk 2")]
+    _answers(monkeypatch, {"a x": first, "b y": second, "Wroclaw": [WROCLAW]})
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60)
+    at.run()
+    _submit(at, "Wroclaw", "a x")
+    _pick(at, "dest").set_value(2).run()  # użytkownik klika trzecią opcję, ale nie potwierdza
+    _submit(at, "Wroclaw", "b y")  # i wysyła formularz od nowa, z tyloma samymi kandydatami
+    radio = _pick(at, "dest")
+    assert radio.value == 0 and radio.options[0] == "Gdańsk Główny"
+    next(b for b in at.button if b.key == "pick_submit").click().run()
+    searching = next(m.value for m in at.markdown if m.value.startswith("Szukamy z:"))
+    assert "**Gdańsk Główny**" in searching

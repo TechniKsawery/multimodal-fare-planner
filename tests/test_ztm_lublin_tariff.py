@@ -1,4 +1,4 @@
-"""Taryfa ZTM Lublin wg oficjalnej strony ZDiTM, zweryfikowanej 2026-10-13 (cennik od 16.02.2026)."""
+"""Taryfa ZTM Lublin wg oficjalnej strony ZDiTM, zweryfikowanej 2026-10-14 (cennik od 16.02.2026)."""
 
 import pytest
 
@@ -35,12 +35,13 @@ def test_bilet_jednoprzejazdowy_w_danych():
 
 def test_zrodlo_data_i_price_verified():
     assert TABLE["source_url"] == "https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html"
-    assert TABLE["verified_date"] == "2026-10-13"
+    assert TABLE["verified_date"] == "2026-10-14"
+    assert TABLE["obowiazuje_od"] == "2026-02-16"
     assert TABLE["price_verified"] is True
     result = _cena(10)
     assert result.price_type is PriceType.OFFICIAL
     assert result.breakdown["price_verified"] is True
-    assert result.breakdown["data_weryfikacji"] == "2026-10-13"
+    assert result.breakdown["data_weryfikacji"] == "2026-10-14"
 
 
 @pytest.mark.parametrize("wiek", [66, 65, 0, 4, 5])

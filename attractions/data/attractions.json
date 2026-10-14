@@ -367,8 +367,8 @@
       "normal_price": 0.0,
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
-      "address": "Pariser Platz, 10117 Berlin",
-      "official_url": "https://www.berlin.de/sehenswuerdigkeiten/3560242-3558930-brandenburger-tor.html",
+      "address": "Pariser Platz 5, 10117 Berlin",
+      "official_url": "https://www.berlin.de/sehenswuerdigkeiten/3560266-3558930-brandenburger-tor.html",
       "price_verified": true,
       "highlight": true,
       "tags": [
@@ -892,8 +892,8 @@
       "normal_price": 18.0,
       "currency": "EUR",
       "default_card_discount_percent": 0.0,
-      "address": "",
-      "official_url": "https://www.imm-hamburg.de/international/en",
+      "address": "Koreastraße 1, 20457 Hamburg",
+      "official_url": "https://imm-hamburg.de/",
       "highlight": false,
       "tags": [
         "muzeum",
@@ -915,7 +915,7 @@
         "price_verified": false
       },
       "_UWAGA_zniezka_karty": "2026-10-12: Hamburg CARD 14,00 EUR zamiast 18,00 EUR = 22,2% (kontrola krzyżowa, imm-hamburg.de/preise-infos/; wg Gemini, niezweryfikowane niezależnie). Poprzednio 0% z flagą (cena bazowa 17 vs 18 EUR) — rozwiązane przez poprawę normal_price. Szczegóły: _zrodla_znizek_2026_10_12 karty hamburg_card.",
-      "_UWAGA_cena": "2026-10-12 (kontrola krzyżowa B1, wg Gemini, niezweryfikowane niezależnie): cennik https://imm-hamburg.de/preise-infos/ — Erwachsene 18,00 EUR (było 17,0), Ermäßigt 13,00 EUR (było 12,0), Familie 38,00 EUR (było 36,0). Wszystkie trzy ceny podniesione, dwie ulgi z price_verified=false (cytat Gemini, brak niezależnej weryfikacji). Kleinfamilie 21 EUR (1 dorosły + max. 4 dzieci) nie jest modelowana."
+      "_UWAGA_cena": "2026-10-12 (kontrola krzyżowa B1, wg Gemini, niezweryfikowane niezależnie): cennik https://imm-hamburg.de/preise-infos/ — Erwachsene 18,00 EUR (było 17,0), Ermäßigt 13,00 EUR (było 12,0), Familie 38,00 EUR (było 36,0). Wszystkie trzy ceny podniesione, dwie ulgi z price_verified=false (cytat Gemini, brak niezależnej weryfikacji). Kleinfamilie 21 EUR (1 dorosły + max. 4 dzieci) nie jest modelowana. 2026-10-14: zaktualizowano official_url na https://imm-hamburg.de/ (stary adres zwracał 404); cena wstępu (normal_price 18.0 EUR) potwierdzona na żywo cytatem 'Erwachsene 18,00 € ab 18 Jahre'."
     },
     {
       "id": "hamburg_elbphilharmonie_plaza",

@@ -1042,3 +1042,24 @@ def _fake_geocode(text, limit=5):
     city = find_city(text)
     lat, lon = (city.lat, city.lon) if city else (50.0, 19.9)
     return [{"lat": lat, "lon": lon, "name": text}]
+
+
+def test_brandenburger_tor_i_imm_hamburg_oficjalne_strony_i_ceny():
+    attrs = {a.id: a for a in get_all_attractions()}
+    tor = attrs["berlin_brandenburger_tor"]
+    assert tor.official_url == "https://www.berlin.de/sehenswuerdigkeiten/3560266-3558930-brandenburger-tor.html"
+    assert tor.normal_price == 0.0
+    assert tor.price_verified is True
+
+    imm = attrs["hamburg_imm"]
+    assert imm.official_url == "https://imm-hamburg.de/"
+    assert imm.address == "Koreastraße 1, 20457 Hamburg"
+    assert imm.normal_price == 18.0
+    assert imm.price_verified is True
+    assert imm.student_price.price == 13.0
+    assert imm.student_price.price_verified is False
+    assert imm.student_price.verified_date == "2026-10-12"
+    assert imm.family_price.price == 38.0
+    assert imm.family_price.price_verified is False
+    assert imm.family_price.verified_date == "2026-10-12"
+

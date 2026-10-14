@@ -837,3 +837,29 @@ def test_api_schema_ma_child_with_guardian():
 
     p = DiscountProfileIn(child_with_guardian=True)
     assert DiscountProfile(**p.model_dump()).child_with_guardian is True
+
+
+def test_weryfikacja_cen_bahn_de_2026_10_14():
+    from fares._data_loading import load
+
+    bc = load("bahncard.json")
+    assert bc["_data_sprawdzenia"] == "2026-10-14"
+    assert bc["warianty"]["bc25_standard"]["cena_roczna"] == 62.90
+    assert bc["warianty"]["bc50_standard"]["cena_roczna"] == 244.00
+    assert bc["warianty"]["my_bc25_19_26"]["cena_roczna"] == 39.90
+    assert bc["warianty"]["my_bc50_19_26"]["cena_roczna"] == 79.90
+    assert bc["warianty"]["jugend_bc25_6_18"]["cena_roczna"] == 7.90
+
+    dt = load("deutschlandticket.json")
+    assert dt["cena_miesieczna"] == 63.00
+    assert dt["_data_sprawdzenia"] == "2026-10-14"
+    assert "https://www.bahn.de/angebot/regio/deutschland-ticket" in dt["_zrodlo"]
+
+    intl = load("international_pl_de.json")
+    assert [p["cena_od"] for p in intl["progi_km"]] == [19.99, 29.99, 39.99]
+    assert intl["young_cena_od"] == 18.99
+    assert intl["young_wiek_min"] == 15
+    assert intl["young_wiek_max"] == 26
+    assert "2026-10-14" in intl["_zrodlo"]
+    assert "2026-10-14" in intl["_zrodlo_young"]
+

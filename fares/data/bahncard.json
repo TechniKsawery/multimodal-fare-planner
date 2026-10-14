@@ -1,6 +1,6 @@
 {
-  "_zrodlo": "https://www.bahn.de/angebot/bahncard/vergleich, https://www.bahn.de/angebot/bahncard/bahncard25/mybahncard-2-klasse, https://www.bahn.de/angebot/bahncard/bahncard25/jugendbahncard, https://www.bahn.de/angebot/bahncard/junge-reisende",
-  "_data_sprawdzenia": "2026-10-11",
+  "_zrodlo": "https://www.bahn.de/angebot/bahncard/vergleich, https://www.bahn.de/angebot/bahncard/bahncard25, https://www.bahn.de/angebot/bahncard/bahncard50, https://www.bahn.de/angebot/bahncard/bahncard100, https://www.bahn.de/angebot/bahncard/bahncard25/mybahncard-2-klasse, https://www.bahn.de/angebot/bahncard/bahncard50/mybahncard-2-klasse, https://www.bahn.de/angebot/bahncard/bahncard25/jugendbahncard, https://www.bahn.de/angebot/bahncard/junge-reisende",
+  "_data_sprawdzenia": "2026-10-14",
   "_uwaga": "Ceny BahnCard bywają zmieniane przez DB bez zapowiedzi i mogą się różnić od promocji widocznych tylko po zalogowaniu — traktuj jako oficjalny cennik na dzień sprawdzenia, nie jako gwarancję aktualności. Rabat_procent odnosi się do Flexpreis (patrz fares/db.py) — mnożnik BahnCard 25/50 na Flexpreis jest tą samą wartością co w db_flexpreis.json.",
   "waluta": "EUR",
   "klasa": 2,

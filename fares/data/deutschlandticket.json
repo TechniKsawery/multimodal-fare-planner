@@ -1,6 +1,6 @@
 {
-  "_zrodlo": "https://www.iamexpat.de/expat-info/germany-news/breaking-deutschlandticket-will-cost-63-euros-january-2026 (potwierdzona zapowiedziana podwyżka), historia cen ogólnie znana (Wikipedia: Deutschlandticket).",
-  "_data_sprawdzenia": "2026-09-27",
+  "_zrodlo": "https://www.bahn.de/angebot/regio/deutschland-ticket (Das Deutschland-Ticket kostet 63 Euro pro Monat und gilt deutschlandweit in Bus und Bahn, potwierdzone na żywo 2026-10-14), https://www.iamexpat.de/expat-info/germany-news/breaking-deutschlandticket-will-cost-63-euros-january-2026 (potwierdzona zapowiedziana podwyżka), historia cen ogólnie znana (Wikipedia: Deutschlandticket).",
+  "_data_sprawdzenia": "2026-10-14",
   "_uwaga": "Deutschlandticket to ogólnoniemiecki bilet miesięczny (abonament, można anulować co miesiąc) na CAŁY transport regionalny/lokalny w Niemczech (S-Bahn, U-Bahn, tramwaje, autobusy, RE/RB) — NIE obejmuje pociągów dalekobieżnych DB Fernverkehr (ICE/IC/EC) ani FlixBus/FlixTrain. To NIE jest zniżka jak BahnCard (rabat % na bilety), tylko osobny produkt zastępujący pojedyncze bilety lokalne (u nas: VRR/eezy.nrw) do limitu 'nieograniczone przejazdy'.",
   "_uwaga_vrr": "Sufit miesięczny własnej taryfy VRR eezy.nrw (fares/data/vrr_eezy.json: sufit_miesieczny_2_klasa) to również 63 EUR — Deutschlandticket kosztuje TYLE SAMO co miesięczny sufit samego VRR. Deutschlandticket opłaca się bardziej niż zostanie przy pojedynczych biletach/sufitach VRR TYLKO gdy: (a) liczba/koszt przejazdów VRR w miesiącu i tak przekroczyłby sufit VRR (patrz próg niżej), ORAZ (b) pasażer jeździ też lokalnym transportem POZA obszarem VRR w tym samym miesiącu (bo wtedy Deutschlandticket pokrywa to za darmo, a bilet VRR — nie).",
   "waluta": "EUR",

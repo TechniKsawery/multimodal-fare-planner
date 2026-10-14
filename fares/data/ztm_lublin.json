@@ -1,25 +1,26 @@
 {
-  "_zrodlo": "Oficjalny cennik ZDiTM Lublin (zdtm.lublin.eu) i LUBIKA — https://lubika.zdtm.lublin.eu/cennik/ , taryfa czasowa, strefa 1+2, ważna od 16.02.2026. Ceny i zasady ulg zweryfikowane 2026-10-13 wg strony ulg https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html (dane przekazane przez właściciela projektu; domeny ZDiTM są z chmury zablokowane, więc wdrażający nie otworzył ich sam).",
+  "_zrodlo": "Oficjalny cennik ZDiTM Lublin (zdtm.lublin.eu) i LUBIKA — https://lubika.zdtm.lublin.eu/cennik/ oraz https://lubika.zdtm.lublin.eu/cennik-wazny-od-16-lutego-2026/ , taryfa czasowa, strefa 1+2, ważna od 16.02.2026 (potwierdzone na żywo 2026-10-14). Ceny i zasady ulg zweryfikowane wg strony ulg https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html.",
   "_zrodlo_bezplatny": "Przejazdy bezpłatne wg https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html (zweryfikowano 2026-10-13): (1) dzieci do 30.09 roku, w którym kończą 7 lat; (2) uczniowie szkół podstawowych działających na terenie Gminy Lublin (wymagana ważna legitymacja szkolna; podstawa: uchwała nr 206/VII/2024 Rady Miasta Lublin z 19.12.2024, potwierdzona 2026-10-10); (3) osoby 65+ (wcześniej kod zakładał 70+ — poprawione). Szkoły ponadpodstawowe i policealne NIE są bezpłatne: ta sama tabela daje im ulgę 50% (pkt ulgowe niżej).",
   "_zrodlo_ulgowe": "Ulga 50% wg https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html (zweryfikowano 2026-10-13): uczniowie szkół podstawowych, ponadpodstawowych i policealnych do ukończenia 24 lat z ważną legitymacją szkolną; doktoranci; uczniowie i studenci szkół zagranicznych do 26 lat z kartą ISIC; emeryci. Uczniowie podstawówek są w praktyce objęci przejazdem bezpłatnym (wygrywa korzystniejsze).",
-  "_uwaga": "ZTM Lublin sprzedaje bilety jednorazowe jako bilety CZASOWE (ważne przez X minut od skasowania), a nie za odległość/liczbę przystanków (ta ostatnia to osobna 'taryfa przystankowa', tu nieobsługiwana). Kalkulator dobiera najkrótszy bilet czasowy, którego czas ważności >= czasowi jazdy odcinka z MOTIS — to PRZYBLIŻENIE: rzeczywisty bilet liczy czas od skasowania (może obejmować oczekiwanie/przesiadkę), nie tylko czas jazdy. Ceny podane dla strefy 1+2 (obejmuje całą sieć ZTM, w tym gminy ościenne) — dla przejazdów tylko w obrębie strefy 1 rzeczywista cena może być niższa, ale nie mamy mapowania przystanek->strefa. Bilet jednoprzejazdowy (5,00/2,50) jest w danych, ale nie jest wybierany automatycznie: nie wiemy, czy odcinek z MOTIS to jedna jazda bez przesiadki, więc zostajemy przy biletach czasowych (górna granica).",
+  "_uwaga": "ZTM Lublin sprzedaje bilety jednorazowe jako bilety CZASOWE (ważne przez X minut od skasowania), a nie za odległość/liczbę przystanków (ta ostatnia to osobna 'taryfa przystankowa', tu nieobsługiwana). Kalkulator dobiera najkrótszy bilet czasowy, którego czas ważności >= czasowi jazdy odcinka z MOTIS — to PRZYBLIŻENIE: rzeczywisty bilet liczy czas od skasowania (może obejmować oczekiwanie/przesiadkę), nie tylko czas jazdy. Ceny podane dla strefy 1+2 (obejmuje całą sieć ZTM, w tym gminy ościenne) — dla przejazdów tylko w obrębie strefy 1 rzeczywista cena może być niższa, ale nie mamy mapowania przystanek->strefa. Bilet jednoprzejazdowy (5,00/2,50) jest w danych, ale nie jest wybierany automatycznie: nie wiemy, czy odcinek z MOTIS to jedna jazda bez przesiadki, więc zostajemy przy biletach czasowych (górna granica). Bilety okresowe (np. 30-dniowy sieć 1+2: 96 zł z LKM / 208 zł bez LKM) oraz bilety turysty (1 dzień / 24h: 11 zł) nie są modelowane w kalkulatorze pojedynczych przejazdów.",
   "_zrodlo_zagraniczne_legitymacje": "Uczniowie i studenci szkół ZAGRANICZNYCH do 26 lat z kartą ISIC mają ulgę 50% (https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html, zweryfikowano 2026-10-13). Zagraniczna legitymacja BEZ ISIC nie jest tam wymieniona, więc nie zakładamy ulgi. Wcześniejszy zapis (2026-10-10), że zagraniczna legitymacja studencka nie uprawnia do niczego, jest tym samym zastąpiony.",
   "waluta": "PLN",
   "nazwa_przewoznika": "ZDiTM Lublin (ZTM Lublin, strefa 1+2)",
-  "as_of": "2026-10-13",
+  "as_of": "2026-10-14",
   "obowiazuje_od": "2026-02-16",
   "typ_ceny": "oficjalna_taryfa",
   "source_url": "https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html",
   "source_urls": [
     "https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/33.html",
-    "https://lubika.zdtm.lublin.eu/cennik/"
+    "https://lubika.zdtm.lublin.eu/cennik/",
+    "https://lubika.zdtm.lublin.eu/cennik-wazny-od-16-lutego-2026/"
   ],
-  "verified_date": "2026-10-13",
+  "verified_date": "2026-10-14",
   "price_verified": true,
   "weryfikacja": {
-    "status": "potwierdzone wg oficjalnej strony ZDiTM Lublin (dane od właściciela projektu)",
-    "sprawdzono": "2026-10-13",
-    "wynik": "6 biletów normalnych i ulgowych (jednoprzejazdowy, 15/40/90 min, 6 h, 24 h) oraz tytuły bezpłatne i ulgowe wg strony ulg. Cennik ważny od 16.02.2026."
+    "status": "potwierdzone wg oficjalnego cennika ZDiTM Lublin / LUBIKA",
+    "sprawdzono": "2026-10-14",
+    "wynik": "6 biletów normalnych i ulgowych (jednoprzejazdowy, 15/40/90 min, 6 h, 24 h) oraz okresowe i turysty zweryfikowane na żywo na lubika.zdtm.lublin.eu/cennik-wazny-od-16-lutego-2026/. Cennik ważny od 16.02.2026."
   },
   "bilet_jednoprzejazdowy": {"normalny": 5.00, "ulgowy": 2.50},
   "bilety_czasowe": [

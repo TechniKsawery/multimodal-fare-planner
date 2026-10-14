@@ -265,3 +265,167 @@ def test_real_fares_data_has_discoverable_sources():
     files_covered = {s.data_file for s in sources}
     assert "pkp_intercity.json" in files_covered
     assert "vrr_eezy.json" in files_covered
+
+
+def _write_zrodlo(data_dir: Path, name: str, text: str) -> None:
+    (data_dir / name).write_text(json.dumps({"_zrodlo": text}), encoding="utf-8")
+
+
+def test_url_z_przecinkami_w_sciezce_nie_jest_ucinany(isolated_data_dir):
+    """Regresja: mpk_krakow.json ma adres krakow.pl/aktualnosci/283607,26,komunikat,...html;
+    stary URL_RE ucinał go na pierwszym przecinku (".../283607") i watcher dostawał 404."""
+    url = "https://krakow.pl/aktualnosci/283607,26,komunikat,dla_uczniow_podstawowek.html"
+    _write_zrodlo(
+        isolated_data_dir, "mpk_krakow.json", f"Komunikat ({url} ). Wymagana legitymacja."
+    )
+    [source] = ffs.discover_sources()
+    assert source.url == url
+
+
+def test_przecinek_konczacy_zdanie_nadal_oddziela_adresy(isolated_data_dir):
+    _write_zrodlo(
+        isolated_data_dir,
+        "bahncard.json",
+        "https://www.bahn.de/a/vergleich, https://www.bahn.de/b/c, a potem https://x.pl/d.",
+    )
+    assert [s.url for s in ffs.discover_sources()] == [
+        "https://www.bahn.de/a/vergleich",
+        "https://www.bahn.de/b/c",
+        "https://x.pl/d",
+    ]
+
+
+def test_url_pdf_ze_spacjami_w_sciezce_nie_jest_ucinany(isolated_data_dir):
+    """Regresja: pkp_spi_pl_de.json ma ".../Przepisy i taryfy/Cennik_SPI_...pdf" (spacje, nie
+    %20); stary URL_RE kończył na spacji i sprawdzał ucięte ".../Przepisy"."""
+    url = "https://www.intercity.pl/pl/dokumenty/Przepisy i taryfy/Cennik_SPI_Polska-Niemcy_od_19.08.2026.pdf"
+    _write_zrodlo(isolated_data_dir, "pkp_spi_pl_de.json", url)
+    [source] = ffs.discover_sources()
+    assert source.url == url
+
+
+def test_url_ze_spacja_nie_pochlania_opisu_ani_kolejnego_adresu(isolated_data_dir):
+    _write_zrodlo(
+        isolated_data_dir,
+        "x.json",
+        "Zob. https://a.pl/strona oficjalny cennik w pliku cennik.pdf oraz "
+        "https://b.pl/dir name/plik.pdf (PDF, 2026).",
+    )
+    assert [s.url for s in ffs.discover_sources()] == [
+        "https://a.pl/strona",
+        "https://b.pl/dir name/plik.pdf",
+    ]
+
+
+def test_real_data_mpk_krakow_i_pkp_spi_maja_pelne_adresy():
+    urls = {(s.data_file, s.url) for s in ffs.discover_sources()}
+    assert (
+        "mpk_krakow.json",
+        "https://krakow.pl/aktualnosci/283607,26,komunikat,dla_uczniow_podstawowek_komunikacja_bezplatna_caly_rok.html",
+    ) in urls
+    assert (
+        "pkp_spi_pl_de.json",
+        "https://www.intercity.pl/pl/dokumenty/Przepisy i taryfy/Cennik_SPI_Polska-Niemcy_od_19.08.2026.pdf",
+    ) in urls
+    assert not any(
+        u
+        in (
+            "https://krakow.pl/aktualnosci/283607",
+            "https://www.intercity.pl/pl/dokumenty/Przepisy",
+        )
+        for _, u in urls
+    )
+
+
+_STRONA_A = """<!DOCTYPE html><html><head><meta name="csrf-token" content="Zm9vYmFyMTIzNDU2Nzg5MDEyMzQ1Njc4OTA="><title>Cennik</title>
+<script nonce="aaa111">window.t=1760443200;var s="2026-10-14T10:00:00Z";</script>
+<style nonce="aaa111">.a{color:red}</style></head>
+<body><!-- render 1760443200123 -->
+<form><input type="hidden" name="token" value="deadbeefdeadbeefdeadbeefdeadbeef"></form>
+<p data-req="9f1c2b3a-1111-2222-3333-444455556666">Bilet normalny:   4,60 zł</p>
+<p>Obowiązuje od 2026-09-01.</p><div>Aktualizacja: 2026-10-14 10:00:05</div>
+<noscript>Włącz JavaScript</noscript></body></html>""".encode()
+
+_STRONA_B = """<!DOCTYPE html>
+<html><head><title>Cennik</title><meta name="csrf-token" content="QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCMTIz">
+<script nonce="zzz999">window.t=1760529600;var s="2026-10-15T11:11:11Z";</script></head>
+<body><!-- render 1760529600999 -->
+
+<p data-req="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee">Bilet&nbsp;normalny: 4,60&nbsp;zł</p>
+<p>Obowiązuje   od 2026-09-01.</p>
+<div>Aktualizacja: 2026-10-15 11:11:11</div>
+<form><input type="hidden" name="token" value="cafebabecafebabecafebabecafebabe"></form>
+</body></html>""".encode()
+
+
+def test_normalize_dwie_wersje_tej_samej_strony_z_roznym_szumem_daja_ten_sam_hash():
+    url = "https://example.com/cennik"
+    assert ffs._normalize_for_hash(_STRONA_A, url) == ffs._normalize_for_hash(_STRONA_B, url)
+
+
+def test_normalize_zachowuje_widoczna_tresc_i_daty_bez_godziny():
+    out = ffs._normalize_for_hash(_STRONA_A, "https://example.com/cennik").decode()
+    assert "Bilet normalny: 4,60 zł" in out
+    assert "2026-09-01" in out
+    assert "Cennik" in out  # <title> jest widoczny w karcie przeglądarki
+    for szum in ("nonce", "csrf", "1760443200", "deadbeef", "9f1c2b3a", "10:00:05"):
+        assert szum not in out
+
+
+def test_normalize_wykrywa_zmiane_ceny_mimo_szumu():
+    zmieniona = _STRONA_B.replace(b"4,60", b"4,80")
+    url = "https://example.com/cennik"
+    assert ffs._normalize_for_hash(_STRONA_A, url) != ffs._normalize_for_hash(zmieniona, url)
+
+
+def test_normalize_pdf_po_rozszerzeniu_z_query_i_po_sygnaturze():
+    tresc = b"%PDF-1.7 <script>x</script>  2026-10-14T10:00:00Z"
+    assert ffs._normalize_for_hash(tresc, "https://example.com/c.pdf?v=2") == tresc
+    assert ffs._normalize_for_hash(tresc, "https://example.com/pobierz") == tresc
+
+
+def test_check_source_ignoruje_szum_miedzy_przebiegami(isolated_data_dir, monkeypatch):
+    _write_source_file(isolated_data_dir, "bahncard.json", "https://example.com/cennik")
+    [source] = ffs.discover_sources()
+    monkeypatch.setattr(ffs.requests, "get", lambda *a, **k: FakeResponse(_STRONA_A))
+    ffs.check_source(source)
+    monkeypatch.setattr(ffs.requests, "get", lambda *a, **k: FakeResponse(_STRONA_B))
+    assert ffs.check_source(source).changed is False
+
+
+def test_zrodla_tylko_recznie_nie_sa_pobierane_i_nie_daja_bledu(isolated_data_dir, monkeypatch):
+    url = next(iter(ffs.MANUAL_ONLY_SOURCES))
+    _write_source_file(isolated_data_dir, "pkp_intercity.json", url)
+    [source] = ffs.discover_sources()
+
+    def nie_wolac(*a, **k):
+        raise AssertionError("źródło 'tylko ręcznie' nie powinno być pobierane")
+
+    monkeypatch.setattr(ffs.requests, "get", nie_wolac)
+    result = ffs.check_source(source)
+
+    assert result.error is None
+    assert result.changed is False
+    assert result.manual_only
+    assert not (isolated_data_dir / ".snapshots").exists()
+    assert "Tylko ręcznie" in ffs.render_markdown([result])
+    assert url in ffs.render_markdown([result])
+
+
+def test_main_zrodla_tylko_recznie_nie_zmieniaja_kodu_wyjscia(
+    isolated_data_dir, monkeypatch, capsys
+):
+    _write_source_file(isolated_data_dir, "pkp_intercity.json", next(iter(ffs.MANUAL_ONLY_SOURCES)))
+    monkeypatch.setattr(sys, "argv", ["fetch_fare_sources.py"])
+    monkeypatch.setattr(ffs.requests, "get", lambda *a, **k: FakeResponse(b"", status=403))
+    assert ffs.main() == 0
+
+
+def test_dwa_pdfy_intercity_z_pkp_intercity_json_sa_tylko_recznie():
+    zrodla = [s for s in ffs.discover_sources() if s.data_file == "pkp_intercity.json"]
+    assert len(zrodla) == 2
+    assert all(s.url in ffs.MANUAL_ONLY_SOURCES for s in zrodla)
+    assert all(
+        u.startswith("https://www.intercity.pl/") and u.endswith(".pdf")
+        for u in ffs.MANUAL_ONLY_SOURCES
+    )

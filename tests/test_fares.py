@@ -789,3 +789,51 @@ def test_dziecko_ponizej_6_lat_bezplatnie_granice_wieku(carrier, dziecko_flag):
     plik = {Carrier.HVV: "hvv.json", Carrier.MVV: "mvv.json", Carrier.VRS_KOLN: "vrs_koln.json"}[carrier]
     regula = load(plik)["dzieci_ponizej_6_lat_bezplatnie"]
     assert regula["zrodlo_url"].startswith("https://") and regula["data_weryfikacji"]
+
+
+# --- DB krajowe: BahnCard 25/50/100 przy cenie krajowej, brak ulg wiekowych ---
+def _db_segment(bahncard=None, age=None, km=250):
+    from fares.model import Carrier, DiscountProfile, Segment
+
+    return Segment(
+        carrier=Carrier.DB,
+        origin="A",
+        destination="B",
+        distance_km=km,
+        discounts=DiscountProfile(bahncard=bahncard, age=age),
+    )
+
+
+def test_db_bahncard_mnozniki_przy_cenie_krajowej():
+    from fares import db
+
+    base = db.estimate(_db_segment()).amount
+    assert base == 97
+    assert db.estimate(_db_segment("25")).amount == round(97 * 0.75, 2)
+    assert db.estimate(_db_segment("50")).amount == 48.5
+    assert db.estimate(_db_segment("100")).amount == 0.0
+
+
+def test_db_bahncard_100_oznaczony_jako_niepotwierdzony():
+    from fares import db
+
+    bc100 = db.estimate(_db_segment("100"))
+    assert bc100.breakdown["mnoznik_potwierdzony"] is False
+    assert "NIEPOTWIERDZONY" in bc100.notes
+    for bc in (None, "25", "50"):
+        est = db.estimate(_db_segment(bc))
+        assert est.breakdown["mnoznik_potwierdzony"] is True
+
+
+def test_db_krajowe_nie_czyta_wieku():
+    from fares import db
+
+    assert {db.estimate(_db_segment(age=a)).amount for a in (None, 3, 10, 70)} == {97}
+
+
+def test_api_schema_ma_child_with_guardian():
+    from api.schemas import DiscountProfileIn
+    from fares.model import DiscountProfile
+
+    p = DiscountProfileIn(child_with_guardian=True)
+    assert DiscountProfile(**p.model_dump()).child_with_guardian is True

@@ -28,6 +28,7 @@ class DiscountProfileIn(BaseModel):
     vrs_koln_dziecko: bool = False
     schwerbehinderte_wertmarke_de: bool = False
     age: int | None = None
+    child_with_guardian: bool = False
     obywatelstwo: str | None = None
     legitymacja_zagraniczna: bool = False
 

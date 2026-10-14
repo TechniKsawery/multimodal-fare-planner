@@ -2,8 +2,10 @@
 
 Tabela pasm odległości w fares/data/db_flexpreis.json to nadal SZACUNEK — DB nie publikuje
 oficjalnej tabeli cena-za-km (Flexpreis zależy dynamicznie od trasy/daty w systemie DB).
-Mnożniki BahnCard 25/50 są potwierdzone oficjalnie (bahn.de/faq) — patrz "_zrodlo_bahncard"
-w danych. Patrz też README.md w tym katalogu.
+Mnożniki BahnCard 25/50 są potwierdzone oficjalnie (bahn.de/faq); mnożnik BahnCard 100 (0,0)
+NIE ma potwierdzonego źródła ("bahncard_mnoznik_niepotwierdzone" w danych) — patrz "_zrodlo_bahncard".
+Wiek NIE jest tu czytany: ulgi wiekowe DB krajowego (dzieci, seniorzy) nie są zamodelowane, bo nie
+potwierdzono ich dosłownym cytatem z bahn.de (zob. fares/README.md). Patrz też README.md w tym katalogu.
 """
 
 from . import _db_vendo_api, _unofficial
@@ -72,6 +74,7 @@ def estimate(segment: Segment) -> PriceEstimate:
     upper_bound = _flexpreis_upper_bound(segment.distance_km)
     mnoznik = mnozniki[bahncard]
     amount = round(upper_bound * mnoznik, 2)
+    mnoznik_niepotwierdzony = bahncard in _TABLE.get("bahncard_mnoznik_niepotwierdzone", [])
 
     unofficial = _unofficial_estimate(segment, bahncard, upper_bound, amount)
     if unofficial:
@@ -87,10 +90,16 @@ def estimate(segment: Segment) -> PriceEstimate:
             "bahncard": bahncard,
             "mnoznik": mnoznik,
             "klasa": _TABLE["klasa"],
+            "mnoznik_potwierdzony": not mnoznik_niepotwierdzony,
         },
         notes=(
             "Flexpreis to górna granica z tabeli pasm odległości (nadal szacunek, patrz "
             "_uwaga w danych) — rzeczywista cena DB może być niższa i zależy od konkretnej "
-            "trasy/pociągu. Mnożnik BahnCard jest oficjalny (bahn.de/faq)."
+            "trasy/pociągu. "
+            + (
+                f"Mnożnik BahnCard {bahncard} ({mnoznik}) jest NIEPOTWIERDZONY źródłem na bahn.de."
+                if mnoznik_niepotwierdzony
+                else "Mnożnik BahnCard jest oficjalny (bahn.de/faq)."
+            )
         ),
     )

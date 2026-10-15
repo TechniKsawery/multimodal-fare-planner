@@ -48,6 +48,8 @@ def estimate(segment: Segment) -> PriceEstimate:
         "strefa": bilet["strefa"],
         "status_weryfikacji": STATUS_WERYFIKACJI,
         "price_verified": verified,
+        "zrodlo_url": _TABLE.get("zrodlo_url"),
+        "data_weryfikacji": _TABLE.get("data_weryfikacji"),
     }
     if not verified:
         breakdown["powod_szacunku"] = (

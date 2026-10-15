@@ -222,7 +222,7 @@ TEXTS = {
     "col.price_status": "Status ceny",
     "col.source": "Źródło cennika",
     "col.verified": "Zweryfikowano",
-    "source.none": "brak danych",
+    "source.none": "brak daty weryfikacji",
     "source.coverage": "Źródło i data weryfikacji dostępne dla {n} z {total} odcinków z ceną.",
     "cards.confirmed": "Najtańsza potwierdzona",
     "cards.estimate": "Najtańsza wg szacunku",

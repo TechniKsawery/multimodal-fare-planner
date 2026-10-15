@@ -46,6 +46,8 @@ def estimate(segment: Segment) -> PriceEstimate:
             "sufit_cenowy": sufit,
             "sufit_zastosowany": surowa_cena > sufit,
             "kindertarif": dziecko,
+            "zrodlo_url": _TABLE.get("zrodlo_url"),
+            "data_weryfikacji": _TABLE.get("data_weryfikacji"),
         },
         notes=(
             "Taryfa eezy.nrw (oficjalna, Stand 01.06.2026): Grundpreis + cena za km linii "

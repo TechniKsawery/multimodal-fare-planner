@@ -46,6 +46,8 @@ def estimate(segment: Segment) -> PriceEstimate:
             "bilet_wazny_min": bilet["wazny_min"],
             "typ_biletu": typ_biletu,
             "strefa": bilet.get("strefa", "miejska"),
+            "zrodlo_url": _TABLE.get("zrodlo_url"),
+            "data_weryfikacji": _TABLE.get("data_weryfikacji"),
         },
         notes=(
             f"Taryfa czasowa MPK Wrocław ({_TABLE['nazwa_przewoznika']}): dobrano "

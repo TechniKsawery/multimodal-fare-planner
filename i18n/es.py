@@ -212,7 +212,7 @@ TEXTS = {
     "col.price_status": "Estado del precio",
     "col.source": "Fuente de la tarifa",
     "col.verified": "Verificado el",
-    "source.none": "sin datos",
+    "source.none": "sin fecha de verificación",
     "source.coverage": "Fuente y fecha de verificación disponibles para {n} de {total} tramos con precio.",
     "cards.confirmed": "Más barata confirmada",
     "cards.estimate": "Más barata según estimación",

@@ -28,6 +28,8 @@
   "waluta": "PLN",
   "nazwa_przewoznika": "ZTM Warszawa (WTP)",
   "as_of": "2026-10-06",
+  "zrodlo_url": "https://warszawa19115.pl/-/bilety-kr%C3%B3tkookresowe-w-komunikacji-miejskiej",
+  "data_weryfikacji": "2026-10-06",
   "typ_ceny": "oficjalna_taryfa",
   "bilety_czasowe": [
     {"wazny_min": 20, "normalny": 3.40, "ulgowy": 1.70, "strefa": "1+2"},

@@ -8,6 +8,8 @@
   "waluta": "EUR",
   "nazwa_przewoznika": "VRS (Verkehrsverbund Rhein-Sieg) — Rheinlandtarif, obszar Kolonii/Bonn",
   "as_of": "2026-10-11",
+  "zrodlo_url": "https://www.vrs.de/tickets/ticketsortiment/einzelticket",
+  "data_weryfikacji": "2026-10-11",
   "wiek_dziecko_lata": "6-14 (dzieci do 6 lat jeżdżą bezpłatnie)",
   "poziom_uzywany_domyslnie": "1b",
   "poziomy_cenowe": [

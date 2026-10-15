@@ -24,6 +24,8 @@ def bezplatne_dziecko(segment: Segment, tabela: dict) -> PriceEstimate:
         breakdown={
             "relacja": f"{segment.origin} <-> {segment.destination}",
             "typ_biletu": "bezpłatny (dziecko poniżej 6 lat)",
+            "zrodlo_url": regula.get("zrodlo_url"),
+            "data_weryfikacji": regula.get("data_weryfikacji"),
         },
         notes=f"Dziecko poniżej 6 lat jedzie bezpłatnie. Warunek: {regula['warunek']} "
         f"Źródło: {regula['zrodlo_url']} (zweryfikowano {regula['data_weryfikacji']}).",

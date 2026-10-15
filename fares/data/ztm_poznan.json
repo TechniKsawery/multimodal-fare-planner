@@ -27,6 +27,8 @@
   "waluta": "PLN",
   "nazwa_przewoznika": "ZTM Poznań",
   "as_of": "2026-10-07",
+  "zrodlo_url": "https://www.ztm.poznan.pl/wszystko-o-biletach/cennik-biletow/",
+  "data_weryfikacji": "2026-10-07",
   "typ_ceny": "oficjalna_taryfa",
   "bilety_czasowe": [
     {"wazny_min": 15, "normalny": 5.00, "ulgowy": 2.50, "strefa": "A+B+C+D"},

@@ -52,3 +52,13 @@ def test_every_flag_has_checkbox_in_app():
 def test_every_flag_in_api_schema():
     api_fields = set(DiscountProfileIn.model_fields)
     assert _bool_flag_fields() <= api_fields, sorted(_bool_flag_fields() - api_fields)
+
+
+def test_child_with_guardian_in_app_and_api():
+    assert "child_with_guardian" in DiscountProfileIn.model_fields
+    kwargs = _app_profile_kwargs()
+    assert "child_with_guardian" in kwargs
+    src = (ROOT / "app.py").read_text(encoding="utf-8")
+    assert "child_with_guardian = (" in src
+    assert "st.checkbox(" in src.split("child_with_guardian = (", 1)[1].split("if 6 <= wiek <= 14", 1)[0]
+

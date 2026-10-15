@@ -212,7 +212,7 @@ TEXTS = {
     "col.price_status": "Prijsstatus",
     "col.source": "Tariefbron",
     "col.verified": "Geverifieerd op",
-    "source.none": "geen gegevens",
+    "source.none": "geen verificatiedatum",
     "source.coverage": "Bron en controledatum beschikbaar voor {n} van {total} trajecten met prijs.",
     "cards.confirmed": "Goedkoopste bevestigde",
     "cards.estimate": "Goedkoopste volgens schatting",

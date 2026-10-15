@@ -212,7 +212,7 @@ TEXTS = {
     "col.price_status": "Preisstatus",
     "col.source": "Tarifquelle",
     "col.verified": "Geprüft am",
-    "source.none": "keine Angabe",
+    "source.none": "kein Prüfdatum",
     "source.coverage": "Quelle und Prüfdatum liegen für {n} von {total} Abschnitten mit Preis vor.",
     "cards.confirmed": "Günstigste bestätigte",
     "cards.estimate": "Günstigste laut Schätzung",

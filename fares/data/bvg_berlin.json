@@ -23,6 +23,8 @@
   "waluta": "EUR",
   "nazwa_przewoznika": "BVG Berlin (VBB)",
   "as_of": "2026-10-06",
+  "zrodlo_url": "https://www.vbb.de/fileadmin/user_upload/VBB/Dokumente/Presse/25-fahrpreise-tarifanpassung-2026-Kommunikation.pdf",
+  "data_weryfikacji": "2026-10-07",
   "typ_ceny": "oficjalna_taryfa",
   "zrodlo_strefa_c_ber": {
     "vbb_url": "https://www.vbb.de/tickets/einzelfahrausweise/",

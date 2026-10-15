@@ -1,12 +1,20 @@
 """Modele requestów i response'ów REST API (api/main.py)."""
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from common.currency import SUPPORTED_CURRENCIES, UnsupportedCurrencyError, normalize_currency
+from fares._data_loading import load
+
+_PKP_TABLE = load("pkp_intercity.json")
+VALID_PKP_ULGI = set(_PKP_TABLE["ulgi_procent"].keys())
+VALID_BAHNCARD = {None, "brak", "25", "50", "100"}
+VALID_OBYWATELSTWO = {None, "PL", "UE", "poza_UE"}
 
 
 class DiscountProfileIn(BaseModel):
     """Profil ulg pasażera — patrz fares/model.py::DiscountProfile (to samo pole po polu)."""
+
+    model_config = ConfigDict(extra="forbid")
 
     pkp_ulga_kod: str = "brak"
     bahncard: str | None = None
@@ -32,11 +40,35 @@ class DiscountProfileIn(BaseModel):
     obywatelstwo: str | None = None
     legitymacja_zagraniczna: bool = False
 
+    @field_validator("pkp_ulga_kod")
+    @classmethod
+    def _validate_pkp_ulga_kod(cls, v: str) -> str:
+        if v not in VALID_PKP_ULGI:
+            raise ValueError(f"Nieznany kod ulgi PKP: {v!r}. Dopuszczalne: {sorted(VALID_PKP_ULGI)}")
+        return v
+
+    @field_validator("bahncard")
+    @classmethod
+    def _validate_bahncard(cls, v: str | None) -> str | None:
+        if v not in VALID_BAHNCARD:
+            raise ValueError(f"Nieznany kod BahnCard: {v!r}. Dopuszczalne: {sorted(k for k in VALID_BAHNCARD if k is not None)}")
+        return v
+
+    @field_validator("obywatelstwo")
+    @classmethod
+    def _validate_obywatelstwo(cls, v: str | None) -> str | None:
+        if v not in VALID_OBYWATELSTWO:
+            raise ValueError(f"Nieznane obywatelstwo: {v!r}. Dopuszczalne: {sorted(k for k in VALID_OBYWATELSTWO if k is not None)}")
+        return v
+
 
 class RouteSearchRequest(BaseModel):
     """Zapytanie o trasę adres -> adres (geocoding OSM przez MOTIS, jak w app.py/demo.py)."""
 
+    model_config = ConfigDict(extra="forbid")
+
     origin: str = Field(
+
         ..., description="Adres/miejsce startowe, np. 'Krakowskie Przedmieście 50, Lublin'"
     )
     destination: str = Field(..., description="Adres/miejsce docelowe")
@@ -68,6 +100,8 @@ class RouteSearchRequest(BaseModel):
 
 class CityCardEvaluateRequest(BaseModel):
     """Żądanie oceny opłacalności kart miejskich dla wskazanych atrakcji i miasta."""
+
+    model_config = ConfigDict(extra="forbid")
 
     city: str = Field(..., description="Nazwa lub adres miasta, np. 'Berlin' lub 'Gelsenkirchen'")
     attraction_ids: list[str] = Field(

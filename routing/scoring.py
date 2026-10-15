@@ -149,7 +149,11 @@ def build_itinerary(variant_name: str, priced_legs: list[PricedLeg]) -> Itinerar
     if not priced_legs:
         raise ValueError(f"wariant '{variant_name}': brak odcinków")
 
-    total_price_pln = sum(to_pln(pl.amount, pl.currency) for pl in priced_legs)
+    total_price_pln = sum(
+        to_pln(pl.amount, pl.currency)
+        for pl in priced_legs
+        if pl.price_known and not pl.breakdown.get("wartosc_zastepcza")
+    )
     total_duration_min = (
         priced_legs[-1].leg.arrive - priced_legs[0].leg.depart
     ).total_seconds() / 60
@@ -162,6 +166,7 @@ def build_itinerary(variant_name: str, priced_legs: list[PricedLeg]) -> Itinerar
                 if "zakres_cen" in pl.breakdown
                 else to_pln(pl.amount, pl.currency)
                 for pl in priced_legs
+                if pl.price_known and not pl.breakdown.get("wartosc_zastepcza")
             ),
             2,
         )
@@ -205,8 +210,15 @@ def pick_recommendations(itineraries: list[Itinerary]) -> dict[str, Itinerary]:
     safe_compromise_key = _compromise_key(safe_pool)
 
     return {
-        # najpierw warianty z potwierdzoną ceną (False < True), potem cena — patrz docstring
-        "najtansza": min(itineraries, key=lambda i: (not i.price_verified, i.total_price_pln)),
+        # najpierw warianty o pełnej cenie bez wartości zastępczej (False < True), potem potwierdzone, potem cena
+        "najtansza": min(
+            itineraries,
+            key=lambda i: (
+                i.price_status != "pelna" or any(pl.breakdown.get("wartosc_zastepcza") for pl in i.legs),
+                not i.price_verified,
+                i.total_price_pln,
+            ),
+        ),
         "najszybsza": min(itineraries, key=lambda i: i.total_duration_min),
         # liczą się wszystkie przesiadki; remis: krótszy czas, potem niższa cena. Wybór jest
         # spośród wariantów zwróconych przez MOTIS (nie szukamy tras, których MOTIS nie dał).
@@ -221,7 +233,12 @@ def pick_recommendations(itineraries: list[Itinerary]) -> dict[str, Itinerary]:
         ),
         "najtansza_bezpieczna": min(
             safe_pool,
-            key=lambda i: (i.num_risky_transfers, not i.price_verified, i.total_price_pln),
+            key=lambda i: (
+                i.num_risky_transfers,
+                i.price_status != "pelna" or any(pl.breakdown.get("wartosc_zastepcza") for pl in i.legs),
+                not i.price_verified,
+                i.total_price_pln,
+            ),
         ),
         "najlepszy_kompromis_bezpieczny": min(
             safe_pool, key=lambda i: (i.num_risky_transfers, safe_compromise_key(i))

@@ -83,6 +83,8 @@ def estimate(segment: Segment) -> PriceEstimate:
             "bilet_wazny_min": bilet["wazny_min"],
             "typ_biletu": typ_biletu,
             "strefa": bilet.get("strefa", "1+2"),
+            "zrodlo_url": _TABLE.get("zrodlo_url"),
+            "data_weryfikacji": _TABLE.get("data_weryfikacji"),
             **(
                 {"powod_bezplatny": opis_wieku}
                 if wiek_bezplatny and not segment.discounts.ztm_warszawa_bezplatny

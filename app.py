@@ -28,6 +28,7 @@ from attractions import (
 )
 from attractions import DiscountProfile as AttractionDiscountProfile
 from demo import DEFAULT_FROM, DEFAULT_TO
+from fares import default_discounts_for_age
 from fares.foreigner_eligibility import warnings_for as foreigner_warnings_for
 from fares.model import DiscountProfile
 from flights.cabin_baggage import format_breakdown as format_cabin_breakdown
@@ -677,6 +678,7 @@ with st.form("search", border=False):
                 help=t("age.help"),
                 key="w_wiek",
             )
+            age_defaults = default_discounts_for_age(wiek)
             obywatelstwo = st.selectbox(
                 t("citizen.label"),
                 [None, "PL", "UE", "poza_UE"],
@@ -706,7 +708,10 @@ with st.form("search", border=False):
             group_header("group.rail", "group.rail_hint")
             c1, c2 = st.columns(2)
             pkp = c1.selectbox(
-                t("form.pkp"), PKP_ULGI, format_func=lambda k: label_or("pkp", k, k), key="w_pkp"
+                t("form.pkp"),
+                PKP_ULGI,
+                index=PKP_ULGI.index(age_defaults["pkp_ulga_kod"]),
+                format_func=lambda k: label_or("pkp", k, k),
             )
             bc = c2.selectbox(
                 t("form.bahncard"),
@@ -714,13 +719,15 @@ with st.form("search", border=False):
                 format_func=lambda k: t(f"bc.{k}"),
                 key="w_bc",
             )
-            child_with_guardian = False
-            if 6 <= wiek <= 14:
-                child_with_guardian = st.checkbox(
+            child_with_guardian = (
+                st.checkbox(
                     t("form.guardian"),
                     value=False,
                     help=t("form.guardian_help"),
                 )
+                if 6 <= wiek <= 14
+                else False
+            )
         with st.container(border=True, key="group-baggage"):
             group_header("group.baggage", "group.baggage_hint")
             bagaz_rejestrowany = st.checkbox(
@@ -739,29 +746,53 @@ with st.form("search", border=False):
             u1, u2, u3 = st.columns(3)
             ztm_ulgowy = u1.checkbox(
                 t("form.ztm_lublin"),
-                value=wiek < 18,
+                value=age_defaults["ztm_lublin_ulgowy"],
                 help=t("form.ztm_lublin_help"),
             )
-            ztm_warszawa_ulgowy = u2.checkbox(t("city.warszawa"), value=wiek < 18)
-            mpk_krakow_ulgowy = u3.checkbox(t("city.krakow"), value=wiek < 18)
+            ztm_warszawa_ulgowy = u2.checkbox(
+                t("city.warszawa"),
+                value=age_defaults["ztm_warszawa_ulgowy"],
+            )
+            mpk_krakow_ulgowy = u3.checkbox(
+                t("city.krakow"),
+                value=age_defaults["mpk_krakow_ulgowy"],
+            )
             u4, u5, _u6 = st.columns(3)
-            ztm_poznan_ulgowy = u4.checkbox(t("city.poznan"), value=wiek < 18)
-            mpk_wroclaw_ulgowy = u5.checkbox(t("city.wroclaw"), value=wiek < 18)
+            ztm_poznan_ulgowy = u4.checkbox(
+                t("city.poznan"),
+                value=age_defaults["ztm_poznan_ulgowy"],
+            )
+            mpk_wroclaw_ulgowy = u5.checkbox(
+                t("city.wroclaw"),
+                value=age_defaults["mpk_wroclaw_ulgowy"],
+            )
             st.markdown(
                 f'<p class="mw-sub-title">🇩🇪 {escape(t("group.city_de"))}</p>',
                 unsafe_allow_html=True,
             )
-            bvg_berlin_ulgowy = st.checkbox(t("city.berlin"), value=wiek < 18)
+            bvg_berlin_ulgowy = st.checkbox(
+                t("city.berlin"),
+                value=age_defaults["bvg_berlin_ulgowy"],
+            )
             st.caption(t("form.kinder_other"))
             vrr_dziecko = st.checkbox(
                 t("form.vrr"),
-                value=6 <= wiek <= 14,
+                value=age_defaults["vrr_dziecko"],
                 help=t("form.vrr_help"),
             )
             k1, k2, k3 = st.columns(3)
-            hvv_dziecko = k1.checkbox(t("form.hamburg"), value=6 <= wiek <= 14)
-            mvv_dziecko = k2.checkbox(t("form.munich"), value=6 <= wiek <= 14)
-            vrs_koln_dziecko = k3.checkbox(t("form.cologne"), value=6 <= wiek <= 14)
+            hvv_dziecko = k1.checkbox(
+                t("form.hamburg"),
+                value=age_defaults["hvv_dziecko"],
+            )
+            mvv_dziecko = k2.checkbox(
+                t("form.munich"),
+                value=age_defaults["mvv_dziecko"],
+            )
+            vrs_koln_dziecko = k3.checkbox(
+                t("form.cologne"),
+                value=age_defaults["vrs_koln_dziecko"],
+            )
     with st.expander(t("group.free")):
         st.caption(t("form.free_caption"))
         with st.container(border=True, key="group-free-pl"):
@@ -771,27 +802,27 @@ with st.form("search", border=False):
             )
             ztm_warszawa_bezplatny = st.checkbox(
                 t("free.warszawa"),
-                value=wiek >= 70,
+                value=age_defaults["ztm_warszawa_bezplatny"],
                 help=t("free.warszawa_help"),
             )
             mpk_krakow_bezplatny = st.checkbox(
                 t("free.krakow"),
-                value=wiek >= 70,
+                value=age_defaults["mpk_krakow_bezplatny"],
                 help=t("free.krakow_help"),
             )
             ztm_poznan_bezplatny = st.checkbox(
                 t("free.poznan"),
-                value=wiek >= 70,
+                value=age_defaults["ztm_poznan_bezplatny"],
                 help=t("free.poznan_help"),
             )
             mpk_wroclaw_bezplatny = st.checkbox(
                 t("free.wroclaw"),
-                value=wiek <= 7 or wiek <= 21 or wiek >= 65,
+                value=age_defaults["mpk_wroclaw_bezplatny"],
                 help=t("free.wroclaw_help"),
             )
             ztm_lublin_bezplatny = st.checkbox(
                 t("free.lublin"),
-                value=wiek >= 65 or wiek <= 14,
+                value=age_defaults["ztm_lublin_bezplatny"],
                 help=t("free.lublin_help"),
             )
         with st.container(border=True, key="group-free-de"):

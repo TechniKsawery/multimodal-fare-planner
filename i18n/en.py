@@ -212,7 +212,7 @@ TEXTS = {
     "col.price_status": "Price status",
     "col.source": "Fare source",
     "col.verified": "Verified on",
-    "source.none": "no data",
+    "source.none": "no verification date",
     "source.coverage": "Source and verification date available for {n} of {total} priced legs.",
     "cards.confirmed": "Cheapest confirmed",
     "cards.estimate": "Cheapest by estimate",

@@ -163,15 +163,94 @@ def test_route_endpoint_przekazuje_discounts_do_wyceny(monkeypatch):
             "origin": "A",
             "destination": "B",
             "date": "2026-10-05",
-            "discounts": {"bahncard": "50", "pkp_ulga_kod": "ulgowy"},
+            "discounts": {
+                "bahncard": "50",
+                "pkp_ulga_kod": "student_do_26_lat_doktorant_do_35_lat",
+            },
         },
     )
 
     assert response.status_code == 200
     assert captured["discounts"].bahncard == "50"
-    assert captured["discounts"].pkp_ulga_kod == "ulgowy"
+    assert captured["discounts"].pkp_ulga_kod == "student_do_26_lat_doktorant_do_35_lat"
     assert response.json()["built"] == []
     assert response.json()["recommendations"] == {}
+
+
+def test_route_endpoint_invalid_pkp_ulga_returns_422():
+    response = client.post(
+        "/route",
+        json={
+            "origin": "A",
+            "destination": "B",
+            "date": "2026-10-05",
+            "discounts": {"pkp_ulga_kod": "ulgowy"},
+        },
+    )
+    assert response.status_code == 422
+    assert "Nieznany kod ulgi PKP" in response.text
+
+
+def test_route_endpoint_invalid_bahncard_returns_422():
+    response = client.post(
+        "/route",
+        json={
+            "origin": "A",
+            "destination": "B",
+            "date": "2026-10-05",
+            "discounts": {"bahncard": "75"},
+        },
+    )
+    assert response.status_code == 422
+    assert "Nieznany kod BahnCard" in response.text
+
+
+def test_route_endpoint_unknown_field_returns_422():
+    response = client.post(
+        "/route",
+        json={
+            "origin": "A",
+            "destination": "B",
+            "date": "2026-10-05",
+            "discounts": {"nieznane_pole": True},
+        },
+    )
+    assert response.status_code == 422
+    assert "extra_forbidden" in response.text or "Extra inputs are not permitted" in response.text
+
+
+def test_route_endpoint_age_derives_defaults_in_api(monkeypatch):
+    captured = {}
+
+    def fake_request_from_addresses(origin, destination, date, **overrides):
+        captured["discounts"] = overrides.get("discounts")
+        return variants.RouteRequest(
+            origin_stop_id="a",
+            destination_stop_id="b",
+            origin_label="A",
+            destination_label="B",
+            date=date,
+            discounts=overrides.get("discounts"),
+        )
+
+    monkeypatch.setattr("api.main.request_from_addresses", fake_request_from_addresses)
+    monkeypatch.setattr(variants.motis_client, "all_itineraries_as_legs", lambda *a, **k: [])
+
+    response = client.post(
+        "/route",
+        json={
+            "origin": "A",
+            "destination": "B",
+            "date": "2026-10-05",
+            "discounts": {"age": 8},
+        },
+    )
+    assert response.status_code == 200
+    disc = captured["discounts"]
+    assert disc.pkp_ulga_kod == "dzieci_mlodziez_szkolna_do_24_lat"
+    assert disc.ztm_lublin_ulgowy is True
+    assert disc.vrr_dziecko is True
+    assert disc.ztm_warszawa_bezplatny is False
 
 
 def test_attractions_endpoint():

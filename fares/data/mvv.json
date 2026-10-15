@@ -8,6 +8,8 @@
   "waluta": "EUR",
   "nazwa_przewoznika": "MVV (Münchner Verkehrsverbund)",
   "as_of": "2026-01-01",
+  "zrodlo_url": "https://www.mvv-muenchen.de/tickets-abos-preise/einzelfahrkarte",
+  "data_weryfikacji": "2026-10-09",
   "wiek_dziecko_lata": "6-14 (dzieci do 6 lat jeżdżą bezpłatnie)",
   "einzelkarte_zone_m": {"normalny": 4.20, "dziecko": 2.00},
   "kurzstrecke": 2.10,

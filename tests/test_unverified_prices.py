@@ -261,7 +261,7 @@ def test_wariant_z_wartoscia_zastepcza_nie_wygrywa_najtanszej_z_potwierdzonym():
 
 def test_bez_potwierdzonego_wariantu_najtansza_nominalnie_z_jawna_uwaga():
     a = scoring.build_itinerary("A", [_priced(30.0, verified=False)])
-    b = scoring.build_itinerary("B", [_priced(10.0, verified=False, placeholder=True)])
+    b = scoring.build_itinerary("B", [_priced(10.0, verified=False)])
 
     recs = scoring.pick_recommendations([a, b])
 
@@ -269,6 +269,18 @@ def test_bez_potwierdzonego_wariantu_najtansza_nominalnie_z_jawna_uwaga():
     note = scoring.price_ranking_note("najtansza", b, [a, b])
     assert note.startswith("Żaden wariant w tej kategorii nie ma w pełni potwierdzonej ceny")
     assert scoring.price_ranking_note("najszybsza", b, [a, b]) is None
+
+
+def test_wariant_z_wartoscia_zastepcza_nie_wchodzi_do_sumy_i_nie_wygrywa_najtanszej_z_niepotwierdzonym_pelnym():
+    a = scoring.build_itinerary("A", [_priced(30.0, verified=False)])
+    b = scoring.build_itinerary("B", [_priced(4.0, verified=False, placeholder=True)])
+
+    assert b.total_price_pln == 0.0
+    assert any(pl.breakdown.get("wartosc_zastepcza") for pl in b.legs)
+
+    recs = scoring.pick_recommendations([a, b])
+    # Wariant z wartością zastępczą nie ma pełnej ceny i nie może wygrać z pełnym wariantem
+    assert recs["najtansza"] is a
 
 
 def test_bez_cen_niepotwierdzonych_ranking_bez_zmian_i_bez_uwagi():

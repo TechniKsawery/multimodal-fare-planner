@@ -34,6 +34,8 @@ def estimate(segment: Segment) -> PriceEstimate:
             breakdown={
                 "relacja": f"{segment.origin} <-> {segment.destination}",
                 "typ_biletu": "bezpłatny (Schwerbehinderte, Wertmarke)",
+                "zrodlo_url": _TABLE.get("zrodlo_url"),
+                "data_weryfikacji": _TABLE.get("data_weryfikacji"),
             },
             notes=(
                 "Bezpłatny przejazd dla osób z ciężką niepełnosprawnością z ważną Wertmarke "
@@ -55,6 +57,8 @@ def estimate(segment: Segment) -> PriceEstimate:
             "relacja": f"{segment.origin} <-> {segment.destination}",
             "typ_biletu": "Einzelkarte dziecko" if dziecko else "Einzelkarte normalny",
             "strefa": "1-2 Ringe / Hamburg AB (przybliżenie najniższej strefy)",
+            "zrodlo_url": _TABLE.get("zrodlo_url"),
+            "data_weryfikacji": _TABLE.get("data_weryfikacji"),
         },
         notes=(
             "Taryfa HVV (Tarifstand 01.01.2026): Einzelkarte najniższej strefy (1-2 Ringe / "

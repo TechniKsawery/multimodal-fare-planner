@@ -26,6 +26,8 @@
   "waluta": "PLN",
   "nazwa_przewoznika": "MPK Kraków (ZTP)",
   "as_of": "2026-10-06",
+  "zrodlo_url": "https://mpk.krakow.pl/media/pdf/9046.pdf",
+  "data_weryfikacji": "2026-10-06",
   "typ_ceny": "oficjalna_taryfa",
   "bilety_czasowe": [
     {"wazny_min": 15, "normalny": 4.00, "ulgowy": 2.00, "strefa": "I+II+III"},

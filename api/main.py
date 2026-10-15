@@ -20,6 +20,7 @@ from attractions import (
     get_city_cards,
     normalize_city,
 )
+from fares import default_discounts_for_age
 from fares.model import DiscountProfile
 from routing.motis_client import MotisError
 from routing.search_service import search
@@ -51,8 +52,17 @@ def find_route(payload: RouteSearchRequest) -> dict:
     Zwraca 502, jeśli MOTIS jest nieosiągalny albo nie udało się zgeokodować adresu —
     to nie jest błąd zapytania klienta (4xx), tylko zależności, którą API samo nie kontroluje.
     """
-    discounts = DiscountProfile(**payload.discounts.model_dump())
+    discounts_data = payload.discounts.model_dump()
+    if payload.discounts.age is not None:
+        defaults = default_discounts_for_age(payload.discounts.age)
+        for k, v in defaults.items():
+            if k not in payload.discounts.model_fields_set:
+                discounts_data[k] = v
+    if discounts_data.get("bahncard") == "brak":
+        discounts_data["bahncard"] = None
+    discounts = DiscountProfile(**discounts_data)
     try:
+
         route_request = request_from_addresses(
             payload.origin,
             payload.destination,

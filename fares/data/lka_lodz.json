@@ -5,6 +5,8 @@
   "waluta": "PLN",
   "nazwa_przewoznika": "Łódzka Kolej Aglomeracyjna (Strefa A, Łódź)",
   "as_of": "2026-10-12",
+  "zrodlo_url": "https://lka.lodzkie.pl/Honorowanie-biletow-komunikacji-miejskiej-w-Lodzi/",
+  "data_weryfikacji": "2026-10-12",
   "typ_ceny": "oficjalna_taryfa",
   "weryfikacja": {
     "status": "wg Gemini, niezweryfikowane niezależnie",

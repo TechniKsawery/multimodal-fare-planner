@@ -56,8 +56,9 @@ class DiscountProfile:
     bahncard: str | None = None  # None, "25", "50" lub "100" (DB, oficjalne rabaty Flexpreis)
     ztm_lublin_ulgowy: bool = False  # ZTM Lublin: bilet ulgowy (50%) zamiast normalnego -
     # uczniowie podstawowych/ponadpodstawowych/policealnych do 24 lat (legitymacja), doktoranci,
-    # uczniowie i studenci szkół zagranicznych do 26 lat z ISIC, emeryci. NIE obejmuje studentów
-    # polskich uczelni (niepotwierdzone, zob. fares/data/ztm_lublin.json::ulgi_niepotwierdzone).
+    # uczniowie i studenci szkół zagranicznych do 26 lat z ISIC, emeryci oraz studenci polskich
+    # uczelni z legitymacją studencką (potwierdzone 2026-11-03, zob.
+    # fares/data/ztm_lublin.json::ulgi_potwierdzone_2026_11_03).
     ztm_lublin_bezplatny: bool = False  # ZTM/ZDiTM Lublin: przejazd bezpłatny (100%) -
     # uczniowie szkół PODSTAWOWYCH działających na terenie Gminy Lublin (legitymacja szkolna,
     # uchwała nr 206/VII/2024 z 19.12.2024), dzieci do 30.09 roku ukończenia 7 lat i osoby 65+.

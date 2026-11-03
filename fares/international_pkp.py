@@ -116,6 +116,9 @@ def estimate_pkp_offer(segment: Segment) -> PriceEstimate | None:
     elif age is not None and _TABLE["dziecko_wiek_min"] <= age <= _TABLE["dziecko_wiek_max"]:
         kategoria_wieku = "dziecko"
         rabat_procent = _TABLE["dziecko_rabat_procent"]
+    elif age is not None and _TABLE["mlodziez_wiek_min"] <= age <= _TABLE["mlodziez_wiek_max"]:
+        kategoria_wieku = "mlodziez"
+        rabat_procent = _TABLE["mlodziez_rabat_procent"]
 
     amount = round(cena_regularna * (1 - rabat_procent / 100), 2)
 

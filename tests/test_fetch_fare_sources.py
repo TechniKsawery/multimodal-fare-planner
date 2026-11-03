@@ -425,7 +425,7 @@ def test_dwa_pdfy_intercity_z_pkp_intercity_json_sa_tylko_recznie():
     zrodla = [s for s in ffs.discover_sources() if s.data_file == "pkp_intercity.json"]
     assert len(zrodla) == 2
     assert all(s.url in ffs.MANUAL_ONLY_SOURCES for s in zrodla)
-    assert all(
-        u.startswith("https://www.intercity.pl/") and u.endswith(".pdf")
-        for u in ffs.MANUAL_ONLY_SOURCES
-    )
+    intercity = [u for u in ffs.MANUAL_ONLY_SOURCES if "intercity.pl" in u]
+    assert len(intercity) == 5
+    assert all(u.startswith("https://www.intercity.pl/") for u in intercity)
+    assert "https://global.api.flixbus.com/search/service/v4/search" in ffs.MANUAL_ONLY_SOURCES

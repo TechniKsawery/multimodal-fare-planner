@@ -41,13 +41,17 @@
   "ulgowe_50": [
     "uczniowie szkół podstawowych, ponadpodstawowych i policealnych do 24 lat (legitymacja szkolna)",
     "doktoranci",
+    "studenci polskich szkół wyższych (ważna legitymacja studencka, bez limitu wieku; uprawnienie ustawowe)",
     "uczniowie i studenci szkół zagranicznych do 26 lat (karta ISIC)",
     "emeryci"
   ],
-  "ulgi_niepotwierdzone": {
+  "ulgi_potwierdzone_2026_11_03": {
     "studenci_polskich_uczelni": {
-      "status": "niepotwierdzone",
-      "uwaga": "Strona ulg ZDiTM (33.html) nie potwierdza ulgi 50% dla studentów polskich uczelni, więc kod jej NIE przyznaje (student z polską legitymacją płaci cenę normalną, chyba że jest też doktorantem lub zaznaczy inny tytuł). Wcześniejsza wzmianka o ustawowej uldze studentów (strona uprawnienia-ustawowe) nie została potwierdzona 2026-10-13."
+      "status": "potwierdzone",
+      "zrodlo_url": "https://zdtm.lublin.eu/pl/ulgi-w-przejazdach/uprawnienia-ustawowe.html",
+      "data_weryfikacji": "2026-11-03",
+      "cytat": "Studenci polskich szkół wyższych — Ważna legitymacja studencka wydana przez polską szkołę wyższą (przypis: student = osoba kształcąca się na studiach pierwszego lub drugiego stopnia, Prawo o szkolnictwie wyższym art. 2 ust. 1 pkt 18k i 5)",
+      "uwaga": "Strona nie podaje procentu ulgi ani limitu wieku; stosujemy cenę bilet ulgowy z cennika (połowa ceny normalnej) zweryfikowanego 2026-11-03. Weryfikacja przeglądarkowa (Gemini, log otwartych stron) + odczyt strony przez Claude (wiersz grupy i dokumentu). Wcześniejszy zapis z 2026-10-13 ('niepotwierdzone') zastąpiony."
     }
   }
 }

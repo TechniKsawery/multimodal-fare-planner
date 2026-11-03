@@ -47,6 +47,75 @@
         "poznań"
       ],
       "cena": 47
+    },
+    {
+      "miasta": [
+        "kutno"
+      ],
+      "cena": 59
+    },
+    {
+      "miasta": [
+        "konin"
+      ],
+      "cena": 53
+    },
+    {
+      "miasta": [
+        "katowice"
+      ],
+      "cena": 64
+    },
+    {
+      "miasta": [
+        "wrocław",
+        "wroclaw"
+      ],
+      "cena": 48
+    },
+    {
+      "miasta": [
+        "opole"
+      ],
+      "cena": 56
+    },
+    {
+      "miasta": [
+        "rzeszów",
+        "rzeszow"
+      ],
+      "cena": 74
+    },
+    {
+      "miasta": [
+        "tarnów"
+      ],
+      "cena": 71
+    },
+    {
+      "miasta": [
+        "bydgoszcz"
+      ],
+      "cena": 53
+    },
+    {
+      "miasta": [
+        "tczew"
+      ],
+      "cena": 66
+    },
+    {
+      "miasta": [
+        "puławy",
+        "pulawy"
+      ],
+      "cena": 75
+    },
+    {
+      "miasta": [
+        "kielce"
+      ],
+      "cena": 69
     }
   ],
   "niemowle_wiek_max": 6,
@@ -54,5 +123,9 @@
   "dziecko_wiek_min": 6,
   "dziecko_wiek_max": 14,
   "dziecko_rabat_procent": 50,
-  "_uwaga_wiek": "Cennik PKP wymienia też ulgę 'Młodzież' -25% (tylko 2 klasa), ale BEZ podania granic wieku kwalifikujących — NIE zgadujemy ich (w szczególności nie zakładamy tych samych 15-26 lat co DB Young, bo to inny dokument innego przewoźnika) — ta ulga NIE jest tu zaimplementowana, dopóki nie znajdziemy jej dokładnych granic wiekowych. Poniżej 6 lat: przejazd bezpłatny (-100%). 6-14 lat: -50%. Oba zgodnie z tym samym cennikiem PKP."
+  "_uwaga_wiek": "Ulga 'Młodzież' -25% (tylko 2 klasa) dla wieku 15-26 lat — granice potwierdzone 2026-11-03 cytatem z oferty PKP (Oferta Polska-Niemcy od 19.08.2026, pkt 17): \"Jeśli masz od 15 do 26 lat, to na przejazd w wagonie klasy 2 możesz kupić bilet według oferty Młodzież.\" (odczyt Gemini; PDF: https://www.intercity.pl/pl/dokumenty/Przepisy%20i%20taryfy/Oferta_Polska-Niemcy_od_19.08.2026.pdf). Poniżej 6 lat: bezpłatnie (-100%). 6-14 lat: -50%.",
+  "_relacje_dodatkowe_zrodlo": "Relacje od Kutna do Kielc (11 pozycji) dopisane 2026-11-03 z odczytu PDF cennika PKP IC Polska-Niemcy od 19.08.2026 wykonanego przez Gemini w przeglądarce (tabele 1, 2, 5, 10, 11 cennika; 2 klasa, dorosły, EUR). Niezależnie NIEpotwierdzone przez Claude (sprawdzone niezależnie tylko pierwotnych 6 relacji + Warszawa-Frankfurt 65 EUR). Pominięto Radom (kolizja z Radomskiem w dopasowaniu podłańcucha) i relacje do Frankfurtu nad Odrą.",
+  "mlodziez_wiek_min": 15,
+  "mlodziez_wiek_max": 26,
+  "mlodziez_rabat_procent": 25
 }

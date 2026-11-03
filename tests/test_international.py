@@ -663,3 +663,22 @@ def test_zakres_cen_podaje_zrodla_obu_koncow():
     assert z["do_zrodlo"] == "SPI poziom V"
     leg = _international_leg("Lublin Główny", "Berlin Hauptbahnhof", distance_km=800)
     assert price_rail_leg(leg, DiscountProfile(age=25)).breakdown["zakres_cen"]["do_zrodlo"] == "SPI poziom V"
+
+
+def test_pkp_mlodziez_15_26_minus_25_procent_i_dodatkowe_relacje():
+    """Ulga Młodzież PKP (15-26 lat, 2 klasa, -25%) — granice potwierdzone 2026-11-03."""
+    def cena(origin, age):
+        seg = Segment(
+            Carrier.INTERNATIONAL_PL_DE, origin, "Berlin", distance_km=500,
+            discounts=DiscountProfile(age=age),
+        )
+        return estimate_pkp_offer(seg)
+
+    assert cena("Warszawa", 30).amount == 69.0
+    assert cena("Warszawa", 15).amount == 51.75
+    assert cena("Warszawa", 26).amount == 51.75
+    assert cena("Warszawa", 27).amount == 69.0
+    assert cena("Warszawa", 14).amount == 34.5  # dziecko -50% wygrywa dla 14 lat
+    assert cena("Warszawa", 20).breakdown["kategoria_wieku"] == "mlodziez"
+    assert cena("Wrocław Główny", 40).amount == 48.0
+    assert cena("Katowice", 40).amount == 64.0

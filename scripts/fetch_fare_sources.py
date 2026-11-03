@@ -219,6 +219,21 @@ MANUAL_ONLY_SOURCES: dict[str, str] = {
     "https://www.intercity.pl/pl/dokumenty/Przepisy%20i%20taryfy/Ulgi%20ustawowe/Tabele_ulg_ustawowych_11-02-2026.pdf": (
         "intercity.pl zwraca 403 dla botów — sprawdzać ręcznie"
     ),
+    # Pozostałe dokumenty intercity.pl (Polska–Niemcy) — ten sam 403 dla botów z runnerów.
+    "https://www.intercity.pl/pl/dokumenty/Przepisy%20i%20taryfy/Cennik_Polska-Niemcy_od_19.08.2026.pdf": (
+        "intercity.pl zwraca 403 dla botów — sprawdzać ręcznie"
+    ),
+    "https://www.intercity.pl/pl/dokumenty/Przepisy%20i%20taryfy/Cennik_SPI_Polska-Niemcy_od_19.08.2026.pdf": (
+        "intercity.pl zwraca 403 dla botów — sprawdzać ręcznie"
+    ),
+    "https://www.intercity.pl/pl/site/dla-pasazera/informacje/przepisy-i-taryfy/przepisy-miedzynarodowe/warunki-taryfowe-w-pociagach-warszawa-gdynia-berlin.html": (
+        "intercity.pl zwraca 403 dla botów — sprawdzać ręcznie"
+    ),
+    # Nieoficjalne API FlixBusa: goły GET na endpoint wyszukiwania daje 400. To dane
+    # kalibracyjne, nie strona cennika operatora.
+    "https://global.api.flixbus.com/search/service/v4/search": (
+        "endpoint API (400 bez parametrów) — dane kalibracyjne, nie strona cennika"
+    ),
 }
 
 

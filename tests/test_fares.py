@@ -935,8 +935,9 @@ def test_weryfikacja_cen_bahn_de_2026_10_14():
 
     dt = load("deutschlandticket.json")
     assert dt["cena_miesieczna"] == 63.00
-    assert dt["_data_sprawdzenia"] == "2026-10-14"
+    assert dt["_data_sprawdzenia"] == "2026-11-03"
     assert "https://www.bahn.de/angebot/regio/deutschland-ticket" in dt["_zrodlo"]
+    assert dt["historia_cen"][-1] == {"cena": 66.80, "od": "2027-01-01"}
 
     intl = load("international_pl_de.json")
     assert [p["cena_od"] for p in intl["progi_km"]] == [19.99, 29.99, 39.99]

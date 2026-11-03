@@ -8,8 +8,8 @@ data i zasady ulg: fares/data/ztm_lublin.json oraz README.md w tym katalogu).
 Przejazd bezpłatny wynika z flagi `ztm_lublin_bezplatny` ALBO z samego wieku (`DiscountProfile.age`):
 65+ oraz dzieci do 30.09 roku, w którym kończą 7 lat. Z wieku 7-14 lat ZAKŁADAMY dodatkowo status
 ucznia szkoły podstawowej w Lublinie (jak fares/zvon_gorlitz.py) — wiek go nie dowodzi, więc notes
-to mówi. Ulgi 50% (uczniowie do 24 lat, doktoranci, ISIC do 26 lat, emeryci) wymagają flagi
-`ztm_lublin_ulgowy`; studenci polskich uczelni NIE mają ulgi (niepotwierdzone w źródle).
+to mówi. Ulgi 50% (uczniowie do 24 lat, doktoranci, ISIC do 26 lat, emeryci, studenci polskich uczelni
+z legitymacją, potwierdzone 2026-11-03) wymagają flagi `ztm_lublin_ulgowy`.
 """
 
 from datetime import date

@@ -89,7 +89,7 @@ def test_dwudziestolatek_bez_flagi_placi_normalnie_student_polski_bez_ulgi():
     result = _cena(10, age=20)
     assert result.amount == 3.40
     assert result.breakdown["typ_biletu"] == "normalny"
-    assert TABLE["ulgi_niepotwierdzone"]["studenci_polskich_uczelni"]["status"] == "niepotwierdzone"
+    assert TABLE["ulgi_potwierdzone_2026_11_03"]["studenci_polskich_uczelni"]["status"] == "potwierdzone"
 
 
 def test_dwudziestolatek_z_flaga_ulgowy_placi_polowe():

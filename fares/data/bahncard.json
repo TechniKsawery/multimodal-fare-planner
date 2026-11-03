@@ -39,7 +39,9 @@
       "cena_promocyjna": 0.0,
       "promocja_od": "2026-10-07",
       "promocja_do": "2026-12-12",
-      "_uwaga_promocja": "0 EUR zamiast 7,90 EUR przy zamówieniu od 7 października do 12 grudnia 2026 (bahn.de/angebot/bahncard/bahncard25/jugendbahncard25, sprawdzone 2026-10-11); poza tym oknem obowiązuje 7,90 EUR.",
+      "promocja_do_zweryfikowana": true,
+      "promocja_do_zrodlo": "https://www.bahn.de/faq/wie-viel-kostet-die-jugend-bahncard — cytat (odczyt przeglądarkowy Gemini 2026-11-03): \"Vom 7. Oktober bis 12. Dezember 2026: Die Jugend BahnCard kostet 0 Euro statt 7,90 Euro pro Jahr (1. und 2. Kl.) bis einschließlich 18 Jahre.\" Odczyt tekstowy Claude (WebFetch) widzi na tej stronie tylko zdanie z \"momentan\", bez dat.",
+      "_uwaga_promocja": "0 EUR zamiast 7,90 EUR przy zamówieniu od 7 października do 12 grudnia 2026 (bahn.de/angebot/bahncard/bahncard25/jugendbahncard25, sprawdzone 2026-10-11); poza tym oknem obowiązuje 7,90 EUR. Data końca 12.12.2026 potwierdzona 2026-11-03 odczytem przeglądarkowym (zob. promocja_do_zrodlo).",
       "rabat_procent": 25,
       "wiek_min": 6,
       "wiek_max": 18

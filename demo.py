@@ -29,7 +29,9 @@ from routing.demo_route import (
     RAIL_FLIGHT_RAIL_HUBS,
     VIA_HUB_STOPS,
 )
+from fares import default_discounts_for_age
 from fares.model import DiscountProfile
+from fares.pkp import _TABLE as _PKP_TABLE
 from routing.model import OTHER_DAY_SECTION_TITLE
 from routing.motis_client import MotisError
 from routing.scoring import RECOMMENDATION_LABELS, pick_recommendations, price_ranking_note
@@ -182,6 +184,17 @@ def format_itinerary(itinerary, age=None) -> str:
         )
         if priced.unverified_label:
             line += f" — {priced.unverified_label}"
+        if priced.carrier is not None and priced.carrier.value == "pkp_intercity":
+            bd = priced.breakdown
+            if bd.get("ulga_procent"):
+                line += (
+                    f"\n      PKP IC: cena pełna {bd['cena_bazowa']:.2f} PLN, ulga "
+                    f"{bd['ulga_procent']}% ({bd['ulga_kod']}) -> {priced.amount:.2f} PLN"
+                )
+            else:
+                line += f"\n      PKP IC: cena pełna {bd.get('cena_bazowa', priced.amount):.2f} PLN (bez ulgi)"
+            if not bd.get("data_weryfikacji"):
+                line += " — pasma cen i ulg bez daty weryfikacji z PDF (data_weryfikacji: brak)"
         if leg.mode.value == "lot" and "cena_biletu" in priced.breakdown:
             line += (
                 f" [bilet {priced.breakdown['cena_biletu']:.2f} "
@@ -234,6 +247,40 @@ def format_other_day_section(other_day, age=None) -> str:
     return "\n".join(lines)
 
 
+PKP_ULGI_KODY = tuple(_PKP_TABLE["ulgi_procent"])
+_KOD_STUDENT = "student_do_26_lat_doktorant_do_35_lat"
+
+
+def resolve_pkp_ulga(
+    explicit: str | None, age: int | None, is_student: bool
+) -> tuple[str, str | None]:
+    """Kod ulgi PKP: jawny --pkp-ulga > --student (dorosły do 26 lat) > domyślny z wieku
+    (default_discounts_for_age, jak w api/main.py i app.py). Zwraca (kod, uwaga dla usera).
+    Nie zgadujemy: student starszy niż 26 lat nie dostaje ulgi (doktorant do 35 lat wymaga
+    jawnego --pkp-ulga)."""
+    if explicit:
+        return explicit, None
+    default = default_discounts_for_age(age)["pkp_ulga_kod"]
+    if not is_student:
+        return default, None
+    if age is not None and age < 18:
+        return default, "uczeń/dziecko <18 lat: ulga wg wieku, nie studencka."
+    if age is not None and age > 26:
+        return default, (
+            "--student przy wieku >26 lat nie daje ulgi studenckiej PKP (51% do 26 lat); "
+            "doktorant do 35 lat: użyj --pkp-ulga " + _KOD_STUDENT
+        )
+    return _KOD_STUDENT, None
+
+
+def build_discount_profile(
+    age: int | None, child_with_guardian: bool, pkp_ulga_kod: str
+) -> DiscountProfile:
+    defaults = default_discounts_for_age(age)
+    defaults["pkp_ulga_kod"] = pkp_ulga_kod
+    return DiscountProfile(age=age, child_with_guardian=child_with_guardian, **defaults)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Wyszukiwarka tras adres -> adres")
     parser.add_argument(
@@ -276,6 +323,14 @@ def main() -> None:
         help="zniżka seniora — wpływa na cenę atrakcji z potwierdzoną zniżką senioralną",
     )
     parser.add_argument(
+        "--pkp-ulga",
+        choices=sorted(PKP_ULGI_KODY),
+        default=None,
+        help="kod ulgi ustawowej PKP Intercity (fares/data/pkp_intercity.json); nadpisuje ulgę "
+        "wyprowadzoną z --age/--student. Bez niego: z wieku (dziecko/młodzież), a --student "
+        "dla dorosłego do 26 lat daje ulgę studencką 51%%",
+    )
+    parser.add_argument(
         "--cabin-baggage-only",
         action="store_true",
         help="loty tylko z bagażem podręcznym (bez opłaty za rejestrowany, bufor po lądowaniu 60 "
@@ -287,6 +342,9 @@ def main() -> None:
         help="pokaż w sekcji 'wszystkie warianty' także absurdalnie wolne (domyślnie ukryte)",
     )
     args = parser.parse_args()
+    pkp_ulga_kod, pkp_ulga_uwaga = resolve_pkp_ulga(args.pkp_ulga, args.age, args.student)
+    if pkp_ulga_uwaga:
+        print(f"Uwaga: {pkp_ulga_uwaga}\n")
     attraction_profile = AttractionDiscountProfile(
         age=args.age, is_student=args.student, is_senior=args.senior
     )
@@ -298,7 +356,9 @@ def main() -> None:
             args.date,
             departure_time=args.departure_time if args.departure_time.count(":") == 2
             else f"{args.departure_time}:00",
-            discounts=DiscountProfile(age=args.age, child_with_guardian=args.child_with_guardian),
+            discounts=build_discount_profile(
+                args.age, args.child_with_guardian, pkp_ulga_kod
+            ),
             checked_baggage=not args.cabin_baggage_only,
         )
     except MotisError as exc:

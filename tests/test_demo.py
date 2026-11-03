@@ -76,3 +76,41 @@ def test_alternative_destination_stop_nie_moze_ucinac_adresu_docelowego():
         alt_request = alt_request_call.args[0]
         assert alt_request.destination_stop_id == "essen_hbf_stop"
         assert alt_request.destination_stop_id != request.destination_stop_id
+
+
+def test_resolve_pkp_ulga_student_dorosly():
+    from demo import resolve_pkp_ulga
+
+    kod, uwaga = resolve_pkp_ulga(None, 20, True)
+    assert kod == "student_do_26_lat_doktorant_do_35_lat" and uwaga is None
+
+
+def test_resolve_pkp_ulga_jawny_kod_wygrywa_i_bez_studenta_z_wieku():
+    from demo import resolve_pkp_ulga
+
+    assert resolve_pkp_ulga("opiekun_lub_przewodnik_osoby_niepelnosprawnej", 20, True)[0] == (
+        "opiekun_lub_przewodnik_osoby_niepelnosprawnej"
+    )
+    assert resolve_pkp_ulga(None, 20, False) == ("brak", None)
+    assert resolve_pkp_ulga(None, 10, False)[0] == "dzieci_mlodziez_szkolna_do_24_lat"
+
+
+def test_resolve_pkp_ulga_student_nie_zgaduje_poza_26_i_dla_dzieci():
+    from demo import resolve_pkp_ulga
+
+    kod, uwaga = resolve_pkp_ulga(None, 30, True)
+    assert kod == "brak" and uwaga
+    kod, uwaga = resolve_pkp_ulga(None, 15, True)
+    assert kod == "dzieci_mlodziez_szkolna_do_24_lat" and uwaga
+
+
+def test_build_discount_profile_ustawia_ulge_pkp_i_cena_spada():
+    from demo import build_discount_profile
+    from fares import pkp
+    from fares.model import Carrier, Segment
+
+    profil = build_discount_profile(20, False, "student_do_26_lat_doktorant_do_35_lat")
+    pelna = pkp.estimate(Segment(origin="A", destination="B", carrier=Carrier.PKP_INTERCITY, distance_km=170, discounts=build_discount_profile(20, False, "brak")))
+    ulga = pkp.estimate(Segment(origin="A", destination="B", carrier=Carrier.PKP_INTERCITY, distance_km=170, discounts=profil))
+    assert ulga.breakdown["ulga_procent"] == 51
+    assert ulga.amount == round(pelna.amount * 0.49, 2)

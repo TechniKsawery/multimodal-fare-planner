@@ -61,8 +61,14 @@ i NRW; pełne Niemcy ok. 7 GB tylko w wariancie `docker-compose.de-full*.yml`).
 
 Czysty klon na Windows (Docker 28.1.1, Python 3.13) przeszedł: `pytest -q` (2091 passed), `scripts/fetch_data.py`
 (MD5 i walidacja GTFS OK), `merge_osm.sh` przez Dockera (`iboates/osmium`, ok. 8 min, 3,06 GB), import MOTIS
-(ok. 2,3 GB plików indeksu plus `osr`/`adr`), serwer i zapytanie Warszawa → Kraków (5 połączeń). Jeszcze niezweryfikowane:
-`fetch_data_extended.py` i wariant produkcyjny poniżej.
+(ok. 2,3 GB plików indeksu plus `osr`/`adr`), serwer i zapytanie Warszawa → Kraków (5 połączeń).
+
+Wariant produkcyjny poniżej zweryfikowano 2026-11-12 na tej samej maszynie: `fetch_data_extended.py` (OSM Niemiec 4,88 GB,
+HVV 40 MB, MVV 19 MB, VRS 29 MB), scalenie OSM przez Dockera (`poland-germany-latest.osm.pbf`, 7,05 GB), import MOTIS do
+wolumenu `multimodal-fare-planner_motis-data-pl-cities`, serwer na porcie 8082, trasy Warszawa → Kraków, Hamburg → Berlin
+i Kolonia → Monachium (po 5 połączeń) oraz jedno ręczne wyszukiwanie w UI Streamlit (`MOTIS_BASE_URL=http://localhost:8082`).
+Zużycie dysku: wolne miejsce spadło z 45,7 GB do 27,3 GB po imporcie (szczyt ok. 40 GB, gdy pliki pobrane i sklejony
+istnieją jednocześnie, więc miej min. 45 GB wolnego). Niezweryfikowane: utworzenie kontenera `motis-main` i `refresh_prod.ps1` na czystej maszynie.
 
 ## Czego repozytorium NIE zawiera
 

@@ -67,8 +67,15 @@ The `docker-compose*.yml` files pin the MOTIS image to a digest (pulled 2026-11-
 
 A clean clone on Windows (Docker 28.1.1, Python 3.13) went through: `pytest -q` (2091 passed), `scripts/fetch_data.py`
 (MD5 and GTFS validation OK), `merge_osm.sh` via Docker (`iboates/osmium`, ~8 min, 3.06 GB), the MOTIS import
-(~2.3 GB of index files plus `osr`/`adr`), the server, and a Warsaw → Kraków query (5 itineraries). Not yet verified:
-`fetch_data_extended.py` and the production-like variant below.
+(~2.3 GB of index files plus `osr`/`adr`), the server, and a Warsaw → Kraków query (5 itineraries).
+
+The production-like variant below was also verified on 2026-11-12 on the same machine: `fetch_data_extended.py`
+(Germany OSM 4.88 GB, HVV 40 MB, MVV 19 MB, VRS 29 MB), the OSM merge via Docker (`poland-germany-latest.osm.pbf`,
+7.05 GB), the MOTIS import into the volume `multimodal-fare-planner_motis-data-pl-cities`, the server on port 8082,
+route queries Warsaw → Kraków, Hamburg → Berlin and Cologne → Munich (5 itineraries each), and one manual search in the
+Streamlit UI (`MOTIS_BASE_URL=http://localhost:8082`). Disk use: free space dropped from 45.7 GB to 27.3 GB after the import
+(about 40 GB peak while the downloads and the merged file coexist, so keep at least 45 GB free).
+Not verified: creating the `motis-main` container and `refresh_prod.ps1` on a clean machine.
 
 ## What the repository does NOT contain
 

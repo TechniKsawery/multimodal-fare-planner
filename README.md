@@ -2,6 +2,28 @@
 
 Wyszukiwarka połączeń kolejowych PL + DE (np. Lublin → Gelsenkirchen) z szacunkiem cen.
 
+## Stan projektu
+
+> **Projekt portfolio / prototyp, nie produkt komercyjny.** Ostatnia aktualizacja repozytorium:
+> **2026-11-12** (porządki przed publikacją); ostatnie zmiany funkcjonalne: 2026-11-09.
+
+- **Zakres:** routing PL + DE (kolej, część autobusów i lotów) oparty o silnik MOTIS i otwarte
+  feedy GTFS, plus warstwa szacunku cen z uwzględnieniem ulg i kart. Ceny to **szacunki**,
+  nie oferta sprzedaży i bez gwarancji poprawności; zakup biletów nie jest zaimplementowany.
+- **Dane i ich aktualność:** feedy GTFS i OSM są pobierane skryptami (nie są w repozytorium) i
+  mają daty ważności. Według notatek z 2026-10-12 feedy używane na produkcji lokalnej były ważne
+  do 2026-11-09 (Warszawa do 2026-11-11), więc **trzeba je odświeżyć przed użyciem**
+  (`scripts/README-refresh.md`, `scripts/check_gtfs_freshness.py`). Rekordy cen mają pola
+  `zrodlo_url`, `data_weryfikacji` i `price_verified`; pozycje z `price_verified: false` nie
+  zostały potwierdzone w źródle. Weryfikacje wykonywano głównie w październiku 2026.
+- **Użycie AI:** kod, testy, tłumaczenia, część researchu źródeł i komunikaty commitów powstały
+  przy dużym udziale narzędzi AI (Claude, Gemini). Dane z researchu AI oznaczono jako
+  „wg Gemini, niezweryfikowane niezależnie”, dopóki nie sprawdzono ich w źródle pierwotnym.
+- **Licencje danych:** feedy i dane zewnętrzne mają własne licencje (m.in. CC BY 4.0,
+  DL-DE-BY-2.0, ODbL dla OSM); zobacz sekcję „Sesja 1: dane”. Repozytorium nie zawiera
+  oryginałów PDF cenników przewoźników; źródła są podane linkami.
+
+
 ## Szybki start (od zera)
 
 Pełna instrukcja postawienia projektu lokalnie, krok po kroku. Wymagania: Python 3.11+,

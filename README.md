@@ -96,6 +96,16 @@ docker compose -f docker-compose.pl-cities.yml up motis-pl-cities     # MOTIS on
 ```
 
 Point the app at it with `MOTIS_BASE_URL=http://localhost:8082` (PowerShell: `$env:MOTIS_BASE_URL="http://localhost:8082"`).
+`scripts\refresh_prod.ps1` only refreshes an EXISTING container named `motis-main` (it fails if there is none). To create it
+once from the volume imported above (not verified on a clean machine):
+
+```
+docker run -d --name motis-main --restart unless-stopped -p 8080:8080 `
+  -v multimodal-fare-planner_motis-data-pl-cities:/data `
+  -v "${PWD}\motis\config.pl-cities.yml:/data/config.yml:ro" `
+  ghcr.io/motis-project/motis@sha256:594eff881d4319549387563a28dffb2ac48650df5422325a44a6c2f69f79e9b9
+```
+
 Later refreshes: `scripts\refresh_prod.ps1` (see `scripts/README-refresh.md`).
 
 ## End-to-end check on a clean machine

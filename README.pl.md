@@ -291,7 +291,7 @@ setupu — wystarczy:
 Krok `import` (ponowne ściąganie danych, `fetch_data.py`) jest potrzebny tylko wtedy, gdy
 chcesz odświeżyć dane GTFS/OSM albo zmieniłeś `motis/config.yml`.
 
-**Wygląd.** Styl interfejsu wg `research/ui-styl.md` (wersja 2) siedzi w `.streamlit/config.toml`
+**Wygląd.** Styl interfejsu wg wytycznych stylu (plik `research/ui-styl.md` nie jest w repozytorium; zob. `research/ui-projekt.md`) siedzi w `.streamlit/config.toml`
 (kolory motywu) i `ui_style.py` (CSS: plakietki statusu ceny, karty, przycisk „Szukaj połączeń”).
 Jasna paleta jest podstawą, ciemna jest do wyboru w menu ⋮ w prawym górnym rogu
 (System / Light / Dark); przy ustawieniu „System” ciemny system operacyjny daje ciemną paletę.
@@ -495,7 +495,7 @@ transporcie miejskim (np. VRR / Berlin AB / Kraków strefa I+II), wyliczając re
 
 Zniżka karty > 0% jest liczona tylko z polem źródła (`source_url` + `verified_date`); zniżka bez źródła
 = 0% + flaga niezweryfikowanej zniżki w wycenie (zniżki bez źródła w 6 miastach wyzerowano 2026-10-12;
-10 z nich przywrócono ze źródłem wg raportu `research/zrodla-znizek-kart.md`, 6 zostaje 0% — patrz
+10 z nich przywrócono ze źródłem wg raportu Gemini (plik `research/zrodla-znizek-kart.md` nie jest w repozytorium), 6 zostaje 0% — patrz
 `attractions/README.md`). Źródła strefy C (BER) w `fares/data/bvg_berlin.json` (`zrodlo_strefa_c_ber`:
 bvg.de i vbb.de, 2026-10-12). Wszystkie te źródła są wg Gemini, niezweryfikowane niezależnie.
 

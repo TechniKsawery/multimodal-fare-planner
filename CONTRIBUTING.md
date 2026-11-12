@@ -1,5 +1,7 @@
 # Jak wnosić zmiany
 
+> Wewnętrzny opis procesu pracy. Repozytorium jest objęte licencją All Rights Reserved ([LICENSE](LICENSE)) i nie przyjmuje zmian z zewnątrz.
+
 ## Przed merge
 
 - CI (`.github/workflows/tests.yml`) uruchamia `pytest` na każdym pull requeście do `main`.

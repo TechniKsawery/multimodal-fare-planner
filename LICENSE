@@ -1,0 +1,23 @@
+Copyright (c) 2026 TechniKsawery. All Rights Reserved.
+
+This repository and its source code are proprietary. No license is granted
+except the limited permission below.
+
+Permitted: viewing the source code, solely to evaluate the author's work
+(for example, as a portfolio or for a hiring/investment assessment).
+
+Not permitted without prior written permission of the copyright holder:
+copying, reproducing, modifying, creating derivative works, translating,
+redistributing, publishing, sublicensing, selling, offering as a service, or
+any commercial use of the code, in whole or in part.
+
+Use of the finished product by end users is governed by a separate agreement
+with the copyright holder and is not granted by this file.
+
+Scope: this notice covers the source code and original documentation of this
+repository only. Third-party data (GTFS feeds, OpenStreetMap, fare and price
+information, attraction data) remains under its original licences and terms,
+which are listed in DATA_SOURCES.md.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. Prices shown by
+the software are estimates and carry no guarantee of accuracy.

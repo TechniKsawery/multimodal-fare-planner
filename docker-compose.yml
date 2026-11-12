@@ -7,7 +7,7 @@ volumes:
 
 services:
   motis-import:
-    image: ghcr.io/motis-project/motis:latest
+    image: ${MOTIS_IMAGE:-ghcr.io/motis-project/motis:latest}
     entrypoint: /motis
     command: ["import", "-d", "/data", "-c", "/data/config.yml"]
     volumes:
@@ -17,7 +17,7 @@ services:
     profiles: ["import"]
 
   motis:
-    image: ghcr.io/motis-project/motis:latest
+    image: ${MOTIS_IMAGE:-ghcr.io/motis-project/motis:latest}
     ports:
       - "8080:8080"
     volumes:

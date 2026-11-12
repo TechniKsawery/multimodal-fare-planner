@@ -54,7 +54,7 @@ $ProdName    = "motis-main"
 $OldName     = "motis-main-old"
 $TestName    = "motis-refresh-test"
 $ProdPort    = 8080
-$Image       = "ghcr.io/motis-project/motis:latest"
+$Image       = "ghcr.io/motis-project/motis@sha256:594eff881d4319549387563a28dffb2ac48650df5422325a44a6c2f69f79e9b9"  # digest pobrany 2026-11-12, zob. README (Wersje)
 # Wolumeny, których skrypt nie rusza pod żadnym pozorem (informacyjnie + sprawdzenie, że nowy wolumen to nie one):
 $Protected   = @(
     "plcities-test_motis-data-pl-cities",
@@ -257,7 +257,7 @@ try {
     )
     $missingInputs = $RequiredInputs | Where-Object { -not (Test-Path (Join-Path $Repo $_)) }
     if ($missingInputs) {
-        Fail ("Brak plikow wejsciowych wymaganych przez motis\config.pl-cities.yml, ktorych scripts\fetch_data.py nie pobiera: " + ($missingInputs -join ', ') + ". Dostarcz je recznie przed ponownym uruchomieniem (zob. README-refresh.md).")
+        Fail ("Brak plikow wejsciowych wymaganych przez motis\config.pl-cities.yml, ktorych scripts\fetch_data.py nie pobiera: " + ($missingInputs -join ', ') + ". Pobierz je: python scripts/fetch_data_extended.py, potem bash scripts/merge_osm.sh germany (lub dostarcz recznie) przed ponownym uruchomieniem (zob. README-refresh.md).")
     }
     if ($SwitchOnly) {
         Step "1-2. Tryb -SwitchOnly: sprawdzam zgodnosc wolumenu $NewVolume z biezacymi danymi"

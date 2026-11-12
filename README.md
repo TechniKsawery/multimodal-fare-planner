@@ -63,6 +63,45 @@ The `docker-compose*.yml` files pin the MOTIS image to a digest (pulled 2026-11-
 `docker image inspect ghcr.io/motis-project/motis:latest --format "{{index .RepoDigests 0}}"`, and replace the digest in
 `docker-compose*.yml` (search for `MOTIS_IMAGE`). Note: the pinned build was tested only with data imported on that date.
 
+## What the repository does NOT contain
+
+The repository is the single source of truth; everything below must be recreated from it.
+
+| Item | Status | How to get it back |
+|---|---|---|
+| `.env` and API tokens (`TRAVELPAYOUTS_TOKEN`) | **Not recoverable**: secrets are never committed | Create a new Travelpayouts token and put it in `.env` (copy `.env.example`); optional, flights are skipped without it |
+| GTFS and OSM data (`data/`) | Downloaded, not stored | `python scripts/fetch_data.py` (+ `scripts/fetch_data_extended.py`); feeds are "latest" snapshots, so **past versions cannot be restored** and the HVV link (dated snapshot) may need replacing |
+| Built MOTIS index (Docker volumes) | Rebuilt, not stored | `scripts/run_motis.ps1 import` (or `docker compose` for the variant you use); tens of minutes to over an hour |
+| Production/rollback containers and volumes (`motis-main`, `motis-main-old`, `mw_motis_refresh_*`) | Local only, not needed | Recreated by `scripts/refresh_prod.ps1` from the repo; no data from the old machine is required |
+| Carriers' price-list PDFs and page snapshots | Removed (copyright) | Sources are linked in `fares/data/*.json` (`zrodlo_url`); re-verify prices by hand |
+| Old PR/issue history, review comments | Not carried over to this repository | none |
+| Unofficial DB prices service (`tools/db-vendo-service`) | Optional | `npm install && npm start`; may be blocked by DB; needs no token |
+| Human verification of prices | Dated, goes stale | each record's `data_weryfikacji`; `price_verified: false` = unverified |
+
+### Production-like variant (Warsaw/Kraków/Hamburg/Munich/Cologne city feeds, full-Germany OSM)
+
+```
+python scripts/fetch_data.py
+python scripts/fetch_data_extended.py        # Germany OSM + HVV/MVV/VRS feeds (several GB)
+bash scripts/merge_osm.sh germany            # -> data/osm/poland-germany-latest.osm.pbf (~7 GB)
+docker compose -f docker-compose.pl-cities.yml --profile import-pl-cities run --rm motis-import-pl-cities
+docker compose -f docker-compose.pl-cities.yml up motis-pl-cities     # MOTIS on http://localhost:8082
+```
+
+Point the app at it with `MOTIS_BASE_URL=http://localhost:8082` (PowerShell: `$env:MOTIS_BASE_URL="http://localhost:8082"`).
+Later refreshes: `scripts\refresh_prod.ps1` (see `scripts/README-refresh.md`).
+
+## End-to-end check on a clean machine
+
+1. Fresh folder: `git clone <repo>`, `cd` into it, `python -m venv .venv`, activate, `pip install -r requirements.txt -r requirements-dev.txt`.
+2. `pytest -q` (expect ~2079 passed, 12 skipped, no Docker needed).
+3. `python scripts/fetch_data.py` then `bash scripts/merge_osm.sh` (default NRW variant).
+4. Clean Docker state for the test: `docker volume ls` should not list this project's volume (`<folder>_motis-data`); then `scripts\run_motis.ps1 import`.
+5. `scripts\run_motis.ps1 server` (port 8080; stop any other container using it).
+6. One route query with a date inside the feed validity window: `python demo.py --from "Lublin Dworzec Główny" --to "Gelsenkirchen Hbf" --date <date within the next week> --age 25`.
+7. Optional: `python -m streamlit run app.py` and `uvicorn api.main:app --port 8010`.
+8. If all of the above works, nothing from the original machine is needed.
+
 ## Repository map
 
 `routing/` MOTIS client and itinerary building · `fares/` fare calculators and data · `attractions/`

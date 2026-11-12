@@ -27,6 +27,28 @@ cards into account.
   Third-party data keeps its own licences ([DATA_SOURCES.md](DATA_SOURCES.md)). The repository does not
   contain the carriers' original price-list PDFs; sources are linked.
 
+## Coverage: what is supported and what is not
+
+Based on the code (`routing/pricing.py`, `fares/`), the MOTIS configs (`motis/config*.yml`) and the data files; state of
+the data as of **2026-11-12**. "Estimate" means the price is not an official tariff or is unconfirmed (`price_verified: false`).
+
+| Area | Supported | NOT supported / limits |
+|---|---|---|
+| **Countries** | Poland and Germany only | Any other country (CZ, AT, NL, FR ...) has no timetable data and no tariffs |
+| **Timetables (MOTIS)** | Default config: Polish rail, German FV/RV/NV (gtfs.de), ZTM Lublin. Production-like config adds Warsaw, Kraków, Hamburg (HVV), Munich (MVV), Cologne/Bonn (VRS) | Other cities' local transit has no timetable; Kraków (ZTP) licence unconfirmed. Feeds expire: those used on 2026-11-12 were valid only until about 2026-11-09, refresh before use |
+| **Addresses / walking** | Default OSM extract covers Poland + NRW; production-like config covers Poland + all Germany | Outside the loaded OSM area, address geocoding and walking legs do not work |
+| **Rail, long-distance** | PKP Intercity (domestic bands), DB Flexpreis (domestic upper bound), cross-border PL↔DE (Sparpreis Europa, PKP Super Promo International levels I–V) | Saxonia, Via Regia (Leipzig), Chopin and Carpatia (Munich, sleepers) are not modelled; no tariffs for other operators |
+| **Rail, regional** | Polregio, Koleje Mazowieckie, Koleje Małopolskie, ŁKA, SKM Trójmiasto, VRR eezy.nrw (NRW only), Zgorzelec–Görlitz (ZVON, KD), border ticket Zasieki–Forst | German regional rail outside NRW is an unconfirmed estimate; other Polish regional carriers are not modelled |
+| **Local transit, with city tariff** | Lublin, Warsaw, Kraków, Poznań, Wrocław, Berlin (BVG/VBB), Hamburg (HVV), Munich (MVV), Cologne (VRS/KVB), NRW (VRR) | Every other city (e.g. Gdańsk, Łódź, Katowice, Szczecin, Dresden, Leipzig, Frankfurt, Stuttgart) has no local tariff; the app falls back to a generic estimate |
+| **Long-distance bus** | FlixBus (unofficial API with live prices; fallback 0.27 PLN/km) | Other bus operators; the FlixBus API may be blocked and prices are snapshots |
+| **Flights** | Prices from Travelpayouts Data API (optional token); 12 Polish and 25 German airports in `routing/data/airports.json`, 6 relations with baggage/transfer extras (placeholder values) | Not verified at the airline; bagage/transfer extras are placeholders; multi-segment flights are out of scope |
+| **Discounts and profiles** | Age, student, senior, BahnCard 25/50/100, PKP discount codes, VRR child tariff, per-city student/child/senior tiers where verified | Deutschlandticket exists only as data (not applied in price calculation); discounts without a source are set to 0% and flagged; other cards and multiple passengers are out of scope |
+| **City attractions and cards** | 82 attractions in 10 cities (Gelsenkirchen, Berlin, Kraków, Lublin, Warsaw, Hamburg, Munich, Cologne, Wrocław, Poznań); 9 city cards (Berlin, Ruhr, Kraków, Hamburg, Munich, Cologne, Warsaw, Poznań, Lublin) | Other cities; prices are indicative and some are not confirmed at the source |
+| **Booking / payment** | none | The app only estimates; it does not sell or book tickets |
+
+Known limits: prices are estimates and may be outdated (verification dates in the data files, mostly October 2026, newest 2026-11-03);
+some research data comes from AI and is marked as not independently verified; results depend on feed validity.
+
 ## Legal notices, attribution and disclaimer
 
 *Not legal advice; a good-faith summary of the terms checked on 2026-11-12. Verify at the sources.*

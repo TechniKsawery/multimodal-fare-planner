@@ -29,6 +29,28 @@ Wyszukiwarka połączeń kolejowych PL + DE (np. Lublin → Gelsenkirchen) z sza
   oryginałów PDF cenników przewoźników; źródła są podane linkami.
 
 
+## Zakres: co obsługujemy, a czego nie
+
+Na podstawie kodu (`routing/pricing.py`, `fares/`), configów MOTIS (`motis/config*.yml`) i plików danych; stan danych na dzień
+**2026-11-12**. „Szacunek” oznacza cenę spoza oficjalnej taryfy lub niepotwierdzoną (`price_verified: false`).
+
+| Obszar | Obsługiwane | NIEobsługiwane / ograniczenia |
+|---|---|---|
+| **Kraje** | Tylko Polska i Niemcy | Inne kraje (CZ, AT, NL, FR ...) nie mają danych rozkładowych ani taryf |
+| **Rozkłady (MOTIS)** | Config domyślny: polska kolej, niemieckie FV/RV/NV (gtfs.de), ZTM Lublin. Config produkcyjny dodaje Warszawę, Kraków, Hamburg (HVV), Monachium (MVV), Kolonię/Bonn (VRS) | Komunikacja miejska innych miast bez rozkładu; Kraków (ZTP) z niepotwierdzoną licencją. Feedy wygasają: te z 2026-11-12 były ważne tylko do ok. 2026-11-09, odśwież przed użyciem |
+| **Adresy / marsz** | Domyślny wycinek OSM: Polska + NRW; config produkcyjny: Polska + całe Niemcy | Poza wczytanym obszarem OSM nie działa geokodowanie adresów ani dojścia piesze |
+| **Kolej dalekobieżna** | PKP Intercity (pasma krajowe), DB Flexpreis (górna granica krajowa), międzynarodowe PL↔DE (Sparpreis Europa, PKP Super Promo International poziomy I–V) | Saxonia, Via Regia (Lipsk), Chopin i Carpatia (Monachium, miejsca sypialne) niemodelowane; brak taryf innych przewoźników |
+| **Kolej regionalna** | Polregio, Koleje Mazowieckie, Koleje Małopolskie, ŁKA, SKM Trójmiasto, VRR eezy.nrw (tylko NRW), Zgorzelec–Görlitz (ZVON, KD), bilet graniczny Zasieki–Forst | Niemiecka kolej regionalna poza NRW to niepotwierdzony szacunek; pozostali polscy przewoźnicy regionalni niemodelowani |
+| **Komunikacja miejska z własną taryfą** | Lublin, Warszawa, Kraków, Poznań, Wrocław, Berlin (BVG/VBB), Hamburg (HVV), Monachium (MVV), Kolonia (VRS/KVB), NRW (VRR) | Każde inne miasto (np. Gdańsk, Łódź, Katowice, Szczecin, Drezno, Lipsk, Frankfurt, Stuttgart) bez taryfy lokalnej; aplikacja używa ogólnego szacunku |
+| **Autobusy dalekobieżne** | FlixBus (nieoficjalne API z cenami na żywo; zapas 0,27 zł/km) | Inni przewoźnicy autobusowi; API FlixBusa bywa blokowane, a ceny to migawki |
+| **Loty** | Ceny z Travelpayouts Data API (opcjonalny token); 12 polskich i 25 niemieckich lotnisk w `routing/data/airports.json`, 6 relacji z dopłatami za bagaż i dojazd (wartości przykładowe) | Brak weryfikacji u linii lotniczej; dopłaty to wartości przykładowe; loty wielosegmentowe poza zakresem |
+| **Zniżki i profile** | Wiek, student, senior, BahnCard 25/50/100, kody ulg PKP, taryfa dziecięca VRR, ulgi uczniów/dzieci/seniorów per miasto tam, gdzie zweryfikowane | Deutschlandticket występuje tylko jako dane (nie jest stosowany w wycenie); zniżki bez źródła mają 0% i flagę; inne karty i wielu pasażerów poza zakresem |
+| **Atrakcje i karty miejskie** | 82 atrakcje w 10 miastach (Gelsenkirchen, Berlin, Kraków, Lublin, Warszawa, Hamburg, Monachium, Kolonia, Wrocław, Poznań); 9 kart (Berlin, Ruhr, Kraków, Hamburg, Monachium, Kolonia, Warszawa, Poznań, Lublin) | Inne miasta; ceny orientacyjne, część niepotwierdzona w źródle |
+| **Zakup / płatność** | brak | Aplikacja tylko szacuje; nie sprzedaje ani nie rezerwuje biletów |
+
+Znane ograniczenia: ceny to szacunki i mogą być nieaktualne (daty weryfikacji w plikach danych, głównie październik 2026, najnowsza
+2026-11-03); część danych z researchu AI jest oznaczona jako niezweryfikowana niezależnie; wyniki zależą od ważności feedów.
+
 ## Informacje prawne, atrybucja i zastrzeżenie
 
 *To nie jest porada prawna; podsumowanie warunków sprawdzonych 2026-11-12 w dobrej wierze. Zweryfikuj w źródłach.*

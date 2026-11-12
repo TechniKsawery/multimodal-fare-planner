@@ -10,3 +10,7 @@ motis/data/
 .env
 node_modules/
 .cache/
+
+# Snapshoty kopii stron trzecich robione przez skrypty obserwujące (nie do repo)
+.snapshots/
+scripts/.gtfs_snapshots/

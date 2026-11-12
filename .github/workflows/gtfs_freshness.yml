@@ -4,8 +4,7 @@ name: Ważność feedów GTFS
 # wygasa za mniej niż 3 dni (gtfs.de free ma ważność 7 dni). Odświeżenie MOTIS robi się
 # na PC (scripts/refresh_motis.ps1), bo kontener/Actions nie mają dostępu do Dockera użytkownika.
 on:
-  schedule:
-    - cron: "30 5 * * *"
+  # Harmonogram (cron) wyłączony przed publikacją repozytorium; uruchamianie ręczne zostaje.
   workflow_dispatch: {}
 
 permissions:

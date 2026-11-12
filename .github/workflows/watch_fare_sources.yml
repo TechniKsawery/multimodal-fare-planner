@@ -4,8 +4,7 @@ name: Obserwacja źródeł cenników
 # do internetu, podczas gdy chmurowy kontener sesji ma zablokowany dostęp do większości
 # hostów cenowych (bahn.de, vrr.de, intercity.pl, ...) przez politykę sieciową organizacji.
 on:
-  schedule:
-    - cron: "0 6 * * 1"  # co poniedziałek 06:00 UTC
+  # Harmonogram (cron) wyłączony przed publikacją repozytorium; uruchamianie ręczne zostaje.
   workflow_dispatch: {}
 
 permissions:

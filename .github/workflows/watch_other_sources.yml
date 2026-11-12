@@ -4,8 +4,7 @@ name: Obserwacja atrakcji, kart miejskich i feedów GTFS/OSM
 # ten workflow pokrywa zakres, którego TEN nie sprawdza: atrakcje, karty miejskie i feedy
 # GTFS/OSM (scripts/watch_other_sources.py).
 on:
-  schedule:
-    - cron: "0 7 * * 1"  # co poniedziałek 07:00 UTC (godzinę po watch_fare_sources.yml)
+  # Harmonogram (cron) wyłączony przed publikacją repozytorium; uruchamianie ręczne zostaje.
   workflow_dispatch: {}
 
 permissions:

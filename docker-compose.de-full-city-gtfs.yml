@@ -15,7 +15,7 @@ volumes:
 
 services:
   motis-import-city-gtfs:
-    image: ${MOTIS_IMAGE:-ghcr.io/motis-project/motis:latest}
+    image: ${MOTIS_IMAGE:-ghcr.io/motis-project/motis@sha256:594eff881d4319549387563a28dffb2ac48650df5422325a44a6c2f69f79e9b9}
     entrypoint: /motis
     command: ["import", "-d", "/data", "-c", "/data/config.yml"]
     volumes:
@@ -26,7 +26,7 @@ services:
     profiles: ["import-city-gtfs"]
 
   motis-city-gtfs:
-    image: ${MOTIS_IMAGE:-ghcr.io/motis-project/motis:latest}
+    image: ${MOTIS_IMAGE:-ghcr.io/motis-project/motis@sha256:594eff881d4319549387563a28dffb2ac48650df5422325a44a6c2f69f79e9b9}
     ports:
       - "8082:8080"
     volumes:

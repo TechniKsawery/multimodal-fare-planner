@@ -16,3 +16,8 @@ ignore = ["E501", "E741", "E731", "B905", "UP042"]
 [tool.ruff.lint.isort]
 known-first-party = ["common", "places", "routing", "fares", "flights", "scripts", "attractions", "api", "i18n"]
 
+
+[tool.pytest.ini_options]
+# Katalog główny repo na sys.path, żeby samo `pytest -q` (bez `python -m`) widziało pakiety projektu.
+pythonpath = ["."]
+testpaths = ["tests"]

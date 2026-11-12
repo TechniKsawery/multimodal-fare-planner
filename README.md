@@ -44,7 +44,7 @@ full Germany is ~7 GB and only used by the `docker-compose.de-full*.yml` variant
    (MOTIS API at `http://localhost:8080`).
 5. API: `uvicorn api.main:app --reload`; UI: `python -m streamlit run app.py` (`http://localhost:8501`);
    command-line demo: `python demo.py`.
-6. Tests: `pytest` (no Docker or token needed; tests that need MOTIS skip themselves).
+6. Tests: `pytest -q` (no Docker or token needed; tests that need MOTIS skip themselves).
 7. Optional: copy `.env.example` to `.env` and set `TRAVELPAYOUTS_TOKEN` for flight prices; without it
    everything else works and flight variants simply do not appear.
 
@@ -57,9 +57,11 @@ data (see [scripts/README-refresh.md](scripts/README-refresh.md), in Polish). Fa
 
 ### Versions and reproducibility
 
-The `docker-compose*.yml` files take the image from the `MOTIS_IMAGE` variable (default
-`ghcr.io/motis-project/motis:latest`). To freeze the version, put the digest in `.env`:
-`docker image inspect ghcr.io/motis-project/motis:latest --format "{{index .RepoDigests 0}}"`.
+The `docker-compose*.yml` files pin the MOTIS image to a digest (pulled 2026-11-12):
+`ghcr.io/motis-project/motis@sha256:594eff881d4319549387563a28dffb2ac48650df5422325a44a6c2f69f79e9b9`. Override it with `MOTIS_IMAGE` in `.env`. To update the pin:
+`docker pull ghcr.io/motis-project/motis:latest`, then
+`docker image inspect ghcr.io/motis-project/motis:latest --format "{{index .RepoDigests 0}}"`, and replace the digest in
+`docker-compose*.yml` (search for `MOTIS_IMAGE`). Note: the pinned build was tested only with data imported on that date.
 
 ## Repository map
 

@@ -51,9 +51,11 @@ i NRW; pełne Niemcy ok. 7 GB tylko w wariancie `docker-compose.de-full*.yml`).
    `python scripts/check_gtfs_freshness.py` sprawdza daty ważności; odświeżenie MOTIS na Windows:
    `scripts\refresh_prod.ps1` (instrukcja: [`scripts/README-refresh.md`](scripts/README-refresh.md)).
    Ceny i ulgi w `fares/data/*.json` poprawia się ręcznie wg pól `zrodlo_url` i `data_weryfikacji`.
-8. **Wersje i powtarzalność:** `docker-compose*.yml` używają obrazu z zmiennej `MOTIS_IMAGE`
-   (domyślnie `ghcr.io/motis-project/motis:latest`). Aby zamrozić wersję, wpisz do `.env`
-   digest: `docker image inspect ghcr.io/motis-project/motis:latest --format "{{index .RepoDigests 0}}"`.
+8. **Wersje i powtarzalność:** `docker-compose*.yml` mają obraz MOTIS przypięty do digestu (pobrany
+   2026-11-12): `ghcr.io/motis-project/motis@sha256:594eff881d4319549387563a28dffb2ac48650df5422325a44a6c2f69f79e9b9`. Własny obraz: zmienna `MOTIS_IMAGE` w `.env`.
+   Aktualizacja przypięcia: `docker pull ghcr.io/motis-project/motis:latest`, potem
+   `docker image inspect ghcr.io/motis-project/motis:latest --format "{{index .RepoDigests 0}}"` i podmiana
+   digestu w `docker-compose*.yml` (szukaj `MOTIS_IMAGE`).
 
 ## Szybki start (od zera)
 

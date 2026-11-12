@@ -27,6 +27,33 @@ cards into account.
   Third-party data keeps its own licences ([DATA_SOURCES.md](DATA_SOURCES.md)). The repository does not
   contain the carriers' original price-list PDFs; sources are linked.
 
+## Legal notices, attribution and disclaimer
+
+*Not legal advice; a good-faith summary of the terms checked on 2026-11-12. Verify at the sources.*
+
+- **Independence / trademarks:** this is an independent hobby/portfolio project. It is **not affiliated with,
+  endorsed or sponsored by** PKP Intercity, Deutsche Bahn, FlixBus, VRR, HVV, MVV, VRS, ZTM, any city or any other
+  carrier or attraction operator. All names and trademarks (e.g. BahnCard, Deutschlandticket, Intercity) belong to their
+  owners and are used only to identify the products whose prices are estimated. No logos are included.
+- **No warranty / not an offer:** prices, discounts and timetables are estimates from public sources and can be wrong or
+  outdated; they are not an offer and not a booking. Always check the price with the carrier before buying.
+  The software is provided "as is" (see [LICENSE](LICENSE)).
+- **Map and routing data:** contains information from OpenStreetMap, **© OpenStreetMap contributors**, available under the
+  [Open Database Licence (ODbL)](https://www.openstreetmap.org/copyright). Any public deployment of this software must
+  show that credit. Extracts come from Geofabrik. The repository contains no OSM data.
+- **Timetable data (GTFS):** Polish rail feed by M. Kuranowski ([mkuran.pl/gtfs](https://mkuran.pl/gtfs); data of PKP PLK
+  and Koleje Mazowieckie under their public-sector terms), Warsaw feed: ZTM Warszawa / M. Kuranowski / OpenStreetMap
+  contributors (ODbL for shapes), Lublin: CC0, German feeds from [gtfs.de](https://gtfs.de) (CC BY 4.0, provided without
+  guarantee), HVV (DL-DE-BY-2.0), MVV and VRS (CC BY 4.0). Details: [DATA_SOURCES.md](DATA_SOURCES.md). Kraków (ZTP)
+  has no confirmed licence and is for local testing only. The repository contains no feed copies.
+- **Routing engine:** [MOTIS](https://github.com/motis-project/motis) (MIT), run from its official Docker image; not
+  bundled in this repository. Other dependencies (Streamlit, FastAPI, Uvicorn, Requests, python-dotenv,
+  db-vendo-client) keep their own open-source licences and are not redistributed here.
+- **Unofficial sources:** optional price lookups (`UNOFFICIAL_PRICES=1`, off by default) use unofficial interfaces of
+  carriers; their terms may forbid this. Use only for your own testing, at your own risk.
+- **AI use:** see "Use of AI" above. Commits carry `Claude <noreply@anthropic.com>` as author where the code was generated.
+- **Security / contact:** see [SECURITY.md](SECURITY.md).
+
 ## Rebuilding the environment from scratch
 
 Requirements: Python 3.11+, Docker Desktop (WSL2 on Windows), git, **at least 40 GB free disk**,

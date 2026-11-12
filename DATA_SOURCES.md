@@ -6,7 +6,7 @@ Kod jest objęty „All Rights Reserved”; poniższe dane mają własne licencj
 
 | Data | Source (URL) | Licence / terms | Fetched by |
 |---|---|---|---|
-| Polish rail GTFS | https://mkuran.pl/gtfs/polish_trains.zip | see https://mkuran.pl/gtfs/ | `scripts/fetch_data.py` |
+| Polish rail GTFS | https://mkuran.pl/gtfs/polish_trains.zip | PKP PLK and Koleje Mazowieckie public-sector data terms (Polish), see https://mkuran.pl/gtfs/ (read 2026-11-12; linked terms not reviewed in full) | `scripts/fetch_data.py` |
 | German long-distance GTFS (FV) | https://download.gtfs.de/germany/fv_free/latest.zip | CC BY 4.0 (gtfs.de) | `scripts/fetch_data.py` |
 | German regional GTFS (RV) | https://download.gtfs.de/germany/rv_free/latest.zip | CC BY 4.0 (gtfs.de) | `scripts/fetch_data.py` |
 | German local GTFS (NV) | https://download.gtfs.de/germany/nv_free/latest.zip | CC BY 4.0 (gtfs.de) | `scripts/fetch_data.py` |
@@ -20,3 +20,9 @@ Kod jest objęty „All Rights Reserved”; poniższe dane mają własne licencj
 
 Some research notes were produced with AI assistance and are marked "per Gemini, not independently verified"
 until checked against the primary source.
+
+## Attribution required by the licences above
+
+- OpenStreetMap: "© OpenStreetMap contributors" linked to https://www.openstreetmap.org/copyright (ODbL), wherever routing results or maps are shown publicly.
+- Warsaw GTFS: ZTM Warszawa, Mikołaj Kuranowski, OpenStreetMap contributors (see `attributions.txt` in the feed).
+- gtfs.de feeds: CC BY 4.0 (credit "gtfs.de"); HVV: DL-DE-BY-2.0; MVV, VRS: CC BY 4.0.

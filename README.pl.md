@@ -29,6 +29,31 @@ Wyszukiwarka połączeń kolejowych PL + DE (np. Lublin → Gelsenkirchen) z sza
   oryginałów PDF cenników przewoźników; źródła są podane linkami.
 
 
+## Informacje prawne, atrybucja i zastrzeżenie
+
+*To nie jest porada prawna; podsumowanie warunków sprawdzonych 2026-11-12 w dobrej wierze. Zweryfikuj w źródłach.*
+
+- **Niezależność / znaki towarowe:** niezależny projekt hobbystyczny/portfolio, **niepowiązany z ani niepopierany przez**
+  PKP Intercity, Deutsche Bahn, FlixBus, VRR, HVV, MVV, VRS, ZTM, żadne miasto ani innego przewoźnika czy operatora
+  atrakcji. Nazwy i znaki (np. BahnCard, Deutschlandticket, Intercity) należą do właścicieli i służą wyłącznie do
+  wskazania produktów, których ceny szacujemy. Repozytorium nie zawiera logotypów.
+- **Brak gwarancji / nie oferta:** ceny, zniżki i rozkłady to szacunki z publicznych źródeł; mogą być błędne lub
+  nieaktualne, nie są ofertą ani rezerwacją. Przed zakupem sprawdź cenę u przewoźnika. Oprogramowanie „as is” (zob. [LICENSE](LICENSE)).
+- **Dane map i routingu:** zawiera informacje z OpenStreetMap, **© współtwórcy OpenStreetMap**
+  ([ODbL](https://www.openstreetmap.org/copyright)). Każde publiczne wdrożenie musi pokazywać to uznanie autorstwa.
+  Wycinki pochodzą z Geofabrik. Repozytorium nie zawiera danych OSM.
+- **Dane rozkładowe (GTFS):** polska kolej: M. Kuranowski ([mkuran.pl/gtfs](https://mkuran.pl/gtfs); dane PKP PLK i Kolei
+  Mazowieckich na warunkach danych sektora publicznego), Warszawa: ZTM Warszawa / M. Kuranowski / współtwórcy OSM (ODbL dla
+  shapes), Lublin: CC0, feedy niemieckie z [gtfs.de](https://gtfs.de) (CC BY 4.0, bez gwarancji), HVV (DL-DE-BY-2.0),
+  MVV i VRS (CC BY 4.0). Szczegóły: [DATA_SOURCES.md](DATA_SOURCES.md). Kraków (ZTP) nie ma potwierdzonej licencji i
+  służy tylko do testów lokalnych. Repozytorium nie zawiera kopii feedów.
+- **Silnik routingu:** [MOTIS](https://github.com/motis-project/motis) (MIT), uruchamiany z oficjalnego obrazu Docker;
+  nie jest dołączony do repozytorium. Pozostałe zależności zachowują własne licencje i nie są tu redystrybuowane.
+- **Źródła nieoficjalne:** opcjonalne ceny (`UNOFFICIAL_PRICES=1`, domyślnie wyłączone) używają nieoficjalnych interfejsów
+  przewoźników; ich regulaminy mogą tego zakazywać. Tylko do własnych testów, na własne ryzyko.
+- **Użycie AI:** patrz „Stan projektu”. Commity mają autora `Claude <noreply@anthropic.com>` tam, gdzie kod wygenerowano.
+- **Bezpieczeństwo / kontakt:** zob. [SECURITY.md](SECURITY.md).
+
 ## Odtworzenie środowiska od zera (krok po kroku)
 
 Wymagania: Python 3.11+, Docker Desktop (z WSL2 na Windows), git, **min. 40 GB wolnego dysku**,

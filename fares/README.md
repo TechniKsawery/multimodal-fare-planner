@@ -160,9 +160,8 @@ bo tabela pasm jest interpolacją).
 
 Dla biletu PL↔DE (relacja polska stacja ↔ Berlin) silnik dokłada do wyniku
 `breakdown["zakres_cen"]` = „od X do Y" wg oficjalnego cennika *Super Promo International
-Polska–Niemcy* (ważny od 19.08.2026, tekst w `verification/zrodla-pdf/`, oryginalny PDF pod linkiem źródła). Dane:
-`fares/data/pkp_spi_pl_de.json`, generowane `scripts/build_spi_data.py` (parser
-`scripts/parse_spi_pdf.py`, strefy miejscowości wpisane ręcznie i sprawdzane względem tekstu PDF).
+Polska–Niemcy* (ważny od 19.08.2026, oryginalny PDF pod linkiem źródła). Dane:
+`fares/data/pkp_spi_pl_de.json`, utrzymywane ręcznie na podstawie cennika (liczby i zasady; pełny tekst cennika nie jest w repozytorium).
 
 - Dolna granica = min(poziom I SPI, cena główna, czyli tańsza z DB „od" i PKP regularnego);
   górna = min(poziom V SPI, cena regularna PKP). Dla stacji w kilku pociągach bierzemy minimum

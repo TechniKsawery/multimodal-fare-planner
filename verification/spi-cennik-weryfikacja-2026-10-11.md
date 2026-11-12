@@ -2,7 +2,7 @@
 
 Źródło: PKP Intercity, „Cennik oferty Super Promo International w komunikacji Polska – Niemcy",
 ważny od 19.08.2026, 33 strony (`oryginalny PDF PKP IC (link w źródłach)`,
-sha256 `38d58ffc…cf6088`, tekst `cennik_spi.txt` z `pdftotext -layout`). Pobrane z intercity.pl
+sha256 `38d58ffc…cf6088`). Pobrane z intercity.pl
 2026-10-11. Wszystko poniżej odczytane z tego PDF-a, nie z opisu zewnętrznej AI.
 
 ## Co się zgadza

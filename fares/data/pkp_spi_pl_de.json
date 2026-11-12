@@ -1,7 +1,7 @@
 {
  "_zrodlo": "PKP Intercity, 'Cennik oferty Super Promo International w komunikacji Polska – Niemcy', ważny od 19 sierpnia 2026 (33 strony).",
  "_zrodlo_url": "https://www.intercity.pl/pl/dokumenty/Przepisy i taryfy/Cennik_SPI_Polska-Niemcy_od_19.08.2026.pdf",
- "_kopia_zrodla": "PDF PKP IC (sha256 38d58ffc1b9640ba99e146330f653ddd1846b5d1d96b9ee4ed62f08775cf6088; oryginał pod _zrodlo_url, kopii PDF nie ma w repo) i verification/zrodla-pdf/cennik_spi.txt",
+ "_kopia_zrodla": "Pełnego tekstu ani PDF cennika nie ma w repozytorium (prawa autorskie wydawcy). Plik zawiera wyłącznie liczby i zasady odczytane z cennika (sha256 oryginalnego PDF: 38d58ffc1b9640ba99e146330f653ddd1846b5d1d96b9ee4ed62f08775cf6088); po zmianie cennika dane trzeba poprawić ręcznie wg _zrodlo_url.",
  "_data_odczytu": "2026-10-11",
  "_uwaga": "Ceny dla pasażera DOROSŁEGO (PDF nie podaje ulg), w euro, za miejsce do siedzenia, kolumny klasa 2 i klasa 1. Poziom cenowy I-V zależy od dostępności puli (PKP: pule aktualizowane dynamicznie i ograniczone) - reguła przydziału poziomu dla konkretnego dnia NIE jest w cenniku i nie jest modelowana; pokazujemy przedział poziom I - poziom V. Ceny obowiązują, gdy rozkład przewiduje kursowanie pociągu i zatrzymanie na stacji. Przeliczenie na PLN po kursie z dnia zakupu. Pominięte: Saxonia 132/133 i Via Regia 134/135 (Lipsk), Chopin i Carpatia (Monachium, miejsca sypialne) - inna struktura tabel.",
  "waluta": "EUR",

@@ -35,7 +35,7 @@ the data as of **2026-11-12**. "Estimate" means the price is not an official tar
 | Area | Supported | NOT supported / limits |
 |---|---|---|
 | **Countries** | Poland and Germany only | Any other country (CZ, AT, NL, FR ...) has no timetable data and no tariffs |
-| **Timetables (MOTIS)** | Default config: Polish rail, German FV/RV/NV (gtfs.de), ZTM Lublin. Production-like config adds Warsaw, Kraków, Hamburg (HVV), Munich (MVV), Cologne/Bonn (VRS) | Other cities' local transit has no timetable; Kraków (ZTP) licence unconfirmed. Feeds expire: those used on 2026-11-12 were valid only until about 2026-11-09, refresh before use |
+| **Timetables (MOTIS)** | Default config: Polish rail, German FV/RV/NV (gtfs.de), ZTM Lublin. Production-like config adds Warsaw, Hamburg (HVV), Munich (MVV), Cologne/Bonn (VRS); Kraków (ZTP) local timetable only via opt-in `--krakow` (unconfirmed licence) | Other cities' local transit has no timetable; Kraków (ZTP) licence unconfirmed. Feeds expire: those used on 2026-11-12 were valid only until about 2026-11-09, refresh before use |
 | **Addresses / walking** | Default OSM extract covers Poland + NRW; production-like config covers Poland + all Germany | Outside the loaded OSM area, address geocoding and walking legs do not work |
 | **Rail, long-distance** | PKP Intercity (domestic bands), DB Flexpreis (domestic upper bound), cross-border PL↔DE (Sparpreis Europa, PKP Super Promo International levels I–V) | Saxonia, Via Regia (Leipzig), Chopin and Carpatia (Munich, sleepers) are not modelled; no tariffs for other operators |
 | **Rail, regional** | Polregio, Koleje Mazowieckie, Koleje Małopolskie, ŁKA, SKM Trójmiasto, VRR eezy.nrw (NRW only), Zgorzelec–Görlitz (ZVON, KD), border ticket Zasieki–Forst | German regional rail outside NRW is an unconfirmed estimate; other Polish regional carriers are not modelled |
@@ -138,10 +138,10 @@ The repository is the single source of truth; everything below must be recreated
 | Production/rollback containers and volumes (`motis-main`, `motis-main-old`, `mw_motis_refresh_*`) | Local only, not needed | Recreated by `scripts/refresh_prod.ps1` from the repo; no data from the old machine is required |
 | Carriers' price-list PDFs and page snapshots | Removed (copyright) | Sources are linked in `fares/data/*.json` (`zrodlo_url`); re-verify prices by hand |
 | Old PR/issue history, review comments | Not carried over to this repository | none |
-| Unofficial DB prices service (`tools/db-vendo-service`) | Optional | `npm install && npm start`; may be blocked by DB; needs no token |
+| Unofficial DB prices service | Removed from the repository (unofficial interface, terms may forbid it) | Not needed: without it the app uses the official Flexpreis table |
 | Human verification of prices | Dated, goes stale | each record's `data_weryfikacji`; `price_verified: false` = unverified |
 
-### Production-like variant (Warsaw/Kraków/Hamburg/Munich/Cologne city feeds, full-Germany OSM)
+### Production-like variant (Warsaw/Hamburg/Munich/Cologne city feeds, full-Germany OSM)
 
 ```
 python scripts/fetch_data.py

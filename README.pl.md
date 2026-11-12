@@ -37,7 +37,7 @@ Na podstawie kodu (`routing/pricing.py`, `fares/`), configów MOTIS (`motis/conf
 | Obszar | Obsługiwane | NIEobsługiwane / ograniczenia |
 |---|---|---|
 | **Kraje** | Tylko Polska i Niemcy | Inne kraje (CZ, AT, NL, FR ...) nie mają danych rozkładowych ani taryf |
-| **Rozkłady (MOTIS)** | Config domyślny: polska kolej, niemieckie FV/RV/NV (gtfs.de), ZTM Lublin. Config produkcyjny dodaje Warszawę, Kraków, Hamburg (HVV), Monachium (MVV), Kolonię/Bonn (VRS) | Komunikacja miejska innych miast bez rozkładu; Kraków (ZTP) z niepotwierdzoną licencją. Feedy wygasają: te z 2026-11-12 były ważne tylko do ok. 2026-11-09, odśwież przed użyciem |
+| **Rozkłady (MOTIS)** | Config domyślny: polska kolej, niemieckie FV/RV/NV (gtfs.de), ZTM Lublin. Config produkcyjny dodaje Warszawę, Hamburg (HVV), Monachium (MVV), Kolonię/Bonn (VRS); rozkład Krakowa (ZTP) tylko opcjonalnie przez `--krakow` (licencja niepotwierdzona) | Komunikacja miejska innych miast bez rozkładu; Kraków (ZTP) z niepotwierdzoną licencją. Feedy wygasają: te z 2026-11-12 były ważne tylko do ok. 2026-11-09, odśwież przed użyciem |
 | **Adresy / marsz** | Domyślny wycinek OSM: Polska + NRW; config produkcyjny: Polska + całe Niemcy | Poza wczytanym obszarem OSM nie działa geokodowanie adresów ani dojścia piesze |
 | **Kolej dalekobieżna** | PKP Intercity (pasma krajowe), DB Flexpreis (górna granica krajowa), międzynarodowe PL↔DE (Sparpreis Europa, PKP Super Promo International poziomy I–V) | Saxonia, Via Regia (Lipsk), Chopin i Carpatia (Monachium, miejsca sypialne) niemodelowane; brak taryf innych przewoźników |
 | **Kolej regionalna** | Polregio, Koleje Mazowieckie, Koleje Małopolskie, ŁKA, SKM Trójmiasto, VRR eezy.nrw (tylko NRW), Zgorzelec–Görlitz (ZVON, KD), bilet graniczny Zasieki–Forst | Niemiecka kolej regionalna poza NRW to niepotwierdzony szacunek; pozostali polscy przewoźnicy regionalni niemodelowani |
@@ -129,10 +129,10 @@ Repozytorium jest jedynym źródłem prawdy; wszystko poniżej odtwarza się z n
 | Kontenery i wolumeny prod/rollback (`motis-main`, `motis-main-old`, `mw_motis_refresh_*`) | Tylko lokalnie, niepotrzebne | Tworzy je od nowa `scripts\refresh_prod.ps1` z repo; dane ze starego komputera nie są potrzebne |
 | PDF-y cenników i snapshoty stron | Usunięte (prawa autorskie) | Źródła są linkowane w `fares/data/*.json` (`zrodlo_url`); ceny weryfikuje się ręcznie |
 | Historia PR-ów i issues, komentarze | Nie przeniesione do tego repozytorium | brak |
-| Nieoficjalny serwis cen DB (`tools/db-vendo-service`) | Opcjonalny | `npm install && npm start`; DB może go blokować; bez tokena |
+| Nieoficjalny serwis cen DB | Usunięty z repozytorium (nieoficjalny interfejs, regulamin może tego zabraniać) | Niepotrzebny: bez niego aplikacja używa oficjalnej tabeli Flexpreis |
 | Ludzka weryfikacja cen | Ma datę, starzeje się | `data_weryfikacji` w rekordzie; `price_verified: false` = niezweryfikowane |
 
-### Wariant „produkcyjny” (feedy miejskie Warszawy/Krakowa/Hamburga/Monachium/Kolonii, OSM całych Niemiec)
+### Wariant „produkcyjny” (feedy miejskie Warszawy/Hamburga/Monachium/Kolonii, OSM całych Niemiec)
 
 ```
 python scripts/fetch_data.py

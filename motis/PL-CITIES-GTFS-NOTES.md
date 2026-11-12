@@ -16,7 +16,7 @@ Atrybucja do README/stopki: `Dane GTFS Warszawa: ZTM Warszawa, przetworzone prze
 ## Uruchomienie testu (PC, PowerShell)
 
 ```powershell
-python scripts\fetch_data.py          # dociąga też warsaw/krakow_* do data\gtfs\pl
+python scripts\fetch_data.py          # dociąga warsaw do data\gtfs\pl; Kraków tylko z: python scripts\fetch_data_extended.py --krakow (config.pl-cities-krakow-test.yml)
 docker compose -f docker-compose.pl-cities.yml --profile import-pl-cities run --rm motis-import-pl-cities
 docker compose -f docker-compose.pl-cities.yml up -d motis-pl-cities
 ```

@@ -24,12 +24,6 @@ timetable:
       path: /input/gtfs/de/vrs.zip
     ztmw:
       path: /input/gtfs/pl/warsaw.zip
-    krka:
-      path: /input/gtfs/pl/krakow_a.zip
-    krkm:
-      path: /input/gtfs/pl/krakow_m.zip
-    krkt:
-      path: /input/gtfs/pl/krakow_t.zip
 geocoding: true
 reverse_geocoding: true
 street_routing: true

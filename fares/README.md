@@ -546,7 +546,7 @@ Gdzie nie ma oficjalnego API cen (DB, PKP IC), można włączyć nieoficjalne ź
 `UNOFFICIAL_PRICES_TTL_MIN=360`, `UNOFFICIAL_PRICES_CACHE_DIR`). Wspólna logika (przełącznik, limit
 zapytań, cache na dysku): `fares/_unofficial.py`.
 
-- **DB**: `fares/_db_vendo_api.py` woła lokalny serwis `tools/db-vendo-service` (db-vendo-client,
+- **DB**: `fares/_db_vendo_api.py` woła lokalny serwis (usunięty z repozytorium; db-vendo-client,
   `DB_VENDO_URL`, domyślnie http://127.0.0.1:3100). Wymaga `travel_date` w segmencie. Biblioteka
   zastrzega, że formalnie potrzebna jest zgoda DB, a API bywa blokowane.
 - Każdy wynik to `PriceType.ESTIMATE`, `breakdown["zrodlo"]` = `nieoficjalne_db_vendo`, a w notes

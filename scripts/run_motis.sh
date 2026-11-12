@@ -12,6 +12,10 @@ case "${1:-}" in
     docker compose --profile import run --rm motis-import
     ;;
   server)
+    if (exec 3<>/dev/tcp/127.0.0.1/8080) 2>/dev/null; then
+      echo "Port 8080 jest zajęty. Zatrzymaj proces/kontener, który go używa (docker ps; docker stop <nazwa>), i uruchom ponownie." >&2
+      exit 1
+    fi
     docker compose up motis
     ;;
   *)

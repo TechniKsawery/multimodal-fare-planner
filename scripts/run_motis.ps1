@@ -17,6 +17,10 @@ switch ($Mode) {
         docker compose --profile import run --rm motis-import
     }
     "server" {
+        # Port 8080 zajety = kontener startuje bez opublikowanego portu (trzeba by go odtwarzac); lepiej przerwac.
+        if (Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue) {
+            throw "Port 8080 jest zajety. Zatrzymaj proces/kontener, ktory go uzywa (docker ps; docker stop <nazwa>), i uruchom ponownie."
+        }
         docker compose up motis
     }
 }

@@ -40,7 +40,7 @@ i NRW; pełne Niemcy ok. 7 GB tylko w wariancie `docker-compose.de-full*.yml`).
 2. `python scripts/fetch_data.py`: pobiera feedy GTFS i pliki OSM do `data/` (lista źródeł i licencji:
    [`DATA_SOURCES.md`](DATA_SOURCES.md)). Jeśli któryś adres przestał działać, sprawdź go w tym pliku.
 3. `scripts/merge_osm.sh`: skleja OSM Polski i NRW w `data/osm/poland-nrw-latest.osm.pbf`, którego
-   oczekuje `motis/config.yml` (wymaga `osmium-tool` lub Dockera; wariant z Dockerem niesprawdzony).
+   oczekuje `motis/config.yml` (wymaga `osmium-tool` lub Dockera; wariant z Dockerem sprawdzony na Windows 2026-11-12, ok. 8 min, wynik 3,06 GB).
 4. `scripts/run_motis.sh import` (Windows: `scripts\run_motis.ps1 import`): budowa indeksu MOTIS w
    wolumenie Dockera, zwykle od kilkudziesięciu minut do ponad godziny. Potem
    `scripts/run_motis.sh server` (API MOTIS na `http://localhost:8080`).
@@ -56,6 +56,13 @@ i NRW; pełne Niemcy ok. 7 GB tylko w wariancie `docker-compose.de-full*.yml`).
    Aktualizacja przypięcia: `docker pull ghcr.io/motis-project/motis:latest`, potem
    `docker image inspect ghcr.io/motis-project/motis:latest --format "{{index .RepoDigests 0}}"` i podmiana
    digestu w `docker-compose*.yml` (szukaj `MOTIS_IMAGE`).
+
+## Zweryfikowane end-to-end (2026-11-12)
+
+Czysty klon na Windows (Docker 28.1.1, Python 3.13) przeszedł: `pytest -q` (2091 passed), `scripts/fetch_data.py`
+(MD5 i walidacja GTFS OK), `merge_osm.sh` przez Dockera (`iboates/osmium`, ok. 8 min, 3,06 GB), import MOTIS
+(ok. 2,3 GB plików indeksu plus `osr`/`adr`), serwer i zapytanie Warszawa → Kraków (5 połączeń). Jeszcze niezweryfikowane:
+`fetch_data_extended.py` i wariant produkcyjny poniżej.
 
 ## Czego repozytorium NIE zawiera
 
@@ -88,13 +95,22 @@ Późniejsze odświeżenia: `scripts\refresh_prod.ps1` (zob. `scripts/README-ref
 ## Test end-to-end na czystej maszynie
 
 1. Nowy folder: `git clone <repo>`, `cd`, `python -m venv .venv`, aktywacja, `pip install -r requirements.txt -r requirements-dev.txt`.
-2. `pytest -q` (oczekiwane ok. 2079 passed, 12 skipped, bez Dockera).
+2. `pytest -q` (bez Dockera; 2091 passed na Windows/Python 3.13 i 2079 passed + 12 skipped na Linuksie; liczba zależy od platformy).
 3. `python scripts/fetch_data.py`, potem `bash scripts/merge_osm.sh` (domyślny wariant NRW).
 4. Czysty stan Dockera: `docker volume ls` nie powinno listować wolumenu tego projektu (`<folder>_motis-data`); potem `scripts\run_motis.ps1 import`.
 5. `scripts\run_motis.ps1 server` (port 8080; zatrzymaj inny kontener na tym porcie).
 6. Jedno zapytanie o trasę z datą w okresie ważności feedów: `python demo.py --from "Lublin Dworzec Główny" --to "Gelsenkirchen Hbf" --date <data w ciągu najbliższego tygodnia> --age 25`.
 7. Opcjonalnie: `python -m streamlit run app.py` i `uvicorn api.main:app --port 8010`.
 8. Jeśli to wszystko działa, nic z oryginalnego komputera nie jest potrzebne.
+
+## Rozwiązywanie problemów
+
+- **Port 8080 zajęty:** pierwszy `docker compose up` zostawia wtedy kontener bez opublikowanego portu. Zwolnij port
+  (`docker ps`, `docker stop <kontener>`) i uruchom `docker compose up -d --force-recreate motis`.
+  `scripts\run_motis.ps1 server` odmawia teraz startu, gdy port 8080 jest zajęty.
+- **`/data/config.yml` ma 0 bajtów w wolumenie Dockera:** tak ma być. Prawdziwy plik jest zamontowany nad pustym
+  plikiem-zaślepką, który Docker tworzy w wolumenie; kontener czyta ten zamontowany.
+- **Brak pamięci przy imporcie:** podnieś limit WSL2 (ok. 10 GB, zob. `motis/DE-FULL-CITY-GTFS-NOTES.md`).
 
 ## Szybki start (od zera)
 

@@ -27,6 +27,55 @@ cards into account.
   Third-party data keeps its own licences ([DATA_SOURCES.md](DATA_SOURCES.md)). The repository does not
   contain the carriers' original price-list PDFs; sources are linked.
 
+## Coverage: what is supported and what is not
+
+Based on the code (`routing/pricing.py`, `fares/`), the MOTIS configs (`motis/config*.yml`) and the data files; state of
+the data as of **2026-11-12**. "Estimate" means the price is not an official tariff or is unconfirmed (`price_verified: false`).
+
+| Area | Supported | NOT supported / limits |
+|---|---|---|
+| **Countries** | Poland and Germany only | Any other country (CZ, AT, NL, FR ...) has no timetable data and no tariffs |
+| **Timetables (MOTIS)** | Default config: Polish rail, German FV/RV/NV (gtfs.de), ZTM Lublin. Production-like config adds Warsaw, Kraków, Hamburg (HVV), Munich (MVV), Cologne/Bonn (VRS) | Other cities' local transit has no timetable; Kraków (ZTP) licence unconfirmed. Feeds expire: those used on 2026-11-12 were valid only until about 2026-11-09, refresh before use |
+| **Addresses / walking** | Default OSM extract covers Poland + NRW; production-like config covers Poland + all Germany | Outside the loaded OSM area, address geocoding and walking legs do not work |
+| **Rail, long-distance** | PKP Intercity (domestic bands), DB Flexpreis (domestic upper bound), cross-border PL↔DE (Sparpreis Europa, PKP Super Promo International levels I–V) | Saxonia, Via Regia (Leipzig), Chopin and Carpatia (Munich, sleepers) are not modelled; no tariffs for other operators |
+| **Rail, regional** | Polregio, Koleje Mazowieckie, Koleje Małopolskie, ŁKA, SKM Trójmiasto, VRR eezy.nrw (NRW only), Zgorzelec–Görlitz (ZVON, KD), border ticket Zasieki–Forst | German regional rail outside NRW is an unconfirmed estimate; other Polish regional carriers are not modelled |
+| **Local transit, with city tariff** | Lublin, Warsaw, Kraków, Poznań, Wrocław, Berlin (BVG/VBB), Hamburg (HVV), Munich (MVV), Cologne (VRS/KVB), NRW (VRR) | Every other city (e.g. Gdańsk, Łódź, Katowice, Szczecin, Dresden, Leipzig, Frankfurt, Stuttgart) has no local tariff; the app falls back to a generic estimate |
+| **Long-distance bus** | FlixBus (unofficial API with live prices; fallback 0.27 PLN/km) | Other bus operators; the FlixBus API may be blocked and prices are snapshots |
+| **Flights** | Prices from Travelpayouts Data API (optional token); 12 Polish and 25 German airports in `routing/data/airports.json`, 6 relations with baggage/transfer extras (placeholder values) | Not verified at the airline; bagage/transfer extras are placeholders; multi-segment flights are out of scope |
+| **Discounts and profiles** | Age, student, senior, BahnCard 25/50/100, PKP discount codes, VRR child tariff, per-city student/child/senior tiers where verified | Deutschlandticket exists only as data (not applied in price calculation); discounts without a source are set to 0% and flagged; other cards and multiple passengers are out of scope |
+| **City attractions and cards** | 82 attractions in 10 cities (Gelsenkirchen, Berlin, Kraków, Lublin, Warsaw, Hamburg, Munich, Cologne, Wrocław, Poznań); 9 city cards (Berlin, Ruhr, Kraków, Hamburg, Munich, Cologne, Warsaw, Poznań, Lublin) | Other cities; prices are indicative and some are not confirmed at the source |
+| **Booking / payment** | none | The app only estimates; it does not sell or book tickets |
+
+Known limits: prices are estimates and may be outdated (verification dates in the data files, mostly October 2026, newest 2026-11-03);
+some research data comes from AI and is marked as not independently verified; results depend on feed validity.
+
+## Legal notices, attribution and disclaimer
+
+*Not legal advice; a good-faith summary of the terms checked on 2026-11-12. Verify at the sources.*
+
+- **Independence / trademarks:** this is an independent hobby/portfolio project. It is **not affiliated with,
+  endorsed or sponsored by** PKP Intercity, Deutsche Bahn, FlixBus, VRR, HVV, MVV, VRS, ZTM, any city or any other
+  carrier or attraction operator. All names and trademarks (e.g. BahnCard, Deutschlandticket, Intercity) belong to their
+  owners and are used only to identify the products whose prices are estimated. No logos are included.
+- **No warranty / not an offer:** prices, discounts and timetables are estimates from public sources and can be wrong or
+  outdated; they are not an offer and not a booking. Always check the price with the carrier before buying.
+  The software is provided "as is" (see [LICENSE](LICENSE)).
+- **Map and routing data:** contains information from OpenStreetMap, **© OpenStreetMap contributors**, available under the
+  [Open Database Licence (ODbL)](https://www.openstreetmap.org/copyright). Any public deployment of this software must
+  show that credit. Extracts come from Geofabrik. The repository contains no OSM data.
+- **Timetable data (GTFS):** Polish rail feed by M. Kuranowski ([mkuran.pl/gtfs](https://mkuran.pl/gtfs); data of PKP PLK
+  and Koleje Mazowieckie under their public-sector terms), Warsaw feed: ZTM Warszawa / M. Kuranowski / OpenStreetMap
+  contributors (ODbL for shapes), Lublin: CC0, German feeds from [gtfs.de](https://gtfs.de) (CC BY 4.0, provided without
+  guarantee), HVV (DL-DE-BY-2.0), MVV and VRS (CC BY 4.0). Details: [DATA_SOURCES.md](DATA_SOURCES.md). Kraków (ZTP)
+  has no confirmed licence and is for local testing only. The repository contains no feed copies.
+- **Routing engine:** [MOTIS](https://github.com/motis-project/motis) (MIT), run from its official Docker image; not
+  bundled in this repository. Other dependencies (Streamlit, FastAPI, Uvicorn, Requests, python-dotenv,
+  db-vendo-client) keep their own open-source licences and are not redistributed here.
+- **Unofficial sources:** optional price lookups (`UNOFFICIAL_PRICES=1`, off by default) use unofficial interfaces of
+  carriers; their terms may forbid this. Use only for your own testing, at your own risk.
+- **AI use:** see "Use of AI" above. Commits carry `Claude <noreply@anthropic.com>` as author where the code was generated.
+- **Security / contact:** see [SECURITY.md](SECURITY.md).
+
 ## Rebuilding the environment from scratch
 
 Requirements: Python 3.11+, Docker Desktop (WSL2 on Windows), git, **at least 40 GB free disk**,

@@ -1,8 +1,16 @@
+English | Polski: [wersja polska](DATA_SOURCES.pl.md)
+
 # Data sources and licences / Źródła danych i licencje
 
-The source code is **All Rights Reserved** (see [LICENSE](LICENSE)). The data below is **not** covered by
-that licence; each source keeps its own terms. Data files are downloaded by scripts, not stored in the repo.
-Kod jest objęty „All Rights Reserved”; poniższe dane mają własne licencje i są pobierane skryptami.
+The original source code and documentation are licensed under the
+[PolyForm Noncommercial License 1.0.0](LICENSE). The data below is **not**
+covered by the project licence; each source keeps its own terms. Data files
+are downloaded by scripts, not stored in the repo.
+
+Oryginalny kod i dokumentacja są objęte licencją
+[PolyForm Noncommercial License 1.0.0](LICENSE). Poniższe dane nie są objęte
+licencją projektu; każde źródło zachowuje własne warunki. Pliki danych są
+pobierane przez skrypty, a nie przechowywane w repozytorium.
 
 | Data | Source (URL) | Licence / terms | Fetched by |
 |---|---|---|---|

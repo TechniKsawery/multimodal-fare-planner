@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](README.pl.md)
+
 # Moduł atrakcji i kart miejskich (`attractions/`)
 
 Moduł odpowiada za:

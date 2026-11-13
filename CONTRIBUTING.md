@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](CONTRIBUTING.pl.md)
+
 # Jak wnosić zmiany
 
 Projekt przyjmuje poprawki i ulepszenia od społeczności. Zmiany powinny być

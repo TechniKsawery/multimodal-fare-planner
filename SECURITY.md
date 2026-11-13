@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](SECURITY.pl.md)
+
 # Security policy
 
 This is a portfolio/prototype project, not a production service. If you find a security issue

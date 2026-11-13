@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](README.pl.md)
+
 # Moduł taryf (`fares/`)
 
 Szacuje cenę pojedynczego segmentu podróży dla sześciu przewoźników:

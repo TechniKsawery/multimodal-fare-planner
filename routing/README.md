@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](README.pl.md)
+
 # `routing/` — silnik optymalizacji trasy (Sesja 4)
 
 Dla podanej pary miast (jako `stopId` z MOTIS) i daty generuje kilka **wariantów** podróży

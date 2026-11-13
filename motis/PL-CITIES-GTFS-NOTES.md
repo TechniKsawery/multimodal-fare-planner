@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](PL-CITIES-GTFS-NOTES.pl.md)
+
 # Warszawa i Kraków (lokalne GTFS) w MOTIS + odświeżanie feedów
 
 Status: **konfiguracja przygotowana, import i test na żywo robi sesja Remote Control** (kontener chmurowy blokuje hosty `mkuran.pl`/`gtfs.ztp.krakow.pl`, sprawdzone 2026-10-11: proxy 403). Produkcja (`multimodalnawyszukiwarka_motis-data-de-full-city-gtfs`, port 8080) i rollback nietknięte. Test: osobny wolumen `motis-data-pl-cities`, port 8082.

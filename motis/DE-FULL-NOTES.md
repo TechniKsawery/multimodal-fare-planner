@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](DE-FULL-NOTES.pl.md)
+
 # OSM całych Niemiec — zaimportowane i połączone w 1 system (port 8080)
 
 Status: **zaimportowane, przetestowane, połączone w jeden system**. Port

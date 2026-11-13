@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](README-refresh.pl.md)
+
 # Odświeżanie danych (GTFS) na produkcji — instrukcja bez pomocy AI
 
 Skrypt: `scripts\refresh_prod.ps1`. Robi wszystko sam i **niczego nie kasuje**. Przy błędzie wraca do poprzedniej wersji.

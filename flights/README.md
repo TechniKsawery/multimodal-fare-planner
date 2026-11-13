@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](README.pl.md)
+
 # Moduł cen lotów (`flights/`)
 
 Szacuje cenę pojedynczego segmentu lotu: cena biletu (z Travelpayouts Data API) + koszty

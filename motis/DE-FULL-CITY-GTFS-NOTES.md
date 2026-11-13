@@ -1,3 +1,5 @@
+English | Polski: [wersja polska](DE-FULL-CITY-GTFS-NOTES.pl.md)
+
 # Lokalny transport miejski HVV/MVV/VRS w MOTIS — do zrobienia przez RC na PC
 
 Status: **PRZYGOTOWANE, NIE WYKONANE**. Ten kontener (sesja w chmurze) nie ma dostępu do

@@ -1,27 +1,29 @@
 English | Polski: [wersja polska](DE-FULL-CITY-GTFS-NOTES.pl.md)
 
-# Lokalny transport miejski HVV/MVV/VRS w MOTIS — do zrobienia przez RC na PC
+# Local HVV/MVV/VRS public transport in MOTIS—to be done by RC on the PC
 
-Status: **PRZYGOTOWANE, NIE WYKONANE**. Ten kontener (sesja w chmurze) nie ma dostępu do
-Twojego Dockera ani do hostów `mvv-muenchen.de`/`vrsinfo.de`/`mobilitydatabase.org` — pobieranie
-i `docker compose`/`docker run` musi zrobić sesja Remote Control na Twoim PC. Poniżej są gotowe
-komendy do wklejenia, w kolejności. Nic z tego nie zostało jeszcze odpalone.
+Status: **PREPARED, NOT EXECUTED**. This container (cloud session) cannot access
+your Docker or the `mvv-muenchen.de`/`vrsinfo.de`/`mobilitydatabase.org` hosts—
+the download and `docker compose`/`docker run` must be performed by a Remote
+Control session on your PC. The ready-to-paste commands below are in order.
+Nothing here has been run yet.
 
-Kontynuacja PR #46 (OSM całych Niemiec, `motis-main` na porcie 8080) — **OSM zostaje bez zmian**,
-dociągamy tylko 3 nowe pliki GTFS dla lokalnego transportu Hamburga, Monachium i Kolonii/Bonn,
-żeby kalkulatory `fares/hvv.py`/`mvv.py`/`kvb.py` (PR #42, #49) miały realne trasy do wyceniania,
-nie tylko sztywną cenę bez odcinka.
+Continuation of PR #46 (all-Germany OSM, `motis-main` on port 8080)—**OSM
+remains unchanged**; we only add 3 new GTFS files for local transport in
+Hamburg, Munich, and Cologne/Bonn, so that the `fares/hvv.py`/`mvv.py`/`kvb.py`
+calculators (PR #42, #49) have real routes to price, not only a fixed price
+without a segment.
 
-## 0. Skąd te pliki i jaka licencja (research, zob. pamięć projektu)
+## 0. Where the files come from and their licences (research, see project memory)
 
-| Związek | URL | Licencja | Rozmiar (ZIP / rozpakowane) |
+| Network | URL | Licence | Size (ZIP / unpacked) |
 |---|---|---|---|
-| HVV (Hamburg) | https://files.mobilitydatabase.org/mdb-3362/mdb-3362-202607201528/mdb-3362-202607201528.zip | **DL-DE-BY-2.0** (https://www.govdata.de/dl-de/by-2-0) — wystarczy atrybucja | ~38-41 MB / ~275-280 MB |
-| MVV (Monachium) | https://www.mvv-muenchen.de/fileadmin/mediapool/developer/opendata/gesamt_gtfs.zip | **CC BY 4.0** | nieujawniony |
-| VRS (Kolonia/Bonn, zawiera też SPNV) | http://download.vrsinfo.de/gtfs/GTFS_VRS_mit_SPNV.zip | **CC BY 4.0** | nieujawniony |
+| HVV (Hamburg) | https://files.mobilitydatabase.org/mdb-3362/mdb-3362-202607201528/mdb-3362-202607201528.zip | **DL-DE-BY-2.0** (https://www.govdata.de/dl-de/by-2-0)—attribution is sufficient | ~38-41 MB / ~275-280 MB |
+| MVV (Munich) | https://www.mvv-muenchen.de/fileadmin/mediapool/developer/opendata/gesamt_gtfs.zip | **CC BY 4.0** | not disclosed |
+| VRS (Cologne/Bonn, also includes SPNV) | http://download.vrsinfo.de/gtfs/GTFS_VRS_mit_SPNV.zip | **CC BY 4.0** | not disclosed |
 
-Atrybucja do dopisania w README/stopce aplikacji (jeśli jeszcze nie ma — sprawdź
-`fares/README.md`/`attractions/README.md` czy jest już sekcja atrybucji danych):
+Attribution to add to the README/application footer (if not already present—check
+`fares/README.md`/`attractions/README.md` for an attribution section):
 
 ```
 Dane GTFS: Hamburger Verkehrsverbund GmbH (HVV), licencja DL-DE-BY-2.0 — https://www.govdata.de/dl-de/by-2-0
@@ -29,10 +31,10 @@ Dane GTFS: Münchner Verkehrs- und Tarifverbund GmbH (MVV), licencja CC BY 4.0
 Dane GTFS: Verkehrsverbund Rhein-Sieg GmbH (VRS), licencja CC BY 4.0
 ```
 
-HVV i MVV są aktualizowane raz na jakiś czas (miesięcznie), VRS **codziennie w nocy** — jeśli to
-zostanie na stałe, warto docelowo zautomatyzować pobieranie VRS (poza zakresem tego PR-a).
+HVV and MVV are updated occasionally (monthly), VRS **every night**—if this
+becomes permanent, automate VRS downloads eventually (outside this PR's scope).
 
-## 1. Pobranie 3 plików GTFS (PowerShell, z katalogu repo głównego checkoutu)
+## 1. Downloading the 3 GTFS files (PowerShell, from the main checkout directory)
 
 ```powershell
 cd "<katalog-projektu>"
@@ -45,76 +47,85 @@ Invoke-WebRequest -Uri "http://download.vrsinfo.de/gtfs/GTFS_VRS_mit_SPNV.zip" -
 Get-Item data\gtfs\de\hvv.zip, data\gtfs\de\mvv.zip, data\gtfs\de\vrs.zip | Select-Object Name, Length
 ```
 
-Jeśli któryś URL nie zadziała (producent czasem zmienia link): HVV ma stabilny fallback na
-`https://mobilitydatabase.org/feeds/mdb-3362` (strona z linkiem "Download"), MVV i VRS mają
-swoje strony operatora (`mvv-muenchen.de/fahrplanauskunft/fuer-entwickler/opendata/`,
-`vrsinfo.de/fahrplan/oepnv-daten-fuer-webentwickler.html`) — tam zawsze jest aktualny link.
+If a URL fails (the provider sometimes changes the link): HVV has a stable
+fallback at `https://mobilitydatabase.org/feeds/mdb-3362` (the page with a
+"Download" link); MVV and VRS have operator pages
+(`mvv-muenchen.de/fahrplanauskunft/fuer-entwickler/opendata/`,
+`vrsinfo.de/fahrplan/oepnv-daten-fuer-webentwickler.html`) where the current
+link is always available.
 
-## 2. Import do NOWEGO wolumenu (osobny port 8082 — nie dotyka `motis-main` na 8080)
+## 2. Import into a NEW volume (separate port 8082—not the `motis-main` on 8080)
 
-OSM jest już na dysku (`data/osm/poland-germany-latest.osm.pbf`, scalony w PR #46) — tego
-importu **nie trzeba powtarzać**, tylko dodać 3 nowe datasety GTFS do konfigu. Nowy plik configu
-(`motis/config.de-full-city-gtfs.yml`) i compose (`docker-compose.de-full-city-gtfs.yml`) są już
-w repo (ten PR).
+OSM is already on disk (`data/osm/poland-germany-latest.osm.pbf`, merged in
+PR #46)—this import does **not** need to be repeated; only add the 3 new GTFS
+datasets to the config. The new config
+(`motis/config.de-full-city-gtfs.yml`) and compose file
+(`docker-compose.de-full-city-gtfs.yml`) are already in the repository (this PR).
 
 ```powershell
 cd "<katalog-projektu>"
 docker compose -f docker-compose.de-full-city-gtfs.yml --profile import-city-gtfs run --rm motis-import-city-gtfs
 ```
 
-**Zapotrzebowanie na pamięć** — oszacowanie, NIE zmierzone (ten kontener nie ma dostępu do
-Twojego Dockera): limit WSL2 jest już podniesiony do **10 GB** (PR #46). Sam serwujący kontener
-PL+DE (bez miast) zużywał ~5,3 GB (~4,1 GB zapasu). 3 nowe pliki GTFS to razem ~40-100 MB
-spakowane — rząd wielkości mniejszy niż OSM całych Niemiec (7 GB wejścia) — więc **sam import
-prawdopodobnie zmieści się w 10 GB**, ale import wcześniej (OSM) padał na OOM przy domyślnym
-limicie, więc **obserwuj `docker stats` podczas importu**. Jeśli padnie na OOM:
+**Memory requirement**—an estimate, NOT measured (this container cannot access
+your Docker): the WSL2 limit is already raised to **10 GB** (PR #46). The
+PL+DE serving container alone (without cities) used ~5,3 GB (~4,1 GB spare).
+The 3 new GTFS files total ~40-100 MB compressed—much smaller than all-Germany
+OSM (7 GB input)—so the import will **probably fit in 10 GB**, but the earlier
+OSM import failed with OOM at the default limit, so **watch `docker stats`
+during import**. If it fails with OOM:
 ```
 # %USERPROFILE%\.wslconfig
 [wsl2]
 memory=12GB
 ```
-potem `wsl --shutdown` i uruchom Docker Desktop ponownie, powtórz import. Po zakończeniu importu
-można wrócić do 10 GB (serwowanie samo powinno zużywać podobnie jak teraz, może nieco więcej —
-nowe indeksy w RAM dla 3 dodatkowych feedów, ale to dużo mniej danych niż OSM).
+then run `wsl --shutdown`, restart Docker Desktop, and repeat the import. After
+the import, the limit can return to 10 GB (serving should use about the same,
+possibly slightly more—three extra feed indexes in RAM, but far less data than
+OSM).
 
-## 3. Test równoległy na porcie 8082 (NIE dotyka produkcyjnego 8080)
+## 3. Parallel test on port 8082 (does NOT touch production 8080)
 
 ```powershell
 docker compose -f docker-compose.de-full-city-gtfs.yml up -d motis-city-gtfs
 ```
 
-Sprawdź w przeglądarce/curl, że serwer wstał:
+Check in a browser/curl that the server starts:
 ```powershell
 curl http://localhost:8082/api/v1/geocode?text=Hauptbahnhof+Hamburg
 ```
 
-**Test, który faktycznie ma znaczenie** (tego nie mogłem zrobić z tej sesji — potrzeba żywego
-MOTIS): trasa z lokalnym odcinkiem w każdym z 3 miast, np. przez `demo.py`/`app.py` wskazane na
-port 8082, albo bezpośrednio przez API MOTIS:
-- Hamburg: `Hauptbahnhof Hamburg` → `Landungsbrücken` (krótki odcinek lokalny HVV)
-- Monachium: `Marienplatz München` → `Hauptbahnhof München` (MVV)
-- Kolonia: `Köln Hauptbahnhof` → `Köln Deutz` (VRS/KVB)
+**The test that actually matters** (I could not do this from the current
+session—live MOTIS is required): a route with a local segment in each of the
+three cities, for example through `demo.py`/`app.py` pointed at port 8082, or
+directly through the MOTIS API:
+- Hamburg: `Hauptbahnhof Hamburg` → `Landungsbrücken` (short local HVV segment)
+- Munich: `Marienplatz München` → `Hauptbahnhof München` (MVV)
+- Cologne: `Köln Hauptbahnhof` → `Köln Deutz` (VRS/KVB)
 
-Sprawdź, że zwrócona trasa ma `agencyName`/nazwy przystanków zawierające "HVV"/"Hamburg",
-"MVV"/"München" albo "VRS"/"Köln" — `routing/pricing.py::price_bus_leg()` (linie ~353-366)
-dopasowuje po tych słowach kluczowych (już wgrane, PR #42/#49, nic nie trzeba zmieniać w
-kodzie), więc jeśli nazwy się zgadzają, cena powinna wyjść z kalkulatora HVV/MVV/kvb.py, nie
-z fallbacku. Jeśli dopasowanie nie zadziała (inne nazewnictwo w danych niż założone słowa
-kluczowe), trzeba poszerzyć `HVV_KEYWORDS`/`MVV_KEYWORDS`/`VRS_KOLN_KEYWORDS` w
-`routing/pricing.py` o rzeczywiste nazwy z danych — da się to ustalić tylko patrząc na prawdziwą
-odpowiedź MOTIS, stąd ten krok musi zrobić sesja z żywym dostępem do Twojego Dockera.
+Check that the returned route has `agencyName`/stop names containing "HVV"/"Hamburg",
+"MVV"/"München", or "VRS"/"Köln"—`routing/pricing.py::price_bus_leg()` (around
+lines ~353-366) matches these keywords (already loaded, PR #42/#49; no code
+change is needed), so if the names match, the price should come from the
+HVV/MVV/kvb.py calculator rather than the fallback. If matching fails (the
+data uses different names from the assumed keywords), extend
+`HVV_KEYWORDS`/`MVV_KEYWORDS`/`VRS_KOLN_KEYWORDS` in `routing/pricing.py` with
+the actual names—this can only be determined from a real MOTIS response, so a
+live Docker session must perform this step.
 
-## 4. Przełączenie na produkcyjny port 8080 — WYKONANE (2026-10-10)
+## 4. Switching to production port 8080—DONE (2026-10-10)
 
-Status: **ZROBIONE przez Ksaviego przez RC, zweryfikowane** — `motis-main` na porcie 8080 serwuje
-dane z wolumenu `multimodalnawyszukiwarka_motis-data-de-full-city-gtfs` (nazwa wolumenu z prefiksem
-projektu `docker compose`, nie `motis-data-de-full-city-gtfs` jak w gołym `docker run` poniżej —
-jeśli odtwarzasz ten krok ręcznie bez przechodzenia przez compose, sprawdź `docker volume ls` i
-użyj dokładnej nazwy, którą tam widzisz). Geocoding Hamburga na `http://localhost:8080` potwierdzony
-(pierwszy curl po starcie dał "Empty reply from server" — serwer jeszcze się rozgrzewał/ładował
-indeksy, drugi curl kilka sekund później zadziałał normalnie — to nie błąd, tylko czas startu).
+Status: **DONE by Ksavi through RC, verified**—`motis-main` on port 8080 serves
+data from volume `multimodalnawyszukiwarka_motis-data-de-full-city-gtfs` (the
+volume name with the `docker compose` project prefix, not
+`motis-data-de-full-city-gtfs` as in the bare `docker run` below—if reproducing
+manually without compose, check `docker volume ls` and use the exact name shown).
+Hamburg geocoding at `http://localhost:8080` was confirmed (the first curl after
+startup returned "Empty reply from server"—the server was still warming up/loading
+indexes; a second curl a few seconds later worked normally—this is startup time,
+not an error).
 
-Analogicznie do przełączenia PL+NRW -> PL+DE w PR #46:
+Analogously to the PL+NRW -> PL+DE switch in PR #46:
 
 ```powershell
 docker stop motis-city-gtfs   # albo nazwa z `docker compose ps`, np. multimodalnawyszukiwarka-motis-city-gtfs-1
@@ -127,11 +138,11 @@ docker run -d --name motis-main -p 8080:8080 `
 docker update --restart unless-stopped motis-main
 ```
 
-Stary kontener/wolumen `motis-main`+`amazing-sammet-2e5029_motis-data-de-full` (PL+DE **bez**
-miast) **nie jest usuwany** — zostaje jako backup/rollback, tak jak przy wcześniejszym
-przełączeniu PL+NRW→PL+DE.
+The old container/volume `motis-main`+`amazing-sammet-2e5029_motis-data-de-full`
+(PL+DE **without** cities) is **not deleted**—it remains as a backup/rollback,
+as in the earlier PL+NRW→PL+DE switch.
 
-## 5. Rollback (gdyby coś nie zagrało)
+## 5. Rollback (if something does not work)
 
 ```powershell
 docker stop motis-main
@@ -143,12 +154,11 @@ docker run -d --name motis-main -p 8080:8080 `
 docker update --restart unless-stopped motis-main
 ```
 
-## Co NIE jest zrobione przez tę zmianę (zostaje do zweryfikowania przez RC)
+## What this change does NOT cover (RC must still verify)
 
-- Pobranie plików, import, test routingu i przełączenie — **WYKONANE** przez Ksaviego przez RC
-  (2026-10-10), kroki 1-4 zaliczone, produkcja na 8080 działa na nowych danych z HVV/MVV/VRS.
-- Ceny MVV strefy M-6/M-12 (zob. PR #49, `verification/hvv-mvv-vrs-ulgi-transport-2026-10-10.md`)
-  — niezależne od tego zadania, zostają do potwierdzenia w przeglądarce.
-- Dopasowanie słów kluczowych w `routing/pricing.py` ZADZIAŁAŁO na rzeczywistych danych (test
-  `scripts/test_local_transit_hvv_mvv_vrs.py` na porcie 8082, wszystkie 3 miasta `oficjalna_taryfa`)
-  — nic do poprawki w kodzie.
+- Downloading the files, import, routing test, and switch—**DONE** by Ksavi through RC
+  (2026-10-10); steps 1–4 passed and production on 8080 runs with new HVV/MVV/VRS data.
+- MVV M-6/M-12 zone prices (see PR #49, `verification/hvv-mvv-vrs-ulgi-transport-2026-10-10.md`)—independent of this task and still awaiting browser confirmation.
+- Keyword matching in `routing/pricing.py` **WORKED** on real data (test
+  `scripts/test_local_transit_hvv_mvv_vrs.py` on port 8082, all 3 cities
+  `oficjalna_taryfa`)—no code fix needed.

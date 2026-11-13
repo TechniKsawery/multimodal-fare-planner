@@ -1,45 +1,50 @@
 English | Polski: [wersja polska](CONTRIBUTING.pl.md)
 
-# Jak wnosić zmiany
+# Contributing
 
-Projekt przyjmuje poprawki i ulepszenia od społeczności. Zmiany powinny być
-zgodne z [PolyForm Noncommercial License 1.0.0](LICENSE). Autorzy zachowują
-prawa autorskie do swoich oryginalnych wkładów, a ich autorstwo powinno być
-widoczne w historii GitHub oraz w opisie pull requesta.
+The project welcomes fixes and improvements from the community. Changes must
+comply with the [PolyForm Noncommercial License 1.0.0](LICENSE). Authors retain
+copyright in their original contributions, and their authorship should be
+visible in the GitHub history and pull request description.
 
-Przed przesłaniem pull requesta upewnij się, że masz prawo udostępnić zmianę
-oraz że nie zawiera ona kluczy API, danych prywatnych ani materiałów objętych
-niezgodną licencją. Wkład nie zmienia licencji istniejącego kodu projektu.
+Before submitting a pull request, make sure that you have the right to share
+the change and that it contains no API keys, private data, or materials under
+an incompatible licence. A contribution does not change the licence of the
+project's existing code.
 
-## Przed merge
+## Before merging
 
-- CI (`.github/workflows/tests.yml`) uruchamia `pytest` na każdym pull requeście do `main`.
-  Musi być zielone. Testy wymagające MOTIS są w CI pomijane (skip), więc zielone CI to NIE jest
-  dowód, że wyniki zgadzają się z rzeczywistością.
-- `tests/test_data_consistency.py` pilnuje reguł danych: każda cena ulgowa ma granicę wieku lub
-  status, każda potwierdzona cena ma źródło (URL) i datę, karta miejska bez potwierdzonego
-  istnienia nie trafia do rekomendacji, waluty nie są mieszane. Dodając dane, nie dopisuj wyjątków
-  do list `KNOWN_*` — uzupełnij rekord.
+- CI (`.github/workflows/tests.yml`) runs `pytest` on every pull request to `main`.
+  It must be green. Tests requiring MOTIS are skipped in CI, so a green CI is NOT
+  proof that the results match reality.
+- `tests/test_data_consistency.py` enforces data rules: every discounted price has
+  an age or status boundary, every verified price has a source (URL) and date,
+  a city card without verified existence is excluded from recommendations, and
+  currencies are not mixed. When adding data, do not add exceptions to `KNOWN_*`
+  lists—complete the record.
 
-## Duża zmiana wymaga testu na żywo PRZED merge
+## A large change requires a live test BEFORE merging
 
-Za dużą zmianę uważamy m.in.: nowe miasto lub kategorię danych, zmianę kalkulatora cen/zniżek/kart,
-zmianę routingu lub konfiguracji MOTIS, zmianę łączącą kilka PR-ów naraz.
+A large change includes, among other things: a new city or data category, a
+change to the price/discount/card calculator, a routing or MOTIS configuration
+change, or a change combining several PRs.
 
-Przed merge takiej zmiany uruchom ją na realnym MOTIS (`docker compose up`, potem `demo.py` lub
-UI) i sprawdź na żywo kilka tras oraz kilka cen z oficjalnym cennikiem operatora. Wynik (co
-sprawdzono, na jakich trasach) wpisz w opis PR. Zielone testy bez takiego sprawdzenia nie
-wystarczają do merge dużej zmiany.
+Before merging such a change, run it against real MOTIS (`docker compose up`,
+then `demo.py` or the UI) and live-check several routes and prices against the
+operator's official tariff. Record what was checked and on which routes in the
+PR description. Green tests without this check are not sufficient for merging a
+large change.
 
-## Zasada źródeł
+## Source rule
 
-Nigdy nie zgaduj ceny, zniżki ani partnera: podaj URL źródła i datę weryfikacji albo ustaw
-`price_verified: false`.
+Never guess a price, discount, or partner: provide the source URL and
+verification date, or set `price_verified: false`.
 
-## Dane z zewnętrznych AI i wklejek
+## Data from external AI and pasted material
 
-Dane i liczby pochodzące od zewnętrznych AI lub z wklejek z innych czatów (ceny, zniżki, zasady,
-nazwy partnerów) wolno wpisać do repo dopiero po weryfikacji w źródle pierwotnym (oficjalny cennik,
-regulamin, strona operatora). Zewnętrzne AI w tym projekcie wielokrotnie myliły liczby i mieszały
-dokumenty. Każda cena ma `source_url` i datę weryfikacji; jeśli źródła nie da się sprawdzić, pole
-zostaje puste lub `price_verified: false`.
+Data and figures from external AI or pasted material from other chats (prices,
+discounts, rules, partner names) may be added to the repository only after
+verification against a primary source (official tariff, terms, or operator
+website). External AI has repeatedly confused figures and documents in this
+project. Every price has a `source_url` and verification date; if the source
+cannot be checked, the field remains empty or `price_verified: false`.

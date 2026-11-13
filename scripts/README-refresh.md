@@ -1,69 +1,64 @@
 English | Polski: [wersja polska](README-refresh.pl.md)
 
-# Odświeżanie danych (GTFS) na produkcji — instrukcja bez pomocy AI
+# Refreshing production data (GTFS)—instructions without AI assistance
 
-Skrypt: `scripts\refresh_prod.ps1`. Robi wszystko sam i **niczego nie kasuje**. Przy błędzie wraca do poprzedniej wersji.
+Script: `scripts\refresh_prod.ps1`. It does everything automatically and **deletes nothing**. On failure it returns to the previous version.
 
-## Zanim zaczniesz
-1. Uruchom Docker Desktop i poczekaj, aż będzie "running".
-2. Sprawdź, że `motis-main` działa: `docker ps` (ma być na porcie 8080, strona działa).
-3. Wolne miejsce na dysku: min. 40 GB (skrypt sprawdzi sam i się zatrzyma, jeśli jest mniej).
+## Before you start
+1. Start Docker Desktop and wait until it is "running".
+2. Check that `motis-main` is running: `docker ps` (it should use port 8080 and the page should work).
+3. Free disk space: at least 40 GB (the script checks this and stops if there is less).
 
-## Uruchomienie
+## Running
 ```powershell
 cd "<katalog-projektu>"
 powershell -ExecutionPolicy Bypass -File scripts\refresh_prod.ps1
 ```
-Trwa zwykle od kilkudziesięciu minut do ponad godziny (import). Nie zamykaj okna. Log leci też do `data\logs\refresh_prod-<data>.log`.
+It usually takes from several dozen minutes to over an hour (import). Do not close the window. The log is also written to `data\logs\refresh_prod-<data>.log`.
 
-Bezpieczny pierwszy raz (wszystko poza przełączeniem produkcji): dodaj `-NoSwitch`.
+For a safe first run (everything except switching production), add `-NoSwitch`.
 
-## Szybsza wersja: `-SeedFromProd` (NIEZWERYFIKOWANE na żywo)
+## Faster mode: `-SeedFromProd` (NOT LIVE-VERIFIED)
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\refresh_prod.ps1 -SeedFromProd
 ```
-Przed importem kopiuje dane obecnej produkcji do nowego wolumenu (prod jest montowany tylko do odczytu, nic w nim się nie zmienia). Pomysł: przy tym samym pliku OSM MOTIS pomija najdłuższe etapy (`osr`, `adr`) i przelicza głównie rozkłady. To wnioskowanie z logów, jeszcze nie sprawdzone na żywo; jeśli nie przyspieszy, import i tak się wykona, tylko dłużej.
-- Rób to, gdy **nikt nie szuka tras** (kopiowanie plików w trakcie zapisu mogłoby dać niespójną kopię).
-- Skrypt sam robi `docker pull alpine:3`; gdy się nie uda (brak internetu), pobierz ręcznie `docker pull alpine:3` albo uruchom bez `-SeedFromProd`.
-- Wymaga dodatkowego miejsca na dysku (kopia całego wolumenu prod) i pobrania małego obrazu `alpine:3`.
+Before importing, it copies the current production data to a new volume (production is mounted read-only and is not changed). The idea is that, with the same MOTIS OSM file, MOTIS skips the longest stages (`osr`, `adr`) and mainly recalculates timetables. This is inferred from logs and has not yet been live-tested; if it does not help, the import still runs, only for longer.
+- Do this when **nobody is searching for routes** (copying files while they are being written could produce an inconsistent copy).
+- The script runs `docker pull alpine:3`; if it fails (no internet), run `docker pull alpine:3` manually or run without `-SeedFromProd`.
+- It requires additional disk space (a copy of the entire production volume) and downloading the small `alpine:3` image.
 
-## Przełączenie gotowego wolumenu: `-SwitchOnly` (bez ponownego importu)
-Gdy bieg z `-NoSwitch` już przeszedł i masz przetestowany wolumen `mw_motis_refresh_<data>`:
+## Switching a ready volume: `-SwitchOnly` (without importing again)
+When a run with `-NoSwitch` has completed and you have tested volume `mw_motis_refresh_<data>`:
 ```powershell
 docker volume ls     # znajdź nazwę wolumenu mw_motis_refresh_...
 powershell -ExecutionPolicy Bypass -File scripts\refresh_prod.ps1 -SwitchOnly -Volume mw_motis_refresh_20261012-1606
 ```
-Skrypt: sprawdza, że wolumen istnieje i nie jest obecnym prod, **blokuje przełączenie**, jeśli któryś feed GTFS, plik OSM lub config jest nowszy niż wolumen (dane mogłyby nie pasować), sprawdza ważność feedów, testuje wolumen na porcie 8083, dopiero potem zamienia prod (`motis-main` → `motis-main-old`) i testuje 8080. Przy błędzie po zamianie sam wraca do starej wersji. Zabezpieczenie opiera się na czasach modyfikacji plików (nie na hashach), więc ponowne pobranie tych samych plików też zablokuje przełączenie; wtedy zrób zwykły bieg.
+The script checks that the volume exists and is not the current production volume, **blocks the switch** if any GTFS feed, OSM file, or config is newer than the volume (the data could be mismatched), checks feed freshness, tests the volume on port 8083, and only then replaces production (`motis-main` → `motis-main-old`) and tests port 8080. If the post-switch test fails, it returns to the old version automatically. The safeguard uses file modification times (not hashes), so downloading the same files again also blocks the switch; in that case, perform a normal run.
 
-## Co robi (po kolei)
-1. Sprawdza Docker, miejsce na dysku, czy produkcja żyje.
-2. Pobiera feedy i sprawdza ważność (min. 3 dni).
-3. Importuje do NOWEGO wolumenu `mw_motis_refresh_<data>`.
-4. Odpala test na porcie 8083 (Warszawa, Kraków, Hamburg, trasa Lublin → Gelsenkirchen).
-5. Zatrzymuje `motis-main`, zmienia mu nazwę na `motis-main-old` i startuje nowy `motis-main` na 8080.
-6. Powtarza testy na 8080. Jeśli któryś padnie — **sam wraca** do starej wersji.
+## What it does (in order)
+1. Checks Docker, disk space, and whether production is alive.
+2. Downloads feeds and checks freshness (at least 3 days).
+3. Imports into a NEW volume `mw_motis_refresh_<data>`.
+4. Runs a test on port 8083 (Warsaw, Kraków, Hamburg, Lublin → Gelsenkirchen route).
+5. Stops `motis-main`, renames it to `motis-main-old`, and starts the new `motis-main` on port 8080.
+6. Repeats the tests on port 8080. If one fails, it **automatically returns** to the old version.
 
-Komunikat `GOTOWE` na zielono = wszystko działa. Komunikat `BŁĄD` na czerwono = przeczytaj, co pisze; skrypt już zadbał o stan produkcji.
+Green `READY` = everything works. Red `ERROR` = read the message; the script has already protected the production state.
 
-## Pliki, których ten skrypt NIE odświeża
+## Files this script does NOT refresh
 
-`scripts\fetch_data.py` pobiera tylko feedy krajowe/NRW oraz Warszawę/Kraków. Skrypt sam sprawdzi
-ich obecność i zatrzyma się z czytelnym błędem PRZED pobraniem/importem, jeśli ich nie znajdzie —
-ale nie wie, jak je pobrać/odświeżyć:
-- `data\osm\poland-germany-latest.osm.pbf` (scalony OSM Polski i całych Niemiec)
-- `data\gtfs\de\hvv.zip` (Hamburg), `mvv.zip` (Monachium), `vrs.zip` (Kolonia/Bonn)
+`scripts\fetch_data.py` downloads only the domestic/NRW feeds and Warsaw/Kraków. The script checks that these files exist and stops with a clear error BEFORE downloading/importing if any is missing—but it does not know how to download/refresh them:
+- `data\osm\poland-germany-latest.osm.pbf` (merged Poland and all-Germany OSM)
+- `data\gtfs\de\hvv.zip` (Hamburg), `mvv.zip` (Munich), `vrs.zip` (Cologne/Bonn)
 
-Te pliki trzeba dostarczyć/odświeżyć ręcznie (ten sam sposób, jakim powstały pierwotnie —
-zob. `motis\PL-CITIES-GTFS-NOTES.md`). Feedy GTFS tych trzech miast też wygasają z czasem jak
-reszta — `scripts\check_gtfs_freshness.py` (wywoływany przez ten skrypt) je widzi i ostrzeże,
-ale nikt ich automatycznie nie odświeża.
+These files must be supplied/refreshed manually (the same way they were originally created—see `motis\PL-CITIES-GTFS-NOTES.md`). These three cities' GTFS feeds also expire over time like the rest—`scripts\check_gtfs_freshness.py` (called by this script) sees and warns about them, but nobody refreshes them automatically.
 
-## Czego NIGDY nie robić ręcznie
-- Nie kasuj wolumenów: `plcities-test_motis-data-pl-cities` (obecna produkcja), `amazing-sammet-2e5029_motis-data-de-full` (rollback), `multimodalnawyszukiwarka_motis-data-de-full-city-gtfs`, `multimodalnawyszukiwarka_motis-data`.
-- Żadnych `docker volume prune` ani `docker system prune`.
-- Stare wolumeny `mw_motis_refresh_*` i kontener `motis-main-old` kasuj dopiero po kilku dniach spokojnej pracy.
+## What you must NEVER do manually
+- Do not delete volumes: `plcities-test_motis-data-pl-cities` (current production), `amazing-sammet-2e5029_motis-data-de-full` (rollback), `multimodalnawyszukiwarka_motis-data-de-full-city-gtfs`, `multimodalnawyszukiwarka_motis-data`.
+- Do not run `docker volume prune` or `docker system prune`.
+- Delete old `mw_motis_refresh_*` volumes and the `motis-main-old` container only after several days of stable operation.
 
-## Rollback ręczny (gdyby skrypt się wysypał w połowie)
+## Manual rollback (if the script fails halfway)
 ```powershell
 docker ps -a                       # zobacz, jakie kontenery motis-* istnieją
 docker stop motis-main             # jeśli stoi nowy, zepsuty
@@ -72,10 +67,10 @@ docker rename motis-main-old motis-main
 docker update --restart unless-stopped motis-main
 docker start motis-main
 ```
-Potem poczekaj ok. minuty i sprawdź `http://localhost:8080`. Jeśli kontenera `motis-main-old` nie ma, szukaj `motis-main-old-<data>` (`docker ps -a`).
+Then wait about a minute and check `http://localhost:8080`. If there is no `motis-main-old` container, look for `motis-main-old-<data>` (`docker ps -a`).
 
-## Najczęstsze problemy
-- "Za mało miejsca" — zwolnij dysk, uruchom ponownie. Nic nie zostało zmienione.
-- "Kontener motis-refresh-test istnieje" — pozostałość po przerwanym teście: `docker rm -f motis-refresh-test`.
-- Import pada na OOM — podnieś limit pamięci WSL2 w `%USERPROFILE%\.wslconfig` (`memory=12GB`), `wsl --shutdown`, uruchom Dockera i skrypt ponownie.
-- Feed wygasa za krótko — źródło nie wydało świeżej wersji; spróbuj później.
+## Common problems
+- "Not enough space"—free disk space and run again. Nothing was changed.
+- "Container motis-refresh-test already exists"—left over from an interrupted test: `docker rm -f motis-refresh-test`.
+- Import fails with OOM—raise the WSL2 memory limit in `%USERPROFILE%\.wslconfig` (`memory=12GB`), run `wsl --shutdown`, start Docker, and run the script again.
+- Feed expires too soon—the source has not published a fresh version; try later.

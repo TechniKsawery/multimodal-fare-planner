@@ -1,78 +1,77 @@
 English | Polski: [wersja polska](DE-FULL-NOTES.pl.md)
 
-# OSM całych Niemiec — zaimportowane i połączone w 1 system (port 8080)
+# All-Germany OSM—imported and joined into one system (port 8080)
 
-Status: **zaimportowane, przetestowane, połączone w jeden system**. Port
-8080 serwuje teraz PL+DE (kontener `motis-main`). Stary wolumen `motis-data`
-(PL+NRW) zachowany jako backup/rollback, nie usunięty.
+Status: **imported, tested, and joined into one system**. Port
+8080 now serves PL+DE (container `motis-main`). The old `motis-data` volume
+(PL+NRW) is retained as a backup/rollback and was not deleted.
 
-## Co zrobiono
+## What was done
 
-1. Pobrano `poland-latest.osm.pbf` + `germany-latest.osm.pbf` z Geofabrik
-   (ten sam moment, żeby uniknąć konfliktów węzłów na granicy) do
+1. Downloaded `poland-latest.osm.pbf` + `germany-latest.osm.pbf` from Geofabrik
+   (at the same time, to avoid border node conflicts) into
    `data/osm/`.
-2. Scalono je przez `osmium merge` → `data/osm/poland-germany-latest.osm.pbf`
-   (7,0 GB). Oryginalne pliki PL/DE osobno **usunięte** po scaleniu (nie są
-   już potrzebne, merge jest deterministyczny — w razie czego można je
-   ściągnąć ponownie i scalić od nowa).
-3. Zaimportowano do osobnego wolumenu Dockera (`amazing-sammet-2e5029_motis-data-de-full`,
-   13,6 GB) przez `docker-compose.de-full.yml` + `motis/config.de-full.yml`,
-   najpierw równolegle na porcie 8081, stary demo na 8080 nietknięty.
-4. Import wymagał podniesienia limitu RAM dla Dockera/WSL2 — zobacz niżej.
-5. Po potwierdzeniu, że działa (testy niżej), **połączono w jeden system**:
-   - zatrzymany stary kontener `multimodalnawyszukiwarka-motis-1` (wolumen
-     `motis-data` z PL+NRW **zachowany**, nie usunięty — to backup),
-   - usunięty eksperymentalny kontener z portu 8081 (jego wolumen,
-     `amazing-sammet-2e5029_motis-data-de-full`, **został**),
-   - uruchomiony nowy kontener `motis-main` na porcie **8080**, na tym
-     samym wolumenie co wyżej:
+2. Merged them with `osmium merge` → `data/osm/poland-germany-latest.osm.pbf`
+   (7,0 GB). The original PL/DE files were **deleted** separately after merging
+   (they are no longer needed; the merge is deterministic—if necessary, they
+   can be downloaded and merged again).
+3. Imported into a separate Docker volume (`amazing-sammet-2e5029_motis-data-de-full`,
+   13,6 GB) using `docker-compose.de-full.yml` + `motis/config.de-full.yml`,
+   first in parallel on port 8081, leaving the old demo on 8080 untouched.
+4. The import required increasing Docker/WSL2 RAM limits—see below.
+5. After confirming that it worked (tests below), **joined it into one system**:
+   - stopped the old container `multimodalnawyszukiwarka-motis-1` (volume
+     `motis-data` with PL+NRW **retained**, not deleted—it is the backup),
+   - removed the experimental container on port 8081 (its volume,
+     `amazing-sammet-2e5029_motis-data-de-full`, **was retained**),
+   - started the new container `motis-main` on port **8080**, using the same
+     volume as above:
      ```powershell
      docker run -d --name motis-main -p 8080:8080 `
        -v amazing-sammet-2e5029_motis-data-de-full:/data `
        -v "<ścieżka repo>\motis\config.de-full.yml:/data/config.yml:ro" `
        ghcr.io/motis-project/motis:latest
      ```
-   - ponownie zweryfikowano na 8080 (adresy, trasa Warszawa → Berlin).
+   - re-verified on 8080 (addresses, Warsaw → Berlin route).
 
-## Ważne: limit RAM Dockera
+## Important: Docker RAM limit
 
-Import **padał na OOM** przy domyślnym limicie WSL2 (7,18 GB — to połowa
-RAM tego hosta, ~14,8 GB, nikt tego nie ustawiał świadomie). Podniesiony
-do **10 GB** w `%USERPROFILE%\.wslconfig`:
+The import **failed with OOM** at the default WSL2 limit (7,18 GB—half of this
+host's RAM, ~14,8 GB; nobody configured it deliberately). It was raised to
+**10 GB** in `%USERPROFILE%\.wslconfig`:
 
 ```
 [wsl2]
 memory=10GB
 ```
 
-**Zostaje tak na razie.** Pojedynczy kontener (po połączeniu, bez
-drugiego obok) zużywa ~5,3 GB — 4,1 GB zapasu w limicie 10 GB, zero
-ryzyka. Limit to tylko pułap (nie rezerwacja), więc nie kosztuje nic przy
-obecnym zużyciu. Obniżanie go wymagałoby kolejnego restartu WSL/Dockera
-bez realnej korzyści.
+**Leave it this way for now.** A single container (after joining, with no second
+one alongside it) uses ~5,3 GB—4,1 GB remains within the 10 GB limit, with zero
+risk. The limit is only a ceiling (not a reservation), so it costs nothing at
+current usage. Lowering it would require another WSL/Docker restart without
+any real benefit.
 
-**Żeby wrócić do domyślnego limitu Dockera** (gdyby jednak było trzeba):
+**To return to Docker's default limit** (if necessary):
 ```
 del %USERPROFILE%\.wslconfig
 wsl --shutdown
 ```
-(potem uruchom Docker Desktop normalnie, i ręcznie odpal `motis-main` —
-patrz niżej).
+(then start Docker Desktop normally and start `motis-main` manually—see below).
 
-## Uwaga: `motis-main` nie ma restart policy
+## Note: `motis-main` has no restart policy
 
-Kontener wystartował zwykłym `docker run` bez `--restart`, więc **po
-restarcie Windows/Dockera/WSL trzeba go odpalić ręcznie jeszcze raz**:
+The container was started with ordinary `docker run` without `--restart`, so
+**after a Windows/Docker/WSL restart it must be started manually again**:
 ```
 docker start motis-main
 ```
-(kontener i jego dane zostają, nie trzeba nic przebudowywać). Żeby to
-zautomatyzować na stałe: `docker update --restart unless-stopped motis-main`.
+(the container and its data remain; nothing needs rebuilding). To automate this
+permanently: `docker update --restart unless-stopped motis-main`.
 
-## Jak wrócić do samego PL+NRW (rollback)
+## Returning to PL+NRW only (rollback)
 
-Stary wolumen (`motis-data`, dane PL+NRW) nie został usunięty. Żeby
-przywrócić stare demo na 8080:
+The old volume (`motis-data`, PL+NRW data) was not deleted. To restore the old
+demo on 8080:
 ```
 docker stop motis-main
 docker run -d --name motis-1 -p 8080:8080 `
@@ -80,41 +79,40 @@ docker run -d --name motis-1 -p 8080:8080 `
   -v "<ścieżka repo>\motis\config.yml:/data/config.yml:ro" `
   ghcr.io/motis-project/motis:latest
 ```
-(albo po prostu `docker compose up -d motis` z głównego checkoutu, jeśli
-`docker-compose.yml` tam nadal wskazuje na wolumen `motis-data`).
+(or simply `docker compose up -d motis` from the main checkout, if
+`docker-compose.yml` there still points to volume `motis-data`).
 
-## Testy, które przeszły
+## Tests that passed
 
-- Geokodowanie adresów (nie tylko nazw stacji) poza NRW: `Reeperbahn 1
-  Hamburg`, `Buerer Straße 8 Gelsenkirchen`, `Skubiszewskiego 22 Lublin` —
-  wszystkie zwracają `type: ADDRESS` z poprawnymi współrzędnymi. Stare demo
-  (PL+NRW) dla adresów poza PL+NRW zwracało co najwyżej zgadywankę po
-  nazwie najbliższej stacji (`type: STOP`), nie prawdziwy adres.
-- Trasa Warszawa → Berlin (po adresie/nazwie miasta): działa, ~5h40m,
-  pociąg Warszawa Centralna → Berlin-Lichtenberg + metro.
-- Pełna trasa demo Skubiszewskiego 22 Lublin → Buerer Straße 8
-  Gelsenkirchen przez aplikację Streamlit (`app.py`): **17 zbudowanych
-  wariantów** (wcześniej na starym OSM trasa by się nie zbudowała w ogóle
-  dla adresu docelowego). 4 pominięte warianty to sprawy niezwiązane z
-  OSM (fizycznie niewykonalna przesiadka, brak tokena Travelpayouts do
-  lotów).
-- Wszystko powyższe zweryfikowane dwa razy: najpierw na porcie 8081
-  (test równoległy), potem ponownie na 8080 po połączeniu w jeden system
-  (te same dane, inny port/kontener).
+- Address geocoding (not just station names) outside NRW: `Reeperbahn 1
+  Hamburg`, `Buerer Straße 8 Gelsenkirchen`, `Skubiszewskiego 22 Lublin`—
+  all return `type: ADDRESS` with correct coordinates. The old demo (PL+NRW)
+  returned at most a guess based on the nearest station name for addresses
+  outside PL+NRW (`type: STOP`), not a real address.
+- Warsaw → Berlin route (by address/city name): works, ~5h40m,
+  Warsaw Centralna → Berlin-Lichtenberg + metro.
+- Full demo route Skubiszewskiego 22 Lublin → Buerer Straße 8
+  Gelsenkirchen through Streamlit (`app.py`): **17 variants built** (on the old
+  OSM, a route for the destination address could not be built at all). The 4
+  skipped variants are unrelated to OSM (physically impossible transfer,
+  missing Travelpayouts token for flights).
+- Everything above was verified twice: first on port 8081 (parallel test), then
+  again on 8080 after joining into one system (same data, different
+  port/container).
 
-## Jeszcze niesprawdzone
+## Not yet checked
 
-- Ceny/ulgi (PR #44/#45: PKP, BahnCard, VRR itd.) na nowych danych —
-  logika po stronie aplikacji się nie zmieniła, powinna działać
-  identycznie jak wcześniej, ale nie klikane ręcznie.
-- Loty / FlixBus na nowych danych.
+- Prices/discounts (PR #44/#45: PKP, BahnCard, VRR, etc.) on the new data—the
+  application logic did not change and should work identically, but it was not
+  clicked through manually.
+- Flights / FlixBus on the new data.
 
-## Pliki
+## Files
 
-- `docker-compose.de-full.yml` — compose użyty do importu (import +
-  serwer eksperymentalny na 8081, już nieużywany, ale zostawiony do
-  wglądu/powtórzenia importu)
-- `motis/config.de-full.yml` — config wskazujący na scalony plik OSM,
-  używany teraz przez `motis-main`
-- `data/osm/poland-germany-latest.osm.pbf` — scalone dane wejściowe (poza
-  gitem, `.gitignore` wyklucza `/data/`)
+- `docker-compose.de-full.yml`—compose file used for import (import +
+  experimental server on 8081, no longer used but retained for
+  inspection/repeating the import)
+- `motis/config.de-full.yml`—config pointing to the merged OSM file, now used
+  by `motis-main`
+- `data/osm/poland-germany-latest.osm.pbf`—merged input data (outside git,
+  `.gitignore` excludes `/data/`)

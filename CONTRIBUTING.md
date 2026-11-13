@@ -1,6 +1,13 @@
 # Jak wnosić zmiany
 
-> Wewnętrzny opis procesu pracy. Repozytorium jest objęte licencją All Rights Reserved ([LICENSE](LICENSE)) i nie przyjmuje zmian z zewnątrz.
+Projekt przyjmuje poprawki i ulepszenia od społeczności. Zmiany powinny być
+zgodne z [PolyForm Noncommercial License 1.0.0](LICENSE). Autorzy zachowują
+prawa autorskie do swoich oryginalnych wkładów, a ich autorstwo powinno być
+widoczne w historii GitHub oraz w opisie pull requesta.
+
+Przed przesłaniem pull requesta upewnij się, że masz prawo udostępnić zmianę
+oraz że nie zawiera ona kluczy API, danych prywatnych ani materiałów objętych
+niezgodną licencją. Wkład nie zmienia licencji istniejącego kodu projektu.
 
 ## Przed merge
 

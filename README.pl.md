@@ -129,7 +129,7 @@ Weryfikacja end-to-end na czystej maszynie została wykonana 2026-11-12 na Windo
 - To niezależny projekt, niepowiązany z PKP Intercity, Deutsche Bahn, FlixBus, VRR, HVV, MVV, VRS, ZTM ani operatorami atrakcji.
 - Ceny, ulgi i rozkłady są szacunkami i mogą być błędne lub nieaktualne. Oprogramowanie nie sprzedaje ani nie rezerwuje biletów.
 - Dane OpenStreetMap wymagają atrybucji zgodnie z [ODbL](https://www.openstreetmap.org/copyright). Dostawcy GTFS zachowują własne licencje; szczegóły są w [`DATA_SOURCES.md`](DATA_SOURCES.md).
-- Kod projektu jest objęty licencją **All Rights Reserved**. Oglądanie go w celu oceny portfolio jest dozwolone, ale kopiowanie, modyfikowanie, redystrybucja lub użycie komercyjne wymagają pisemnej zgody. Zobacz [`LICENSE`](LICENSE).
+- Oryginalny kod i dokumentacja projektu są dostępne na licencji [PolyForm Noncommercial License 1.0.0](LICENSE). Użytkownicy niekomercyjni mogą używać, modyfikować i udostępniać projekt, zachowując licencję oraz informację o autorze. Użycie komercyjne wymaga osobnej pisemnej zgody właściciela praw. Szczegóły atrybucji są w pliku [`NOTICE`](NOTICE).
 - Opcjonalne nieoficjalne interfejsy przewoźników są domyślnie wyłączone i należy ich używać wyłącznie do prywatnych testów, jeśli pozwalają na to regulaminy.
 - Kod, testy, tłumaczenia i część researchu powstały przy znaczącym wsparciu narzędzi AI. Research wygenerowany przez AI uznawano za niezweryfikowany do czasu sprawdzenia w źródłach pierwotnych.
 

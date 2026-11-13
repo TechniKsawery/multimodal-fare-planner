@@ -129,7 +129,7 @@ An end-to-end clean-machine verification was completed on 2026-11-12 on Windows/
 - This is an independent project and is not affiliated with PKP Intercity, Deutsche Bahn, FlixBus, VRR, HVV, MVV, VRS, ZTM or any attraction operator.
 - Prices, discounts and timetables are estimates and may be wrong or outdated. This software does not sell or reserve tickets.
 - OpenStreetMap data requires attribution under the [ODbL](https://www.openstreetmap.org/copyright). GTFS providers retain their own licences; see [`DATA_SOURCES.md`](DATA_SOURCES.md).
-- The project code is **All Rights Reserved**; viewing it for portfolio evaluation is allowed, but copying, modifying, redistributing or commercial use requires written permission. See [`LICENSE`](LICENSE).
+- The original project code and documentation are available under the [PolyForm Noncommercial License 1.0.0](LICENSE). Noncommercial users may use, modify and share the project if they preserve the licence and the required author notice. Commercial use requires separate written permission from the copyright holder. See [`NOTICE`](NOTICE) for attribution details.
 - Optional unofficial carrier interfaces are disabled by default and should be used only for personal testing where permitted.
 - Code, tests, translations and part of the research were created with substantial assistance from AI tools. AI-generated research was treated as unverified until checked against primary sources.
 
